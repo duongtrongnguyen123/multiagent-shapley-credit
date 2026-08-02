@@ -152,6 +152,10 @@ Vì cả đội chỉ có 19 tài khoản nên tại một thời điểm chỉ 
 Đợt B là Người 3 chạy `mP` và Người 2 chạy `mS` khi các tài khoản đã rảnh. Nhánh coding của
 Người 4 chạy độc lập, không tranh chấp tài khoản với các vòng trên.
 
+Bốn hướng nghiên cứu để cả nhóm chia nhau (router động, negative transfer, topology agent
+như graph, grounded verification) cùng framing MoE/graph được mô tả chi tiết trong
+[`HYPOTHESES.md`](HYPOTHESES.md).
+
 Một số quy tắc chung: nên dùng `N_EVAL=300`; bỏ qua tài khoản `truongdv006` vì đã bị khoá, và
 dùng các tài khoản dự phòng `khunht`, `dnglethnh`, `tbmdemi`; các thành viên nên báo nhau
 trước khi chạy để tránh trùng tài khoản. Sản phẩm bàn giao của mỗi người là file
