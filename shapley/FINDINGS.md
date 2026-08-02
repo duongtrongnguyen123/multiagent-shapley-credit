@@ -1,4 +1,4 @@
-# Shapley Credit Assignment for Multi-Agent LLM Reasoning: Role Value Across Task Difficulty and Model Capacity
+# Credit Assignment in Multi-Agent LLM Reasoning: From Measuring Role Value to Dynamic Composition
 
 **Question:** In a Planner→Solver→Verifier→Aggregator pipeline, how much does each
 role actually contribute — and is any role a free-rider (drawing team reward without

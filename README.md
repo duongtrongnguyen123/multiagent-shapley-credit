@@ -1,5 +1,5 @@
-# Đánh giá đóng góp của từng vai trò trong hệ suy luận multi-agent LLM bằng giá trị Shapley: mức đóng góp thay đổi theo độ khó bài toán và năng lực model
-<sub>Shapley Credit Assignment for Multi-Agent LLM Reasoning: Role Value Across Task Difficulty and Model Capacity</sub>
+# Đánh giá đóng góp trong hệ suy luận multi-agent LLM: từ đo lường giá trị vai trò đến phối hợp động
+<sub>Credit Assignment in Multi-Agent LLM Reasoning: From Measuring Role Value to Dynamic Composition</sub>
 
 Dự án này đo lường mức đóng góp thực sự của từng vai trò (agent) trong một pipeline
 multi-agent gồm bốn tác nhân **Planner → Solver → Verifier → Aggregator** khi cùng giải
@@ -136,31 +136,28 @@ Một vài điểm cần lưu ý khi chạy:
 
 ## 5. Phân công công việc (đội 4 người)
 
-Vòng nền `m1` (MATH đồng nhất 1.5B) đã hoàn tất, và đây là điều kiện tiên quyết cho mọi vòng
-năng lực về sau. Vì Aggregator vươn lên vị trí số 1 trên MATH, vòng nâng Aggregator lên 7B
-hiện là thí nghiệm đáng ưu tiên nhất.
+Vòng nền `m1` (MATH đồng nhất 1.5B) đã hoàn tất và là dữ liệu chung cho cả bốn hướng. Mỗi
+người phụ trách một hypothesis; bốn hypothesis không rời rạc mà là bốn bước của một lập luận
+nhân–quả: **H2 chẩn đoán bệnh → H1 kê thuốc → H3 đổi cấu trúc → H4 thay cơ chế.**
 
-| Người | Nhiệm vụ | Lệnh chính | Lý do |
-|---|---|---|---|
-| **Người 1 · Nguyên** | Vòng 7B-Aggregator (`mA`) và tổng hợp cuối cùng | `BIG=A ROUND=mA N_EVAL=300 python orchestrate_math_role7b.py` | Kiểm chứng dự đoán: Aggregator có thống trị trên MATH giống như Verifier từng thống trị trên GSM8K hay không |
-| **Người 2** | Vòng 7B-Verifier (`mV`) và 7B-Solver (`mS`) | `BIG=V ROUND=mV N_EVAL=300 python orchestrate_math_role7b.py` | Xem việc nâng năng lực có cứu được Verifier trên bài khó hay nó vẫn bão hòa |
-| **Người 3** | Vòng 7B-Planner (`mP`) | `BIG=P ROUND=mP N_EVAL=300 python orchestrate_math_role7b.py` | Planner đã hết đóng góp âm trên MATH, thử xem bản 7B có biến việc lập dàn ý thành lợi thế thật sự không |
-| **Người 4** | Nhánh Coding (độc lập) | tự dựng kernel Coder cùng bộ MBPP+ có chạy unit test | Verifier lúc này có căn cứ (chạy test thật) và phần thưởng được phân mức — hướng cho kết quả mới mẻ nhất |
+| Người | Hypothesis | Vai trò trong lập luận | Sản phẩm | Mục báo cáo |
+|---|---|---|---|---|
+| **Người 1 · Nguyên** | **H1 — Router động** (gate MoE trên liên minh agent) | *Kê thuốc:* né liên minh xấu, chọn liên minh theo từng câu | `router.py` | Dynamic Composition |
+| **Người 2** | **H2 — Negative transfer** + confidence-gate | *Chẩn đoán:* vì sao agent yếu phá answer đúng (10.6%) | phân tích + patch | Negative Transfer |
+| **Người 3** | **H3 — Topology agent như graph** tối ưu hoá được | *Đổi cấu trúc:* tỉa cạnh gây hại, tìm topology tốt hơn | `interaction.py` + so sánh topology | Agent Graph |
+| **Người 4** | **H4 — Grounded verification** (verifier chạy tool) | *Thay cơ chế:* verifier có căn cứ thay vì suy luận chay | kernel verifier + tool | Grounded Verification |
 
-Vì cả đội chỉ có 19 tài khoản nên tại một thời điểm chỉ nên chạy tối đa hai vòng song song.
-Đợt A (làm ngay) gồm Người 1 chạy `mA` với 8 tài khoản và Người 2 chạy `mV` với 8 tài khoản.
-Đợt B là Người 3 chạy `mP` và Người 2 chạy `mS` khi các tài khoản đã rảnh. Nhánh coding của
-Người 4 chạy độc lập, không tranh chấp tài khoản với các vòng trên.
+Mô tả chi tiết từng hypothesis (giả thuyết, phương pháp, cách đo) nằm trong
+[`HYPOTHESES.md`](HYPOTHESES.md), kèm framing MoE/graph và bằng chứng nền (oracle +19 điểm,
+negative transfer 10.6%). Người 1 tổng hợp bốn mảnh thành luận điểm chung: *phối hợp
+multi-agent nên **động** và **có căn cứ**, không nên **tĩnh** và **chay**.*
 
-Bốn hướng nghiên cứu để cả nhóm chia nhau (router động, negative transfer, topology agent
-như graph, grounded verification) cùng framing MoE/graph được mô tả chi tiết trong
-[`HYPOTHESES.md`](HYPOTHESES.md).
-
-Một số quy tắc chung: nên dùng `N_EVAL=300`; bỏ qua tài khoản `truongdv006` vì đã bị khoá, và
-dùng các tài khoản dự phòng `khunht`, `dnglethnh`, `tbmdemi`; các thành viên nên báo nhau
-trước khi chạy để tránh trùng tài khoản. Sản phẩm bàn giao của mỗi người là file
-`shapley_<round>_results.json` cùng một dòng trong bảng role×capacity chung do Người 1 tổng
-hợp. Chi tiết đầy đủ nằm trong [`shapley/WORK_SPLIT.md`](shapley/WORK_SPLIT.md).
+Các vòng thí nghiệm capacity (`BIG=<P|S|V|A> ROUND=m<X> N_EVAL=300 python
+orchestrate_math_role7b.py`) là **hạ tầng dùng chung** nuôi cho nhiều hypothesis, không phải
+phân công riêng của ai. Một số quy tắc: dùng `N_EVAL=300` (MATH ~7× chậm hơn GSM8K); bỏ tài
+khoản `truongdv006` (đã khoá), dự phòng `khunht`/`dnglethnh`/`tbmdemi`; báo nhau trước khi
+chạy để không trùng tài khoản (tối đa 2 vòng song song trên 19 tài khoản). Trình tự chạy chi
+tiết trong [`shapley/WORK_SPLIT.md`](shapley/WORK_SPLIT.md).
 
 ---
 
