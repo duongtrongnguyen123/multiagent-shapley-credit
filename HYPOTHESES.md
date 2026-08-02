@@ -2,7 +2,7 @@
 
 Tài liệu này gom bốn hướng nghiên cứu để cả nhóm 4 người chia nhau chạy, cùng một
 khung chung: **phân bổ đóng góp (credit assignment) trong hệ multi-agent LLM**. Tất cả
-dùng chung hạ tầng đã có (fan-out 16 liên minh trên Kaggle + tính Shapley), xem
+dùng chung hạ tầng đã có (fan-out 16 tổ hợp trên Kaggle + tính Shapley), xem
 [`README.md`](README.md) và [`shapley/FINDINGS.md`](shapley/FINDINGS.md).
 
 ---
@@ -11,7 +11,7 @@ dùng chung hạ tầng đã có (fan-out 16 liên minh trên Kaggle + tính Sha
 
 Xem hệ multi-agent như một **graph có thể tối ưu hoá**: mỗi agent là một node, mỗi
 message là một cạnh. Dùng phân bổ đóng góp (Shapley + chỉ số tương tác) làm *tín hiệu*
-để **định tuyến động** (chọn liên minh theo từng câu) và **tỉa topology** (bỏ cạnh thừa),
+để **định tuyến động** (chọn tổ hợp theo từng câu) và **tỉa topology** (bỏ cạnh thừa),
 thay cho pipeline tĩnh chạy cả 4 vai trò cho mọi câu.
 
 **Liên hệ với Mixture-of-Experts (MoE).** Multi-agent về bản chất là "MoE nâng lên mức
@@ -32,23 +32,23 @@ hướng dưới đây chính là nỗ lực "học lại cái gate" đó cho h�
 
 ## Bằng chứng nền (từ dữ liệu `m1`, MATH-500, N=500)
 
-Đo trực tiếp trên kết quả 16 liên minh đã có:
+Đo trực tiếp trên kết quả 16 tổ hợp đã có:
 
 - Pipeline tĩnh đầy đủ (1111): **0.448**
-- **Oracle** (router hoàn hảo chọn liên minh theo từng câu): **0.638 (+19 điểm)**
-- Oracle chỉ dùng liên minh ≤2 vai trò (rẻ hơn full): **0.584**
-- Full SAI nhưng có liên minh rẻ ĐÚNG: **16.8%** số câu
+- **Oracle** (router hoàn hảo chọn tổ hợp theo từng câu): **0.638 (+19 điểm)**
+- Oracle chỉ dùng tổ hợp ≤2 vai trò (rẻ hơn full): **0.584**
+- Full SAI nhưng có tổ hợp rẻ ĐÚNG: **16.8%** số câu
 - Solver ĐÚNG nhưng full làm HỎNG (negative transfer cấp câu hỏi): **10.6%** số câu
 
 Hai con số cuối là động lực chính cho H1 và H2.
 
 ---
 
-## H1 — Router động: học "gate MoE" trên các liên minh agent
+## H1 — Router động: học "gate MoE" trên các tổ hợp agent
 **Người phụ trách: Người 1 · Nguyên**
 
 - **Giả thuyết:** giá trị vai trò biến thiên *theo từng câu hỏi*, nên pipeline tĩnh là
-  dưới tối ưu. Một router nhẹ chọn liên minh phù hợp cho mỗi câu sẽ đạt accuracy cao hơn
+  dưới tối ưu. Một router nhẹ chọn tổ hợp phù hợp cho mỗi câu sẽ đạt accuracy cao hơn
   với compute thấp hơn.
 - **Phương pháp:** xây router từ tín hiệu rẻ (độ đồng thuận giữa các vai trò, độ tự tin
   của model, độ dài/độ khó câu hỏi). So với: (a) baseline pipeline tĩnh, (b) trần oracle.
@@ -68,7 +68,7 @@ Hai con số cuối là động lực chính cho H1 và H2.
 - **Sản phẩm:** phân tích cơ chế + patch gating; mục *Negative Transfer*.
 
 ## H3 — Topology agent như một graph tối ưu hoá được
-**Người phụ trách: Người 3 (thế mạnh knowledge graph / LAWGIC)**
+**Người phụ trách: Người 3**
 
 - **Giả thuyết:** cấu trúc giao tiếp giữa các agent (chain / star / tree / complete) ảnh
   hưởng lớn tới kết quả; có một topology tốt hơn hẳn pipeline tuyến tính mặc định.

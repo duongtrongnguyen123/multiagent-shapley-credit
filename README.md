@@ -3,9 +3,9 @@
 
 Dự án này đo lường mức đóng góp thực sự của từng vai trò (agent) trong một pipeline
 multi-agent gồm bốn tác nhân **Planner → Solver → Verifier → Aggregator** khi cùng giải
-toán. Chúng tôi dùng **giá trị Shapley** tính chính xác trên toàn bộ 16 tổ hợp (liên minh)
+toán. Chúng tôi dùng **giá trị Shapley** tính chính xác trên toàn bộ 16 tổ hợp
 vai trò để tách bạch phần công của mỗi tác nhân. Toàn bộ quá trình suy luận được chạy song
-song trên GPU của Kaggle (T4), mỗi liên minh tương ứng với một tài khoản.
+song trên GPU của Kaggle (T4), mỗi tổ hợp tương ứng với một tài khoản.
 
 Câu hỏi cốt lõi của nghiên cứu là: trong một đội agent, ai thực sự đóng góp vào kết quả,
 ai chỉ "ăn theo" (free-rider), và mức đóng góp đó thay đổi ra sao khi độ khó của bài toán
@@ -22,7 +22,7 @@ Bốn vai trò trong pipeline được định nghĩa như sau:
 - **Verifier** — nhận lời giải của Solver, kiểm tra từng bước và sửa lại nếu phát hiện sai.
 - **Aggregator** — nhận các lời giải ứng viên, đối chiếu rồi chọn ra đáp án cuối cùng.
 
-Để đo đóng góp của từng vai trò, chúng tôi chạy cả 2⁴ = 16 liên minh trên cùng một tập câu
+Để đo đóng góp của từng vai trò, chúng tôi chạy cả 2⁴ = 16 tổ hợp trên cùng một tập câu
 hỏi, trong đó `v(S)` là độ chính xác của pipeline khi chỉ bật các vai trò thuộc tập `S`.
 Giá trị Shapley của vai trò $i$ được tính bằng công thức:
 
@@ -30,7 +30,7 @@ $$\varphi_i = \sum_{S \subseteq N \setminus \{i\}} \frac{|S|!\,(n-|S|-1)!}{n!}\,
 
 Về cấu hình, mọi vai trò đều dùng Qwen2.5-1.5B-Instruct (riêng các vòng thí nghiệm "năng
 lực" sẽ nâng một vai trò lên bản 7B), giải mã theo kiểu greedy. Cả model lẫn dữ liệu đều
-được mount sẵn từ Kaggle nên kernel không cần Internet. Mỗi liên minh được đẩy thành một
+được mount sẵn từ Kaggle nên kernel không cần Internet. Mỗi tổ hợp được đẩy thành một
 kernel Kaggle riêng, xác thực bằng `KAGGLE_API_TOKEN` của từng tài khoản, và kết quả được
 thu về bằng `sync_once.py`.
 
@@ -84,7 +84,7 @@ shapley/
   template_math.py            # pipeline MATH-500 (chấm đáp án \boxed{} LaTeX)
   template_role7b.py          # phiên bản nâng một vai trò lên 7B (GSM8K)
   template_math_role7b.py     # phiên bản nâng một vai trò lên 7B (MATH)
-  orchestrate*.py             # sinh 16 (hoặc 8) liên minh và deploy mỗi liên minh một tài khoản
+  orchestrate*.py             # sinh 16 (hoặc 8) tổ hợp và deploy mỗi tổ hợp một tài khoản
   sync_once.py                # thu kết quả một lượt (đồng bộ, không dùng vòng lặp nền)
   shapley.py / shapley_role7b.py   # tính giá trị Shapley
   bootstrap.py / bootstrap_het.py  # tính khoảng tin cậy bằng bootstrap
@@ -105,7 +105,7 @@ Yêu cầu: Kaggle CLI phiên bản 2.x trở lên, và một file `accounts.txt
 định dạng `USERNAME TOKEN`.
 
 ```bash
-# 1) Deploy 16 liên minh, mỗi liên minh một tài khoản
+# 1) Deploy 16 tổ hợp, mỗi tổ hợp một tài khoản
 ROUND=m1 N_EVAL=300 python orchestrate_math.py
 
 # 2) Thu kết quả (chạy tiền cảnh, lặp lại tới khi REMAINING về 0)
@@ -124,7 +124,7 @@ BIG=A ROUND=mA python shapley_role7b.py
 
 Một vài điểm cần lưu ý khi chạy:
 
-- MATH chậm hơn GSM8K khoảng 7 lần (mỗi liên minh hai tầng mất chừng 60-70 phút ở N=500),
+- MATH chậm hơn GSM8K khoảng 7 lần (mỗi tổ hợp hai tầng mất chừng 60-70 phút ở N=500),
   vì vậy nên dùng N=300 cho các vòng năng lực.
 - Không nên dùng vòng lặp nền để poll trạng thái, vì chúng bị kill mỗi khi đổi lượt; hãy
   luôn gọi `sync_once.py` một cách đồng bộ.
@@ -142,7 +142,7 @@ nhân–quả: **H2 chẩn đoán bệnh → H1 kê thuốc → H3 đổi cấu 
 
 | Người | Hypothesis | Vai trò trong lập luận | Sản phẩm | Mục báo cáo |
 |---|---|---|---|---|
-| **Người 1 · Nguyên** | **H1 — Router động** (gate MoE trên liên minh agent) | *Kê thuốc:* né liên minh xấu, chọn liên minh theo từng câu | `router.py` | Dynamic Composition |
+| **Người 1 · Nguyên** | **H1 — Router động** (gate MoE trên tổ hợp agent) | *Kê thuốc:* né tổ hợp xấu, chọn tổ hợp theo từng câu | `router.py` | Dynamic Composition |
 | **Người 2** | **H2 — Negative transfer** + confidence-gate | *Chẩn đoán:* vì sao agent yếu phá answer đúng (10.6%) | phân tích + patch | Negative Transfer |
 | **Người 3** | **H3 — Topology agent như graph** tối ưu hoá được | *Đổi cấu trúc:* tỉa cạnh gây hại, tìm topology tốt hơn | `interaction.py` + so sánh topology | Agent Graph |
 | **Người 4** | **H4 — Grounded verification** (verifier chạy tool) | *Thay cơ chế:* verifier có căn cứ thay vì suy luận chay | kernel verifier + tool | Grounded Verification |
