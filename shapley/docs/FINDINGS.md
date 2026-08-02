@@ -79,10 +79,15 @@ Base rate 0.428 (vs GSM8K 0.66) — much more headroom, but the ranking **change
 
 | Role | MATH φ | 95% CI | GSM8K φ |
 |---|---|---|---|
-| **Aggregator** | **+0.148** | [+0.132, +0.164] | +0.190 (3rd) |
-| Solver | +0.141 | [+0.126, +0.157] | +0.252 (1st) |
-| Verifier | +0.141 | [+0.126, +0.157] | +0.252 (1st) |
-| Planner | +0.017 | [−0.008, +0.043] | −0.014 |
+| **Aggregator** | **+0.150** | [+0.134, +0.167] | +0.190 (3rd) |
+| Solver | +0.145 | [+0.128, +0.161] | +0.252 (1st) |
+| Verifier | +0.145 | [+0.128, +0.161] | +0.252 (1st) |
+| Planner | +0.017 | [−0.009, +0.042] | −0.014 |
+
+*(Answers graded with a sympy-based equivalence checker — algebraic equality, not string
+match. A naive string grader undercounts by ~1.5pp absolute but the effect is near-uniform
+across coalitions, so the Shapley ranking and every conclusion below are unchanged — i.e. the
+findings are robust to grader choice.)*
 
 Three substrate-dependent shifts:
 1. **The verifier loses its lead.** On GSM8K it tied the solver at the top; on MATH it still

@@ -26,7 +26,7 @@ Thư mục khác: `docs/` (báo cáo `FINDINGS.md` + phân công `WORK_SPLIT.md`
 ## Cài đặt một lần
 
 ```bash
-pip install "kaggle>=2.0"
+pip install "kaggle>=2.0" sympy    # sympy để chấm đáp án MATH (tương đương đại số)
 # tạo file accounts.txt trong thư mục shapley/ (mỗi dòng: USERNAME TOKEN), đã .gitignore
 #   hoặc trỏ tới file khác: export ACCOUNTS_FILE=/duong/dan/accounts.txt
 ```
