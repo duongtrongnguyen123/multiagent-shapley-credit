@@ -1,4 +1,4 @@
-# Phân bổ đóng góp bằng giá trị Shapley trong hệ suy luận multi-agent LLM: giá trị vai trò theo độ khó bài toán và năng lực model
+# Đánh giá đóng góp của từng vai trò trong hệ suy luận multi-agent LLM bằng giá trị Shapley: mức đóng góp thay đổi theo độ khó bài toán và năng lực model
 <sub>Shapley Credit Assignment for Multi-Agent LLM Reasoning: Role Value Across Task Difficulty and Model Capacity</sub>
 
 Dự án này đo lường mức đóng góp thực sự của từng vai trò (agent) trong một pipeline
