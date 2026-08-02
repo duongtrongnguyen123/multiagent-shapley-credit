@@ -6,7 +6,7 @@ import os, re, json
 from pathlib import Path
 
 ROUND = os.environ.get("ROUND", "m1")
-RES = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley") / f"results_{ROUND}"
+RES = Path(__file__).resolve().parents[1] / f"results_{ROUND}"
 
 def norm(a):
     if a is None:

@@ -6,8 +6,8 @@ import json, math, random
 from itertools import combinations
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
-R1, R3 = ROOT / "results", ROOT / "results_r3"
+ROOT = Path(__file__).resolve().parents[1]
+R1, R3 = ROOT / "results", ROOT / "results_r4"
 ROLES = ["P", "S", "V", "A"]
 random.seed(0)
 
@@ -23,7 +23,7 @@ for p in (0, 1):
                 cid = f"{p}{s}{v}{a}"
                 key = frozenset(r for r, b in zip(ROLES, (p, s, v, a)) if b)
                 base[key] = vec(R1, cid)
-                het[key] = vec(R3, cid) if p == 1 else vec(R1, cid)
+                het[key] = vec(R3, cid) if v == 1 else vec(R1, cid)
 N = len(base[frozenset(ROLES)])
 
 def shap(mat, idx, role):
@@ -37,12 +37,12 @@ def shap(mat, idx, role):
     return phi
 
 full = list(range(N))
-pt_b, pt_h = shap(base, full, "P"), shap(het, full, "P")
+pt_b, pt_h = shap(base, full, "V"), shap(het, full, "V")
 B = 5000
 d_h, d_flip = [], []
 for _ in range(B):
     idx = [random.randrange(N) for _ in range(N)]
-    hb, hh = shap(base, idx, "P"), shap(het, idx, "P")
+    hb, hh = shap(base, idx, "V"), shap(het, idx, "V")
     d_h.append(hh)
     d_flip.append(hh - hb)
 
@@ -51,10 +51,10 @@ def ci(xs):
 
 lo_h, hi_h = ci(d_h)
 lo_f, hi_f = ci(d_flip)
-print(f"Planner phi  (7B planner):  {pt_h:+.4f}  95% CI [{lo_h:+.4f}, {hi_h:+.4f}]  "
+print(f"Verifier phi  (7B planner):  {pt_h:+.4f}  95% CI [{lo_h:+.4f}, {hi_h:+.4f}]  "
       f"P(phi>0)={sum(x>0 for x in d_h)/B:.3f}")
 print(f"Flip Δ (7B - 1.5B planner): {pt_h-pt_b:+.4f}  95% CI [{lo_f:+.4f}, {hi_f:+.4f}]  "
       f"P(Δ>0)={sum(x>0 for x in d_flip)/B:.3f}")
-json.dump({"phi_7b": pt_h, "phi_7b_ci": [lo_h, hi_h],
+json.dump({"phi_7bV": pt_h, "phi_7bV_ci": [lo_h, hi_h],
            "flip": pt_h - pt_b, "flip_ci": [lo_f, hi_f]},
-          open(ROOT / "bootstrap_het_results.json", "w"), indent=2)
+          open(ROOT / "results_summary" / "bootstrap_het_results.json", "w"), indent=2)

@@ -3,7 +3,7 @@
 Tài liệu này gom bốn hướng nghiên cứu để cả nhóm 4 người chia nhau chạy, cùng một
 khung chung: **phân bổ đóng góp (credit assignment) trong hệ multi-agent LLM**. Tất cả
 dùng chung hạ tầng đã có (fan-out 16 tổ hợp trên Kaggle + tính Shapley), xem
-[`README.md`](README.md) và [`shapley/FINDINGS.md`](shapley/FINDINGS.md).
+[`README.md`](README.md) và [`shapley/docs/FINDINGS.md`](shapley/docs/FINDINGS.md).
 
 ---
 
@@ -108,4 +108,4 @@ Hai con số cuối là động lực chính cho H1 và H2.
 `*_results.json` + một mục báo cáo; Người 1 tổng hợp thành bức tranh chung: *"phối hợp
 multi-agent nên động và có căn cứ, không nên tĩnh và chay."*
 
-Xem thêm trình tự chạy trong [`shapley/WORK_SPLIT.md`](shapley/WORK_SPLIT.md).
+Xem thêm trình tự chạy trong [`shapley/docs/WORK_SPLIT.md`](shapley/docs/WORK_SPLIT.md).

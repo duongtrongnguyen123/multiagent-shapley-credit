@@ -5,7 +5,7 @@ pull output if terminal. Prints REMAINING <n> <list>. Safe to call from a wakeup
 import os, json, subprocess, sys
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
+ROOT = Path(__file__).resolve().parents[1]
 ROUND = os.environ.get("ROUND", "r2")
 RES = ROOT / (f"results_{ROUND}" if ROUND != "r1" else "results")
 RES.mkdir(exist_ok=True)

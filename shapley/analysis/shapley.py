@@ -5,7 +5,7 @@ import os, json, math
 from itertools import combinations
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
+ROOT = Path(__file__).resolve().parents[1]
 ROUND = os.environ.get("ROUND", "r1")
 RES = ROOT / (f"results_{ROUND}" if ROUND != "r1" else "results")
 ROLES = ["P", "S", "V", "A"]
@@ -61,7 +61,7 @@ def main():
     out = {"shapley": phi, "coalitions": {",".join(sorted(k)) or "empty": val
                                           for k, val in v.items()},
            "v_full": full, "v_empty": empty}
-    (ROOT / "shapley_results.json").write_text(json.dumps(out, indent=2))
+    (ROOT / "results_summary" / "shapley_results.json").write_text(json.dumps(out, indent=2))
     print("\nwrote shapley_results.json")
 
 if __name__ == "__main__":

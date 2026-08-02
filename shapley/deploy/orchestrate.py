@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-"""Round 3: deploy the 8 P=1 coalitions with a 7B planner (others 1.5B) at N=300.
-P=0 coalitions are reused from round 1 (identical all-1.5B config)."""
-import os, re, json, shutil, subprocess, time
+"""Render 16 role-coalition kernels and deploy one per Kaggle account."""
+import os, re, json, shutil, subprocess, sys, time
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
-ACCOUNTS = Path("/Users/hduong/dev/recurrent-research/accounts.txt")
-TEMPLATE = (ROOT / "template_het.py").read_text()
-ROUND = "r3"
+ROOT = Path(__file__).resolve().parents[1]
+ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt"))
+TEMPLATE = (ROOT / "pipeline" / "template.py").read_text()
+ROUND = os.environ.get("ROUND", "r1")
 KDIR = ROOT / f"kernels_{ROUND}"
 N_EVAL = int(os.environ.get("N_EVAL", "300"))
-DATASETS = ["xatri007/qwen2-5-1-5b-instruct",       # 1.5B (single-file safetensors)
-            "ragnar123/qwen2-5-7b-instruct",        # 7B (sharded) -> planner
+DATASETS = ["xatri007/qwen2-5-1-5b-instruct",
             "thedevastator/grade-school-math-8k-q-a"]
 
 def accounts():
@@ -29,7 +27,8 @@ def accounts():
 def render(mask):
     p, s, v, a = mask
     bits = f"{p}{s}{v}{a}"
-    src = (TEMPLATE.replace("__CONFIG_ID__", bits)
+    src = (TEMPLATE
+           .replace("__CONFIG_ID__", bits)
            .replace("__P__", str(p)).replace("__S__", str(s))
            .replace("__V__", str(v)).replace("__A__", str(a))
            .replace("__N_EVAL__", str(N_EVAL)))
@@ -37,7 +36,9 @@ def render(mask):
 
 def main():
     accs = accounts()
-    masks = [(1, s, v, a) for s in (0, 1) for v in (0, 1) for a in (0, 1)]   # 8 P=1 coalitions
+    masks = [(p, s, v, a) for p in (0, 1) for s in (0, 1)
+             for v in (0, 1) for a in (0, 1)]          # 16 coalitions
+    assert len(accs) >= len(masks), f"need 16 accounts, have {len(accs)}"
     shutil.rmtree(KDIR, ignore_errors=True)
     KDIR.mkdir(parents=True)
     manifest = []
@@ -51,19 +52,24 @@ def main():
         meta = {"id": f"{user}/{slug}", "title": slug, "code_file": "kernel.py",
                 "language": "python", "kernel_type": "script", "is_private": True,
                 "enable_gpu": True, "enable_internet": False,
-                "machine_shape": "NvidiaTeslaT4", "dataset_sources": DATASETS,
-                "competition_sources": [], "kernel_sources": []}
+                "machine_shape": "NvidiaTeslaT4",
+                "dataset_sources": DATASETS, "competition_sources": [],
+                "kernel_sources": []}
         (d / "kernel-metadata.json").write_text(json.dumps(meta, indent=2))
+        rec = {"config_id": bits, "mask": list(mask), "user": user,
+               "token": token, "slug": slug, "ref": f"{user}/{slug}"}
         env = dict(os.environ, KAGGLE_API_TOKEN=token)
         r = subprocess.run(["kaggle", "kernels", "push", "-p", str(d)],
                            env=env, capture_output=True, text=True)
         ok = "successfully pushed" in (r.stdout or "")
-        manifest.append({"config_id": bits, "mask": list(mask), "user": user,
-                         "token": token, "slug": slug, "ref": f"{user}/{slug}", "pushed": ok})
-        print(f"[{i}] {bits} -> {user:22s} {'OK' if ok else 'FAIL'}", flush=True)
+        rec["pushed"] = ok
+        print(f"[{i:2d}] {bits} -> {user:22s} {'OK' if ok else 'FAIL'} "
+              f"{(r.stdout or r.stderr).strip().splitlines()[-1][:80]}", flush=True)
+        manifest.append(rec)
         time.sleep(2)
     (ROOT / f"manifest_{ROUND}.json").write_text(json.dumps(manifest, indent=2))
-    print(f"deployed {sum(m['pushed'] for m in manifest)}/8 P=1 coalitions")
+    npush = sum(m["pushed"] for m in manifest)
+    print(f"\n=== deployed {npush}/16 coalitions; manifest.json written ===")
 
 if __name__ == "__main__":
     main()

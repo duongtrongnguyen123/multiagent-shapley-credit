@@ -71,27 +71,24 @@ nhiều lời giải khác nhau — mới trở thành vai trò quan trọng nh�
 mỗi vai trò phụ thuộc vào cả độ khó của bài toán lẫn năng lực của model, chứ không phải là
 một hằng số cố định.
 
-Báo cáo đầy đủ nằm trong [`shapley/FINDINGS.md`](shapley/FINDINGS.md).
+Báo cáo đầy đủ nằm trong [`shapley/docs/FINDINGS.md`](shapley/docs/FINDINGS.md).
 
 ---
 
 ## 3. Cấu trúc repo
 
 ```
-kernel/                       # kernel GSM8K inference ban đầu (Qwen 1.5B)
+kernel/                    # kernel GSM8K inference ban đầu (Qwen 1.5B)
 shapley/
-  template.py                 # pipeline GSM8K, tham số hoá theo mặt nạ vai trò (P,S,V,A)
-  template_math.py            # pipeline MATH-500 (chấm đáp án \boxed{} LaTeX)
-  template_role7b.py          # phiên bản nâng một vai trò lên 7B (GSM8K)
-  template_math_role7b.py     # phiên bản nâng một vai trò lên 7B (MATH)
-  orchestrate*.py             # sinh 16 (hoặc 8) tổ hợp và deploy mỗi tổ hợp một tài khoản
-  sync_once.py                # thu kết quả một lượt (đồng bộ, không dùng vòng lặp nền)
-  shapley.py / shapley_role7b.py   # tính giá trị Shapley
-  bootstrap.py / bootstrap_het.py  # tính khoảng tin cậy bằng bootstrap
-  regrade_math.py             # chấm lại MATH offline từ preds.json
-  FINDINGS.md                 # báo cáo kết quả (tiếng Anh)
-  WORK_SPLIT.md               # phân công chi tiết kèm trình tự dùng tài khoản
+  START_HERE.md            # ĐỌC TRƯỚC — luồng 3 bước + 4 người bắt đầu từ đâu
+  pipeline/                # định nghĩa hệ 4 agent (các template_*.py)
+  deploy/                  # đẩy tổ hợp lên Kaggle + thu kết quả (orchestrate*, sync_once)
+  analysis/                # tính Shapley, bootstrap, chấm lại điểm (shapley*, bootstrap*, regrade)
+  docs/                    # FINDINGS.md (báo cáo) + WORK_SPLIT.md (trình tự tài khoản)
+  results_summary/         # các file JSON kết quả nhỏ (đã commit)
+  probe7b/                 # kernel thử tải model 7B
 ```
+Chi tiết vai trò từng thư mục và cách bắt đầu: [`shapley/START_HERE.md`](shapley/START_HERE.md).
 
 Về bảo mật, các file `accounts.txt`, `manifest*.json` và `monitor.sh` có chứa token Kaggle
 nên đã được đưa vào `.gitignore` và tuyệt đối không commit lên repo. Các thư mục `results_*/`
@@ -105,21 +102,23 @@ Yêu cầu: Kaggle CLI phiên bản 2.x trở lên, và một file `accounts.txt
 định dạng `USERNAME TOKEN`.
 
 ```bash
+cd shapley
+
 # 1) Deploy 16 tổ hợp, mỗi tổ hợp một tài khoản
-ROUND=m1 N_EVAL=300 python orchestrate_math.py
+ROUND=m1 N_EVAL=300 python deploy/orchestrate_math.py
 
 # 2) Thu kết quả (chạy tiền cảnh, lặp lại tới khi REMAINING về 0)
-ROUND=m1 python sync_once.py     # gọi lại vài lần, cách nhau khoảng 10-15 phút
+ROUND=m1 python deploy/sync_once.py     # gọi lại vài lần, cách nhau khoảng 10-15 phút
 
 # 3) Chấm lại (chỉ với MATH) rồi tính Shapley và khoảng tin cậy
-ROUND=m1 python regrade_math.py
-ROUND=m1 python shapley.py
-ROUND=m1 python bootstrap.py
+ROUND=m1 python analysis/regrade_math.py
+ROUND=m1 python analysis/shapley.py
+ROUND=m1 python analysis/bootstrap.py
 
 # Vòng thí nghiệm năng lực (nâng một vai trò lên 7B), với BIG thuộc {P,S,V,A}
-BIG=A ROUND=mA N_EVAL=300 python orchestrate_math_role7b.py
-ROUND=mA python sync_once.py
-BIG=A ROUND=mA python shapley_role7b.py
+BIG=A ROUND=mA N_EVAL=300 python deploy/orchestrate_math_role7b.py
+ROUND=mA python deploy/sync_once.py
+BIG=A ROUND=mA python analysis/shapley_role7b.py
 ```
 
 Một vài điểm cần lưu ý khi chạy:
@@ -157,7 +156,7 @@ orchestrate_math_role7b.py`) là **hạ tầng dùng chung** nuôi cho nhiều h
 phân công riêng của ai. Một số quy tắc: dùng `N_EVAL=300` (MATH ~7× chậm hơn GSM8K); bỏ tài
 khoản `truongdv006` (đã khoá), dự phòng `khunht`/`dnglethnh`/`tbmdemi`; báo nhau trước khi
 chạy để không trùng tài khoản (tối đa 2 vòng song song trên 19 tài khoản). Trình tự chạy chi
-tiết trong [`shapley/WORK_SPLIT.md`](shapley/WORK_SPLIT.md).
+tiết trong [`shapley/docs/WORK_SPLIT.md`](shapley/docs/WORK_SPLIT.md).
 
 ---
 

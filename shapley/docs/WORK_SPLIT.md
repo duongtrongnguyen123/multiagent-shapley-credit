@@ -8,7 +8,7 @@ to end (deploy → collect → analyze). Shared infra lives in `qwen-gsm8k-kaggl
 - Auth per account: `export KAGGLE_API_TOKEN=<KGAT_… from accounts.txt>` (already wired
   into the orchestrators, which read `accounts.txt`).
 - Collect (foreground, never a background poll loop — they die on turn transitions):
-  `ROUND=<round> python sync_once.py` repeatedly until `REMAINING 0`.
+  `ROUND=<round> python deploy/sync_once.py` repeatedly until `REMAINING 0`.
 - One 16-coalition round OR two 8-coalition rounds saturate the 19 accounts. **Coordinate
   in the team channel before launching so two rounds don't grab the same accounts.**
 - `truongdv006` is rate-limited/flagged — skip it; use spares `khunht`, `dnglethnh`,
@@ -18,22 +18,22 @@ to end (deploy → collect → analyze). Shared infra lives in `qwen-gsm8k-kaggl
 
 ## Person 1 — Nguyên · Baseline + analysis harness  *(IN PROGRESS)*
 - **Round `m1`**: homogeneous 1.5B, all 16 coalitions, N=500. Deployed; collecting.
-  `ROUND=m1 python sync_once.py` → `ROUND=m1 python shapley.py` + `ROUND=m1 python bootstrap.py`.
+  `ROUND=m1 python deploy/sync_once.py` → `ROUND=m1 python analysis/shapley.py` + `ROUND=m1 python analysis/bootstrap.py`.
 - Owns the cross-round synthesis: merge all rounds into the final role×capacity table,
   update `FINDINGS.md`. Baseline v(S) here is reused by every capacity round (S with the
   upgraded role absent = m1 value), so **m1 must finish first**.
 
 ## Person 2 — Core producers: 7B Solver & 7B Verifier
 - **Round `mV`** (7B verifier, 8 V=1 coalitions):
-  `BIG=V ROUND=mV N_EVAL=500 python orchestrate_math_role7b.py`
-  then `ROUND=mV python sync_once.py`, `BIG=V ROUND=mV python shapley_role7b.py`.
-- **Round `mS`** (7B solver): `BIG=S ROUND=mS N_EVAL=500 python orchestrate_math_role7b.py` …
+  `BIG=V ROUND=mV N_EVAL=500 python deploy/orchestrate_math_role7b.py`
+  then `ROUND=mV python deploy/sync_once.py`, `BIG=V ROUND=mV python analysis/shapley_role7b.py`.
+- **Round `mS`** (7B solver): `BIG=S ROUND=mS N_EVAL=500 python deploy/orchestrate_math_role7b.py` …
 - Question: on MATH, does the verifier still dominate, or does the **solver** take the top
   slot when problems are too hard for a weak verifier to check?
 
 ## Person 3 — Auxiliary roles: 7B Planner & 7B Aggregator
-- **Round `mP`** (7B planner): `BIG=P ROUND=mP N_EVAL=500 python orchestrate_math_role7b.py` …
-- **Round `mA`** (7B aggregator): `BIG=A ROUND=mA N_EVAL=500 python orchestrate_math_role7b.py` …
+- **Round `mP`** (7B planner): `BIG=P ROUND=mP N_EVAL=500 python deploy/orchestrate_math_role7b.py` …
+- **Round `mA`** (7B aggregator): `BIG=A ROUND=mA N_EVAL=500 python deploy/orchestrate_math_role7b.py` …
 - Key test: GSM8K's planner was a net-negative free-rider. MATH needs real decomposition —
   **does the planner become essential here?** If φ_P flips strongly positive, planning value
   is task-dependent (the headline cross-substrate result).

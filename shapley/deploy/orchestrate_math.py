@@ -3,14 +3,14 @@
 import os, re, json, shutil, subprocess, sys, time
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
-ACCOUNTS = Path("/Users/hduong/dev/recurrent-research/accounts.txt")
-TEMPLATE = (ROOT / "template.py").read_text()
-ROUND = os.environ.get("ROUND", "r1")
+ROOT = Path(__file__).resolve().parents[1]
+ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt"))
+TEMPLATE = (ROOT / "pipeline" / "template_math.py").read_text()
+ROUND = os.environ.get("ROUND", "m1")
 KDIR = ROOT / f"kernels_{ROUND}"
-N_EVAL = int(os.environ.get("N_EVAL", "300"))
+N_EVAL = int(os.environ.get("N_EVAL", "500"))
 DATASETS = ["xatri007/qwen2-5-1-5b-instruct",
-            "thedevastator/grade-school-math-8k-q-a"]
+            "open-benchmarks/math-500-measuring-mathematical-problem-solving"]
 
 def accounts():
     out = []
@@ -45,7 +45,7 @@ def main():
     for i, mask in enumerate(masks):
         user, token = accs[i]
         bits, src = render(mask)
-        slug = f"shapley-gsm8k-{ROUND}-{bits}"
+        slug = f"shapley-math-{ROUND}-{bits}"
         d = KDIR / bits
         d.mkdir()
         (d / "kernel.py").write_text(src)

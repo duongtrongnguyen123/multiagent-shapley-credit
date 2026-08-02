@@ -7,7 +7,7 @@ from itertools import combinations
 from pathlib import Path
 
 ROUND = os.environ.get("ROUND", "r1")
-_base = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
+_base = Path(__file__).resolve().parents[1]
 RES = _base / (f"results_{ROUND}" if ROUND != "r1" else "results")
 ROLES = ["P", "S", "V", "A"]
 NAMES = {"P": "Planner", "S": "Solver", "V": "Verifier", "A": "Aggregator"}
@@ -63,5 +63,5 @@ for r in sorted(ROLES, key=lambda x: -point[x]):
     rows.append({"role": NAMES[r], "phi": point[r], "ci_low": lo, "ci_high": hi,
                  "p_negative": p_neg})
 json.dump({"n": N, "B": B, "roles": rows},
-          open(RES.parent / "bootstrap_results.json", "w"), indent=2)
+          open(RES.parent / "results_summary" / "bootstrap_results.json", "w"), indent=2)
 print("\nwrote bootstrap_results.json")

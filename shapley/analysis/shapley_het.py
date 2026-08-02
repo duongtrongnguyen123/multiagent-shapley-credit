@@ -7,10 +7,8 @@ import json, math
 from itertools import combinations
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
-import os
-BIG=os.environ["BIG"]; ROUND=os.environ.get("ROUND","r4")
-R1, R3 = ROOT/"results", ROOT/f"results_{ROUND}"
+ROOT = Path(__file__).resolve().parents[1]
+R1, R3 = ROOT / "results", ROOT / "results_r3"
 ROLES = ["P", "S", "V", "A"]
 NAMES = {"P": "Planner", "S": "Solver", "V": "Verifier", "A": "Aggregator"}
 
@@ -26,8 +24,7 @@ def load(planner_source):
             for vv in (0, 1):
                 for a in (0, 1):
                     cid = f"{p}{s}{vv}{a}"
-                    big_on = dict(zip(ROLES,(p,s,vv,a)))[BIG]
-                    src = (planner_source if big_on else R1)
+                    src = (planner_source if p == 1 else R1)
                     val = acc(src, cid)
                     if val is None:
                         missing.append(cid)
@@ -53,20 +50,25 @@ if missing:
     print(f"waiting on {len(missing)} r3 coalitions: {missing}")
     import sys; sys.exit(0)
 
-print(f"{BIG}=1 coalition accuracies  (1.5B -> 7B {BIG}):")
-for key in [k for k in het if BIG in k]:
-    b1 = base.get(key); h = het.get(key)
-    print(f"  {''.join(sorted(key)):5s}  {b1:.4f} -> {h:.4f}  ({h-b1:+.4f})")
+print("P=1 coalition accuracies  (1.5B planner -> 7B planner):")
+for s in (0, 1):
+    for vv in (0, 1):
+        for a in (0, 1):
+            key = frozenset(r for r, b in zip(ROLES, (1, s, vv, a)) if b)
+            b1 = base.get(key); h = het.get(key)
+            print(f"  {''.join(sorted(key)):5s}  {b1:.4f} -> {h:.4f}  ({h-b1:+.4f})")
 
 phi_h, phi_b = shapley(het), shapley(base)
-print(f"\n=== {BIG} CREDIT: 1.5B vs 7B for role {BIG} ===")
+print("\n=== PLANNER CREDIT: does a 7B planner stop being harmful? ===")
 print(f"{'role':11s} {'1.5B-planner':>13s} {'7B-planner':>12s} {'Δ':>9s}")
 for r in ROLES:
     print(f"{NAMES[r]:11s} {phi_b[r]:>+13.4f} {phi_h[r]:>+12.4f} {phi_h[r]-phi_b[r]:>+9.4f}")
 print(f"\nv(full) all-1.5B = {base[frozenset(ROLES)]:.4f}   "
       f"7B-planner = {het[frozenset(ROLES)]:.4f}")
-verdict = f"{BIG}: phi {phi_b[BIG]:+.4f} (1.5B) -> {phi_h[BIG]:+.4f} (7B), delta {phi_h[BIG]-phi_b[BIG]:+.4f}"
+verdict = ("INHERENT: planner still net-negative even at 7B"
+           if phi_h["P"] < 0 else
+           "CAPACITY: planner becomes a positive contributor at 7B")
 print("VERDICT:", verdict)
 json.dump({"phi_1p5b_planner": phi_b, "phi_7b_planner": phi_h,
-           "verdict": verdict}, open(ROOT / f"shapley_{ROUND}_results.json", "w"), indent=2)
+           "verdict": verdict}, open(ROOT / "results_summary" / "shapley_het_results.json", "w"), indent=2)
 print("wrote shapley_het_results.json")

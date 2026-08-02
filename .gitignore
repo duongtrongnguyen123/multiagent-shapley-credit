@@ -8,6 +8,8 @@ monitor.sh
 # === regenerable / heavy outputs ===
 results/
 results_*/
+!**/results_summary/
+!**/results_summary/**
 kernels/
 kernels_*/
 output/

@@ -4,7 +4,7 @@ summary.json on completion. Exits when every kernel is terminal."""
 import os, json, subprocess, sys, time
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
+ROOT = Path(__file__).resolve().parents[1]
 ROUND = os.environ.get("ROUND", "r1")
 RES = ROOT / (f"results_{ROUND}" if ROUND != "r1" else "results")
 RES.mkdir(exist_ok=True)
@@ -45,5 +45,5 @@ while len(done) < len(manifest):
     if len(done) < len(manifest):
         time.sleep(INTERVAL)
 
-(ROOT / f"collect_done_{ROUND}.json").write_text(json.dumps(done, indent=2))
+(ROOT / "results_summary" / f"collect_done_{ROUND}.json").write_text(json.dumps(done, indent=2))
 print("ALL TERMINAL", json.dumps(done), flush=True)

@@ -5,9 +5,9 @@ ROUND, N_EVAL."""
 import os, re, json, shutil, subprocess, time
 from pathlib import Path
 
-ROOT = Path("/Users/hduong/dev/qwen-gsm8k-kaggle/shapley")
-ACCOUNTS = Path("/Users/hduong/dev/recurrent-research/accounts.txt")
-TEMPLATE = (ROOT / "template_role7b.py").read_text()
+ROOT = Path(__file__).resolve().parents[1]
+ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt"))
+TEMPLATE = (ROOT / "pipeline" / "template_role7b.py").read_text()
 ROLES = ["P", "S", "V", "A"]
 BIG = os.environ["BIG"]
 ROUND = os.environ.get("ROUND", "r4")
