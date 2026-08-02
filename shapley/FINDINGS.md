@@ -1,4 +1,4 @@
-# Shapley Credit Assignment for an LLM Agent Pipeline on GSM8K
+# Shapley Credit Assignment for Multi-Agent LLM Reasoning: Role Value Across Task Difficulty and Model Capacity
 
 **Question:** In a Planner→Solver→Verifier→Aggregator pipeline, how much does each
 role actually contribute — and is any role a free-rider (drawing team reward without
