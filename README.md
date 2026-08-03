@@ -145,9 +145,9 @@ người phụ trách một mảng = một thí-nghiệm/build + một mục bá
 | **Người 3** | Hiệu quả | Build **`analysis/router.py`** + đường Pareto accuracy–compute (dùng oracle +19) | Efficiency |
 | **Người 4** | Method + Related Work | Viết Method (Shapley/grader/CI) + Related Work trung thực; baseline **self-consistency** | Method, Related Work |
 
-Kế hoạch đầy đủ (câu hỏi nghiên cứu, đã-làm, money figures, lộ trình 3 tuần, quy tắc chạy
-Kaggle) nằm trong **[`PROJECT_PLAN.md`](PROJECT_PLAN.md)**. Quy tắc nhanh: `N_EVAL=300` (MATH
-~7× chậm), bỏ tài khoản `truongdv006` (đã khoá), tối đa 2 vòng song song trên 19 tài khoản.
+Kế hoạch đầy đủ (câu hỏi nghiên cứu, đã-làm, money figures, **timeline hôm-nay/ngày-mai cho
+từng người**, lộ trình 3 tuần) nằm trong **[`PROJECT_PLAN.md`](PROJECT_PLAN.md)**. Lưu ý:
+chỉ Người 1 chạy Kaggle; Người 2/3/4 làm trên dữ liệu đã tải trong `shapley/results_*/`.
 
 ---
 
