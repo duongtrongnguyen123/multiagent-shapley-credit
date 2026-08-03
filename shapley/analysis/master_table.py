@@ -51,7 +51,10 @@ def het_math_diag(big):
     if not hd.exists():
         return None
     def vecacc(d, cid):
-        p = json.loads((BASE / d / cid / "preds.json").read_text())[:300]
+        f = BASE / d / cid / "preds.json"
+        if not f.exists():
+            raise FileNotFoundError(cid)
+        p = json.loads(f.read_text())[:300]
         return sum(1 for r in p if r["correct"]) / len(p)
     v = {}
     for p in (0, 1):
@@ -67,7 +70,12 @@ def het_math_diag(big):
 # --- cột ---
 g_15 = homog("results_r2") or homog("results")      # GSM8K 1.5B (N=1319)
 m_15 = homog("results_m1")                           # MATH 1.5B (N=500)
-m_7b = {r: het_math_diag(r) for r in ROLES}          # MATH 7B (đường chéo, N=300)
+def _safe_diag(r):
+    try:
+        return het_math_diag(r)
+    except (FileNotFoundError, KeyError):
+        return None                                      # vòng chưa chạy xong -> để "—"
+m_7b = {r: _safe_diag(r) for r in ROLES}             # MATH 7B (đường chéo, N=300)
 
 def c15(phi, r): return f"{phi[r]:+.3f}" if phi else "—"
 def c7(r):       return f"{m_7b[r]:+.3f}" if m_7b.get(r) is not None else "—"
