@@ -1,17 +1,17 @@
 # Đánh giá đóng góp trong hệ suy luận multi-agent LLM: từ đo lường giá trị vai trò đến phối hợp động
 <sub>Credit Assignment in Multi-Agent LLM Reasoning: From Measuring Role Value to Dynamic Composition</sub>
 
-Các mô hình ngôn ngữ ngày càng giải toán theo **đội** thay vì đơn lẻ: một *Planner* phác
+Các mô hình ngôn ngữ ngày càng phối hợp thành nhóm để giải toán, thay vì làm một mình: một *Planner* phác
 hướng, *Solver* giải, *Verifier* kiểm tra, *Aggregator* chốt đáp án — và chúng **phối hợp
-hoàn toàn qua các thông điệp ngôn ngữ tự nhiên** truyền cho nhau. Nhưng giao tiếp là con dao
-hai lưỡi: một thông điệp có thể sửa lỗi cho bạn cùng đội, hoặc **làm hỏng một đáp án vốn đã
-đúng** (hiện tượng *sycophancy* — agent bỏ đáp án đúng để hùa theo peer nghe có vẻ chắc chắn).
+hoàn toàn bằng ngôn ngữ** — mô hình sau đọc lời giải của mô hình trước rồi viết tiếp. Nhưng giao tiếp là con dao
+hai lưỡi: lời của mô hình này có thể sửa lỗi cho mô hình kia, hoặc **làm hỏng một đáp án vốn đã
+đúng** (hiện tượng *sycophancy* — mô hình đang đúng lại hùa theo bạn cùng nhóm rồi sửa thành sai).
 
 Vậy **vai trò nào thực sự đóng góp?** Câu hỏi này bị che bởi thứ mà mọi người báo cáo — độ
-chính xác toàn đội — vì một con số không cho biết thông điệp của agent nào giúp cải thiện,
-agent nào chỉ "ăn theo", agent nào âm thầm phá. Chúng tôi trả lời bằng cách coi pipeline như
-một **trò chơi hợp tác** và đo **giá trị Shapley** của từng vai trò (Shapley chỉ là *thước
-đo*), xem đóng góp đổi thế nào theo **độ khó** bài toán và **năng lực** model. Suy luận chạy
+chính xác chung của cả nhóm — vì nó không cho biết mô hình nào giúp cải thiện,
+mô hình nào chỉ ăn theo, mô hình nào âm thầm làm hỏng. Chúng tôi trả lời bằng cách xem cả nhóm như
+một **trò chơi hợp tác** và đo phần đóng góp của từng vai trò bằng **giá trị Shapley** (Shapley chỉ là *thước
+đo*), rồi xét đóng góp đó đổi ra sao theo **độ khó** bài toán và **năng lực** mô hình. Suy luận chạy
 song song trên GPU Kaggle (T4). Bản nháp Intro đầy đủ cho báo cáo: [`shapley/docs/INTRO.md`](shapley/docs/INTRO.md).
 
 ---

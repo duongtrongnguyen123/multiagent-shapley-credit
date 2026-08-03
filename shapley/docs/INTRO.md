@@ -41,12 +41,11 @@ LLM systems.
 
 ---
 
-**Tóm tắt tiếng Việt (nếu báo cáo bằng tiếng Việt):** Các mô hình ngôn ngữ ngày càng giải toán
-theo *đội*, phối hợp **qua các thông điệp ngôn ngữ tự nhiên**: Planner phác hướng, Solver giải,
-Verifier kiểm tra, Aggregator chốt đáp án. Nhưng giao tiếp là con dao hai lưỡi — một thông điệp
-có thể sửa lỗi cho bạn cùng đội, hoặc làm hỏng đáp án vốn đã đúng (*sycophancy*). *Vai trò nào
-thực sự đóng góp?* — câu hỏi bị che bởi độ chính xác toàn đội. Chúng tôi trả lời bằng cách coi
-pipeline như một trò chơi hợp tác và đo **giá trị Shapley** của từng vai trò, phát hiện: thứ
+**Tóm tắt tiếng Việt (nếu báo cáo bằng tiếng Việt):** Các mô hình ngôn ngữ ngày càng phối hợp thành nhóm để giải toán, trao đổi **hoàn toàn bằng ngôn ngữ** (đọc lời giải của nhau rồi viết tiếp): Planner phác hướng, Solver giải,
+Verifier kiểm tra, Aggregator chốt đáp án. Nhưng giao tiếp là con dao hai lưỡi — lời của mô hình
+này có thể sửa lỗi cho mô hình kia, hoặc làm hỏng một đáp án vốn đã đúng (*sycophancy*). *Vai trò nào
+thực sự đóng góp?* — câu hỏi bị che bởi độ chính xác chung của cả nhóm. Chúng tôi trả lời bằng cách xem cả nhóm
+như một trò chơi hợp tác và đo **giá trị Shapley** của từng vai trò, phát hiện: thứ
 hạng vai trò **đảo theo độ khó** (Verifier dẫn ở GSM8K, Aggregator dẫn ở MATH); và φ net **che
 giấu** hành vi (Planner ≈0 nhưng thực ra "hỗn loạn": sửa ~10%, phá ~9%). Đóng góp là một
 **nghiên cứu thực nghiệm + công cụ tái lập**, không phải thuật toán mới.
