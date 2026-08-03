@@ -1,15 +1,18 @@
 # Đánh giá đóng góp trong hệ suy luận multi-agent LLM: từ đo lường giá trị vai trò đến phối hợp động
 <sub>Credit Assignment in Multi-Agent LLM Reasoning: From Measuring Role Value to Dynamic Composition</sub>
 
-Dự án này đo lường mức đóng góp thực sự của từng vai trò (agent) trong một pipeline
-multi-agent gồm bốn tác nhân **Planner → Solver → Verifier → Aggregator** khi cùng giải
-toán. Chúng tôi dùng **giá trị Shapley** tính chính xác trên toàn bộ 16 tổ hợp
-vai trò để tách bạch phần công của mỗi tác nhân. Toàn bộ quá trình suy luận được chạy song
-song trên GPU của Kaggle (T4), mỗi tổ hợp tương ứng với một tài khoản.
+Các mô hình ngôn ngữ ngày càng giải toán theo **đội** thay vì đơn lẻ: một *Planner* phác
+hướng, *Solver* giải, *Verifier* kiểm tra, *Aggregator* chốt đáp án — và chúng **phối hợp
+hoàn toàn qua các thông điệp ngôn ngữ tự nhiên** truyền cho nhau. Nhưng giao tiếp là con dao
+hai lưỡi: một thông điệp có thể sửa lỗi cho bạn cùng đội, hoặc **làm hỏng một đáp án vốn đã
+đúng** (hiện tượng *sycophancy* — agent bỏ đáp án đúng để hùa theo peer nghe có vẻ chắc chắn).
 
-Câu hỏi cốt lõi của nghiên cứu là: trong một đội agent, ai thực sự đóng góp vào kết quả,
-ai chỉ "ăn theo" (free-rider), và mức đóng góp đó thay đổi ra sao khi độ khó của bài toán
-cũng như năng lực của model thay đổi.
+Vậy **vai trò nào thực sự đóng góp?** Câu hỏi này bị che bởi thứ mà mọi người báo cáo — độ
+chính xác toàn đội — vì một con số không cho biết thông điệp của agent nào giúp cải thiện,
+agent nào chỉ "ăn theo", agent nào âm thầm phá. Chúng tôi trả lời bằng cách coi pipeline như
+một **trò chơi hợp tác** và đo **giá trị Shapley** của từng vai trò (Shapley chỉ là *thước
+đo*), xem đóng góp đổi thế nào theo **độ khó** bài toán và **năng lực** model. Suy luận chạy
+song song trên GPU Kaggle (T4). Bản nháp Intro đầy đủ cho báo cáo: [`shapley/docs/INTRO.md`](shapley/docs/INTRO.md).
 
 ---
 
