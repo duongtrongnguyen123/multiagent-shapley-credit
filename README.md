@@ -25,6 +25,30 @@ Bốn vai trò trong pipeline được định nghĩa như sau:
 - **Verifier** — nhận lời giải của Solver, kiểm tra từng bước và sửa lại nếu phát hiện sai.
 - **Aggregator** — nhận các lời giải ứng viên, đối chiếu rồi chọn ra đáp án cuối cùng.
 
+Các agent nối tiếp nhau, mỗi agent đọc kết quả của agent trước rồi viết tiếp (phối hợp bằng
+ngôn ngữ):
+
+```mermaid
+flowchart LR
+    Q([Đề bài]) --> P[Planner<br/>lập dàn ý]
+    Q --> S[Solver<br/>giải + đáp số]
+    Q --> V[Verifier<br/>soát & sửa]
+    Q --> A[Aggregator<br/>chọn đáp cuối]
+    P -- dàn ý --> S
+    S -- lời giải --> V
+    S -- ứng viên --> A
+    V -- ứng viên --> A
+    A --> ANS([Đáp án cuối])
+
+    classDef pos fill:#d7f0d7,stroke:#2f8f2f;
+    classDef neg fill:#f7d9d9,stroke:#c23b3b;
+    class S,V,A pos;
+    class P neg;
+```
+
+*Xanh = đóng góp dương; đỏ = Planner (đóng góp ≈0 / âm, hay "phá" đáp án đúng). Verifier &
+Aggregator đọc lời giải của Solver — đó là nơi vừa sinh ra "sửa đúng" vừa sinh ra "phá hỏng".*
+
 Để đo đóng góp của từng vai trò, chúng tôi chạy cả 2⁴ = 16 tổ hợp trên cùng một tập câu
 hỏi, trong đó `v(S)` là độ chính xác của pipeline khi chỉ bật các vai trò thuộc tập `S`.
 Giá trị Shapley của vai trò $i$ được tính bằng công thức:

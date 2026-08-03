@@ -24,7 +24,7 @@ P, S, V, A = MASK
 def md(role):
     return BIG_DIR if role == BIG_ROLE else SMALL_DIR
 def bs(role):
-    return 8 if role == BIG_ROLE else 16
+    return 8
 print(f"CONFIG {CONFIG_ID} MASK P={P} S={S} V={V} A={A} BIG={BIG_ROLE} N={N_EVAL}", flush=True)
 print("torch", torch.__version__, "gpu",
       torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU", flush=True)
