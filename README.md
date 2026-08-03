@@ -84,7 +84,7 @@ shapley/
   pipeline/                # định nghĩa hệ 4 agent (các template_*.py)
   deploy/                  # đẩy tổ hợp lên Kaggle + thu kết quả (orchestrate*, sync_once)
   analysis/                # tính Shapley, bootstrap, chấm lại điểm (shapley*, bootstrap*, regrade)
-  docs/                    # FINDINGS.md (báo cáo) + WORK_SPLIT.md (trình tự tài khoản)
+  docs/                    # FINDINGS.md (báo cáo kết quả)
   results_summary/         # các file JSON kết quả nhỏ (đã commit)
   probe7b/                 # kernel thử tải model 7B
 ```
@@ -135,28 +135,19 @@ Một vài điểm cần lưu ý khi chạy:
 
 ## 5. Phân công công việc (đội 4 người)
 
-Vòng nền `m1` (MATH đồng nhất 1.5B) đã hoàn tất và là dữ liệu chung cho cả bốn hướng. Mỗi
-người phụ trách một hypothesis; bốn hypothesis không rời rạc mà là bốn bước của một lập luận
-nhân–quả: **H2 chẩn đoán bệnh → H1 kê thuốc → H3 đổi cấu trúc → H4 thay cơ chế.**
+Đồ án là một **audit thực nghiệm** đóng góp vai trò (không phải đề xuất method mới). Mỗi
+người phụ trách một mảng = một thí-nghiệm/build + một mục báo cáo:
 
-| Người | Hypothesis | Vai trò trong lập luận | Sản phẩm | Mục báo cáo |
-|---|---|---|---|---|
-| **Người 1 · Nguyên** | **H1 — Router động** (gate MoE trên tổ hợp agent) | *Kê thuốc:* né tổ hợp xấu, chọn tổ hợp theo từng câu | `router.py` | Dynamic Composition |
-| **Người 2** | **H2 — Negative transfer** + confidence-gate | *Chẩn đoán:* vì sao agent yếu phá answer đúng (10.6%) | phân tích + patch | Negative Transfer |
-| **Người 3** | **H3 — Topology agent như graph** tối ưu hoá được | *Đổi cấu trúc:* tỉa cạnh gây hại, tìm topology tốt hơn | `interaction.py` + so sánh topology | Agent Graph |
-| **Người 4** | **H4 — Grounded verification** (verifier chạy tool) | *Thay cơ chế:* verifier có căn cứ thay vì suy luận chay | kernel verifier + tool | Grounded Verification |
+| Người | Mảng | Việc cụ thể | Mục báo cáo |
+|---|---|---|---|
+| **Người 1 · Nguyên** | Thí nghiệm + Tổng hợp | Chạy nốt **mA/mV/mP** trên MATH → hoàn tất lưới vai×khó×năng-lực; bảng master; viết Intro + RQ2 (ranking reversal); chủ trì ghép báo cáo | Intro, Results |
+| **Người 2** | Chẩn đoán | **signed Shapley** (chaotic agent) + negative transfer + ví dụ sycophancy từ completion thật | Analysis |
+| **Người 3** | Hiệu quả | Build **`analysis/router.py`** + đường Pareto accuracy–compute (dùng oracle +19) | Efficiency |
+| **Người 4** | Method + Related Work | Viết Method (Shapley/grader/CI) + Related Work trung thực; baseline **self-consistency** | Method, Related Work |
 
-Mô tả chi tiết từng hypothesis (giả thuyết, phương pháp, cách đo) nằm trong
-[`HYPOTHESES.md`](HYPOTHESES.md), kèm framing MoE/graph và bằng chứng nền (oracle +19 điểm,
-negative transfer 10.6%). Người 1 tổng hợp bốn mảnh thành luận điểm chung: *phối hợp
-multi-agent nên **động** và **có căn cứ**, không nên **tĩnh** và **chay**.*
-
-Các vòng thí nghiệm capacity (`BIG=<P|S|V|A> ROUND=m<X> N_EVAL=300 python
-orchestrate_math_role7b.py`) là **hạ tầng dùng chung** nuôi cho nhiều hypothesis, không phải
-phân công riêng của ai. Một số quy tắc: dùng `N_EVAL=300` (MATH ~7× chậm hơn GSM8K); bỏ tài
-khoản `truongdv006` (đã khoá), dự phòng `khunht`/`dnglethnh`/`tbmdemi`; báo nhau trước khi
-chạy để không trùng tài khoản (tối đa 2 vòng song song trên 19 tài khoản). Trình tự chạy chi
-tiết trong [`shapley/docs/WORK_SPLIT.md`](shapley/docs/WORK_SPLIT.md).
+Kế hoạch đầy đủ (câu hỏi nghiên cứu, đã-làm, money figures, lộ trình 3 tuần, quy tắc chạy
+Kaggle) nằm trong **[`PROJECT_PLAN.md`](PROJECT_PLAN.md)**. Quy tắc nhanh: `N_EVAL=300` (MATH
+~7× chậm), bỏ tài khoản `truongdv006` (đã khoá), tối đa 2 vòng song song trên 19 tài khoản.
 
 ---
 

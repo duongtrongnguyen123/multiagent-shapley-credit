@@ -20,7 +20,7 @@ pipeline/  →  deploy/  →  analysis/
 3. **`analysis/`** — từ kết quả đã thu, tính giá trị Shapley (`shapley*.py`), khoảng tin
    cậy (`bootstrap*.py`), chấm lại điểm MATH (`regrade_math.py`). **Bạn phân tích ở đây.**
 
-Thư mục khác: `docs/` (báo cáo `FINDINGS.md` + phân công `WORK_SPLIT.md`),
+Thư mục khác: `docs/` (báo cáo `FINDINGS.md`), phân công ở `../PROJECT_PLAN.md`,
 `results_summary/` (các file JSON kết quả nhỏ), `probe7b/` (kernel thử tải model 7B).
 
 ## Cài đặt một lần
@@ -45,16 +45,16 @@ ROUND=m1 python analysis/bootstrap.py                   # khoảng tin cậy
 
 ## 4 người bắt đầu từ đâu
 
-Mỗi người phụ trách một hypothesis (chi tiết trong [`../HYPOTHESES.md`](../HYPOTHESES.md)).
-Cả 4 đều có thể lấy kết quả tuần-1 **ngay từ dữ liệu đã có** trong `results_*/` (không cần
-chạy Kaggle lại):
+Phân công đầy đủ (mảng, sản phẩm, mục báo cáo, lộ trình) trong
+[`../PROJECT_PLAN.md`](../PROJECT_PLAN.md). Cả 4 đều có thể bắt đầu tuần-1 **ngay từ dữ liệu
+đã có** trong `results_*/` (không cần chạy Kaggle lại):
 
-| Người | Hypothesis | File để đọc/bắt đầu | Tuần 1 làm gì |
+| Người | Mảng | File để bắt đầu | Tuần 1 làm gì |
 |---|---|---|---|
-| **1 · Nguyên** | H1 Router động | tạo `analysis/router.py` | đọc vector đúng/sai 16 tổ hợp trong `results_m1/*/preds.json`, dựng router heuristic |
-| **2** | H2 Negative transfer | tạo `analysis/flip_analysis.py` | đo tỉ lệ tổ hợp làm answer đúng→sai từ `results_m1/*/preds.json` |
-| **3** | H3 Topology graph | tạo `analysis/interaction.py` | tính ma trận tương tác 4×4 từ 16 accuracy đã có |
-| **4** | H4 Grounded verifier | sửa `pipeline/template_math.py` | thêm verifier chạy sympy, rồi deploy như mục "Chạy thử" |
+| **1 · Nguyên** | Thí nghiệm + tổng hợp | `deploy/orchestrate_math_role7b.py` | chạy `mA/mV/mP`, ghép bảng master vai×khó×năng-lực |
+| **2** | Chẩn đoán | `analysis/signed_shapley.py` (đã có) | đọc φ⁺/φ⁻ + đọc `results_m1/*/preds.json` tìm ví dụ answer đúng→sai |
+| **3** | Hiệu quả | tạo `analysis/router.py` | dựng router heuristic + Pareto acc–compute từ 16 tổ hợp có sẵn |
+| **4** | Method + Related Work | `analysis/shapley.py`, `grade_math.py` | viết Method + Related Work; chạy 1 baseline self-consistency |
 
 > Mẹo đọc dữ liệu: mỗi `results_<round>/<mã tổ hợp>/preds.json` là danh sách
 > `{gold, pred, correct}` theo từng câu; `<mã tổ hợp>` là 4 bit `PSVA` (vd `1011` =
