@@ -38,12 +38,12 @@ def main():
     accs = accounts()
     masks = [(p, s, v, a) for p in (0, 1) for s in (0, 1)
              for v in (0, 1) for a in (0, 1)]          # 16 coalitions
-    assert len(accs) >= len(masks), f"need 16 accounts, have {len(accs)}"
+    assert accs, "cần ít nhất 1 tài khoản trong accounts.txt (1 key cũng chạy được, tuần tự)"
     shutil.rmtree(KDIR, ignore_errors=True)
     KDIR.mkdir(parents=True)
     manifest = []
     for i, mask in enumerate(masks):
-        user, token = accs[i]
+        user, token = accs[i % len(accs)]
         bits, src = render(mask)
         slug = f"shapley-math-{ROUND}-{bits}"
         d = KDIR / bits

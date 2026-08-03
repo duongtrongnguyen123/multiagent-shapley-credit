@@ -26,11 +26,27 @@ Thư mục khác: `docs/` (báo cáo `FINDINGS.md`), phân công ở `../PROJECT
 ## Cài đặt một lần
 
 ```bash
-pip install "kaggle>=2.0" sympy    # sympy để chấm đáp án MATH (tương đương đại số)
-# tạo file accounts.txt trong thư mục shapley/ (mỗi dòng: USERNAME TOKEN), đã .gitignore
-#   hoặc trỏ tới file khác: export ACCOUNTS_FILE=/duong/dan/accounts.txt
+pip install "kaggle>=2.0" sympy matplotlib pandas   # sympy để chấm MATH; matplotlib/pandas để vẽ
+# Chỉ ai chạy Kaggle mới cần accounts.txt. Người phân tích (P2/P3/P4) BỎ QUA bước này —
+# dữ liệu đã có sẵn trong results_*/.
 ```
 Đường dẫn trong code là **tương đối** (theo vị trí file), nên clone về máy nào cũng chạy.
+
+## Chạy Kaggle với **1 API key** (nếu tự tái lập)
+
+Không cần nhiều tài khoản — 1 key vẫn chạy được, chỉ là **tuần tự** (chậm hơn).
+
+1. Lấy key: kaggle.com → Settings → API → *Create New Token* → tải về `kaggle.json`
+   (`{"username": "...", "key": "..."}`).
+2. Tạo `shapley/accounts.txt` **một dòng**: `<username> <key>`.
+3. Chạy như bình thường — orchestrator tự **round-robin**, đẩy cả 16 tổ hợp lên chính key đó
+   (mỗi tổ hợp một slug riêng). Kaggle xếp hàng, chạy ~1–2 kernel cùng lúc; `sync_once.py`
+   thu dần khi từng cái xong.
+4. **MATH chậm** (~1 tiếng/tổ hợp) → 1 key nên dùng **`N_EVAL=100`–`150`** cho vừa giới hạn
+   12h/kernel và ~30 GPU-giờ/tuần. GSM8K nhanh, để `N_EVAL=300` thoải mái.
+
+Có bao nhiêu key thì bỏ bấy nhiêu dòng vào `accounts.txt` — 1 dòng chạy tuần tự, 16 dòng chạy
+song song. Không có dòng nào ⇒ chỉ làm được phần phân tích trên data đã tải.
 
 ## Chạy thử một vòng đầy đủ (ví dụ MATH baseline)
 

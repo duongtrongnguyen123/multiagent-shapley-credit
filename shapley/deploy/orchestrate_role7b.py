@@ -43,7 +43,7 @@ def main():
     shutil.rmtree(KDIR, ignore_errors=True); KDIR.mkdir(parents=True)
     manifest = []
     for i, mask in enumerate(masks):
-        user, token = accs[i]
+        user, token = accs[i % len(accs)]
         bits, src = render(mask)
         slug = f"shapley-gsm8k-{ROUND}-{bits}"
         d = KDIR / bits; d.mkdir()
