@@ -68,3 +68,18 @@ Lưu ý: kiểm lại trên MATH (khó, chưa bão hoà) mới công bằng — 
 CHỐT: KHÔNG method nào cải thiện ĐÁNG KỂ trên base. 1.5B: tricks hại. 7B: showwork nhỉnh (+.025, N=80 → nhiễu),
 còn lại ~ngang/kém; GSM8K-7B bão hoà .90. => phương pháp KHÔNG phải đòn bẩy trên GSM8K; năng lực mới là.
 NEXT (công bằng): lặp 5 hướng trên MATH (chưa bão hoà) để test thật.
+
+## [Loop] TEST CÔNG BẰNG trên MATH-500 (khó, CHƯA bão hoà) — 5 method × {1.5B,7B}
+1.5B(N=100): base .40  showwork .39  loop .60  tool .42  struct .27
+7B (N=100): base .69  showwork .66  loop .69  tool .51  struct .65   (7B chạy 4-bit nf4 trên 1×T4)
+PHÁT HIỆN CHÍNH — tương tác METHOD × CAPACITY:
+- loop (Solver giải LẠI sau phê bình Verifier) là cải tiến THẬT nhưng CHỈ ở model yếu:
+  1.5B +0.20 tuyệt đối (+50% tương đối, .40->.60); 7B loop = base (.69=.69) → hết lợi.
+  Diễn giải: feedback-rerun CỨU model yếu (lần 1 sai, đọc phê bình sửa được); model khoẻ làm 1 lần đã đúng.
+- MỌI method khác <= base ở CẢ 2 size:
+  tool(PoT) HẠI mạnh 7B (.51 vs .69, -.18): đáp án MATH hay ở dạng ký hiệu/phân số, ép python+print làm mất
+    thế mạnh CoT tự nhiên + lỗi code; struct HẠI 1.5B (.27 vs .40): model nhỏ bị gò format thì sụp.
+KẾT LUẬN GỘP (GSM8K + MATH):
+  Trên GSM8K (dễ/bão hoà) KHÔNG method nào thắng base. Trên MATH (khó) DUY NHẤT loop thắng, và chỉ cho 1.5B.
+  => "Feedback-rerun là đòn bẩy có điều kiện: chỉ đáng khi (bài đủ khó) VÀ (model đủ yếu để lần 1 hay sai)."
+  Đây là đóng góp positive + ranh giới áp dụng rõ ràng — hợp làm finding chính của đồ án (không hype, có số).
