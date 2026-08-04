@@ -83,3 +83,20 @@ KẾT LUẬN GỘP (GSM8K + MATH):
   Trên GSM8K (dễ/bão hoà) KHÔNG method nào thắng base. Trên MATH (khó) DUY NHẤT loop thắng, và chỉ cho 1.5B.
   => "Feedback-rerun là đòn bẩy có điều kiện: chỉ đáng khi (bài đủ khó) VÀ (model đủ yếu để lần 1 hay sai)."
   Đây là đóng góp positive + ranh giới áp dụng rõ ràng — hợp làm finding chính của đồ án (không hype, có số).
+
+## [Loop] ITERATIVE (K vòng Solver<->Verifier) + STRUCTURED-COMM trên MATH-500 — KHÉP KÍN CÂU CHUYỆN
+STRUCTURED-COMM (agent trao JSON field, Verifier chỉ đích step sai):
+  1.5B acc .25 (base .40 -> HẠI); valid-JSON solver CHỈ .12 (model yếu không tuân format); fix/break = 1/34.
+  7B  acc .48 (base .69 -> HẠI); valid-JSON solver .82; fix/break = 13/20.
+  => Ép cấu trúc HẠI cả hai. Càng ép model càng sập; Verifier phá >> sửa. valid-JSON-rate = bằng chứng NLP đẹp.
+ITERATIVE (acc theo vòng; vòng0 = solve, chưa verify):
+  1.5B: [.52, .54, .54, .53]  fix/round [0,4,1,0]  break/round [0,2,1,1]  converged [_,68,17,5]
+  7B  : [.66, .68, .68, .68]  fix/round [0,2,0,0]  break/round [0,0,0,0]  converged [_,87,8,2]
+  => Feedback ăn MỘT lần (vòng 1, net +2), rồi BÃO HOÀ. Model yếu: vòng 3 bắt đầu HẠI (0 sửa/1 phá).
+     Model khoẻ: không bao giờ phá (break=0) nhưng cũng chỉ +2 rồi hết (87% đồng thuận ngay vòng 1).
+CƠ CHẾ TRUNG TÂM (gộp mọi thí nghiệm): Verifier là con dao 2 lưỡi — sửa vài lỗi NHƯNG phá đáp án đúng
+  (negative transfer/sycophancy). Cán cân nghiêng về HẠI khi: (model càng yếu) HOẶC (càng ép format) HOẶC
+  (càng lặp nhiều vòng). loop 1-vòng ở bài khó là điểm ngọt duy nhất. Đây là finding chính, nhất quán, có số,
+  nối thẳng vào nhánh trace-analysis (đã đo break>>fix). Không hype, phù hợp đồ án NLP.
+NOTE: số tuyệt đối giữa các kernel lệch nhẹ (loop-mode có Planner+Aggregator; iter-kernel chỉ S<->V) nên so
+  HƯỚNG chứ không so thẳng con số; mọi harness đều cho cùng kết luận định tính.
