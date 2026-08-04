@@ -61,3 +61,10 @@ interaction (S/V/A substitute), signed Shapley, critic NLP 3 lớp (novelty/NLI/
 KẾT LUẬN: cải tiến bằng phương pháp (format/tool/loop) KHÔNG phải đòn bẩy — bài dễ bão hoà, model yếu phản
 tác dụng. Đòn bẩy thật = năng lực model. (Negative result có ích, chống hype "thêm cấu trúc/tool là tốt".)
 Lưu ý: kiểm lại trên MATH (khó, chưa bão hoà) mới công bằng — GSM8K 7B quá dễ để thấy cải tiến.
+
+## [Loop] BẢNG 5×2 ĐẦY ĐỦ (showwork-7B=0.925)
+1.5B: base .767 showwork .753 loop .760 tool .567 struct .707
+7B  : base .900 showwork .925 loop .887 tool .850 struct .900
+CHỐT: KHÔNG method nào cải thiện ĐÁNG KỂ trên base. 1.5B: tricks hại. 7B: showwork nhỉnh (+.025, N=80 → nhiễu),
+còn lại ~ngang/kém; GSM8K-7B bão hoà .90. => phương pháp KHÔNG phải đòn bẩy trên GSM8K; năng lực mới là.
+NEXT (công bằng): lặp 5 hướng trên MATH (chưa bão hoà) để test thật.
