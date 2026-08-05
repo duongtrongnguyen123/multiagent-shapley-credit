@@ -218,3 +218,41 @@ Nhánh (cùng bể k=8 mẫu, cùng prompt CoT + 1024 token):
 ## Ghi chú trung thực
 6 giả thuyết gần nhất của tôi đã bị bác (interleaving, math-khó-verify, H3, H4-hại, H5, H6).
 H7 cũng có thể. Mọi kết cục kể cả kết cục đó đã được khoá diễn giải ở bảng trên.
+
+---
+
+# Đăng ký trước #7 — H8: VERIFY BẰNG THỰC THI CÓ TỔNG QUÁT TỪ CODE SANG MATH KHÔNG?
+**Viết TRƯỚC khi chạy.** Rút từ chuỗi 7 lần bác bỏ.
+
+## Xuất phát (ĐO ĐƯỢC)
+7 giả thuyết dựa trên PHÁN ĐOÁN LLM đều chết. Hai thứ CHƯA TỪNG hỏng:
+  (1) verify bằng THỰC THI trên code: 0 phá qua 3 vòng, cả 2 cỡ model, tăng đơn điệu;
+  (2) context KHÔNG liên quan luôn hại (âm 3/3).
+=> Câu hỏi còn lại đáng giá nhất: cơ chế CƠ HỌC (thực thi) có dùng được ở miền KHÔNG phải code không?
+Nếu CÓ, khuyến nghị của dự án trở nên mạnh và đơn giản: ở đâu kiểm được bằng máy thì đừng
+dùng phán đoán LLM. Nếu KHÔNG, kết luận là "code đặc biệt", cũng là kết quả rõ ràng.
+
+## H8
+Bắt model VIẾT PYTHON tính lại đáp án, CHẠY THẬT, rồi so với đáp án của Solver.
+Đây là verifier CƠ HỌC: nó không "phán đoán", nó TÍNH.
+Nhánh (cùng bộ lời giải Solver):
+  N       : không verify (mốc)
+  L       : verify bằng LLM (chuẩn hiện hành)
+  E_take  : Python bất đồng -> LẤY LUÔN đáp án của Python
+  E_flag  : Python bất đồng -> báo động, cho LLM GIẢI LẠI (Python chỉ làm CỔNG)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| E_take và/hoặc E_flag > L rõ rệt | H8 XÁC NHẬN. Cơ chế cơ học TỔNG QUÁT ngoài code. Khuyến nghị chính của dự án. |
+| E_* ~ L | H8 BỊ BÁC. Thực thi không hơn phán đoán ở miền math. Ghi rõ đã bác. |
+| E_* < L | Thực thi HẠI trên math (Python model viết ra sai nhiều hơn nó sửa). Kết luận: verify cơ học CHỈ dùng được khi bài toán VỐN LÀ code. |
+| exec_success_rate thấp (<50%) | THÍ NGHIỆM VÔ HIỆU về mặt cơ chế: model không viết nổi Python chạy được. Phải báo là hạn chế năng lực, KHÔNG phải bác bỏ H8. |
+
+## Chỉ số chính
+`value_added`, fixes, breaks từng nhánh.
+Kiểm tra hiệu lực BẮT BUỘC báo: `exec_success_rate` (Python chạy được không),
+`disagree_rate` (Python khác Solver bao nhiêu %), `exec_acc` (đáp án Python đúng bao nhiêu %).
+
+## Ghi chú trung thực
+7 giả thuyết gần nhất của tôi đã bị bác, 1 kết quả đã phải rút lại. H8 cũng có thể chết.
+Hàng 3 và 4 ở trên đã khoá sẵn cách diễn giải cho kết cục đó.
