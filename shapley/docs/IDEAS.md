@@ -257,3 +257,29 @@ PHÁT HIỆN PHỤ (nhất quán): ÉP ĐỊNH DẠNG "trình bày từng bướ
 CẢNH BÁO: vẫn là HẬU NGHIỆM. Cả 3 thiết lập đến từ CÙNG một mẻ thí nghiệm phóng cùng lúc ->
    là lặp lại nhất quán qua các điều kiện, KHÔNG phải kiểm chứng độc lập có đăng ký trước.
    Cần 1 lần chạy xác nhận có pre-registration trước khi coi là KHẲNG ĐỊNH.
+
+## [Loop] XÁC NHẬN H1 (có pre-register) — ỦNG HỘ MỘT PHẦN; BẢN "MẠNH" CỦA TÔI LÀ SAI
+bl_g15 — GSM8K 1.5B, n=250, solver .632 (158 đúng). MỘT bộ lời giải, cho Verifier xem 4 KIỂU:
+  arm            ver_acc  value_added  fixes  breaks  đổi đáp án  ctx_chars
+  I informed      .688      +5.6         20      6       46         854
+  B blind         .708      +7.6         42     23      108         260
+  P giấu đáp án   .688      +5.6         15      1       27         871
+  X bài khác      .596      -3.6         29     38      122         852
+ĐO ĐƯỢC: blind SỬA nhiều hơn (42 vs 20) NHƯNG cũng PHÁ gần 4 lần nhiều hơn (23 vs 6).
+  Chênh lệch giá trị gia tăng chỉ +2 điểm (+7.6 vs +5.6), KHÔNG phải +8..+11 như tôi báo trước.
+DIỄN GIẢI ĐÚNG: blind KHÔNG "thông minh hơn", nó CAN THIỆP NHIỀU HƠN (đổi 108 vs 46 đáp án).
+  fixes tăng 2.1x, breaks tăng 3.8x -> ĐỘ CHÍNH XÁC của blind THẤP HƠN chút
+  (39% số lần đổi là sửa đúng, so với 43% của informed).
+TỰ SỬA SAI: con số +8..+11 trước đây đến từ thiết lập CÓ Planner + lời giải BỊ ÉP TRÌNH BÀY.
+  Trong lần chạy sạch (không planner, prompt thường) khoảng cách co lại còn +2. TÔI ĐÃ NÓI QUÁ.
+ARM X (GIẢ DƯỢC) — KẾT QUẢ GIÁ TRỊ NHẤT: cùng độ dài context (852 vs 854) nhưng nội dung là
+  của BÀI KHÁC -> value_added -3.6, PHÁ 38 đáp án đúng.
+  => Thứ quyết định là ĐỘ LIÊN QUAN của context, KHÔNG phải ĐỘ DÀI. Loại bỏ được cách giải
+     thích cạnh tranh "context dài thì làm nó phân tâm".
+ARM P (thấy suy luận, GIẤU đáp án cuối): CỰC KỲ THẬN TRỌNG — chỉ 1 PHÁ / 158 bài đúng
+  (break_rate .006), chỉ đổi 27 đáp án. Cấu hình AN TOÀN NHẤT đo được trong cả dự án, nhưng
+  sản lượng thấp (15 sửa). => Chính ĐÁP ÁN mới là cái neo verifier lại, không phải phần suy luận.
+sw_m7 — MATH 7B: KHÔNG có hiệu ứng blind. fixes 11 vs 12, breaks 3 vs 3. Hiệu ứng BIẾN MẤT.
+GIẢ THUYẾT (chưa kiểm chứng, quan sát chéo thí nghiệm): PLANNER LÀM SOLVER NGỪNG TRÌNH BÀY.
+  Cùng prompt SOLVE: có Planner -> median 18 ký tự (sw_g15); không Planner -> 600 ký tự (bl_g15).
+  Khớp với việc Planner có giá trị Shapley thấp/âm. CẦN thí nghiệm có kiểm soát mới kết luận.
