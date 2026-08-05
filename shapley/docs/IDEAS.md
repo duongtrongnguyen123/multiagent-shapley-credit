@@ -174,3 +174,36 @@ CẢNH BÁO PHƯƠNG PHÁP: đây là quan sát QUAN SÁT (observational), khôn
   kết luận "tốt hơn".
 GHI CHÚ: nhãn do LLM mạnh (Claude) chấm -> BẢN THÂN cũng là LLM judge. Phải để người chấm mù
   ~40 mục và báo độ đồng thuận (kappa) thì mới dùng được như gold proxy.
+
+## [Loop] KẾT QUẢ CAN THIỆP "ép trình bày" — GIẢ THUYẾT CỦA TÔI BỊ BÁC BỎ (theo đúng pre-registration)
+Kiểm tra can thiệp: GSM8K median độ dài lời giải 18 -> 542 ký tự. CAN THIỆP CÓ HIỆU LỰC (không vô hiệu).
+GSM8K (n=250; nhánh mạnh về thống kê, 155 bài Solver đúng) — break_rate:
+  A trơ            14/171 = .082
+  B thấy trình bày 12/155 = .077
+  C GIẤU trình bày 13/155 = .084     (C dùng CÙNG lời giải với B)
+  => B ~ C ~ A. Rơi vào HÀNG 3 của PREREGISTRATION.md: GIẢ THUYẾT SAI.
+     Tương quan quan sát trước đó (0/28 vs 11/103) là do NHIỄU, không sống sót qua can thiệp.
+MATH (n=150) đi hướng ngược (.062 vs .154) NHƯNG chỉ 65 bài đúng, 4 vs 10 -> KHÔNG có ý nghĩa
+  thống kê. KHÔNG được kết luận.
+LƯU Ý QUAN TRỌNG: quan sát gốc (median 20 ký tự) là của GSM8K. Trên MATH Solver VỐN ĐÃ trình bày
+  (median 894 ký tự) -> tôi đã suy rộng một hiện tượng riêng của GSM8K sang MATH. Sai phương pháp.
+
+## [Loop] PHÁT HIỆN NGOÀI DỰ KIẾN (HẬU NGHIỆM — chưa pre-register, cần xác nhận độc lập)
+Nhìn vào FIXES (không phải chỉ số chính đã đăng ký):
+                    Verifier THẤY lời giải     Verifier BỊ BỊT MẮT
+  GSM8K             10 sửa / 12 phá = net -2   40 sửa / 13 phá = net +27
+  MATH               6 sửa /  4 phá = net +2   20 sửa / 10 phá = net +10
+  verifier accuracy  .612 / .447                .728 / .500
+=> VERIFIER BỊ BỊT MẮT BẮT LỖI GẤP ~4 LẦN, trên CẢ HAI task, với CÙNG bộ lời giải.
+   Cho xem phần trình bày KHÔNG giúp nó kiểm — nó làm cho nó ĐỒNG TÌNH (anchoring/sycophancy).
+   ĐẢO NGƯỢC câu chuyện cũ: verifier "tự giải lại" KHÔNG phải lỗi, mà chính là thứ làm nó hữu ích.
+   (HẬU NGHIỆM: sinh ra từ chính bộ số này -> phải kiểm chứng độc lập trước khi dựa vào.)
+
+## [Loop] SELF-CONSISTENCY k=8 (1.5B, MATH, n=100) — KẾT QUẢ DƯƠNG RÕ NHẤT
+  greedy .50 | maj@4 .58 | maj@8 .60 | oracle@8 .73 | LLM-aggregator trên CÙNG 8 ứng viên .41
+  llm_breaks_majority = 21   llm_fixes_majority = 2   (sign test p < .001)
+=> (1) Bỏ phiếu thắng greedy +.10. Phương pháp KHÔNG-huấn-luyện đầu tiên thắng rõ.
+   (2) Trên CÙNG bộ ứng viên, bộ tổng hợp LLM THẤP HƠN bỏ phiếu 19 ĐIỂM, và nó đè lên phe đa số
+       ĐÚNG 21 lần trong khi chỉ cứu được 2 lần.
+   => Khẳng định "SAI LOẠI BỘ TỔNG HỢP" giờ là ĐO ĐỐI ĐẦU, không còn là lập luận.
+   (3) oracle@8 - maj@8 = .13 -> còn dư địa thật cho một bộ chọn (reranker) được huấn luyện.
