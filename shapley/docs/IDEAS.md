@@ -207,3 +207,30 @@ Nhìn vào FIXES (không phải chỉ số chính đã đăng ký):
        ĐÚNG 21 lần trong khi chỉ cứu được 2 lần.
    => Khẳng định "SAI LOẠI BỘ TỔNG HỢP" giờ là ĐO ĐỐI ĐẦU, không còn là lập luận.
    (3) oracle@8 - maj@8 = .13 -> còn dư địa thật cho một bộ chọn (reranker) được huấn luyện.
+
+## [Loop] SELF-CONSISTENCY 7B (MATH, n=100) — LỜI GIẢI CHO CÂU HỎI "CÓ PHẢI DO MODEL NHỎ KHÔNG?"
+                     1.5B        7B
+  greedy             .50         .72
+  maj@8              .60 (+.10)  .73 (+.01)
+  oracle@8           .73         .85
+  LLM-aggregator     .41         .47
+  đè lên đa số ĐÚNG  21          26
+  cứu được đa số SAI  2           0   (!!)
+  mức đồng thuận TB  4.6/8       6.4/8
+(1) LỢI ÍCH CỦA BỎ PHIẾU GIẢM THEO NĂNG LỰC: +.10 ở 1.5B nhưng chỉ +.01 ở 7B.
+    CƠ CHẾ nhìn thấy được: mức đồng thuận 4.6 -> 6.4. Model mạnh thì các mẫu GIỐNG NHAU hơn
+    -> bỏ phiếu không còn gì để khai thác. Bỏ phiếu biến ĐA DẠNG thành độ chính xác;
+    model mạnh cung cấp ít đa dạng hơn. (Cùng dạng với kết quả `loop` trước: giúp 1.5B, không giúp 7B.)
+(2) SỰ SỤP ĐỔ CỦA BỘ TỔNG HỢP LLM NẶNG HƠN Ở 7B, không nhẹ đi: 26 lần đè lên phe đa số ĐÚNG,
+    và 0 lần cứu được phe đa số SAI. => KHÔNG phải hiện tượng riêng của model nhỏ.
+(3) oracle - maj: .13 (1.5B) và .12 (7B) -> dư địa cho reranker gần như NHƯ NHAU ở cả hai cỡ.
+
+### CẢNH BÁO NHIỄU (phải sửa trước khi dùng kết luận (2) ở mức mạnh)
+Nhánh aggregator KHÔNG công bằng theo thiết kế hiện tại:
+  prompt SOLVE: có "step by step" + 1024 token | prompt AGG: KHÔNG có CoT + chỉ 384 token
+=> .47 vs .72 lẫn lộn giữa "tổng hợp có hại" và "prompt yếu hơn, ít chỗ suy nghĩ hơn".
+   Bất đối xứng 26/0 khó giải thích bằng prompt yếu (prompt yếu lẽ ra vẫn cứu được vài ca),
+   nhưng KHÔNG tách bạch được bằng thiết kế này.
+ĐƯỢC PHÉP KẾT LUẬN: bộ tổng hợp LLM *như đã cấu hình* kém xa bỏ phiếu trên cùng bộ ứng viên.
+CHƯA ĐƯỢC KẾT LUẬN: tổng hợp bằng LLM về bản chất kém hơn bỏ phiếu.
+CÁCH SỬA (rẻ): chạy lại nhánh aggregator với CÙNG chỉ dẫn CoT và CÙNG 1024 token.
