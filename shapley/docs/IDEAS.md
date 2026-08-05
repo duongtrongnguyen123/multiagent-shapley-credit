@@ -100,3 +100,27 @@ CƠ CHẾ TRUNG TÂM (gộp mọi thí nghiệm): Verifier là con dao 2 lưỡi
   nối thẳng vào nhánh trace-analysis (đã đo break>>fix). Không hype, phù hợp đồ án NLP.
 NOTE: số tuyệt đối giữa các kernel lệch nhẹ (loop-mode có Planner+Aggregator; iter-kernel chỉ S<->V) nên so
   HƯỚNG chứ không so thẳng con số; mọi harness đều cho cùng kết luận định tính.
+
+## [Loop] STEP-INTERLEAVED vs POST-HOC + BẤT ĐỐI XỨNG NĂNG LỰC (MATH-500, N=50, solver=1.5B)
+Hai kernel độc lập ra SỐ TRÙNG KHÍT (greedy, deterministic) -> tái lập được.
+  A không verify            : .46
+  B verify TỪNG BƯỚC (1.5B) : .22   fix 2  / break 14   step_err_rate .724
+  C verify TỪNG BƯỚC (7B)   : .34   fix 5  / break 11   step_err_rate .426
+  D verify POST-HOC (7B)    : .64   fix 9  / break  0   <-- TỐT NHẤT toàn dự án
+  E 7B chia bước nguyên tử + 1.5B thi hành : .26  fix 5 / break 15  (avg 4.36 bước/bài)
+GIẢ THUYẾT BAN ĐẦU SAI: tưởng interleave sẽ GIẢM break (vì verifier chỉ phán 1 bước nhỏ,
+  không đụng đáp án cuối). Thực tế interleave là cấu hình TỆ NHẤT.
+CƠ CHẾ (đo được, không suy diễn): tỉ lệ BÁO ĐỘNG GIẢ.
+  Verifier 1.5B kêu "sai" ở 72.4% số bước; 7B vẫn kêu 42.6%. Mỗi báo động giả nhét một
+  "sửa chữa" bịa vào context -> phá quỹ đạo vốn đang đúng. Nói càng nhiều, false-positive
+  càng nhân lên. Nói MỘT lần thì không.
+=> ĐỊNH LUẬT GỘP: giá trị của Verifier SỤP theo TẦN SUẤT can thiệp, ở cùng một mức năng lực.
+   (7B mỗi bước .34  vs  7B một lần .64). Khớp luôn với kết quả iterative trước đó
+   (vòng 2-3 vô ích, vòng 3 bắt đầu phá). Một định luật giải thích cả hai thí nghiệm.
+KẾT QUẢ DƯƠNG (D): 1.5B giải + 7B soát MỘT lần = .46 -> .64 (+.18), 9 sửa / 0 phá.
+   Sign test p ~ .004. Ý tưởng "bất đối xứng năng lực" ĐÚNG, nhưng cần MỘT can thiệp
+   đặt đúng chỗ, không phải giám sát liên tục. Rẻ: 7B chỉ chạy 1 lần/bài.
+   (Tham chiếu: 7B làm TẤT CẢ = .69 ở N=100 -> bất đối xứng gần bằng, tốn ít hơn nhiều.
+    Khác N nên chỉ là so sánh gần đúng, cần xác nhận cùng N.)
+THỐNG KÊ: B hại có ý nghĩa (2 vs 14, p~.004); E hại có ý nghĩa (5 vs 15, p~.04);
+   C (5 vs 11, p~.21) chỉ là xu hướng, CHƯA đủ ý nghĩa với N=50.
