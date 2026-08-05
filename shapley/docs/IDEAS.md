@@ -330,3 +330,30 @@ GIẢ THUYẾT MỚI (chưa kiểm chứng): BẢN KẾ HOẠCH CHÍNH LÀ PHẦ
   agg_full_sol (cho aggregator xem TOÀN VĂN lời giải): -17.5, tệ nhất trong các nhánh aggregator
 => HAI VAI khác nhau, HAI task khác nhau, CÙNG một hướng: đưa thêm context làm HỎNG phán đoán
    của LLM; thứ quyết định là ĐỘ LIÊN QUAN chứ không phải ĐỘ DÀI.
+
+## [Loop] VÒNG #4 — H5 BỊ BÁC (rơi HÀNG 3). LẦN THỨ 5 giả thuyết của tôi chết.
+pp_g15 — GSM8K 1.5B, n=250, Planner BẬT (solver 18 ký tự, plan 435 ký tự), solver_acc .684:
+  V_sol  (chỉ lời giải)      +4.8 điểm | 26 sửa / 14 phá | ctx 275
+  V_plan (kế hoạch + đáp án) -2.8 điểm |  6 sửa / 13 phá | ctx 704
+  V_both (kế hoạch + lời giải)-2.0 điểm |  3 sửa /  8 phá | ctx 757
+  V_none (chỉ đáp án)        +4.0 điểm | 27 sửa / 17 phá | ctx 260
+=> Đưa KẾ HOẠCH cho Verifier KHÔNG khôi phục khả năng kiểm tra — nó PHÁ HUỶ khả năng đó.
+   Giá trị tụt ~7 điểm, số SỬA sụp từ 26 xuống 3. H5 BỊ BÁC, rơi đúng HÀNG 3 đã khoá trước:
+   "kế hoạch chỉ là context gây nhiễu, KHÔNG phải suy luận hữu ích".
+GHI CHÚ: V_none ~ V_sol vì khi Planner bật, "lời giải" vốn đã trơ (18 ký tự) — hai nhánh gần
+   như cùng một thứ. Đối chiếu thực sự ở đây là CÓ vs KHÔNG có context kế hoạch.
+
+### LẦN THỨ 4 LẶP LẠI CÙNG MỘT HIỆU ỨNG (đây mới là thứ bền)
+  ĐO ĐƯỢC — thêm context cho Verifier làm GIẢM giá trị của nó, ở MỌI dạng đã thử:
+    không thêm gì (chỉ đáp án)        +4.0
+    kế hoạch của Solver               -2.8
+    kế hoạch + lời giải               -2.0
+    suy luận của BÀI KHÁC             -3.6 / -3.5  (2 task)
+    toàn văn lời giải (vai aggregator)-17.5
+### TỰ SỬA SAI: phải LÀM YẾU khẳng định vòng trước
+  Vòng trước tôi nói "ĐỘ LIÊN QUAN mới quan trọng, không phải ĐỘ DÀI".
+  Kế hoạch LÀ context LIÊN QUAN (đúng bài đó, và nó còn LÀM TĂNG acc của Solver .632->.684)
+  — VẬY MÀ VẪN HẠI Verifier. => Chỉ "liên quan" thôi KHÔNG cứu được context. RÚT LẠI dạng mạnh.
+GIẢ THUYẾT MỚI (chưa kiểm chứng): thứ quyết định là context có chứa PHÉP TÍNH KIỂM CHỨNG ĐƯỢC
+  hay không. Kế hoạch nêu Ý ĐỊNH ("tìm tổng rồi trừ đi"); lời giải nêu KẾT QUẢ ("14 x 3 = 42").
+  Số học thì KIỂM ĐƯỢC; ý định thì KHÔNG.
