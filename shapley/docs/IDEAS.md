@@ -357,3 +357,34 @@ GHI CHÚ: V_none ~ V_sol vì khi Planner bật, "lời giải" vốn đã trơ (
 GIẢ THUYẾT MỚI (chưa kiểm chứng): thứ quyết định là context có chứa PHÉP TÍNH KIỂM CHỨNG ĐƯỢC
   hay không. Kế hoạch nêu Ý ĐỊNH ("tìm tổng rồi trừ đi"); lời giải nêu KẾT QUẢ ("14 x 3 = 42").
   Số học thì KIỂM ĐƯỢC; ý định thì KHÔNG.
+
+## [Loop] VÒNG #5 — H5 BỊ BÁC LẦN 2 (MATH); H6 BỊ BÁC VÀ THỨ TỰ NGƯỢC HẲN DỰ ĐOÁN
+### pp_m15 (H5 trên MATH, 1.5B, n=200, solver .425)
+  V_none (chỉ đáp án) +4.0 | 23 sửa / 15 phá | ctx  204
+  V_sol               +2.0 | 11 sửa /  7 phá | ctx 1066
+  V_both              +2.0 | 11 sửa /  7 phá | ctx 1762
+  V_plan              +1.0 | 11 sửa /  9 phá | ctx  988
+=> Rơi HÀNG 4 đã khoá: "V_none tốt nhất -> mọi context đều hại". H5 bị bác trên CẢ HAI task.
+
+### cp_g15 (H6 trên GSM8K, 1.5B, n=250, Planner TẮT, solver .632, lời giải THẬT 600 ký tự)
+  W_prose (ẨN HẾT SỐ, giữ lời văn) +8.4 | 33 sửa / 12 phá | ctx 916
+  W_none  (chỉ đáp án)             +7.6 | 42 sửa / 23 phá | ctx 260
+  W_calc  (CHỈ dòng phép tính)     +6.4 | 25 sửa /  9 phá | ctx 605
+  W_full  (nguyên văn)             +5.6 | 20 sửa /  6 phá | ctx 854
+=> H6 BỊ BÁC, rơi HÀNG 2: "không phải phép tính; là thứ khác".
+   Tôi dự đoán PHÉP TÍNH là thành phần hoạt tính. THỰC TẾ NGƯỢC LẠI: XOÁ SỐ ĐI thì TỐT HƠN,
+   và chỉ-đưa-phép-tính còn TỆ HƠN không đưa gì.
+
+### QUY LUẬT MỚI (ĐO ĐƯỢC, đơn điệu theo LƯỢNG SỐ LIỆU được nhìn thấy)
+  không có số nào (prose, ẩn giá trị)  +8.4 | 33 sửa
+  chỉ đáp án cuối                      +7.6 | 42 sửa
+  mọi giá trị trong phép tính          +6.4 | 25 sửa
+  toàn bộ                              +5.6 | 20 sửa
+=> Càng cho Verifier thấy NHIỀU GIÁ TRỊ TRUNG GIAN, giá trị của nó càng GIẢM.
+GIẢ THUYẾT (chưa kiểm chứng, KHÔNG nằm trong pre-registration): chính các GIÁ TRỊ TRUNG GIAN
+  của Solver là thứ NEO Verifier lại. Thấy một con số thì nó CHẤP NHẬN con số đó thay vì tính lại.
+  Che số đi thì nó buộc phải TỰ TÍNH -> bắt được nhiều lỗi hơn.
+ĐÂY LÀ NHÁNH ĐẦU TIÊN VƯỢT ĐƯỢC "chỉ-đáp-án": cho thấy CẤU TRÚC suy luận nhưng CHE GIÁ TRỊ
+  (+8.4) tốt hơn cả hai thái cực. Là khuyến nghị TÍCH CỰC (làm gì) chứ không chỉ "đừng làm gì".
+  NHƯNG: 1 task, 1 model, KHÔNG pre-register -> vẫn chỉ là GIẢ THUYẾT. cp_m15 và cp_g7 đang chạy
+  sẽ kiểm chứng đúng điều này.
