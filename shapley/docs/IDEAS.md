@@ -234,3 +234,26 @@ Nhánh aggregator KHÔNG công bằng theo thiết kế hiện tại:
 ĐƯỢC PHÉP KẾT LUẬN: bộ tổng hợp LLM *như đã cấu hình* kém xa bỏ phiếu trên cùng bộ ứng viên.
 CHƯA ĐƯỢC KẾT LUẬN: tổng hợp bằng LLM về bản chất kém hơn bỏ phiếu.
 CÁCH SỬA (rẻ): chạy lại nhánh aggregator với CÙNG chỉ dẫn CoT và CÙNG 1024 token.
+
+## [Loop] GSM8K 7B — HIỆU ỨNG "VERIFIER BỊ BỊT MẮT" LẶP LẠI Ở CỠ LỚN HƠN
+  B (thấy lời giải):  ver .840  breaks 8  fixes  9   medlen 407
+  C (BỊ BỊT MẮT, CÙNG lời giải): ver .916  breaks 6  fixes 26   medlen 17
+GIÁ TRỊ GIA TĂNG CỦA KHÂU VERIFY (verifier_acc - solver_acc), CẢ 3 THIẾT LẬP:
+                 THẤY lời giải     BỊ BỊT MẮT      fixes
+  GSM8K 1.5B      -0.8 điểm        +10.8 điểm      10 -> 40
+  GSM8K 7B        +0.4 điểm        + 8.0 điểm       9 -> 26
+  MATH  1.5B      +1.3 điểm        + 6.7 điểm       6 -> 20
+=> VERIFY CÓ ĐỌC LỜI GIẢI: giá trị ~ 0.  VERIFY BỊT MẮT: +7 đến +11 điểm.
+   Cùng lời giải, cùng verifier, cùng prompt — chỉ khác CÓ ĐƯỢC ĐỌC PHẦN TRÌNH BÀY HAY KHÔNG.
+ĐIỂM SẮC NHẤT: số PHÁ gần như KHÔNG đổi (8 vs 6; 12 vs 13). Cho xem lời giải KHÔNG làm giảm
+   thiệt hại — nó BÓP NGHẸT KHẢ NĂNG BẮT LỖI. Nhìn thấy lời giải làm verifier bị thuyết phục
+   mà thôi phản đối (anchoring / sycophancy).
+HỆ QUẢ THỰC DỤNG (ngược trực giác): đa số framework đa tác tử mặc định truyền TOÀN BỘ trace
+   giữa các agent. Kết quả này nói: ĐỪNG đưa lời giải của Solver cho Verifier — chỉ đưa ĐÁP ÁN
+   và bắt nó tự kiểm độc lập. RẺ HƠN (17 vs 407 ký tự context) mà TỐT HƠN NHIỀU.
+PHÁT HIỆN PHỤ (nhất quán): ÉP ĐỊNH DẠNG "trình bày từng bước" LÀM SOLVER KÉM ĐI ở mọi thiết lập:
+   .684->.620 (GSM8K 1.5B), .896->.836 (GSM8K 7B), .440->.433 (MATH 1.5B).
+   Khớp với các kết quả format trước đây (struct/showwork đều hại).
+CẢNH BÁO: vẫn là HẬU NGHIỆM. Cả 3 thiết lập đến từ CÙNG một mẻ thí nghiệm phóng cùng lúc ->
+   là lặp lại nhất quán qua các điều kiện, KHÔNG phải kiểm chứng độc lập có đăng ký trước.
+   Cần 1 lần chạy xác nhận có pre-registration trước khi coi là KHẲNG ĐỊNH.
