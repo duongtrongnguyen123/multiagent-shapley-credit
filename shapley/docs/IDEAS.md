@@ -388,3 +388,37 @@ GIẢ THUYẾT (chưa kiểm chứng, KHÔNG nằm trong pre-registration): chí
   (+8.4) tốt hơn cả hai thái cực. Là khuyến nghị TÍCH CỰC (làm gì) chứ không chỉ "đừng làm gì".
   NHƯNG: 1 task, 1 model, KHÔNG pre-register -> vẫn chỉ là GIẢ THUYẾT. cp_m15 và cp_g7 đang chạy
   sẽ kiểm chứng đúng điều này.
+
+## [Loop] VÒNG #6 — RÚT LẠI KẾT QUẢ VÒNG TRƯỚC: CHE GIÁ TRỊ KHÔNG LẶP LẠI, NÓ ĐẢO NGƯỢC
+### cp_m15 (H6 trên MATH, 1.5B, n=200, solver .405)
+  W_calc  (chỉ phép tính)  +5.5 | 15 sửa /  4 phá
+  W_full  (nguyên văn)     +5.0 | 13 sửa /  3 phá
+  W_none  (chỉ đáp án)     +5.0 | 19 sửa /  9 phá
+  W_prose (ẨN HẾT SỐ)      -2.0 | 21 sửa / 25 phá   <-- TỆ NHẤT
+ĐỐI CHIẾU VỚI GSM8K vòng trước: W_prose là TỐT NHẤT (+8.4). Trên MATH nó TỆ NHẤT (-2.0). ĐẢO NGƯỢC.
+TỰ RÚT LẠI: vòng trước tôi gọi "che giá trị trung gian" là "kết quả TÍCH CỰC, TRIỂN KHAI ĐƯỢC
+  đầu tiên của cả dự án". NÓ KHÔNG LẶP LẠI. Tôi đã ghi rõ đó là GIẢ THUYẾT cần kiểm chứng;
+  kiểm chứng cho kết quả ÂM -> RÚT LẠI HOÀN TOÀN.
+GIẢ THUYẾT giải thích (chưa kiểm chứng): lời văn GSM8K vẫn giữ được logic khi xoá số
+  ("tìm tổng rồi trừ đi"); còn lời giải MATH bị xoá ký hiệu thì VÔ NGHĨA — phân số, căn, biểu thức
+  CHÍNH LÀ nội dung. Che số = phá huỷ nội dung toán.
+
+### bl_g7 (H1 trên GSM8K 7B, n=250, solver ĐÃ .916 — gần bão hoà)
+  B blind    0.0 | 6 sửa / 6 phá     I informed -0.8 | 4 sửa / 6 phá
+  P partial -0.8 | 3 sửa / 5 phá     X cross    -1.6 | 8 sửa /12 phá
+=> MỌI nhánh verify đều BẰNG 0 hoặc ÂM. Tiêu chí fixes của H1 (6 vs 4) là vụn vặt, không ý nghĩa.
+ĐO ĐƯỢC: KHI SOLVER ĐÃ MẠNH (gần bão hoà), KHÔNG cấu hình verify nào còn giá trị.
+
+### THỨ DUY NHẤT CHƯA BAO GIỜ THẤT BẠI
+  X_cross (context KHÔNG liên quan) ÂM 3/3 thiết lập: -3.6 (GSM8K 1.5B), -3.5 (MATH 1.5B),
+  -1.6 (GSM8K 7B). Cả 2 task, cả 2 cỡ model.
+  Cùng với verify BẰNG THỰC THI (code: 0 phá qua 3 vòng) — đây là hai thứ chưa từng hỏng.
+
+### TỔNG KẾT TRUNG THỰC: 7 GIẢ THUYẾT CỦA TÔI ĐÃ CHẾT
+  interleaving giúp | math vốn khó verify | H3 cổng lọc | H4 planner gây hại | H5 truyền kế hoạch
+  | H6 phép tính là thành phần hoạt tính | che-giá-trị triển khai được
+META-PHÁT HIỆN (ĐO ĐƯỢC, từ chính chuỗi thất bại này): PHẦN LỚN "mẹo" cải tiến đa tác tử tạo ra
+  hiệu ứng KHÔNG CHUYỂN ĐƯỢC qua task khác hoặc cỡ model khác. W_prose: +8.4 (GSM8K) -> -2.0 (MATH).
+  Blind: +2 (GSM8K 1.5B) -> 0 (MATH 1.5B) -> 0 (GSM8K 7B).
+  => Đây TỰ NÓ là kết quả có giá trị và bảo vệ được: cảnh báo về tính KHÔNG BỀN của các mẹo
+     prompting đa tác tử, có 7 lần bác bỏ + 1 lần đảo ngược làm bằng chứng.
