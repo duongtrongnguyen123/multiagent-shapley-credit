@@ -256,3 +256,27 @@ Kiểm tra hiệu lực BẮT BUỘC báo: `exec_success_rate` (Python chạy đ
 ## Ghi chú trung thực
 7 giả thuyết gần nhất của tôi đã bị bác, 1 kết quả đã phải rút lại. H8 cũng có thể chết.
 Hàng 3 và 4 ở trên đã khoá sẵn cách diễn giải cho kết cục đó.
+
+---
+
+# Bổ sung cho #7 — CHẠY LẠI H8 VỚI MODEL 7B (không phải giả thuyết mới)
+**Viết TRƯỚC khi chạy.** H8 vẫn là H8; lần trước THÍ NGHIỆM VÔ HIỆU vì model quá yếu.
+
+## Lý do chạy lại
+Kiểm tra hiệu lực đã khoá trước: exec_success_rate phải >= 50% thì kết quả mới có ý nghĩa.
+Lần chạy 1.5B: .416 (GSM8K) và .435 (MATH) -> VÔ HIỆU. exec_acc chỉ .414/.391.
+7B đạt .787 pass@1 trên HumanEval (so với .53 của 1.5B) -> nhiều khả năng vượt ngưỡng hiệu lực.
+KHÔNG thay đổi giả thuyết, KHÔNG thay đổi bảng diễn giải. Chỉ thay model để có phép thử HỢP LỆ.
+
+## Bảng diễn giải giữ NGUYÊN như #7
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| E_take và/hoặc E_flag > L rõ rệt | H8 XÁC NHẬN. Cơ chế cơ học TỔNG QUÁT ngoài code. |
+| E_* ~ L | H8 BỊ BÁC. Thực thi không hơn phán đoán ở miền math. |
+| E_* < L | Thực thi HẠI trên math. Verify cơ học CHỈ dùng được khi bài toán VỐN LÀ code. |
+| exec_success_rate < 50% LẦN NỮA | VẪN VÔ HIỆU. Kết luận: cơ chế này ĐÒI HỎI năng lực viết code mà model ở cỡ này không có -> đó CHÍNH LÀ giới hạn thực tế đáng báo cáo. KHÔNG được diễn giải thành "H8 sai". |
+
+## Ghi chú trung thực
+Nếu lần này exec_success_rate vẫn dưới 50%, KHÔNG chạy lại lần ba. Kết luận cuối sẽ là:
+"verify bằng thực thi cần model đủ mạnh để viết code đúng; ở cỡ model chúng tôi thử nghiệm được
+thì điều kiện đó không thoả" — một giới hạn được ĐO ĐẠC, không phải một giả thuyết bị bác.
