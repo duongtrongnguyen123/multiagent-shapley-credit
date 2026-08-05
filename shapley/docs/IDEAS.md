@@ -124,3 +124,29 @@ KẾT QUẢ DƯƠNG (D): 1.5B giải + 7B soát MỘT lần = .46 -> .64 (+.18),
     Khác N nên chỉ là so sánh gần đúng, cần xác nhận cùng N.)
 THỐNG KÊ: B hại có ý nghĩa (2 vs 14, p~.004); E hại có ý nghĩa (5 vs 15, p~.04);
    C (5 vs 11, p~.21) chỉ là xu hướng, CHƯA đủ ý nghĩa với N=50.
+
+## [Loop] CODE (HumanEval, n=164) — KIỂM CHỨNG ĐỊNH LUẬT BẰNG VERIFIER CHÍNH XÁC TUYỆT ĐỐI
+              1.5B      7B
+  A không verify        .531      .787
+  B LLM tự soát         .543      .768(!)   <- tự soát KHÔNG giúp; 7B còn giảm
+  C chạy test, sửa 1v   .561      .823
+  D chạy test, sửa 3v   .567      .835      <- tốt nhất
+D theo vòng: 1.5B .531->.561->.567->.567 | 7B .787->.823->.835->.835
+  fix/vòng: [5,1,0] và [6,2,0];  break/vòng: [0,0,0] và [0,0,0]  <- KHÔNG PHÁ LẦN NÀO
+KẾT LUẬN 1 — ĐỊNH LUẬT ĐƯỢC CHỨNG MINH (không còn là suy diễn):
+  Ở MATH, lặp tới vòng 3 BẮT ĐẦU PHÁ. Ở CODE với verifier chính xác (chạy test), lặp
+  KHÔNG BAO GIỜ phá — chỉ bão hoà. Cùng vòng lặp, cùng số vòng, CHỈ ĐỔI độ tin cậy tín hiệu.
+  => Tác hại KHÔNG đến từ "lặp nhiều", mà từ "lặp trên tín hiệu KHÔNG ĐÁNG TIN".
+  (1.5B 6 fix/0 break p~.03; 7B 8 fix/0 break p~.008)
+KẾT LUẬN 2 — BẤT NGỜ: verifier LLM ĐỔI KIỂU HỎNG theo miền, ngược hẳn dự đoán của tôi.
+  MATH: BÁO ĐỘNG THỪA (kêu sai 42-72% số bước) -> phá lời giải đúng.
+  CODE: BỎ SÓT (chỉ kêu 15/164 và 12/164; recall trên bug thật chỉ .156 và .171
+        -> bỏ lọt 65/77 và 29/35 chương trình HỎNG). Code "trông hợp lý" là nó cho qua.
+  => Bất biến THẬT không phải "hay báo động giả", mà là "PHÁN ĐOÁN LLM KHÔNG ĐÁNG TIN";
+     hướng lệch phụ thuộc miền. (Phải sửa lại cách phát biểu định luật cho đúng.)
+KẾT LUẬN 3 — THANG BẬC VERIFIER (gộp cả MATH lẫn CODE):
+  verify CHÍNH XÁC (chạy test)      > verify bằng MODEL MẠNH HƠN   > TỰ soát
+  code D +.036/+.049, 0 phá           math D +.18, 0 phá             code B ~0 hoặc âm
+  Tự soát (verifier = solver) gần như vô dụng: 1.5B +.012, 7B -.018 (n nhỏ, chưa ý nghĩa).
+HỆ QUẢ CHO RLAIF/GRPO: dùng verifier LLM làm REWARD là hỏng — trên code nó chỉ bắt được
+  15-17% lỗi thật. Reward phải là EXECUTION (code) hoặc CONSENSUS (math), không phải phán đoán LLM.
