@@ -283,3 +283,50 @@ sw_m7 — MATH 7B: KHÔNG có hiệu ứng blind. fixes 11 vs 12, breaks 3 vs 3.
 GIẢ THUYẾT (chưa kiểm chứng, quan sát chéo thí nghiệm): PLANNER LÀM SOLVER NGỪNG TRÌNH BÀY.
   Cùng prompt SOLVE: có Planner -> median 18 ký tự (sw_g15); không Planner -> 600 ký tự (bl_g15).
   Khớp với việc Planner có giá trị Shapley thấp/âm. CẦN thí nghiệm có kiểm soát mới kết luận.
+
+## [Loop] VÒNG #3 — 6 KẾT QUẢ. HAI GIẢ THUYẾT BỊ BÁC, MỘT TỰ RÚT LẠI KHUYẾN NGHỊ
+
+### H3 (verify có cổng lọc) — BỊ BÁC, rơi vào HÀNG 4 của pre-registration
+  G gated GSM8K: 0 sửa / 0 phá / +0.0 điểm | cổng kêu YES 0/250 lần
+  G gated MATH : 1 sửa / 0 phá / +0.5 điểm | cổng kêu YES 2/200 lần (recall .017)
+=> CỔNG KHÔNG BAO GIỜ KÊU. G kém cả I (+5.6) lẫn B (+7.6) -> H3 BỊ BÁC, ghi rõ, không diễn giải lại.
+ĐO ĐƯỢC (phần có giá trị): câu hỏi NHỊ PHÂN "có lỗi không? YES/NO" là THOÁI HOÁ với model nhỏ —
+  nó gần như luôn trả lời NO. CÙNG model đó, khi được bảo LÀM RA lời giải sửa, nó đổi 27-108 đáp án;
+  khi chỉ được bảo PHÁN, nó đổi 0. => Phải bắt model nhỏ LÀM VIỆC, đừng bắt nó CHẤM ĐIỂM.
+  Khớp với kết quả code trước đó (verifier LLM bỏ sót, recall .156).
+TỰ RÚT LẠI: vòng trước tôi gọi P (giấu đáp án) là "cấu hình an toàn nhất" và đề xuất áp dụng.
+  Trên MATH, P phá 12 so với informed chỉ phá 3 -> P TỆ HƠN, không an toàn hơn.
+  Mức an toàn ở GSM8K (1 phá) là ĐẶC THÙ TASK + do nó THỤ ĐỘNG. KHUYẾN NGHỊ ĐÓ ĐÃ SAI.
+
+### H4 (Planner bóp nghẹt Solver) — BÓP NGHẸT: ĐÚNG. GÂY HẠI: BỊ BÁC.
+GSM8K:  không planner acc .632 median 600 ký tự (2.8% dưới 200)
+        CÓ planner   acc .684 median  18 ký tự (88.4% dưới 200)
+        planner + nhắc "vẫn phải trình bày": acc .672, median VẪN 18 -> KHÔNG cứu được bằng prompt
+MATH :  .405/1319  ->  .425/899  (cùng hướng)
+=> Planner làm Solver ngừng viết ra lời giải (600 -> 18) NHƯNG ĐỘ CHÍNH XÁC TĂNG (.632 -> .684).
+   Giả thuyết "gây hại" của tôi BỊ BÁC. Việc bóp nghẹt trình bày KHÔNG làm giảm chất lượng.
+GIẢ THUYẾT MỚI (chưa kiểm chứng): BẢN KẾ HOẠCH CHÍNH LÀ PHẦN SUY LUẬN. Solver suy luận ngay ở
+   bước lập kế hoạch rồi chỉ phát ra đáp án -> PIPELINE VỨT BỎ PHẦN SUY LUẬN TRƯỚC KHI VERIFIER
+   NHÌN THẤY. Giải thích được các trace "đáp án trơ" mà không cần giả thuyết "solver lười".
+
+### H2 (bộ tổng hợp công bằng) — HÀNG 2: KHOẢNG CÁCH CŨ PHẦN LỚN DO NHIỄU PROMPT CỦA TÔI
+  cũ (prompt thiệt thòi): .41  vs maj .60  = -19.0 điểm | 21 phá / 2 cứu
+  agg_fair (CoT + 1024):  .467 vs maj .533 = - 6.7 điểm | 15 phá / 7 cứu
+  agg_with_counts:        .500              = - 3.3 điểm | 11 phá / 7 cứu
+  agg_full_sol:           .358              = -17.5 điểm | 26 phá / 5 cứu
+=> Khoảng cách co từ -19 xuống -6.7 khi đối xử công bằng. KHẲNG ĐỊNH "kém 19 điểm" CỦA TÔI ĐÃ
+   BỊ THỔI PHỒNG bởi nhiễu prompt, đúng như đã tự cảnh báo. Phát biểu CÒN SỐNG (yếu hơn):
+   tổng hợp bằng LLM vẫn thua bỏ phiếu (-6.7) và vẫn phá gấp ~2 lần số cứu.
+   Cho biết SỐ PHIẾU giúp thu hẹp (-3.3) nhưng VẪN không bằng bỏ phiếu thuần.
+
+### H1 trên MATH (bl_m15) — chỉ ỦNG HỘ YẾU
+  I informed: +5.0 điểm, 13 sửa /  3 phá | B blind: +5.0 điểm, 19 sửa /  9 phá
+  P giấu đáp: +0.5 điểm, 13 sửa / 12 phá | X bài khác: -3.5 điểm, 23 sửa / 30 phá
+=> fixes(blind) > fixes(informed) đúng ở CẢ HAI task (42>20 và 19>13) NHƯNG giá trị gia tăng
+   trên MATH BẰNG NHAU (+5.0 = +5.0). Lợi ích thực tế của blind = 0 trên MATH.
+
+### PHÁT HIỆN LẶP LẠI ỔN ĐỊNH NHẤT: ĐỘ LIÊN QUAN CỦA CONTEXT
+  X_cross: GSM8K -3.6 (38 phá) | MATH -3.5 (30 phá)  -> LẶP LẠI 2/2 task
+  agg_full_sol (cho aggregator xem TOÀN VĂN lời giải): -17.5, tệ nhất trong các nhánh aggregator
+=> HAI VAI khác nhau, HAI task khác nhau, CÙNG một hướng: đưa thêm context làm HỎNG phán đoán
+   của LLM; thứ quyết định là ĐỘ LIÊN QUAN chứ không phải ĐỘ DÀI.
