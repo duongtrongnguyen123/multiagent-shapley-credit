@@ -150,3 +150,27 @@ KẾT LUẬN 3 — THANG BẬC VERIFIER (gộp cả MATH lẫn CODE):
   Tự soát (verifier = solver) gần như vô dụng: 1.5B +.012, 7B -.018 (n nhỏ, chưa ý nghĩa).
 HỆ QUẢ CHO RLAIF/GRPO: dùng verifier LLM làm REWARD là hỏng — trên code nó chỉ bắt được
   15-17% lỗi thật. Reward phải là EXECUTION (code) hoặc CONSENSUS (math), không phải phán đoán LLM.
+
+## [Loop] CHẤM TAY 6 CA "VERIFIER PHÁ" (GSM8K traces, n=200) — TÌM RA NGUYÊN NHÂN GỐC
+Chấm thủ công 6/11 ca Verifier phá đáp án đúng: CẢ 6 đều là BÁO ĐỘNG SAI, phản đối vô căn cứ:
+  case10 áp mức giảm 30% nhầm tháng rồi đếm trùng | case17 sai số học (20*35*50 ghi thành 3500)
+  case19 trả lời THỜI GIAN trong khi đề hỏi VẬN TỐC | case44 đọc "20 nến" thành "20 pound"
+  case46 bịa thêm biến y,z vô nghĩa | case54 hiểu "gấp 3 số mèo NHẬN NUÔI" thành gấp 3 của Trixie
+=> Đây KHÔNG phải lỗi KIỂM TRA, mà là lỗi GIẢI LẠI.
+PHÁT HIỆN GỐC: 5/6 ca đó Solver KHÔNG TRÌNH BÀY GÌ, chỉ ghi "The answer is X."
+  Verifier không có gì để kiểm -> buộc phải TỰ GIẢI LẠI TỪ ĐẦU -> lỗi riêng của nó thành đáp án cuối.
+SỐ LIỆU ĐỊNH LƯỢNG (chia theo độ dài lời giải Solver):
+  KHÔNG trình bày (<200 ký tự): n=150, S đúng=103, V PHÁ=11  -> tỉ lệ phá 10.7%
+  CÓ trình bày   (>=200 ký tự): n= 50, S đúng= 28, V PHÁ= 0  -> tỉ lệ phá  0.0%
+  Median độ dài lời giải Solver = 20 KÝ TỰ (!) -> 1.5B hầu như không bao giờ trình bày.
+  (p ~ .04 một phía; n=28 ở nhóm có trình bày -> GỢI Ý MẠNH, chưa kết luận chắc.)
+DIỄN GIẢI LẠI TOÀN BỘ: Verifier không "kém kiểm tra" — nó CHƯA BAO GIỜ ĐƯỢC ĐƯA GÌ ĐỂ KIỂM.
+  Kiểm tra thì dễ, giải mới khó; mình vô tình bắt nó làm việc khó.
+CẢNH BÁO PHƯƠNG PHÁP: đây là quan sát QUAN SÁT (observational), không phải can thiệp —
+  lời giải có trình bày có thể khác hệ thống (bài khó hơn / model ít tự tin hơn). Cần thí nghiệm
+  CAN THIỆP: ép Solver luôn trình bày rồi đo lại tỉ lệ phá.
+  Lưu ý: mode showwork trước đây KHÔNG cải thiện ACCURACY (.753 vs .767 GSM8K) — không mâu thuẫn,
+  vì giảm phá có thể bị bù trừ chỗ khác; nhưng nghĩa là chỉ được kết luận "giảm phá", chưa được
+  kết luận "tốt hơn".
+GHI CHÚ: nhãn do LLM mạnh (Claude) chấm -> BẢN THÂN cũng là LLM judge. Phải để người chấm mù
+  ~40 mục và báo độ đồng thuận (kappa) thì mới dùng được như gold proxy.
