@@ -422,3 +422,33 @@ META-PHÁT HIỆN (ĐO ĐƯỢC, từ chính chuỗi thất bại này): PHẦN 
   Blind: +2 (GSM8K 1.5B) -> 0 (MATH 1.5B) -> 0 (GSM8K 7B).
   => Đây TỰ NÓ là kết quả có giá trị và bảo vệ được: cảnh báo về tính KHÔNG BỀN của các mẹo
      prompting đa tác tử, có 7 lần bác bỏ + 1 lần đảo ngược làm bằng chứng.
+
+## [Loop] VÒNG #7 — H8 VÔ HIỆU (không phải bị bác), H7 BỊ BÁC, và ĐIỂM DỮ LIỆU SẮC NHẤT DỰ ÁN
+
+### H8 (verify bằng THỰC THI trên math) — RƠI HÀNG 4: THÍ NGHIỆM VÔ HIỆU
+  ex_g15 (GSM8K): L_llm +5.6 | E_take -12.0 (4 sửa/34 phá) | E_flag +1.6
+  ex_m15 (MATH) : L_llm +5.0 | E_take  -5.0 (11 sửa/21 phá) | E_flag +2.0
+  KIỂM TRA HIỆU LỰC: exec_success_rate .416 và .435 -> CẢ HAI DƯỚI 50%
+                     exec_acc .414 và .391 -> Python chạy được thì cũng SAI 60%
+=> Đúng như đã KHOÁ TRƯỚC: dưới 50% thì THÍ NGHIỆM VÔ HIỆU về mặt cơ chế. Đây là HẠN CHẾ NĂNG LỰC
+   của model 1.5B (không viết nổi chương trình tính lại), KHÔNG PHẢI bằng chứng bác bỏ H8.
+   E_take sụp (-12.0) chỉ vì nó nhận đáp án từ code SAI 60% — không nói lên điều gì về cơ chế.
+   KHÔNG ĐƯỢC kết luận "verify bằng thực thi thất bại trên math". H8 vẫn CHƯA ĐƯỢC KIỂM CHỨNG.
+ĐỐI CHIẾU: cùng model này đạt .53 pass@1 trên HumanEval — nơi ĐỀ BÀI ĐÃ CHO SẴN chữ ký hàm và
+   docstring. Viết chương trình tính lại TỪ ĐẦU khó hơn nhiều. Cần model mạnh hơn để kiểm H8.
+
+### H7 (che giá trị cho vai AGGREGATOR) — BỊ BÁC, rơi HÀNG 2
+  am_15 (MATH 1.5B, n=120, maj@8 .55, oracle@8 .70):
+    A_answers (chỉ danh sách đáp án)   .533  vs_maj -1.7   |  7 phá /  5 cứu | ctx  251
+    A_full    (toàn văn lời giải)      .300  vs_maj -25.0  | 33 phá /  3 cứu | ctx 2876
+    A_masked  (toàn văn, CHE GIÁ TRỊ)  .325  vs_maj -22.5  | 30 phá /  3 cứu | ctx 3261
+=> Che số cứu được gần như KHÔNG GÌ (.325 vs .300). Hiệu ứng che số CHỈ RIÊNG vai Verifier,
+   KHÔNG tổng quát sang vai Aggregator. H7 BỊ BÁC.
+   Đồng thời rơi luôn HÀNG 4: MỌI nhánh LLM đều thua bỏ phiếu -> củng cố "vai tổng hợp dùng THỐNG KÊ".
+
+### ĐIỂM DỮ LIỆU SẮC NHẤT CỦA CẢ DỰ ÁN (từ chính am_15)
+  CÙNG bài, CÙNG bộ ứng viên, CHỈ khác cái được nhìn:
+    chỉ đưa DANH SÁCH ĐÁP ÁN  -> .533  (gần bằng bỏ phiếu .55)
+    đưa thêm TOÀN VĂN lời giải -> .300  (SỤP 23 ĐIỂM)
+=> Thêm context làm MẤT 23 ĐIỂM ở cùng một nhiệm vụ. Đây là minh chứng rõ nhất cho
+   "CONTEXT PHÁ HUỶ PHÁN ĐOÁN CỦA LLM", và nó ở vai THỨ HAI (không phải Verifier).
