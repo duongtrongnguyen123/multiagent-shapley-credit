@@ -118,3 +118,37 @@ Thí nghiệm CÓ KIỂM SOÁT: cùng model, cùng bài, cùng prompt SOLVE, ch�
 ## Chỉ số chính
 H3: `value_added` từng nhánh + fixes/breaks + gate_flag_rate + gate_precision.
 H4: `median_sol_len` và `solver_acc`, có/không Planner, trên CÙNG bài.
+
+---
+
+# Đăng ký trước #4 — H5: PIPELINE VỨT MẤT PHẦN SUY LUẬN TRƯỚC KHI VERIFIER NHÌN THẤY
+**Viết TRƯỚC khi chạy.** Rút thẳng từ H4 (plan_g15/plan_m15).
+
+## Xuất phát (ĐO ĐƯỢC)
+Có Planner: Solver chỉ viết 18 ký tự nhưng acc TĂNG (.632 -> .684).
+Nhắc "vẫn phải trình bày" KHÔNG cứu được (vẫn 18 ký tự) -> bóp nghẹt là CẤU TRÚC, không phải prompt.
+=> Suy luận không biến mất, nó NẰM TRONG BẢN KẾ HOẠCH. Nhưng pipeline chỉ chuyển LỜI GIẢI
+   (đã trơ) cho Verifier, KHÔNG chuyển kế hoạch. Verifier vì thế không có gì để kiểm.
+
+## H5
+Đưa BẢN KẾ HOẠCH cho Verifier sẽ khôi phục khả năng kiểm tra của nó, vì đó mới là nơi chứa suy luận.
+4 nhánh, CÙNG bộ (plan, solution), Planner LUÔN BẬT:
+  V_sol  : Verifier thấy lời giải Solver (trơ)          <- chuẩn hiện hành của mọi framework
+  V_plan : Verifier thấy KẾ HOẠCH + đáp án
+  V_both : Verifier thấy KẾ HOẠCH + lời giải
+  V_none : Verifier chỉ thấy đáp án (blind, đối chứng)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| V_plan và/hoặc V_both > V_sol rõ rệt | H5 XÁC NHẬN. Lỗi nằm ở ĐƯỜNG TRUYỀN của pipeline, không ở năng lực Verifier. Khuyến nghị: chuyển KẾ HOẠCH, đừng chỉ chuyển lời giải. |
+| V_plan ~ V_sol ~ V_none | H5 BỊ BÁC. Kế hoạch không giúp kiểm tra. Ghi rõ đã bác. |
+| V_both < V_sol (thêm kế hoạch làm TỆ hơn) | Khớp với phát hiện "context nhiều hơn làm hỏng phán đoán". Kế hoạch chỉ là context gây nhiễu, KHÔNG phải suy luận hữu ích. |
+| V_none tốt nhất | Củng cố: mọi context đều hại, chỉ đáp án là đủ. Rút lại luôn giả thuyết "cần cái gì đó để kiểm". |
+
+## Chỉ số chính
+`value_added` (verifier_acc - solver_acc), fixes, breaks cho từng nhánh, trên CÙNG bộ lời giải.
+Phụ: `median_plan_len`, `median_sol_len` (xác nhận Planner vẫn đang bóp nghẹt như H4).
+
+## Ghi chú trung thực
+Ba giả thuyết gần nhất của tôi (interleaving, math-khó-verify, H3 cổng lọc, H4 gây hại) đều đã bị
+bác. H5 cũng có thể bị bác. Bảng trên đã khoá sẵn cách diễn giải cho MỌI kết cục, kể cả kết cục đó.
