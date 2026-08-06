@@ -698,3 +698,40 @@ TRUNG THÀNH là tốn kém và có thể gây sycophancy.
 Tín hiệu đáng chú ý là 0 PHÁ ở tầng SAI LỆCH: khi Solver đã đi lệch kế hoạch, Verifier dường như
 CHỈ CÓ THỂ GIÚP. Nếu điều này còn đúng ở n lớn, chính sách nên là PHÂN CẤP chứ không nhị phân:
 "luôn verify ca lệch; verify ca trung thành nếu còn ngân sách."
+
+## [Loop] VÒNG #13 — DỰ ĐOÁN ĐÚNG (hiếm), THÊM MỘT ĐẢO DẤU, VÀ MỘT MÂU THUẪN PHẢI CÔNG BỐ
+
+### pt_m15 — HIỆU ỨNG "PLANNER GIẢI HỘ" LÀ ĐẶC THÙ GSM8K (dự đoán TRƯỚC khi chạy: ĐÚNG)
+Tôi đã tuyên bố trước: "hiệu ứng chép lại sẽ YẾU HƠN NHIỀU trên MATH". XÁC NHẬN:
+                                  GSM8K     MATH
+  copycat_rate                     61%      6.5%
+  Solver < 60 ký tự                69%     11.5%
+  đáp án Solver = số cuối plan    62.5%      28%
+  plan chứa đáp án đúng           45.5%     18.5%
+  median lời giải Solver           20      910 ký tự
+=> Trên MATH, Solver THỰC SỰ LÀM VIỆC, không chép.
+NHƯNG PHÂN TÁCH ĐỘ CHÍNH XÁC VẪN CÒN: plan ĐÚNG -> 97.3% | plan SAI -> 31.9%
+   (GSM8K: 98.9% / 37.6%) — gần như y hệt, dù việc chép lại đã biến mất.
+CẢNH BÁO NHIỄU (bắt buộc ghi): trên MATH chỉ 18.5% kế hoạch đúng -> "plan đúng" nhiều khả năng
+   TRÙNG với "bài dễ". Phân tách này có thể là NHIỄU ĐỘ KHÓ, không phải kế hoạch gây ra kết quả.
+   Trên GSM8K việc chép làm quan hệ gần nhân quả; trên MATH thì CHƯA CHỨNG MINH ĐƯỢC.
+
+### H12 (bỏ phiếu thay Aggregator-LLM) — rơi HÀNG 5: LẠI ĐẢO DẤU
+                    GSM8K     MATH
+  PS                 .684      .425
+  PSV                .732      .445
+  PSVA (LLM agg)     .744      .385
+  PSV_vote5          .688      .460
+  bỏ phiếu vs LLM   -5.6      +7.5
+=> Bỏ phiếu THUA trên GSM8K, THẮNG trên MATH. Đây là can thiệp THỨ SÁU đảo dấu giữa hai task.
+=> Trên GSM8K cấu hình tốt nhất là PSVA; trên MATH là PSV_vote5, còn PSVA là TỆ NHẤT.
+
+### am_7 (H7 ở 7B) — VÀ MỘT MÂU THUẪN GIỮA HAI THÍ NGHIỆM CỦA CHÍNH CHÚNG TÔI
+  maj@8 .7583 | A_answers .7167 (-4.2) | A_masked .675 (-8.3) | A_full .6417 (-11.7)
+  => Mọi nhánh LLM đều THUA bỏ phiếu -> rơi HÀNG 4. Che số giúp +3.3 nhưng không cứu được.
+MÂU THUẪN PHẢI CÔNG BỐ: agf_7 (cùng 7B, cùng MATH, n=120) cho agg_full_sol .7333 vs maj .7167,
+  tức aggregator THẮNG bỏ phiếu (+1.7). am_7 cho A_full .6417 vs maj .7583, tức THUA (-11.7).
+  Hai thí nghiệm gần như cùng thiết lập, KẾT LUẬN NGƯỢC NHAU. Ngay cả mốc maj@8 cũng khác
+  (.7167 vs .7583) -> bể mẫu khác nhau. TÔI KHÔNG GIẢI THÍCH ĐƯỢC. Ghi lại cả hai.
+  Đây là bằng chứng thêm cho chính chủ đề của dự án: các hiệu ứng này KHÔNG BỀN, và
+  KHÔNG ĐỦ ỔN ĐỊNH để rút kết luận từ MỘT lần chạy.
