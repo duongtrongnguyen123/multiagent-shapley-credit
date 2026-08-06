@@ -629,3 +629,36 @@ acc từng nhánh trên CÙNG fold; tổng token sinh ra mỗi nhánh; acc trên
 ## Ghi chú trung thực
 Nếu rơi hàng 2, kết luận vừa ghi ở vòng #23 phải bị RÚT LẠI. Đó là rủi ro thật vì so chéo
 kernel đã từng lừa tôi một lần (con số +9.0 trên MATH hoá ra là nhiễu).
+
+---
+
+# Đăng ký trước #19 — H20: SỬA LỖI ĐỊNH DẠNG CÓ CỨU ĐƯỢC AGGREGATOR KHÔNG?
+**Viết TRƯỚC khi chạy.** Rút thẳng từ phân tích trace ở vòng #25.
+
+## Xuất phát (ĐO ĐƯỢC)
+"Aggregator gây hại trên MATH −6.4đ" (5/5 fold) — nhưng đọc 20 ca PHÁ thì:
+  85% KHÔNG phát ra \boxed | 50% tự giải lại | 40% output thoái hoá | **chỉ 5% chọn nhầm thật**
+18% toàn bộ output Aggregator trên MATH không trích được đáp án.
+=> Giả thuyết: đây là LỖI KỸ THUẬT, sửa được — không phải giới hạn phán đoán.
+
+## H20 — hai bản sửa RẤT RẺ
+  A_base   : như hiện tại (mốc)
+  A_fallback: nếu output KHÔNG có \boxed -> LẤY ĐÁP ÁN CỦA VERIFIER (không gọi lại model)
+  A_forced : prompt ép "Reply with ONLY \boxed{...}, no explanation" (giới hạn 64 token)
+  A_both   : ép định dạng + fallback
+Chạy 5 fold x 100 bài MATH, 1.5B.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| A_fallback hoặc A_forced ĐƯA A_gain về ≥ 0 | H20 XÁC NHẬN. "Aggregator gây hại" là LỖI KỸ THUẬT, sửa bằng 1 dòng code. Phải sửa lại diễn giải trong RESULTS.md/README. |
+| Có cải thiện nhưng A_gain VẪN âm | Lỗi định dạng chỉ là MỘT PHẦN. Phải báo cả hai thành phần, không quy hết cho định dạng. |
+| Không cải thiện | Diễn giải "lỗi định dạng" SAI. Vấn đề nằm sâu hơn. Rút lại kết luận vòng #25. |
+| A_forced LÀM TỆ HƠN | Ép định dạng làm mất khả năng suy luận (khớp kết quả struct/showwork trước đây). Ghi rõ. |
+
+## Chỉ số chính
+`A_gain` (= acc_A − acc_V) từng nhánh, 5 fold, kèm khoảng; và `boxed_rate` từng nhánh
+(kiểm tra can thiệp CÓ hiệu lực).
+
+## Ghi chú trung thực
+Nếu H20 xác nhận, thì một trong những "phát hiện" chắc chắn nhất của dự án (Aggregator gây hại,
+5/5 fold) hoá ra chỉ là lỗi parsing — và điều đó phải được ghi rõ ở đầu RESULTS.md.
