@@ -1,5 +1,5 @@
-# Đánh giá đóng góp trong hệ suy luận multi-agent LLM: đo lường vai trò và tính KHÔNG BỀN của hiệu ứng
-<sub>Credit Assignment in Multi-Agent LLM Reasoning: Measuring Role Value and the Non-Transferability of Effects</sub>
+# Đánh giá đóng góp trong hệ suy luận multi-agent LLM: đo lường vai trò dưới ràng buộc SÀN NHIỄU
+<sub>Credit Assignment in Multi-Agent LLM Reasoning: Measuring Role Value Against a Measured Noise Floor</sub>
 
 Các mô hình ngôn ngữ ngày càng phối hợp thành nhóm để giải toán, thay vì làm một mình: một *Planner* phác
 hướng, *Solver* giải, *Verifier* kiểm tra, *Aggregator* chốt đáp án — và chúng **phối hợp
@@ -12,16 +12,32 @@ trên 2⁴ = 16 tổ hợp vai trò. Nhưng khi mở rộng sang lưới `task �
 **đăng ký trước (pre-registration)**, chúng tôi gặp một hiện tượng lặp đi lặp lại quan trọng hơn
 chính bảng Shapley ban đầu:
 
-> ### Hướng chính hiện tại
-> **Hiệu ứng của các cơ chế phối hợp đa tác tử KHÔNG BỀN — chúng đổi dấu khi đổi task hoặc đổi cỡ model.**
+> ### Hướng chính hiện tại (ĐÃ SỬA sau khi đo sàn nhiễu)
+> **Hiệu ứng của các cơ chế phối hợp đa tác tử PHỤ THUỘC MẠNH vào task và cỡ model — và phần lớn
+> KHÔNG ĐO ĐƯỢC một cách đáng tin ở quy mô thí nghiệm thông thường.**
 >
-> Cùng một lựa chọn kiến trúc, cùng mã nguồn, cùng bộ lời giải: truyền trace giữa các agent
-> **+7.6 điểm** trên GSM8K 1.5B nhưng **−9.0 điểm** trên MATH 1.5B. Che giá trị trung gian
-> **+8.4** rồi **−2.0**. Context không liên quan **−3.6** rồi **+5.5**. Bộ tổng hợp LLM **−6.7**
-> rồi **+1.7**. Năm can thiệp, năm lần đảo dấu — chi tiết ở [`RESULTS.md`](shapley/docs/RESULTS.md).
+> Chúng tôi đo **sàn nhiễu** bằng cách chạy CÙNG cấu hình trên 5 fold rời nhau: giá trị của
+> Verifier trải từ **+1.0 đến +8.0 điểm**. Ngưỡng ý nghĩa suy ra là **~5 điểm**. Áp ngưỡng đó
+> vào chính các kết quả của mình:
 >
-> **Hệ quả:** một nghiên cứu chỉ báo cáo **một ô** của lưới sẽ trông rất thuyết phục và vẫn sai.
-> Muốn kết luận bất cứ điều gì về phối hợp đa tác tử, phải đo trên **lưới**, không phải một điểm.
+> | Khẳng định | Số liệu | Kết cục |
+> |---|---|---|
+> | Pipeline đa tác tử > Solver đơn (GSM8K) | +5.6đ, [+4,+8], **5/5 fold** | ✅ ĐỨNG |
+> | Verifier có giá trị (GSM8K 1.5B) | +4.4đ, [+1,+8], **5/5 fold** | ✅ ĐỨNG |
+> | Aggregator gây hại (MATH 1.5B) | −6.4đ, [−9,−4], **5/5 fold** | ✅ ĐỨNG |
+> | Verifier có giá trị (MATH 1.5B) | +1.4đ, [−1,+4] | ❌ CHƯA XÁC LẬP |
+> | **"Truyền trace đảo dấu 16.6đ giữa 2 task"** | GSM8K [−10,−2] vs MATH [−6,+4] **CHỒNG LẤN** | ❌ **ĐÃ HẠ CẤP** |
+>
+> **Lợi ích của đa tác tử chỉ được xác lập ở ĐÚNG 1/4 ô của lưới** (task × cỡ model):
+> model yếu, bài dễ. Ở ba ô còn lại, khoảng tin cậy chứa số 0.
+
+## Phát biểu đã bị RÚT LẠI
+
+Các bản README trước tuyên bố "hiệu ứng ĐỔI DẤU" giữa GSM8K và MATH, dựa trên phép đo **một lần
+mỗi ô**. Khi chạy lại trên 5 fold, khoảng của MATH là **[−6, +4]** với trung bình **+0.4** —
+tức KHÔNG có hiệu ứng đo được, và con số +9.0 ban đầu là nhiễu. Hai khoảng CHỒNG LẤN nên
+**không kết luận được là đảo dấu**. Phát biểu đúng: truyền trace **có ích trên GSM8K**
+(−7.0đ khi cắt, 5/5 fold) và **không đo được tác dụng trên MATH**.
 
 Phát hiện này được củng cố bởi chính **kỷ luật kiểm chứng**: 9 giả thuyết của nhóm đã bị bác bỏ,
 1 kết quả phải tự rút lại, 1 thí nghiệm bị tuyên vô hiệu bởi ngưỡng hiệu lực khoá sẵn, và 1 lỗi

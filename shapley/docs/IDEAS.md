@@ -854,3 +854,31 @@ NGUYÊN NHÂN: hàm norm() bỏ `\left`/`\right` nhưng KHÔNG bỏ `\(` `\)` `\
 Mọi lỗi trích xuất/chấm điểm tương tự trong các kernel đó sẽ KHÔNG BAO GIỜ bị phát hiện.
 QUY TẮC TỪ NAY: mọi kernel PHẢI lưu ít nhất một mẫu output thô (vd 50 trace) cùng summary.
 Số tổng hợp chỉ đáng tin khi còn cách kiểm lại được văn bản sinh ra nó.
+
+## [Loop] VÒNG #18 — H14 RƠI HÀNG 2: PHÁT HIỆN CHỦ ĐẠO CỦA DỰ ÁN BỊ HẠ CẤP
+rc_m15 (MATH, 5 fold) — trim_minus_full theo fold: -6, +4, +4, +3, -3
+  mean **+0.4**, range **[-6, +4]**, std 4.13  -> CHỨA SỐ 0, hai dấu lẫn lộn
+rc_g15 (GSM8K, 5 fold): mean -7.0, range [-10, -2], 5/5 ÂM
+KIỂM TRA CHỒNG LẤN: GSM8K [-10,-2] và MATH [-6,+4] -> GIAO NHAU tại [-6,-2]. CÓ CHỒNG LẤN.
+=> Rơi HÀNG 2 đã khoá trước: "PHÁT HIỆN CHỦ ĐẠO BỊ HẠ CẤP — phải sửa README và RESULTS.md".
+=> Con số +9.0 trên MATH (tr_m15, đo 1 lần) LÀ NHIỄU. Chạy 5 fold cho +0.4.
+=> "Đảo dấu 16.6 điểm" KHÔNG SỐNG SÓT khi có thanh sai số.
+PHÁT BIỂU ĐÚNG (đã cập nhật README): truyền trace CÓ ÍCH trên GSM8K (-7.0 khi cắt, 5/5 fold),
+  và KHÔNG ĐO ĐƯỢC tác dụng trên MATH ([-6,+4]). Đó là PHỤ THUỘC ĐỘ LỚN theo task,
+  KHÔNG PHẢI đảo dấu.
+ĐÃ THỰC HIỆN: viết lại tiêu đề + phần "Hướng chính" của README, thêm mục "Phát biểu đã bị RÚT LẠI".
+
+### ft_g15 — trace đầy đủ đầu tiên (GSM8K, n=300) và BA cách trích khác nhau
+  acc S .6733 | V .7067 | A .7233 | V_fix 32 / V_break 22
+  median độ dài: plan 418 | sol 18 | ver 577 | agg 18
+  plan_boxed_rate .033 | plan_has_ans_boxed .013 | plan_has_ans_tail .320
+=> BA cách trích "đáp án ngầm của kế hoạch" cho kết quả RẤT KHÁC NHAU (1.3% vs 32%).
+   Đây chính là lý do phải lưu trace: con số "Planner đã giải hộ 45.5%" phụ thuộc MẠNH vào
+   lựa chọn trích xuất, và trước đây chỉ có MỘT cách được lưu lại.
+
+### LỖI KERNEL (thứ hai liên tiếp do sinh code bằng thay chuỗi)
+nf_g7/nf_m7 lỗi `NameError: _sp is not defined`: bản vá 7B chèn `import subprocess as _sp` vào
+  NHÁNH else (fp16) trong khi lệnh dùng nó nằm ở mức module. Thực ra noisefloor_kernel ĐÃ tự xử lý
+  QUANT nên BẢN VÁ LÀ THỪA. Đã bỏ vá, đẩy lại version 2.
+  `ast.parse` KHÔNG bắt được lỗi này (cú pháp vẫn hợp lệ) -> cần thêm kiểm tra ngữ nghĩa,
+  hoặc tốt hơn: ĐỪNG sinh kernel bằng thay chuỗi khi template đã có sẵn tham số.
