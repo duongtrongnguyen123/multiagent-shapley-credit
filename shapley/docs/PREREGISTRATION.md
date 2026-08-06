@@ -503,3 +503,32 @@ và của hiệu `V7 - V15` (đây mới là "bất đối xứng năng lực" �
 Nếu rơi hàng 2/3/4 thì kết quả TỐT NHẤT của dự án bị mất. Vẫn phải báo cáo y nguyên.
 Kết quả "9 sửa / 0 phá" ở n=50 đặc biệt đáng ngờ: 0 phá trên 23 bài đúng là hoàn toàn có thể
 xảy ra do may mắn.
+
+---
+
+# Đăng ký trước #15 — H16: HOÀN TẤT LƯỚI VỚI THANH SAI SỐ (hai ô 7B còn thiếu)
+**Viết TRƯỚC khi chạy.** Đây là bảng cuối cùng của dự án; cần đủ 4 ô cùng một chuẩn đo.
+
+## Vấn đề
+Hiện chỉ có thanh sai số (5 fold) cho hai ô 1.5B. Hai ô 7B mới đo MỘT LẦN:
+  GSM8K 7B: V_gain ~0 (solver .916, bão hoà) | MATH 7B: V_gain +3.5 (dưới ngưỡng)
+Không thể kết luận "chỉ 1/4 ô xác lập" một cách chắc chắn khi hai ô kia chưa có cùng chuẩn đo.
+
+## H16
+Chạy đúng phân tích 5-fold (PS / PSV / PSVA) cho **GSM8K 7B** và **MATH 7B**, 4-bit, mỗi fold 100 bài.
+Sau đó dựng bảng 4 ô, tất cả cùng chuẩn: mean + khoảng + số fold cùng dấu.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Cả hai ô 7B đều CHỨA 0 | XÁC NHẬN "chỉ 1/4 ô xác lập". Đây là phát biểu cuối cùng của dự án. |
+| MATH 7B TOÀN DƯƠNG (không chứa 0) | Thành 2/4 ô. Phải sửa phát biểu: đa tác tử có ích ở model yếu/bài dễ VÀ ở model mạnh/bài khó, nhưng KHÔNG ở hai ô còn lại. |
+| GSM8K 7B TOÀN DƯƠNG | Bất ngờ (solver đã .916). Phải kiểm lại xem có lỗi đo không trước khi tin. |
+| Ô nào đó TOÀN ÂM | Đa tác tử GÂY HẠI ở ô đó — phải ghi rõ, đây là cảnh báo triển khai. |
+
+## Chỉ số chính
+Mỗi ô: mean/min/max/range/std của `V_gain` và `A_gain`; số fold cùng dấu.
+Bảng cuối 4 ô x {V_gain, A_gain} với khoảng, đưa thẳng vào RESULTS.md và README.
+
+## Ghi chú trung thực
+Đây là thí nghiệm KHÉP LẠI, không phải mở hướng mới. Sau H16 (cộng rc_m15 và as_m đang chạy),
+dự án có đủ dữ liệu để viết báo cáo cuối; nên DỪNG mở giả thuyết mới và chuyển sang hợp nhất.
