@@ -672,3 +672,29 @@ Giữ KHUNG TƯ DUY của đề xuất (đo ĐỘ TRUNG THÀNH THỰC THI thay v
 LƯU Ý: đây là GSM8K 1.5B. Trên MATH, Solver viết 899 ký tự (median) nên nhiều khả năng NÓ CÓ TÍNH.
   Nếu đúng thì PHÂN CÔNG LAO ĐỘNG GIỮA CÁC VAI THAY ĐỔI THEO TASK — khớp với toàn bộ chủ đề
   "hiệu ứng không bền" của dự án. Kernel pt_m15/pt_m7 đang chạy sẽ trả lời.
+
+## [Loop] GIẢ THUYẾT ĐỊNH TUYẾN THEO ĐỘ TRUNG THÀNH — KHÔNG ĐƯỢC ỦNG HỘ (và THIẾU LỰC THỐNG KÊ)
+Giả thuyết đề xuất: Verifier chỉ hữu ích khi Solver SAI LỆCH khỏi kế hoạch; gọi nó trên ca
+TRUNG THÀNH là tốn kém và có thể gây sycophancy.
+ĐO TRÊN GSM8K traces (n=200, 1.5B). LƯU Ý: phân tích HẬU NGHIỆM, KHÔNG pre-register.
+  Tầng                       n    Solver   Verifier   sửa  phá   giá trị biên   sign test
+  TRUNG THÀNH (theo plan)  125     72.0%     75.2%     15   11      +3.2%        p=.56
+  SAI LỆCH   (khác plan)    75     54.7%     60.0%      4    0      +5.3%        p=.13
+=> Verifier DƯƠNG Ở CẢ HAI TẦNG. Giả thuyết dự đoán tầng TRUNG THÀNH sẽ ~0 hoặc ÂM — thực tế +3.2.
+   HƯỚNG của trực giác thì đúng (tầng lệch có biên lớn hơn và 0 phá), nhưng khoảng cách nhỏ
+   và KHÔNG tầng nào đạt ý nghĩa thống kê (26 và 4 cặp bất đồng).
+=> KẾT LUẬN TRUNG THỰC: với n=200, DỮ LIỆU KHÔNG ĐỦ SỨC PHÂN GIẢI câu hỏi này. Không được
+   kết luận theo hướng nào. Cần n lớn hơn nhiều (ước lượng >=600 để tách +3.2 khỏi +5.3).
+
+### MÔ PHỎNG BỘ ĐỊNH TUYẾN (n=200)
+  không bao giờ gọi Verifier : 65.5%   (0% lần gọi)
+  LUÔN gọi Verifier          : 69.5%   (100% lần gọi)
+  ĐỊNH TUYẾN (chỉ khi lệch)  : 67.5%   (38% lần gọi)
+=> Bộ định tuyến MẤT 2.0 điểm chính xác để TIẾT KIỆM 62% lần gọi Verifier.
+   Đây là một ĐIỂM HỢP LỆ trên đường cong chi phí–chất lượng, KHÔNG PHẢI "thắng miễn phí"
+   như giả thuyết ngụ ý. Bỏ Verifier ở ca trung thành làm MẤT độ chính xác thật (15 ca được sửa).
+
+### PHẦN CÒN ĐÚNG CỦA Ý TƯỞNG
+Tín hiệu đáng chú ý là 0 PHÁ ở tầng SAI LỆCH: khi Solver đã đi lệch kế hoạch, Verifier dường như
+CHỈ CÓ THỂ GIÚP. Nếu điều này còn đúng ở n lớn, chính sách nên là PHÂN CẤP chứ không nhị phân:
+"luôn verify ca lệch; verify ca trung thành nếu còn ngân sách."
