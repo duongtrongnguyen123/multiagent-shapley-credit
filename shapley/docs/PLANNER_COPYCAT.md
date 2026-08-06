@@ -87,20 +87,46 @@ tự. Câu nào Solver đã chép thì lời nhắc không đổi được gì; 
 
 → **Đây là vấn đề kiến trúc, không phải vấn đề diễn đạt prompt.**
 
-## 6. Vì sao GSM8K nặng còn MATH nhẹ
+## 6. MATH cũng bị — và ở dạng nặng hơn về nội dung
 
-Số liệu vòng `pt_m15` (IDEAS.md, n=200):
+Chạy cùng kernel với `TASK=math`, n=8 (`results_inspect/math/`):
 
 | | GSM8K | MATH |
 |---|---|---|
-| copycat rate | 61% | 6.5% |
-| plan chứa đáp án đúng | 45.5% | 18.5% |
-| Solver < 60 ký tự | 69% | 11.5% |
-| median lời giải Solver | 20 | 910 |
+| plan chứa sẵn đáp án đúng | 3/8 (0.375) | **4/8 (0.50)** |
+| Solver < 200 ký tự — không plan | 0/8 | 0/8 |
+| Solver < 200 ký tự — có plan | 4/8 | **3/8** |
+| median lời giải Solver: không plan → có plan | 851 → 245 | **1244 → 517** |
+| median độ dài plan | 485 | **1117** |
 
-GSM8K chỉ cần 2-3 phép tính số học, nên **kế hoạch chính là lời giải** — vai Planner không có
-không gian tồn tại độc lập. MATH cần biến đổi đại số nhiều bước, kế hoạch chỉ phác được hướng
-nên Solver buộc phải làm thật.
+Trên MATH, Planner **viết hẳn `\boxed{}`** — tức là nó không chỉ tính ra đáp số mà còn trình
+bày theo đúng định dạng nộp bài của Solver. Ví dụ câu 3, đề *"If f(x)=(3x-2)/(x-2), what is
+f(-2)+f(-1)+f(0)?"*:
+
+Planner (phần cuối của 991 ký tự):
+```
+So, f(-2) + f(-1) + f(0) = 6/3 + 5/3 + 3/3 = 14/3
+Thus, the value of f(-2) + f(-1) + f(0) is:
+\[ \boxed{\frac{14}{3}} \]
+```
+Solver có plan — **toàn bộ** output, 68 ký tự:
+```
+The value of \( f(-2) + f(-1) + f(0) \) is \(\boxed{\frac{14}{3}}\).
+```
+Solver không plan: 1191 ký tự, tự đánh giá hàm tại từng điểm rồi cộng.
+
+**Khác biệt so với GSM8K là về mức độ, không phải về bản chất.** Trên MATH kế hoạch dài hơn
+(1117 vs 485 ký tự) nên tỷ lệ câu bị rút gọn thấp hơn chút, nhưng **tỷ lệ plan chứa đáp án
+lại CAO hơn** (0.50 vs 0.375). Bài nào Planner giải trọn được thì Solver chép trọn.
+
+Điều này **không mâu thuẫn** với `pt_m15` (IDEAS.md, n=200: copycat GSM8K 61% vs MATH 6.5%) —
+chỉ số ở đó là "đáp án Solver == số cuối cùng của plan", một phép so khớp theo *số*. Trên MATH
+đáp án thường là biểu thức (`14/3`, `p-q`, `90^\circ`) nên phép so theo số bỏ sót phần lớn ca
+chép. Đọc nguyên văn thì thấy việc chép vẫn diễn ra.
+
+Nguyên nhân gốc chung: GSM8K chỉ cần 2-3 phép tính nên **kế hoạch chính là lời giải**; MATH
+thì kế hoạch dài hơn nhưng model vẫn giải trọn bài ngay trong lúc "lập kế hoạch". Cả hai ô,
+vai Planner đều không có không gian tồn tại độc lập.
 
 ## 7. Hệ quả
 
@@ -109,8 +135,9 @@ nên Solver buộc phải làm thật.
 2. Điều này giải thích tại sao Planner GSM8K có φ ≈ 0 hoặc âm: nó không "lười", nó **chiếm
    việc** của Solver — và làm kém hơn vì bị bảo đừng tính nên tính vội (xem câu 1: plan nhầm
    "3 quả/ngày × 7 ngày" thành 21 quả/tuần rồi kéo Solver đi sai theo).
-3. Thí nghiệm debate-planner (nhánh `duc`) chạy trên **MATH** — ô mà Solver thực sự làm việc,
-   nên diễn giải "plan tốt hơn → kết quả tốt hơn" vẫn hợp lệ ở đó.
+3. **MATH cũng bị** (mục 6): 50% kế hoạch chứa sẵn đáp án đúng, Planner viết cả `\boxed{}`.
+   Nên thí nghiệm debate-planner (nhánh `duc`) thực chất đang so *chất lượng lời giải của
+   Planner*, không phải *chất lượng kế hoạch* — cần nói rõ điều này khi diễn giải kết quả.
 
 ## 8. Cách chạy lại
 
