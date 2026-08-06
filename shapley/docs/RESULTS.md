@@ -33,7 +33,57 @@ lệch 1–3 điểm vốn không có ý nghĩa thống kê.*
 
 ---
 
-## 1. Những gì CÓ TÁC DỤNG (đo được, dấu dương)
+## 1. CÓ CẢI THIỆN THẬT KHÔNG? — PHÂN LOẠI THEO ĐỘ TIN CẬY
+
+### 1a. ĐÃ XÁC NHẬN có thanh sai số (5 fold, TOÀN BỘ fold cùng dấu)
+
+| Cải thiện | Thiết lập | Hiệu ứng | Khoảng | Fold cùng dấu |
+|---|---|---|---|---|
+| **Pipeline đa tác tử vs Solver đơn độc** | GSM8K 1.5B | **+5.6đ** | **[+4, +8]** | **5/5** ✅ |
+| **Verifier** (P→S→V vs P→S) | GSM8K 1.5B | **+4.4đ** | **[+1, +8]** | **5/5** ✅ |
+
+Đây là HAI cải thiện duy nhất hiện có thanh sai số và mọi fold đều cùng dấu.
+**Cả hai đều chỉ trên GSM8K.**
+
+### 1b. LỚN nhưng mới đo MỘT LẦN (vượt ngưỡng 5đ, chưa có thanh sai số)
+
+| Cải thiện | Thiết lập | Hiệu ứng | Ghi chú |
+|---|---|---|---|
+| `loop` — Solver giải lại sau khi bị chê | MATH 1.5B, n=100 | +20đ | 1 lần đo |
+| `maj@8` self-consistency | MATH 1.5B, n=100 | +10đ | 1 lần đo |
+| Solver 1.5B + Verifier 7B | MATH, **n=50** | +18đ | **đang kiểm lại (H15)** — n nhỏ nhất, khẳng định mạnh nhất |
+
+### 1c. NHỎ HƠN NGƯỠNG NHIỄU — KHÔNG tính là bằng chứng
+
+| "Cải thiện" | Hiệu ứng | Vì sao không tính |
+|---|---|---|
+| Sửa lỗi bằng chạy test (HumanEval) | +3.6 / +4.8đ | dưới ngưỡng 5đ, đo 1 lần |
+| Planner → Solver | +5.2 / +2.0đ | sát ngưỡng, đo 1 lần |
+| Aggregator trên GSM8K | +1.2đ | khoảng [−1, +3] **chứa 0** |
+
+*Ngoại lệ đáng giữ:* sửa-lỗi-bằng-chạy-test có **0 phá qua 3 vòng ở CẢ HAI cỡ model** —
+bản thân mẫu hình "không bao giờ phá" là tín hiệu đáng tin, dù mức tăng nhỏ.
+
+### 1d. KHÔNG cải thiện / GÂY HẠI (đã xác nhận)
+
+| Can thiệp | Kết quả |
+|---|---|
+| **Aggregator trên MATH** | **−6.4đ**, khoảng [−9, −4], **5/5 fold âm** |
+| Verifier trên MATH | +1.4đ, khoảng [−1, +4] **chứa 0** → CHƯA XÁC LẬP |
+| interleaving, cổng lọc, truyền kế hoạch, che giá trị, verify bằng thực thi trên math | đều bị bác |
+
+> ### TRẢ LỜI NGẮN GỌN CHO "CÓ CẢI THIỆN KHÔNG?"
+> **CÓ, nhưng ít hơn nhiều so với vẻ ngoài ban đầu.** Thứ đáng tin nhất lại là thứ ĐƠN GIẢN NHẤT:
+> **dùng pipeline đa tác tử thay vì một model đơn độc** (+5.6đ trên GSM8K, 5/5 fold),
+> và **phần lớn giá trị đó đến từ Verifier** (+4.4đ, 5/5 fold).
+> Hầu hết các "mẹo" tinh vi hơn — interleaving, cổng lọc, che giá trị, truyền kế hoạch,
+> tổng hợp bằng LLM — KHÔNG cải thiện gì, hoặc gây hại.
+> Và **trên MATH thì ngay cả điều đó cũng không đúng**: Verifier chưa xác lập được,
+> Aggregator gây hại rõ rệt.
+
+---
+
+## 2. Những gì CÓ TÁC DỤNG (số liệu thô, chưa lọc theo nhiễu)
 
 | Phương pháp | Thiết lập | Kết quả |
 |---|---|---|
