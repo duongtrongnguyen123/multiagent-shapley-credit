@@ -28,8 +28,21 @@ chính bảng Shapley ban đầu:
 > | Verifier có giá trị (MATH 1.5B) | +1.4đ, [−1,+4] | ❌ CHƯA XÁC LẬP |
 > | **"Truyền trace đảo dấu 16.6đ giữa 2 task"** | GSM8K [−10,−2] vs MATH [−6,+4] **CHỒNG LẤN** | ❌ **ĐÃ HẠ CẤP** |
 >
-> **Lợi ích của đa tác tử chỉ được xác lập ở ĐÚNG 1/4 ô của lưới** (task × cỡ model):
-> model yếu, bài dễ. Ở ba ô còn lại, khoảng tin cậy chứa số 0.
+> **Lợi ích của Verifier được xác lập ở 2/4 ô** — và chúng tạo thành ĐƯỜNG CHÉO:
+>
+> | `V_gain` | GSM8K | MATH |
+> |---|---|---|
+> | **1.5B** | **+4.4 [+1,+8]** ✅ 5/5 | +1.4 [−1,+4] ❌ |
+> | **7B** | +1.0 [−3,+5] ❌ | **+4.4 [+2,+8]** ✅ 5/5 |
+>
+> Xếp theo **độ chính xác của Solver** thì cơ chế lộ ra:
+> MATH·1.5B `.402` (NGỢP) ❌ · GSM8K·1.5B `.668` ✅ · MATH·7B `.598` ✅ · GSM8K·7B `.884` (BÃO HOÀ) ❌
+>
+> ### ⇒ VERIFY CHỈ SINH LỢI Ở GIỮA DẢI ĐỘ KHÓ (~.60–.67)
+> Quá khó → verifier không phân biệt nổi đúng/sai (**độ chính xác can thiệp chỉ 56%**).
+> Quá dễ → không còn gì để sửa. Và giá trị của verifier nằm ở **ĐỘ CHÍNH XÁC KHI CAN THIỆP**,
+> không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
+> đó chính là cơ chế của kết quả +14.0đ.
 
 ## Phát biểu đã bị RÚT LẠI
 
