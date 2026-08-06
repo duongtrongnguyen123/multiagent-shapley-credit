@@ -615,3 +615,36 @@ CƠ CHẾ ĐO ĐƯỢC: model viết được code CHẠY (73.5%) nhưng code ch
   (1) Truyền kế hoạch cho Verifier: vô ích hoặc có hại — 4/4 ô.
   (2) Verifier có đóng góp DƯƠNG: GSM8K +4.8, MATH +2.0 — 2/2 task.
   Ngược lại, AGGREGATOR đảo dấu (+1.2 GSM8K / -6.0 MATH) -> đây là vai đáng ngờ nhất.
+
+## [Loop] ĐỘ TRUNG THÀNH THỰC THI (execution fidelity) — BIẾN GIẢI THÍCH MẠNH NHẤT TÌM ĐƯỢC
+Xuất phát từ đề xuất "đo entailment giữa các lượt agent". Kiểm chứng NGAY trên dữ liệu có sẵn
+(GSM8K, n=200, 1.5B), với "trung thành" = đáp án Solver TRÙNG số cuối của kế hoạch:
+                                 n     Solver đúng
+  kế hoạch ĐÚNG  -> ĐI THEO      90    100.0%
+  kế hoạch SAI   -> ĐI THEO      35      0.0%
+  kế hoạch SAI   -> LỆCH         74     55.4%
+  kế hoạch ĐÚNG  -> LỆCH          1      0.0%
+  Median độ dài lời giải: trung thành 19 ký tự | lệch 358 ký tự
+=> ĐỘ TRUNG THÀNH × CHẤT LƯỢNG KẾ HOẠCH GIẢI THÍCH GẦN NHƯ TOÀN BỘ độ chính xác của Solver.
+   Không biến prompting nào chúng tôi đã thử tiệm cận được sức giải thích này.
+=> GIẢ THUYẾT "LỆCH SÁNG TẠO" ĐƯỢC XÁC NHẬN: khi kế hoạch SAI, LỆCH là con đường DUY NHẤT
+   dẫn tới đáp án đúng (55.4% so với ĐÚNG BẰNG 0%).
+
+### BA ĐIỂM PHẢI SỬA TRONG ĐỀ XUẤT (đánh giá kỹ thuật)
+1. "Giá trị Shapley của độ trung thành" KHÔNG HỢP LỆ VỀ MẶT HÌNH THỨC. Shapley phân bổ công
+   giữa các NGƯỜI CHƠI trong liên minh; độ trung thành là BIẾN ĐỒNG HÀNH (covariate), không phải
+   người chơi, không có liên minh để tham gia. Cách đúng: PHÂN TẦNG đóng góp của vai theo mức
+   trung thành, hoặc thêm số hạng TƯƠNG TÁC. Cùng câu hỏi khoa học, nhưng công cụ đúng.
+2. NLI LÀ CÔNG CỤ SAI — ĐÃ ĐO (analysis/trace_nli.py, 40 trace): bắt tốt "đồng ý" (15/24 kéo theo)
+   và "sửa" (3/5 mâu thuẫn) nhưng BỎ SÓT HOÀN TOÀN "phá" (0/3) — mà "phá" mới là ca đáng quan tâm.
+   NLI off-the-shelf không so nổi hai lời giải toán dài nhiều bước.
+3. TRÊN GSM8K KHÔNG CÓ TRACE ĐỂ CHẠY NLI: khi Solver trung thành thì output chỉ 19 KÝ TỰ
+   ("The answer is 366."). Tính entailment giữa kế hoạch 501 ký tự và chuỗi đó là vô nghĩa.
+   Answer-agreement thì CHÍNH XÁC, MIỄN PHÍ, và chính nó tạo ra bảng số ở trên.
+
+### PHIÊN BẢN NÊN CHẠY
+Giữ KHUNG TƯ DUY của đề xuất (đo ĐỘ TRUNG THÀNH THỰC THI thay vì chỉ đo đáp án cuối), bỏ phần NLI:
+  - tín hiệu cứng : answer-agreement (chính xác, chi phí 0)
+  - tín hiệu mềm  : LLM-judge, CHỈ trên MATH (nơi Solver viết 899 ký tự, có trace thật)
+  - phân tích     : PHÂN TẦNG — giá trị biên của Verifier có khác nhau giữa nhóm Solver
+                    TRUNG THÀNH và nhóm LỆCH hay không?
