@@ -376,3 +376,37 @@ Chưa biết: trong +6.0 đó, VERIFIER đóng góp bao nhiêu, AGGREGATOR bao n
 9 giả thuyết đã bị bác, 1 rút lại, 1 vô hiệu, 1 lỗi thiết kế tự thú, và vòng #9 đã lật ngược
 "phát hiện bền nhất". H11 nhiều khả năng cũng cho kết quả phụ thuộc ô — hàng 4 đã khoá sẵn
 kết cục "không vai nào đóng góp".
+
+---
+
+# Đăng ký trước #11 — H12: THAY AGGREGATOR-LLM BẰNG BỎ PHIẾU TRONG PIPELINE
+**Viết TRƯỚC khi chạy.** Rút từ H11 + kết quả self-consistency.
+
+## Xuất phát (ĐO ĐƯỢC)
+Aggregator là vai DUY NHẤT ĐẢO DẤU rõ rệt giữa hai task:
+  thêm A sau V:  GSM8K **+1.2đ** (.732->.744)  |  MATH **-6.0đ** (.445->.385)
+Trong khi Verifier DƯƠNG ở cả hai (+4.8 / +2.0), và truyền kế hoạch vô ích ở 4/4 ô.
+Đồng thời đã đo: maj@8 THẮNG greedy +10đ ở 1.5B; và bỏ phiếu thắng aggregator-LLM ở 1.5B (-6.7đ).
+=> Giả thuyết tự nhiên: vấn đề không phải "có vai tổng hợp", mà là "tổng hợp BẰNG LLM".
+
+## H12
+Trong pipeline P->S->V, thay bước tổng hợp LLM bằng BỎ PHIẾU trên các ứng viên đã có.
+Nhánh (cùng bài, cùng P->S->V):
+  PSV        : dừng ở Verifier (mốc tốt nhất hiện tại)
+  PSVA       : Aggregator LLM (chuẩn hiện hành)
+  PSV_vote   : bỏ phiếu giữa {đáp án Solver, đáp án Verifier} + 1 mẫu Solver thêm (3 phiếu)
+  PSV_vote5  : bỏ phiếu giữa 5 ứng viên (3 mẫu Solver nhiệt độ + Verifier + Solver greedy)
+Chạy trên CẢ HAI task với 1.5B.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| PSV_vote* >= PSVA ở CẢ HAI task | H12 XÁC NHẬN. Khuyến nghị: giữ vai tổng hợp nhưng thực hiện bằng THỐNG KÊ, không bằng LLM. |
+| PSV_vote* ~ PSVA | Bỏ phiếu không hơn. Vấn đề nằm ở CHÍNH việc tổng hợp, không ở cách tổng hợp. |
+| PSV_vote* < PSVA | H12 BỊ BÁC. Ghi rõ đã bác. |
+| PSV vẫn tốt nhất ở cả hai task | KẾT LUẬN KIẾN TRÚC: bỏ hẳn vai tổng hợp. Dừng ở Verifier là cấu hình tốt nhất. |
+| Kết quả ĐỔI DẤU giữa hai task | Lại thêm một bằng chứng cho meta-phát hiện; ghi vào bảng đảo dấu. |
+
+## Chỉ số chính
+`acc` từng nhánh trên CÙNG bài; kèm số lần bỏ phiếu khác với đáp án Verifier.
+## Ghi chú trung thực
+10 giả thuyết của tôi đã bị bác/rút lại/vô hiệu. H12 cũng có thể. Hàng 3 và 5 đã khoá sẵn.
