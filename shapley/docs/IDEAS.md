@@ -961,3 +961,23 @@ as_m  : verifier 7B  trên MATH = +14.0 [+8.3, +20.0] -> XÁC LẬP.
    và MỌI can thiệp đều thất bại. Ở 7B, cả verifier lẫn trace đều bắt đầu sinh lợi.
    Một câu này giải thích được: H15 (xác nhận), tr_m7, và gần như toàn bộ thất bại ở 1.5B
    suốt 20 vòng vừa qua.
+
+## [Loop] VÒNG #22 — HỢP NHẤT TIẾP (không mở thí nghiệm mới, theo cam kết pre-reg #16)
+Hai kernel cuối (nf_m7, rc_m7) vẫn chạy. Không có số mới. Tiếp tục RÀ SOÁT tài liệu.
+
+### Đã sửa trong RESULTS.md
+1. §3 (phân bổ đóng góp): con số "Aggregator thêm +1.2" nay ghi rõ DƯỚI ngưỡng nhiễu và
+   khoảng [-1,+3] chứa 0 -> KHÔNG phải bằng chứng. Phần Verifier +4.8 nay dẫn kèm bản đã
+   kiểm 5 fold (+4.4, [+1,+8]).
+2. §4 (giá trị V,A phụ thuộc context): chênh lệch -1.6 (TRIM vs NOVA) DƯỚI ngưỡng -> không
+   kết luận. Phần còn đứng: FULL vs TRIM = -7.0 [-10,-2] 5/5 fold trên GSM8K; trên MATH 1.5B
+   thì KHÔNG ([-6,+4]).
+3. Thêm §4b: PHÁT BIỂU HỢP NHẤT, kèm cảnh báo rõ rằng NỬA SAU (phần về trace) mới chỉ có
+   MỘT phép đo và đang được kiểm bởi rc_m7.
+
+### TRẠNG THÁI TÀI LIỆU
+Mọi con số trong RESULTS.md giờ đều được gắn một trong ba nhãn:
+  ✅ đã kiểm 5 fold, mọi fold cùng dấu
+  ⚠️ chưa kiểm / đang kiểm / dưới ngưỡng nhiễu
+  ❌ đã bị hạ cấp hoặc rút lại
+Đây là điều lẽ ra phải làm từ vòng đầu, nhưng chỉ khả thi sau khi có sàn nhiễu.

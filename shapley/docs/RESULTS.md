@@ -139,7 +139,9 @@ vẫn chỉ là **đo một lần mỗi ô**, chưa từng có thanh sai số.
 | P→S→V→A (đủ) | .744 | +6.0 |
 | **P→S→A** (chỉ Aggregator) | **.428** | **−25.6** |
 
-**Verifier mang gần như toàn bộ giá trị**; Aggregator thêm được +1.2 khi đứng sau Verifier.
+**Verifier mang gần như toàn bộ giá trị** (+4.8 — đã kiểm 5 fold: +4.4, khoảng [+1,+8]).
+⚠️ Con số "Aggregator thêm +1.2" **DƯỚI ngưỡng nhiễu 5 điểm** và khoảng của nó là [−1,+3]
+(chứa 0) → **KHÔNG phải bằng chứng**.
 *Lưu ý trung thực:* nhánh P→S→A là **cấu hình thoái hoá** — một bộ tổng hợp chỉ nhận **một**
 ứng viên thì không có gì để tổng hợp, nên nó đi giải lại và hỏng. Con số −25.6 phản ánh điều đó,
 không phải "Aggregator vô dụng".
@@ -152,8 +154,25 @@ không phải "Aggregator vô dụng".
 | P→S (bỏ hẳn V và A) | .684 |
 | P→S→V→A, **chỉ đáp án** | **.668** |
 
-Hai vai V và A **bị bỏ đói context thì tệ hơn là không có chúng** (−1.6), nhưng có context thì
-đáng **+6.0**. Giá trị của một vai **không tách rời** khỏi thứ mà nó được nhận.
+⚠️ Chênh lệch −1.6 (TRIM vs NOVA) **DƯỚI ngưỡng nhiễu** → không kết luận được.
+Phần ĐỨNG VỮNG: FULL vs TRIM = **−7.0đ, khoảng [−10,−2], 5/5 fold** (rc_g15) — tức trên GSM8K,
+truyền trace cho V và A thực sự đáng giá. Trên MATH 1.5B thì **không** ([−6,+4], rc_m15).
+
+## 4b. PHÁT BIỂU HỢP NHẤT (đang chờ mắt xích cuối)
+
+| Trên MATH | Solver+Verifier 1.5B | Verifier 7B |
+|---|---|---|
+| giá trị Verifier | +1.4 **[−1, +4]** ❌ | **+14.0 [+8.3, +20.0]** ✅ 5/5 fold |
+| giá trị truyền trace | +0.4 **[−6, +4]** ❌ | **−17.5 khi cắt** ⚠️ *1 lần đo, đang kiểm (H17)* |
+| Aggregator | **−6.4 [−9, −4]** hại | ~0 |
+
+> **BỘ MÁY ĐA TÁC TỬ CHỈ HOẠT ĐỘNG KHI MODEL ĐI KIỂM ĐỦ MẠNH ĐỂ DÙNG ĐƯỢC THỨ NÓ ĐƯỢC ĐƯA.**
+> Ở 1.5B, verifier không khai thác nổi phần trình bày → truyền trace vô ích, và mọi can thiệp
+> đều thất bại. Ở 7B, cả verifier lẫn trace đều bắt đầu sinh lợi.
+>
+> ⚠️ **Nửa sau của phát biểu (phần về trace) đang dựa trên MỘT phép đo.** Kernel `rc_m7` đang
+> kiểm bằng 5 fold. Nếu khoảng chứa 0, phát biểu phải THU HẸP còn: *"một verifier MẠNH HƠN
+> có giá trị"* — và không được nói gì về trace.
 
 ## 5. Ràng buộc theo năng lực model
 
