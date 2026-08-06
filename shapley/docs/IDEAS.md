@@ -981,3 +981,30 @@ Mọi con số trong RESULTS.md giờ đều được gắn một trong ba nhãn
   ⚠️ chưa kiểm / đang kiểm / dưới ngưỡng nhiễu
   ❌ đã bị hạ cấp hoặc rút lại
 Đây là điều lẽ ra phải làm từ vòng đầu, nhưng chỉ khả thi sau khi có sàn nhiễu.
+
+## [Loop] VÒNG #23 — KẾT LUẬN CUỐI CÙNG (VÀ KHẮC NGHIỆT NHẤT) CỦA DỰ ÁN
+Tính từ dữ liệu ĐÃ CÓ, không cần kernel mới:
+                              1.5B solo   cấu hình đa tác tử TỐT NHẤT   7B SOLO      chênh
+  GSM8K                        .6680       .7240  (+5.6đ)               **.8840**   -16.0đ
+  MATH                         .4233       .5633  (+14.0đ)              **.6250**   - 6.2đ
+CHI PHÍ THÔ: pipeline 1.5B 4 vai = 4 lượt x 1.5B = 6.0B-params-lượt (còn sinh NHIỀU token hơn)
+             7B solo            = 1 lượt x 7B   = 7.0B-params-lượt
+=> XẤP XỈ NHAU VỀ COMPUTE. Nhưng 7B-solo CHÍNH XÁC HƠN Ở CẢ HAI TASK.
+
+### => MỌI "CẢI THIỆN" MÀ DỰ ÁN XÁC NHẬN ĐỀU BỊ THỐNG TRỊ BỞI "CHỈ DÙNG MODEL LỚN HƠN"
+  Cả hai kết quả đã kiểm bằng 5 fold (+5.6đ pipeline GSM8K; +14.0đ bất đối xứng MATH)
+  đều là cải thiện SO VỚI MỐC YẾU. Khi so với phương án đơn giản nhất — bỏ hẳn kiến trúc
+  đa tác tử và dùng model lớn hơn — cả hai đều THUA, ở mức compute tương đương.
+  Khoảng cách 16.0đ và 6.2đ đều VƯỢT XA ngưỡng nhiễu 5 điểm -> hướng kết luận là chắc chắn.
+
+### VÌ SAO ĐIỀU NÀY QUAN TRỌNG
+Các nghiên cứu đa tác tử thường so với mốc "cùng model, một lượt gọi" — mốc đó DỄ THẮNG.
+Rất hiếm khi so với "dùng model lớn hơn ở compute tương đương". Dự án này đã đo cả hai,
+và kết quả đảo ngược hoàn toàn kết luận.
+
+### CẢNH BÁO TRUNG THỰC
+1. Đây là so sánh CHÉO KERNEL trên các tập con KHÁC NHAU. Kernel bs_m đang chạy sẽ cho
+   so sánh đầu-đối-đầu SẠCH trên MATH; cần một kernel tương tự cho GSM8K.
+2. Hạch toán compute là THÔ (số lượt x số tham số), chưa tính chính xác token sinh ra.
+3. Chỉ 2 task, 2 cỡ model. Không suy rộng ra mọi kiến trúc đa tác tử.
+NHƯNG: với biên độ 16 và 6.2 điểm so với ngưỡng nhiễu 5 điểm, HƯỚNG của kết luận khó đảo.
