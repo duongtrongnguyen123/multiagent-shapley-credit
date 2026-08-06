@@ -95,20 +95,28 @@ bản thân mẫu hình "không bao giờ phá" là tín hiệu đáng tin, dù 
 | **Planner → Solver** | GSM8K / MATH 1.5B | .632→.684 / .405→.425 |
 | **Verifier đọc lời giải** | MATH 7B, n=200 | **+6.5đ** (17 sửa / 4 phá) |
 
-## 2. Phát hiện trung tâm: HIỆU ỨNG KHÔNG BỀN, ĐỔI DẤU THEO Ô
+## 2. BẢNG "ĐẢO DẤU" — ĐÃ HẠ CẤP TOÀN BỘ VÌ THIẾU KIỂM CHỨNG
 
-Cùng một lựa chọn kiến trúc, cùng mã nguồn, **đổi dấu** khi đổi task hoặc đổi cỡ model:
+Các bản trước trình bày bảng dưới đây như PHÁT HIỆN CHỦ ĐẠO. Sau khi đo sàn nhiễu (mục 0),
+**chỉ MỘT dòng từng được kiểm bằng 5 fold — và nó KHÔNG SỐNG SÓT.** Bốn dòng còn lại
+vẫn chỉ là **đo một lần mỗi ô**, chưa từng có thanh sai số.
 
-| Can thiệp | Ô A | Ô B | Biên độ đảo |
-|---|---|---|---|
-| **Truyền trace cho V và A** (H10, đã khử nhiễu) | GSM8K 1.5B: **+7.6đ** | MATH 1.5B: **−9.0đ** | 16.6đ |
-| Che giá trị trung gian (H6) | GSM8K 1.5B: **+8.4đ** | MATH 1.5B: **−2.0đ** | 10.4đ |
-| Verifier bịt mắt vs đọc lời giải (H1) | GSM8K 1.5B: **+2.0đ** | MATH 7B: **−6.0đ** | 8.0đ |
-| Context KHÔNG liên quan (X_cross) | GSM8K/MATH 1.5B: **−3.6 / −3.5đ** | MATH 7B: **+5.5đ** | 9.1đ |
-| Aggregator LLM vs bỏ phiếu (H2) | MATH 1.5B: **−6.7đ** | MATH 7B: **+1.7đ** | 8.4đ |
+| Can thiệp | Ô A | Ô B | Biên độ | Đã kiểm 5 fold? | Kết cục |
+|---|---|---|---|---|---|
+| **Truyền trace cho V và A** (H10/H14) | GSM8K: −7.0 **[−10,−2]** | MATH: **+0.4 [−6,+4]** | — | ✅ **CÓ** | ❌ **BỊ HẠ CẤP** — hai khoảng CHỒNG LẤN, MATH chứa 0 |
+| Che giá trị trung gian (H6) | GSM8K +8.4đ | MATH −2.0đ | 10.4 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
+| Verifier bịt mắt vs đọc (H1) | GSM8K +2.0đ | MATH 7B −6.0đ | 8.0 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
+| Context không liên quan (X_cross) | 1.5B −3.6/−3.5đ | MATH 7B +5.5đ | 9.1 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
+| Aggregator LLM vs bỏ phiếu (H2/H12) | MATH 1.5B −6.7đ | MATH 7B +1.7đ | 8.4 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
 
-**Kết luận:** không được suy rộng một ô ra toàn cục. Một bài báo chỉ báo cáo một ô trong bảng
-trên sẽ trông rất thuyết phục — và sai.
+> ### BÀI HỌC QUAN TRỌNG NHẤT CỦA DỰ ÁN
+> Chúng tôi xây cả một câu chuyện trên bảng này. Khi đem **đúng một dòng** đi kiểm bằng 5 fold,
+> nó **tan biến**: con số +9.0 trên MATH hoá ra là nhiễu, chạy lại cho +0.4.
+> **Không có lý do gì để tin bốn dòng còn lại vững hơn dòng đã sụp.**
+> Mọi dòng ⚠️ phải được đọc như GIẢ THUYẾT CHƯA KIỂM CHỨNG, không phải kết quả.
+>
+> Phát biểu duy nhất còn đứng: **truyền trace có ích trên GSM8K** (−7.0đ khi cắt, 5/5 fold);
+> **trên MATH không đo được tác dụng**. Đó là PHỤ THUỘC ĐỘ LỚN theo task, KHÔNG phải đảo dấu.
 
 ## 3. Phân bổ đóng góp đo ở mức ĐẦU-CUỐI (H11, GSM8K 1.5B, n=250)
 

@@ -882,3 +882,28 @@ nf_g7/nf_m7 lỗi `NameError: _sp is not defined`: bản vá 7B chèn `import su
   QUANT nên BẢN VÁ LÀ THỪA. Đã bỏ vá, đẩy lại version 2.
   `ast.parse` KHÔNG bắt được lỗi này (cú pháp vẫn hợp lệ) -> cần thêm kiểm tra ngữ nghĩa,
   hoặc tốt hơn: ĐỪNG sinh kernel bằng thay chuỗi khi template đã có sẵn tham số.
+
+## [Loop] VÒNG #19 — HỢP NHẤT (theo đúng cam kết ở pre-registration #15: DỪNG mở giả thuyết mới)
+Không có kernel nào xong trong vòng này (5 kernel vẫn chạy). Chuyển sang RÀ SOÁT các khẳng định
+cũ mâu thuẫn với sàn nhiễu.
+
+### 1. HẠ CẤP TOÀN BỘ BẢNG "ĐẢO DẤU" trong RESULTS.md
+Bảng này từng là PHÁT HIỆN CHỦ ĐẠO với 5 dòng. Sự thật:
+  - CHỈ 1/5 dòng từng được kiểm bằng 5 fold (truyền trace, H14) -> VÀ NÓ ĐÃ SỤP.
+  - 4 dòng còn lại vẫn là đo MỘT LẦN mỗi ô, CHƯA TỪNG có thanh sai số.
+=> Đã đánh dấu 4 dòng đó là "⚠️ CHƯA KIỂM CHỨNG" và ghi rõ:
+   "Không có lý do gì để tin bốn dòng còn lại vững hơn dòng đã sụp."
+   Đây là suy luận bắt buộc: cùng một quy trình đo, cùng cỡ mẫu, cùng loại hiệu ứng.
+
+### 2. THÊM CẢNH BÁO VÀO BẢNG SHAPLEY GỐC (README mục 2)
+Bảng φ ban đầu (Solver +0.252, Verifier +0.252, Aggregator +0.190, Planner -0.014) được tính
+TRƯỚC khi có sàn nhiễu. Đối chiếu ngưỡng ~5 điểm:
+  - Solver vs Verifier: chênh 0 -> vô nghĩa để xếp hạng
+  - Aggregator so với hai vai kia: chênh ~6 điểm, SÁT ngưỡng
+  - Bảng MATH (φ .017 -> .148): MỌI chênh lệch DƯỚI ngưỡng -> KHÔNG xếp hạng được
+=> Đã thêm cảnh báo đọc ngay trên bảng, dẫn sang RESULTS.md mục 0-1 cho các kết luận đã kiểm.
+
+### GHI CHÚ TỰ ĐÁNH GIÁ
+Hai vòng gần nhất không tạo ra kết quả mới nào — chỉ đi HẠ CẤP kết quả cũ của chính mình.
+Đó là công việc đúng đắn ở giai đoạn này, nhưng cũng cho thấy: nếu đo sàn nhiễu TỪ ĐẦU,
+phần lớn 19 vòng vừa qua đã có thể tránh được.

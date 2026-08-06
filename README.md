@@ -121,6 +121,16 @@ thu về bằng `sync_once.py`.
 
 ## 2. Kết quả chính
 
+> ⚠️ **CẢNH BÁO ĐỌC MỤC NÀY.** Các giá trị Shapley dưới đây được tính từ phép đo **MỘT LẦN**
+> cho mỗi tổ hợp, TRƯỚC khi chúng tôi đo sàn nhiễu. Sàn nhiễu đo được (5 fold, cùng cấu hình)
+> cho thấy giá trị của một vai có thể trải **7 điểm** giữa các lần lấy mẫu.
+> ⇒ **Mọi chênh lệch dưới ~5 điểm trong các bảng dưới đây KHÔNG phải bằng chứng.**
+> Cụ thể, chênh lệch giữa Solver (+0.252) và Verifier (+0.252) là 0, và khoảng cách giữa
+> Aggregator (+0.190) với hai vai kia nằm TRONG sàn nhiễu. Bảng MATH (φ từ +0.017 đến +0.148)
+> có MỌI chênh lệch nằm dưới ngưỡng.
+> Các kết luận đã được kiểm bằng 5 fold nằm ở [`RESULTS.md`](shapley/docs/RESULTS.md) mục 0–1.
+
+
 Trên GSM8K (bài toán dễ) với cấu hình đồng nhất 1.5B (N=1319), thứ hạng đóng góp như sau:
 
 | Vai trò | Shapley φ | Nhận xét |
