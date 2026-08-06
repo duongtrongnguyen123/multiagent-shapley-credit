@@ -53,18 +53,36 @@ bị diễn giải lại sau khi đã nhìn thấy số.
 
 ## 0. Tóm tắt kết quả
 
-**Kết quả mạnh nhất — đã kiểm bằng 5 fold, mọi fold cùng dấu:**
+> ## ⚠️ KẾT LUẬN CHÍNH: MỌI CẢI THIỆN ĐO ĐƯỢC ĐỀU BỊ THỐNG TRỊ BỞI "DÙNG MODEL LỚN HƠN"
+>
+> | | 1.5B solo | cấu hình đa tác tử TỐT NHẤT | **7B SOLO** | chênh |
+> |---|---|---|---|---|
+> | **GSM8K** | .668 | .724 (+5.6đ ✅ 5/5 fold) | **.884** | **−16.0đ** |
+> | **MATH** | .423 | .563 (+14.0đ ✅ 5/5 fold) | **.625** | **−6.2đ** |
+>
+> Hai cải thiện trên ĐÃ được kiểm bằng 5 fold và mọi fold cùng dấu — chúng là **THẬT**.
+> Nhưng chúng chỉ là cải thiện **so với mốc YẾU**. Khi so với phương án đơn giản nhất —
+> **bỏ hẳn kiến trúc đa tác tử, dùng model lớn hơn** — cả hai đều THUA, ở **compute tương đương**
+> (4 lượt × 1.5B ≈ 6B-params-lượt, so với 1 lượt × 7B = 7B-params-lượt; pipeline còn sinh nhiều
+> token hơn).
+>
+> **Vì sao điều này đáng nói:** các nghiên cứu đa tác tử hầu như luôn so với mốc *cùng model,
+> một lượt gọi* — mốc DỄ THẮNG. Rất hiếm khi so với *model lớn hơn ở compute tương đương*.
+> Đo cả hai thì kết luận ĐẢO NGƯỢC.
+>
+> ⚠️ *Bảng trên là so CHÉO KERNEL trên các tập con khác nhau. Hai kernel `bs_m` và `bs_g` đang
+> chạy để so ĐẦU-ĐỐI-ĐẦU trên cùng bài, kèm đếm token. Nếu chúng lật kết quả, mục này sẽ được
+> rút lại — cam kết ở [`PREREGISTRATION.md`](shapley/docs/PREREGISTRATION.md) #17, #18.*
+
+**Các kết quả ĐÃ kiểm bằng 5 fold (mọi fold cùng dấu):**
 
 | Cải thiện | Thiết lập | Hiệu ứng | Khoảng |
 |---|---|---|---|
-| **Solver 1.5B + Verifier 7B** | MATH, n=300 | **+14.0đ** | **[+8.3, +20.0]** |
-| ↳ riêng phần do verifier MẠNH HƠN | MATH, n=300 | **+11.0đ** | **[+3.3, +16.7]** |
+| Solver 1.5B + Verifier 7B | MATH, n=300 | **+14.0đ** | [+8.3, +20.0] |
+| ↳ riêng phần do verifier MẠNH HƠN | MATH, n=300 | +11.0đ | [+3.3, +16.7] |
 | Pipeline đa tác tử vs Solver đơn | GSM8K, n=500 | +5.6đ | [+4, +8] |
 | Verifier (P→S→V vs P→S) | GSM8K, n=500 | +4.4đ | [+1, +8] |
-
-**Bất đối xứng năng lực là kết quả bền nhất của dự án:** 43 SỬA / 1 PHÁ trên 300 bài MATH.
-Verifier **cùng cỡ** chỉ cho +3.0đ (khoảng chạm 0) → giá trị nằm ở **chênh lệch năng lực**,
-không ở việc thêm một vai. Dùng model nhỏ để GIẢI, model lớn để SOÁT.
+| Aggregator **GÂY HẠI** | MATH, n=500 | **−6.4đ** | [−9, −4] |
 
 **Phân bổ đóng góp đo ở mức đầu-cuối** (GSM8K 1.5B, n=250): P→S `.684` →
 **P→S→V `.732`** → P→S→V→A `.744`. **Verifier mang gần như toàn bộ giá trị.**

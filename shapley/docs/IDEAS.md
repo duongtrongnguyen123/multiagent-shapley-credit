@@ -1008,3 +1008,16 @@ và kết quả đảo ngược hoàn toàn kết luận.
 2. Hạch toán compute là THÔ (số lượt x số tham số), chưa tính chính xác token sinh ra.
 3. Chỉ 2 task, 2 cỡ model. Không suy rộng ra mọi kiến trúc đa tác tử.
 NHƯNG: với biên độ 16 và 6.2 điểm so với ngưỡng nhiễu 5 điểm, HƯỚNG của kết luận khó đảo.
+
+## [Loop] VÒNG #24 — ĐƯA KẾT LUẬN CHÍNH LÊN ĐẦU README (không có kernel nào xong)
+4 kernel vẫn chạy. Công việc vòng này: sửa README, vì nó vẫn đang KHUYẾN NGHỊ một cấu hình
+mà chính dữ liệu của mình cho thấy là BỊ THỐNG TRỊ.
+- Vòng #20 tôi đã đưa "dùng model nhỏ GIẢI, model lớn SOÁT" lên tiêu đề README.
+- Vòng #23 phát hiện cấu hình đó THẤP HƠN 7B-solo 6.2 điểm (MATH) và pipeline 1.5B thấp hơn
+  7B-solo 16.0 điểm (GSM8K), ở compute tương đương.
+=> Đã thay phần đầu README bằng KẾT LUẬN CHÍNH có cảnh báo ⚠️, giữ nguyên bảng các kết quả
+   đã kiểm 5 fold (chúng vẫn ĐÚNG — chỉ là cải thiện so với mốc yếu), và ghi rõ rằng
+   bs_m/bs_g đang chạy để kiểm chéo; nếu chúng lật kết quả thì mục này sẽ bị rút lại.
+GHI CHÚ: đây là lần thứ HAI trong dự án tôi phải hạ cấp chính thứ mình vừa đưa lên tiêu đề
+   (lần trước: bảng "đảo dấu"). Bài học: KHÔNG đưa kết quả lên tiêu đề khi chưa so với
+   MỌI mốc tầm thường có liên quan — đặc biệt mốc "chỉ dùng model lớn hơn".
