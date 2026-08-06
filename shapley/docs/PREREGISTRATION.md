@@ -343,3 +343,36 @@ Bắt buộc báo theo TỪNG Ô của lưới, KHÔNG được gộp trung bìn
 9 giả thuyết của tôi đã bị bác, 1 kết quả bị rút lại, 1 thí nghiệm vô hiệu, và vòng #9 vừa
 lật ngược "phát hiện bền nhất". H10 nhiều khả năng cũng cho kết quả không đồng nhất —
 hàng 3 đã khoá sẵn rằng ĐÓ CHÍNH LÀ kết luận, không phải thất bại.
+
+---
+
+# Đăng ký trước #10 — H11: VAI NÀO PHÍA SAU (VERIFIER hay AGGREGATOR) MANG GIÁ TRỊ?
+**Viết TRƯỚC khi chạy.** Rút thẳng từ tr_g15, và quay lại đúng câu hỏi gốc của dự án.
+
+## Xuất phát (ĐO ĐƯỢC ở tr_g15, GSM8K 1.5B)
+  P->S            .684
+  P->S->V->A toàn văn  .744  (+6.0 nhờ có V và A)
+  P->S->V->A chỉ đáp án .668  (-1.6 so với không có V,A -> ÂM khi bị bỏ đói context)
+Chưa biết: trong +6.0 đó, VERIFIER đóng góp bao nhiêu, AGGREGATOR bao nhiêu?
+Đây CHÍNH LÀ câu hỏi phân bổ đóng góp mà dự án khởi đầu, nhưng đo ở mức ĐẦU-CUỐI thay vì từng vai.
+
+## H11 — tách đóng góp của hai vai phía sau
+4 nhánh, CÙNG bộ (plan, solution), toàn văn được truyền ở mọi nhánh có vai đó:
+  PS    : P->S                      (mốc)
+  PSV   : P->S->V     (chỉ Verifier, đáp án cuối lấy của V)
+  PSA   : P->S->A     (chỉ Aggregator, nhận lời giải của S; KHÔNG có V)
+  PSVA  : P->S->V->A  (đầy đủ)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| PSV ~ PSVA > PSA | VERIFIER mang gần hết giá trị; Aggregator gần như thừa. |
+| PSA ~ PSVA > PSV | AGGREGATOR mang gần hết giá trị; Verifier gần như thừa. |
+| PSVA > cả PSV và PSA rõ rệt | HAI VAI BỔ TRỢ NHAU (synergy) — không vai nào một mình đủ. Khớp với chỉ số tương tác Shapley đo ở giai đoạn đầu dự án. |
+| PSV ~ PSA ~ PSVA ~ PS | Không vai nào đóng góp gì; +6.0 ở tr_g15 là do yếu tố khác (vd chỉ cần thêm một lượt sinh). PHẢI ghi rõ và kiểm tra lại. |
+
+## Chỉ số chính
+`acc` từng nhánh trên CÙNG bài; kèm số lần đổi đáp án ở mỗi bước để thấy vai nào thực sự tác động.
+## Ghi chú trung thực
+9 giả thuyết đã bị bác, 1 rút lại, 1 vô hiệu, 1 lỗi thiết kế tự thú, và vòng #9 đã lật ngược
+"phát hiện bền nhất". H11 nhiều khả năng cũng cho kết quả phụ thuộc ô — hàng 4 đã khoá sẵn
+kết cục "không vai nào đóng góp".
