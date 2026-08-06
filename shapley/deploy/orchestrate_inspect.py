@@ -17,6 +17,7 @@ TEMPLATE = (ROOT / "pipeline" / "inspect_planner_kernel.py").read_text(encoding=
 TASK = os.environ.get("TASK", "both")
 N = int(os.environ.get("N", "8"))
 BS = int(os.environ.get("BS", "8"))
+ACCOUNT = os.environ.get("ACCOUNT", "")   # chọn dòng trong accounts.txt theo username
 KDIR = ROOT / "kernels_inspect"
 DS_MODEL = "xatri007/qwen2-5-1-5b-instruct"
 DS = {"gsm8k": [DS_MODEL, "thedevastator/grade-school-math-8k-q-a"],
@@ -66,7 +67,13 @@ def push(user, token, task):
 
 def main():
     accs = accounts()
-    user, token = (accs[0][0], accs[0][1]) if accs else (oauth_username(), "")
+    if ACCOUNT:
+        hit = [(u, t) for u, t in accs if u.lower() == ACCOUNT.lower()]
+        if not hit:
+            raise SystemExit(f"ACCOUNT={ACCOUNT} không có trong {ACCOUNTS}")
+        user, token = hit[0]
+    else:
+        user, token = (accs[0][0], accs[0][1]) if accs else (oauth_username(), "")
     tasks = ["gsm8k", "math"] if TASK == "both" else [TASK]
     shutil.rmtree(KDIR, ignore_errors=True)
     manifest = []
