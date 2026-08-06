@@ -907,3 +907,28 @@ TRƯỚC khi có sàn nhiễu. Đối chiếu ngưỡng ~5 điểm:
 Hai vòng gần nhất không tạo ra kết quả mới nào — chỉ đi HẠ CẤP kết quả cũ của chính mình.
 Đó là công việc đúng đắn ở giai đoạn này, nhưng cũng cho thấy: nếu đo sàn nhiễu TỪ ĐẦU,
 phần lớn 19 vòng vừa qua đã có thể tránh được.
+
+## [Loop] VÒNG #20 — H15 RƠI HÀNG 1: XÁC NHẬN. KẾT QUẢ MẠNH NHẤT CỦA DỰ ÁN SỐNG SÓT.
+as_m — MATH, 5 fold x 60 (n=300), Solver 1.5B + Verifier {1.5B | 7B}, cả 2 model cùng trên GPU:
+  V7_gain      mean +14.0  range [+8.3, +20.0]  5/5 fold DƯƠNG   <-- không chứa 0
+  V7_minus_V15 mean +11.0  range [+3.3, +16.7]  5/5 fold DƯƠNG   <-- không chứa 0
+  V15_gain     mean  +3.0  range [ 0.0,  +6.7]  CHỨA 0           <-- CHƯA XÁC LẬP
+  Tổng 300 bài: verifier 7B = 43 SỬA / 1 PHÁ | verifier 1.5B = 15 SỬA / 6 PHÁ
+=> Rơi HÀNG 1 của pre-registration #14: XÁC NHẬN. Đây là kết quả dương DUY NHẤT của dự án
+   vượt qua kiểm chứng bằng thanh sai số.
+
+### BA ĐIỀU ĐƯỢC XÁC LẬP MÀ TRƯỚC ĐÂY CHƯA CÓ
+1. Con số "+18 điểm ở n=50" LÀ THẬT — nó nằm TRONG khoảng [+8.3, +20.0] đo ở n=300.
+   Tôi từng cảnh báo "9 sửa / 0 phá có thể do may mắn"; ở n=300 tỉ lệ là 43 SỬA / 1 PHÁ.
+2. Lợi ích đến từ việc VERIFIER MẠNH HƠN, KHÔNG phải từ việc CÓ verifier.
+   V7 - V15 dương ở 5/5 fold. Verifier CÙNG CỠ chỉ cho +3.0 với khoảng chạm 0 -> vô giá trị.
+   Đây là phân tách mà thí nghiệm n=50 ban đầu KHÔNG hề tách được.
+3. Kết quả này ở trên MATH — đúng cái task mà Verifier, Aggregator, truyền trace và che giá trị
+   ĐỀU THẤT BẠI. Bất đối xứng năng lực hoạt động ĐÚNG Ở NƠI mọi thứ khác không hoạt động.
+
+### HỢP NHẤT VỚI CÂU ĐỐ MATH TRƯỚC ĐÓ
+nf_m15: verifier 1.5B trên MATH = +1.4 [-1, +4] -> CHƯA XÁC LẬP.
+as_m  : verifier 7B  trên MATH = +14.0 [+8.3, +20.0] -> XÁC LẬP.
+=> Giá trị của vai Verifier trên MATH KHÔNG nằm ở VAI TRÒ, mà nằm HOÀN TOÀN ở NĂNG LỰC model.
+   Một verifier yếu ngang solver thì vô dụng; một verifier mạnh hơn thì đáng +14 điểm.
+   Phát biểu này giải thích được vì sao mọi thí nghiệm verifier đồng cỡ trên MATH đều ra ~0.
