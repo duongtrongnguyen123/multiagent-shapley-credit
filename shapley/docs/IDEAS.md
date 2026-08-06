@@ -648,3 +648,27 @@ Giữ KHUNG TƯ DUY của đề xuất (đo ĐỘ TRUNG THÀNH THỰC THI thay v
   - tín hiệu mềm  : LLM-judge, CHỈ trên MATH (nơi Solver viết 899 ký tự, có trace thật)
   - phân tích     : PHÂN TẦNG — giá trị biên của Verifier có khác nhau giữa nhóm Solver
                     TRUNG THÀNH và nhóm LỆCH hay không?
+
+## [Loop] AGENT NÀO THỰC SỰ TÍNH TOÁN? — CHỈ 2/4 (GSM8K, n=200, 1.5B)
+Đo "số MỚI" = giá trị số xuất hiện trong output mà KHÔNG có trong input của agent đó
+(proxy cho "có thực sự tính toán gì không").
+  Agent        median ký tự   số MỚI/lượt   % lượt KHÔNG có số mới   đáp án = agent trước
+  Planner            501            6              0.0%                    —
+  Solver              20            0             69.0%                  62.5%
+  Verifier           592            4             20.5%                  69.0%
+  Aggregator          18            0            100.0%                  96.0%
+=> PLANNER và VERIFIER thực sự TÍNH. SOLVER và AGGREGATOR chỉ CHUYỂN TIẾP.
+   Aggregator KHÔNG SINH RA SỐ MỚI Ở 100% SỐ LƯỢT và lặp lại đáp án Verifier ở 96% —
+   nó gần như là một no-op có kèm một lần gọi model.
+=> "Pipeline 4 tác tử" thực chất là PIPELINE 2 TÁC TỬ (Planner + Verifier) cộng 2 trạm chuyển tiếp.
+
+### GIẢI THÍCH ĐỒNG THỜI NHIỀU KẾT QUẢ TRƯỚC ĐÓ
+  - Vì sao Aggregator đóng góp ~0 (+1.2 GSM8K, -6.0 MATH): nó KHÔNG BAO GIỜ tính gì.
+    Hành động duy nhất của nó là CHỌN giữa hai đáp án có sẵn -> chỉ có thể mất, khó mà được.
+  - Vì sao Shapley của Solver trông khá: nó được ghi công cho phép tính CỦA PLANNER.
+  - Vì sao P->S->V là cấu hình tốt nhất: đó ĐÚNG BẰNG hai agent thực sự làm việc.
+  - Vì sao P->S->A sụp còn .428: aggregator chỉ có MỘT ứng viên thì không có gì để chọn,
+    nó phải tự bịa, mà nó lại không tính toán được.
+LƯU Ý: đây là GSM8K 1.5B. Trên MATH, Solver viết 899 ký tự (median) nên nhiều khả năng NÓ CÓ TÍNH.
+  Nếu đúng thì PHÂN CÔNG LAO ĐỘNG GIỮA CÁC VAI THAY ĐỔI THEO TASK — khớp với toàn bộ chủ đề
+  "hiệu ứng không bền" của dự án. Kernel pt_m15/pt_m7 đang chạy sẽ trả lời.
