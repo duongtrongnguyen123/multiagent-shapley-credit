@@ -1054,3 +1054,29 @@ Không kernel nào xong (4 kernel 7B 4-bit vẫn chạy — chúng nặng thật
    mất điểm — một vấn đề KỸ THUẬT có thể sửa (ép định dạng, fallback về ứng viên khi thiếu \boxed),
    chứ không phải giới hạn về năng lực suy luận.
 => ĐÂY LÀ LẦN THỨ TƯ đọc trace thô lật lại một diễn giải. Tỉ lệ 4/4.
+
+## [Loop] VÒNG #26 — ĐỌC TRACE (lần 5): VERIFIER HỎNG KHÁC HẲN AGGREGATOR, VÀ CƠ CHẾ CỦA +14 LỘ RA
+### PHÂN LOẠI CA "PHÁ" CỦA VERIFIER (từ ft_m15 / ft_g15, mỗi bộ n=300)
+  MATH : SỬA 18 / PHÁ 14 | 13/14 (93%) là ĐỔI SANG ĐÁP ÁN KHÁC, chỉ 1 ca lỗi trích xuất
+  GSM8K: SỬA 32 / PHÁ 22 | 22/22 (100%) là ĐỔI SANG ĐÁP ÁN KHÁC, 0 ca lỗi trích xuất
+=> TRÁI NGƯỢC HẲN với Aggregator (85% là lỗi ĐỊNH DẠNG). Ca "phá" của Verifier là
+   LỖI PHÁN ĐOÁN THẬT: nó đọc một lời giải ĐÚNG rồi chủ động sửa thành SAI.
+   Không thể chữa bằng cách ép định dạng.
+=> HAI VAI HỎNG THEO HAI CÁCH KHÁC NHAU:
+     Aggregator: lỗi KỸ THUẬT (không phát ra \boxed) -> SỬA ĐƯỢC (H20 đang kiểm)
+     Verifier  : lỗi PHÁN ĐOÁN (sửa nhầm lời giải đúng) -> KHÔNG sửa được bằng định dạng
+
+### ĐỘ CHÍNH XÁC CỦA CAN THIỆP — CƠ CHẾ CỦA KẾT QUẢ +14.0
+  Verifier          số SỬA  số PHÁ   ĐỘ CHÍNH XÁC KHI CAN THIỆP
+  1.5B (MATH ft)      18      14            56%
+  1.5B (GSM8K ft)     32      22            59%
+  1.5B (MATH as_m)    15       6            71%
+  **7B  (MATH as_m)   43       1            98%**
+=> VERIFIER 1.5B CHỈ NHỈNH HƠN TUNG ĐỒNG XU về việc KHI NÀO nên can thiệp (56-59%).
+   Nó làm việc thật theo cả hai chiều và chỉ hoà vốn nhẹ -> ĐÚNG LÝ DO vì sao giá trị đo được
+   của nó nhỏ và khoảng tin cậy chứa 0.
+=> VERIFIER 7B không chỉ can thiệp NHIỀU HƠN (44 vs 21) mà còn CHÍNH XÁC HƠN HẲN (98% vs 71%).
+   ĐÂY LÀ CƠ CHẾ ĐỊNH LƯỢNG CỦA KẾT QUẢ +14.0 — thứ mà H15 xác nhận nhưng không giải thích được.
+=> PHÁT BIỂU GỌN: giá trị của một verifier KHÔNG nằm ở việc nó bắt được bao nhiêu lỗi,
+   mà ở ĐỘ CHÍNH XÁC CỦA QUYẾT ĐỊNH CAN THIỆP. Dưới ~60% thì nó gần như vô dụng;
+   ở 98% thì nó đáng +14 điểm.
