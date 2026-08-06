@@ -1080,3 +1080,31 @@ Không kernel nào xong (4 kernel 7B 4-bit vẫn chạy — chúng nặng thật
 => PHÁT BIỂU GỌN: giá trị của một verifier KHÔNG nằm ở việc nó bắt được bao nhiêu lỗi,
    mà ở ĐỘ CHÍNH XÁC CỦA QUYẾT ĐỊNH CAN THIỆP. Dưới ~60% thì nó gần như vô dụng;
    ở 98% thì nó đáng +14 điểm.
+
+## [Loop] VÒNG #27 — nf_m7 HOÀN TẤT LƯỚI: RƠI HÀNG 2, LÀ 2/4 Ô CHỨ KHÔNG PHẢI 1/4
+nf_m7 (MATH 7B, 5 fold x 100): V_gain theo fold +2, +5, +4, +8, +3
+  V_gain mean +4.4  range [+2, +8]  5/5 fold DƯƠNG -> XÁC LẬP
+  A_gain mean +0.6  range [-1, +3]  chứa 0 -> chưa xác lập
+=> Rơi HÀNG 2 của pre-reg #15: "MATH 7B TOÀN DƯƠNG -> thành 2/4 ô, phải sửa phát biểu."
+   Khẳng định "chỉ 1/4 ô xác lập" ở vòng #17 ĐÃ SAI. Phải sửa thành 2/4.
+
+### LƯỚI ĐẦY ĐỦ (cả 4 ô cùng chuẩn 5-fold) — VÀ NÓ LÀ ĐƯỜNG CHÉO
+  V_gain      GSM8K                      MATH
+  1.5B        +4.4 [+1,+8]  5/5  ✅      +1.4 [-1,+4]  ❌
+  7B          +1.0 [-3,+5]  ❌           +4.4 [+2,+8]  5/5  ✅
+
+### CƠ CHẾ: XẾP THEO ĐỘ CHÍNH XÁC CỦA SOLVER THÌ MỌI THỨ SÁNG RA
+  ô            acc Solver   verifier
+  MATH 1.5B      .402       ❌ (model bị NGỢP)
+  GSM8K 1.5B     .668       ✅ +4.4
+  MATH 7B        .598       ✅ +4.4
+  GSM8K 7B       .884       ❌ (đã BÃO HOÀ)
+=> ĐO ĐƯỢC: VERIFY CHỈ SINH LỢI Ở GIỮA DẢI ĐỘ KHÓ (~.60-.67 độ chính xác của Solver).
+   Quá khó -> verifier không phân biệt nổi đúng/sai (độ chính xác can thiệp chỉ 56%, vòng #26).
+   Quá dễ -> không còn gì để sửa.
+=> Phát biểu này THAY THẾ "đa tác tử giúp model yếu ở bài dễ" (vòng #17) — cái đó chỉ là
+   NGẪU NHIÊN của hai ô tôi đã đo. Phát biểu mới DỰ ĐOÁN ĐƯỢC cả hai ô thành công LẪN hai ô
+   thất bại, và khớp trực tiếp với số liệu độ chính xác can thiệp ở vòng #26.
+### GHI CHÚ
+Đây là lần thứ hai một khẳng định "chỉ 1/4 ô" bị sửa vì đo thêm dữ liệu. Bài học lặp lại:
+KHÔNG phát biểu tổng quát khi lưới còn ô trống.
