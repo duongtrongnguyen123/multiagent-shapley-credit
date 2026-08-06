@@ -532,3 +532,34 @@ Bảng cuối 4 ô x {V_gain, A_gain} với khoảng, đưa thẳng vào RESULTS
 ## Ghi chú trung thực
 Đây là thí nghiệm KHÉP LẠI, không phải mở hướng mới. Sau H16 (cộng rc_m15 và as_m đang chạy),
 dự án có đủ dữ liệu để viết báo cáo cuối; nên DỪNG mở giả thuyết mới và chuyển sang hợp nhất.
+
+---
+
+# Đăng ký trước #16 — H17: KIỂM CHỨNG PHÁT BIỂU HỢP NHẤT BẰNG THANH SAI SỐ
+**Viết TRƯỚC khi chạy.** Đây là phép kiểm cuối cùng của dự án.
+
+## Phát biểu cần kiểm (rút ra ở vòng #21)
+"Bộ máy đa tác tử chỉ hoạt động khi MODEL ĐI KIỂM đủ mạnh để dùng được thứ nó được đưa."
+Bằng chứng hiện có trên MATH:
+  verifier 7B  : +14.0 [+8.3, +20.0]  5/5 fold  (ĐÃ KIỂM — H15)
+  truyền trace 7B: -17.5 khi cắt      **1 LẦN ĐO** (tr_m7) — CHƯA KIỂM
+  cả hai ở 1.5B : khoảng chứa 0                  (ĐÃ KIỂM — nf_m15, rc_m15)
+Mắt xích YẾU NHẤT là con số -17.5: nó đang gánh nửa phát biểu mà chưa có thanh sai số.
+
+## H17
+Chạy lại FULL vs TRIM trên **5 fold rời nhau** ở **MATH 7B** (4-bit), mỗi fold 100 bài.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `trim_minus_full` TOÀN ÂM, không chứa 0 | XÁC NHẬN. Phát biểu hợp nhất đứng vững: trace chỉ có giá trị khi model kiểm đủ mạnh. |
+| Khoảng CHỨA 0 | Con số -17.5 là nhiễu. Phát biểu hợp nhất chỉ còn dựa trên H15, phải phát biểu HẸP hơn: "verifier MẠNH có giá trị", KHÔNG được nói gì về trace. |
+| TOÀN DƯƠNG | Đảo dấu so với lần đo đầu -> lần đầu sai hoàn toàn. Rút lại tr_m7. |
+| Khoảng chồng lấn với MATH 1.5B [-6,+4] | KHÔNG kết luận được là phụ thuộc năng lực. Phải hạ cấp phát biểu hợp nhất. |
+
+## Chỉ số chính
+`trim_minus_full` từng fold; mean/min/max/range/std. So chồng lấn với MATH 1.5B [-6, +4].
+
+## Ghi chú trung thực
+Sau H17, dự án DỪNG mở thí nghiệm mới. Đây là mắt xích cuối cùng chưa có thanh sai số trong
+phát biểu chính. Nếu nó sụp, phát biểu phải thu hẹp lại chỉ còn kết quả H15 — và điều đó vẫn
+là kết quả tốt nhất của dự án.
