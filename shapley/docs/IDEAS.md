@@ -784,3 +784,28 @@ tr_g7 (GSM8K 7B, solver .916): FULL .904 | TRIM .912 | NOVA .896 | solo .916
 ### GHI CHÚ TỰ PHÊ BÌNH
 Đây là phép đo lẽ ra phải chạy ĐẦU TIÊN, trước khi diễn giải bất kỳ hiệu ứng nào. Việc chạy nó
 muộn khiến nhiều vòng trước đã dành công sức diễn giải các chênh lệch 1-3 điểm vốn không có ý nghĩa.
+
+## [Loop] VÒNG #16 — CÓ THANH SAI SỐ CHO CẢ HAI TASK: MỘT SỐ KẾT LUẬN ĐỔI HẲN
+### nf_m15 — SÀN NHIỄU trên MATH (5 fold x 100 bài)
+  fold: V_gain +4,-1,+1,+4,-1 | A_gain -6,-7,-6,-9,-4
+  V_gain: mean +1.4, range [-1.0, +4.0], std 2.24   <-- CHỨA SỐ 0
+  A_gain: mean -6.4, range [-9.0, -4.0], std 1.62   <-- TOÀN ÂM
+  PS: mean .402 nhưng range .14 (từ .34 tới .48) — MATH các fold LỆCH ĐỘ KHÓ RẤT NHIỀU,
+      đây là lý do hiệu ứng trên MATH nhiễu hơn GSM8K nhiều.
+
+### BẢNG ĐỐI CHIẾU CÓ THANH SAI SỐ (thay cho các con số đo MỘT LẦN trước đây)
+              GSM8K 1.5B                        MATH 1.5B
+  V_gain      +4.4  [+1.0, +8.0]  TOÀN DƯƠNG    +1.4  [-1.0, +4.0]  CHỨA 0
+  A_gain      +1.2  [-1.0, +3.0]  CHỨA 0        -6.4  [-9.0, -4.0]  TOÀN ÂM
+=> PHẢI SỬA LẠI BA KHẲNG ĐỊNH:
+  1. "Verifier mang gần như toàn bộ giá trị" -> ĐÚNG trên GSM8K; TRÊN MATH CHƯA XÁC LẬP (chứa 0).
+  2. "Aggregator có hại trên MATH" -> XÁC NHẬN, cả 5 fold đều âm, khoảng [-9, -4].
+  3. "Aggregator +1.2 trên GSM8K" -> VẪN BỊ HẠ CẤP (khoảng chứa 0).
+=> ĐẢO DẤU CỦA VAI AGGREGATOR LÀ THẬT khi có thanh sai số:
+   GSM8K [-1,+3] và MATH [-9,-4] KHÔNG CHỒNG LẤN.
+
+### rc_g15 — H14 (nửa GSM8K)
+  trim_minus_full theo fold: -8, -7, -2, -8, -10
+  mean -7.0, range [-10.0, -2.0], std 2.68  -> CẢ 5 FOLD ĐỀU ÂM
+=> Trên GSM8K, cắt trace LÀM HẠI một cách ổn định (~7 điểm). Chờ rc_m15 để xét chồng lấn
+   và chốt kết luận cho H14 (phát hiện chủ đạo của dự án).
