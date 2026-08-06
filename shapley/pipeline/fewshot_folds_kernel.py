@@ -215,11 +215,19 @@ for f in range(NF):
     print(f"  [fold{f+1}] plan base leak={plan_fold['base'][-1]['leaks_correct_answer']:.3f} "
           f"| fewshot leak={plan_fold['fewshot'][-1]['leaks_correct_answer']:.3f}", flush=True)
 
-    if f == 0:   # giữ trace thô của fold đầu để kiểm lại bằng mắt
-        sample_traces = [{"q": qs[i], "gold": gs[i], "plan_base": plan_b[i],
-                          "plan_fewshot": plan_f[i],
-                          **{f"sol_{t}": sols[t][i] for t in ARMS}}
-                         for i in range(min(10, len(rows)))]
+    # LƯU MỌI CÂU, MỌI FOLD: output nguyên văn của từng vai + đáp án trích ra + đúng/sai,
+    # để phân tích ngoại tuyến không phải chạy lại.
+    for i in range(len(rows)):
+        sample_traces.append({
+            "fold": f + 1, "idx": f * FOLD + i, "q": qs[i], "gold": gs[i],
+            "plan_base": plan_b[i], "plan_fewshot": plan_f[i],
+            "plan_leak": {"base": plan_answer(plan_b[i]), "fewshot": plan_answer(plan_f[i])},
+            **{f"sol_{t}": sols[t][i] for t in ARMS},
+            "pred": {t: pred(sols[t][i]) for t in ARMS},
+            "ok": {t: eq(pred(sols[t][i]), gs[i]) for t in ARMS},
+            "len": {"plan_base": len(plan_b[i]), "plan_fewshot": len(plan_f[i]),
+                    **{t: len(sols[t][i] or "") for t in ARMS}},
+        })
 
 # ---- tổng hợp qua fold -----------------------------------------------------
 def stats(xs):

@@ -15,7 +15,12 @@
 #   lỗi do SOLVER tự gây (một mình cũng sai)        -> Verifier có gỡ được không?
 # Câu hỏi cốt lõi: Verifier cứu được lỗi NÀO — lỗi tại plan hay lỗi tại solver?
 #
-# 5 fold rời nhau để có thanh sai số (chuẩn H13/H14). Lưu trace thô.
+# 5 fold rời nhau để có thanh sai số (chuẩn H13/H14).
+#
+# LƯU TRACE ĐẦY ĐỦ: traces.json chứa MỌI câu x MỌI fold, với output nguyên văn của cả 5 lượt
+# sinh (plan, solver-một-mình, solver, verifier, aggregator), đáp án trích ra từng lượt, độ dài
+# từng lượt, và nhãn phân loại sẵn (error_origin, V_transition, A_transition, plan_leaked_wrong,
+# solver_copied_plan). Aggregate chỉ đáng tin khi còn kiểm lại được text phía sau nó.
 import os, re, csv, json, glob, statistics, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -180,11 +185,33 @@ for f in range(NF):
     print(f"  V cuu duoc: {d['V_rescued_plan_caused']}/{d['n_plan_caused']} ca loi-do-PLAN, "
           f"{d['V_rescued_solver_own']}/{d['n_solver_own']} ca loi-do-SOLVER", flush=True)
 
-    if f == 0:
-        sample = [{"q": qs[i], "gold": gs[i], "plan": plans[i], "sol_alone": alone[i],
-                   "sol": sol[i], "ver": ver[i], "agg": agg[i],
-                   "ok": {"alone": ok_alone[i], "S": ok_s[i], "V": ok_v[i], "A": ok_a[i]}}
-                  for i in range(min(12, n))]
+    # LƯU MỌI CÂU, MỌI FOLD: output nguyên văn của từng vai + đáp án trích ra + nhãn
+    # phân loại sẵn, để phân tích ngoại tuyến không phải chạy lại và không phải tính lại.
+    for i in range(n):
+        pa = plan_answer(plans[i])
+        sample.append({
+            "fold": f + 1, "idx": f * FOLD + i, "q": qs[i], "gold": gs[i],
+            "plan": plans[i], "sol_alone": alone[i], "sol": sol[i],
+            "ver": ver[i], "agg": agg[i],
+            "pred": {"alone": pred(alone[i]), "S": pred(sol[i]),
+                     "V": pred(ver[i]), "A": pred(agg[i]), "plan_leak": pa},
+            "ok": {"alone": ok_alone[i], "S": ok_s[i], "V": ok_v[i], "A": ok_a[i]},
+            "len": {"plan": len(plans[i]), "alone": len(alone[i]), "S": len(sol[i]),
+                    "V": len(ver[i]), "A": len(agg[i])},
+            "label": {
+                "error_origin": ("plan_caused" if ok_alone[i] and not ok_s[i] else
+                                 "solver_own" if not ok_alone[i] and not ok_s[i] else
+                                 "none" if ok_s[i] else "unknown"),
+                "V_transition": ("rescued" if not ok_s[i] and ok_v[i] else
+                                 "broke" if ok_s[i] and not ok_v[i] else
+                                 "missed" if not ok_s[i] and not ok_v[i] else "kept_ok"),
+                "A_transition": ("rescued" if not ok_v[i] and ok_a[i] else
+                                 "broke" if ok_v[i] and not ok_a[i] else
+                                 "missed" if not ok_v[i] and not ok_a[i] else "kept_ok"),
+                "plan_leaked_wrong": pa is not None and not eq(pa, gs[i]),
+                "solver_copied_plan": (pa is not None and pred(sol[i]) is not None
+                                       and eq(pred(sol[i]), pa)),
+            }})
 
 def st(key):
     xs = [d[key] for d in fold_stats]
@@ -233,5 +260,9 @@ print(f"\nDOC KET QUA: hieu ung chi tinh la bang chung khi TOAN BO {NF} fold cun
 
 print("\nSUMMARY", json.dumps(out), flush=True)
 json.dump(out, open("/kaggle/working/summary.json", "w"), indent=2)
+# traces.json: MỌI câu x MỌI fold, output nguyên văn của cả 5 lượt sinh (plan, solver-một-mình,
+# solver, verifier, aggregator) + đáp án trích ra + nhãn phân loại. Đây là dữ liệu để phân tích
+# ngoại tuyến; summary chỉ là tổng hợp của nó.
 json.dump(sample, open("/kaggle/working/traces.json", "w"), indent=1)
+print(f"traces.json: {len(sample)} cau x 5 luot sinh moi cau", flush=True)
 print("done", flush=True)
