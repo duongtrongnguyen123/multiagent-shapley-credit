@@ -468,3 +468,40 @@ pp_g7 (GSM8K 7B 4-bit, n=250, solver ĐÃ .896):
   GSM8K 7B  : +2.4  <-- tốt nhất
 => Truyền THÊM suy luận cho Verifier KHÔNG BAO GIỜ giúp rõ rệt; truyền KẾ HOẠCH thì hại.
    Chỉ truyền ĐÁP ÁN luôn nằm ở hoặc gần vị trí tốt nhất, VÀ rẻ hơn 3-4 lần về context.
+
+## [Loop] VÒNG #9 — MẺ 6 KẾT QUẢ LÀM LUNG LAY TOÀN BỘ CÂU CHUYỆN "CONTEXT GÂY HẠI"
+
+### bl_m7 (H1 tại MATH 7B, solver .625) — ĐẢO NGƯỢC
+  I informed +6.5 | 17 sửa / 4 phá     P partial +6.0 | 15 sửa / 3 phá
+  X cross    +5.5 | 15 sửa / 4 phá     B blind   +0.5 |  9 sửa / 8 phá
+=> Informed TỐT HƠN blind gấp 13 lần — NGƯỢC HẲN giả thuyết verifier-bịt-mắt.
+=> X_cross (context KHÔNG liên quan) LẦN ĐẦU DƯƠNG (+5.5), sau khi ÂM ở 3/3 thiết lập trước
+   (-3.6, -3.5, -1.6). "Phát hiện bền nhất" của tôi ĐÃ GÃY.
+
+### agf_7 (H2 tại MATH 7B) — H2 BỊ BÁC, rơi HÀNG 3
+  maj@8 .7167 | agg_fair .725 (+0.8) | agg_with_counts .7167 (0.0) | agg_full_sol .7333 (+1.7)
+=> Bộ tổng hợp LLM giờ NGANG hoặc HƠN bỏ phiếu, và nhánh CHO XEM TOÀN VĂN LỜI GIẢI LÀ TỐT NHẤT.
+=> Con số "-19 điểm, 26 phá / 0 cứu" trước đây LÀ NHIỄU PROMPT HOÀN TOÀN, đúng như đã tự cảnh báo.
+
+### cp_g7 (H6 tại GSM8K 7B, solver .916 bão hoà)
+  W_none 0.0 | W_full -0.8 | W_calc -0.8 | W_prose -1.6  -> mọi thứ ~0, không kết luận được gì.
+
+### mf_g15 / mf_m15 (H9 — thí nghiệm hợp nhất)
+              solver đơn  FULL   MIN   tỉ lệ context
+  GSM8K         .632      .744   .640      2.9x
+  MATH          .405      .345   .405      6.6x
+=> GSM8K: FULL HƠN MIN 10.4 điểm và hơn solver đơn 11.2 điểm -> H9 BỊ BÁC, rơi HÀNG 2
+   ("mâu thuẫn quan trọng phải giải thích", đã khoá trước).
+=> MATH: MIN >= FULL (+6.0) và FULL còn TỆ HƠN solver đơn (-6.0).
+### TỰ THÚ LỖI THIẾT KẾ (không phải bào chữa hậu nghiệm)
+  Nhánh MIN của tôi bỏ ĐỒNG THỜI hai thứ: (a) truyền trace cho Verifier/Aggregator, và
+  (b) đường Planner -> Solver. Nhưng plan_g15 ĐÃ ĐO ĐƯỢC (b) LÀM TĂNG acc (.632 -> .684).
+  => MIN bị chấp ~5 điểm ngay từ đầu. PHÉP SO SÁNH KHÔNG SẠCH. Cần bản sửa lỗi.
+
+### KẾT LUẬN TRUNG THỰC PHẢI GHI LẠI
+ĐO ĐƯỢC: quy luật "thêm context làm hỏng phán đoán" ĐÚNG ở 1.5B nhưng ĐẢO NGƯỢC ở 7B trên MATH.
+  Toàn bộ câu chuyện tôi dựng lên phần lớn là HIỆN TƯỢNG CỦA MODEL YẾU, cộng thêm nhiễu prompt
+  ở các nhánh aggregator. KHÔNG được phát biểu nó như một quy luật chung.
+META-PHÁT HIỆN (giờ đã rất vững, có 9 lần bác bỏ + nhiều lần ĐỔI DẤU làm bằng chứng):
+  Hiệu ứng của các "mẹo" đa tác tử KHÔNG BỀN — chúng đổi dấu theo task và theo cỡ model.
+  Muốn kết luận bất cứ điều gì, PHẢI đo trên lưới task x cỡ model, không được suy rộng từ một ô.
