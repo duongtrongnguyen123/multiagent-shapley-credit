@@ -452,3 +452,19 @@ META-PHÁT HIỆN (ĐO ĐƯỢC, từ chính chuỗi thất bại này): PHẦN 
     đưa thêm TOÀN VĂN lời giải -> .300  (SỤP 23 ĐIỂM)
 => Thêm context làm MẤT 23 ĐIỂM ở cùng một nhiệm vụ. Đây là minh chứng rõ nhất cho
    "CONTEXT PHÁ HUỶ PHÁN ĐOÁN CỦA LLM", và nó ở vai THỨ HAI (không phải Verifier).
+
+## [Loop] VÒNG #8 — H5 BỊ BÁC LẦN 3 (GSM8K 7B), rơi HÀNG 4
+pp_g7 (GSM8K 7B 4-bit, n=250, solver ĐÃ .896):
+  V_none (chỉ đáp án) +2.4 | 12 sửa / 6 phá | ctx  260   <-- TỐT NHẤT
+  V_plan              +1.6 |  7 sửa / 3 phá | ctx  620
+  V_sol               +0.8 |  8 sửa / 6 phá | ctx  707
+  V_both              +0.8 |  3 sửa / 1 phá | ctx 1062
+=> "V_none tốt nhất" -> HÀNG 4. H5 bị bác ở CẢ BA thiết lập (GSM8K 1.5B, MATH 1.5B, GSM8K 7B).
+=> Đồng thời khớp bl_g7: khi Solver đã mạnh (.896), MỌI hiệu ứng verify đều nhỏ (+0.8..+2.4).
+
+### TỔNG HỢP "V_none (chỉ đáp án)" QUA 3 THIẾT LẬP
+  GSM8K 1.5B: +4.0 (V_sol +4.8 nhỉnh hơn chút, nhưng V_plan -2.8 / V_both -2.0 TỆ HƠN NHIỀU)
+  MATH  1.5B: +4.0  <-- tốt nhất
+  GSM8K 7B  : +2.4  <-- tốt nhất
+=> Truyền THÊM suy luận cho Verifier KHÔNG BAO GIỜ giúp rõ rệt; truyền KẾ HOẠCH thì hại.
+   Chỉ truyền ĐÁP ÁN luôn nằm ở hoặc gần vị trí tốt nhất, VÀ rẻ hơn 3-4 lần về context.
