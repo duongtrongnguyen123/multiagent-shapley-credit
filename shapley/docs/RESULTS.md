@@ -5,6 +5,32 @@ chạy trên GPU Kaggle T4. Mỗi giả thuyết đều được **đăng ký tr
 [`PREREGISTRATION.md`](PREREGISTRATION.md) và commit **trước khi** kernel chạy — lịch sử git
 chứng minh thứ tự đó, nên không kết quả nào bị diễn giải lại sau khi đã nhìn thấy số.
 
+
+---
+
+## 0. SÀN NHIỄU — ĐỌC MỤC NÀY TRƯỚC MỌI CON SỐ BÊN DƯỚI
+
+Cùng MỘT cấu hình, chạy trên **5 fold rời nhau** (GSM8K 1.5B, mỗi fold 100 bài):
+
+| Đại lượng | mean | min | max | range | std |
+|---|---|---|---|---|---|
+| `V_gain` (Verifier) | +4.4 | **+1.0** | **+8.0** | **7.0** | 2.65 |
+| `A_gain` (Aggregator) | +1.2 | **−1.0** | **+3.0** | **4.0** | 1.33 |
+
+**Cùng một thí nghiệm chạy 5 lần cho giá trị Verifier từ +1.0 đến +8.0.**
+Quy đổi sang n=250: std ≈ 1.7đ; hiệu của HAI phép đo có std ≈ 2.4đ → **ngưỡng 2σ ≈ 5 ĐIỂM**.
+
+> ### QUY TẮC ĐỌC BẢNG
+> **Mọi hiệu ứng < 5 điểm, đo MỘT LẦN ở n ≤ 250, KHÔNG phải bằng chứng.**
+> Cụ thể: khoảng của `A_gain` chứa số 0 và có phần âm → khẳng định "Aggregator +1.2 trên GSM8K"
+> **ĐÃ BỊ HẠ CẤP**. Các hiệu ứng nhỏ khác trong tài liệu này cần được đọc với cùng thái độ.
+>
+> **Các lần ĐẢO DẤU đều vượt ngưỡng** và vẫn đứng: truyền trace 16.6 · bỏ phiếu 13.1 ·
+> che giá trị 10.4 · X_cross 9.1 · verifier bịt mắt 8.0 · vai Aggregator 7.2.
+
+*Phép đo này lẽ ra phải chạy ĐẦU TIÊN. Chạy muộn nên nhiều vòng trước đã diễn giải các chênh
+lệch 1–3 điểm vốn không có ý nghĩa thống kê.*
+
 ---
 
 ## 1. Những gì CÓ TÁC DỤNG (đo được, dấu dương)

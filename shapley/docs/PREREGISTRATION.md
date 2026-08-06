@@ -442,3 +442,31 @@ So sánh trực tiếp độ trải đó với các hiệu ứng đã công bố
 ## Ghi chú trung thực
 Kết cục HÀNG 3 sẽ HẠ GIÁ phần lớn công sức của dự án. Nó vẫn phải được báo cáo y nguyên nếu xảy ra.
 Đây chính là phép thử mà lẽ ra tôi phải chạy TỪ ĐẦU, trước khi diễn giải bất kỳ hiệu ứng nào.
+
+---
+
+# Đăng ký trước #13 — H14: ĐẢO DẤU LỚN NHẤT CÓ SỐNG SÓT KHI CÓ THANH SAI SỐ KHÔNG?
+**Viết TRƯỚC khi chạy.** Sau khi đã đo sàn nhiễu (H13), phải kiểm lại chính phát hiện chủ đạo.
+
+## Xuất phát (ĐO ĐƯỢC)
+H13: cùng cấu hình chạy 5 fold -> V_gain trải từ +1.0 đến +8.0 (range 7.0). Ngưỡng 2σ ≈ 5đ.
+Phát hiện CHỦ ĐẠO của dự án là ĐẢO DẤU của "truyền trace" (H10): +7.6 (GSM8K) vs -9.0 (MATH),
+biên độ 16.6đ. Đo MỘT LẦN mỗi ô. Chưa từng có thanh sai số.
+
+## H14
+Chạy lại đúng so sánh FULL vs TRIM trên **5 fold rời nhau** cho **cả hai task**, 1.5B.
+Báo cáo `trim_minus_full` theo từng fold, kèm mean/range/std.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Khoảng của GSM8K (âm) và MATH (dương) KHÔNG chồng lấn | ĐẢO DẤU LÀ THẬT. Phát hiện chủ đạo được xác nhận có thanh sai số. |
+| Hai khoảng CHỒNG LẤN | **PHÁT HIỆN CHỦ ĐẠO BỊ HẠ CẤP** — không kết luận được là đảo dấu. Phải sửa README và RESULTS.md, hạ xuống mức "không đo được hiệu ứng ổn định". |
+| Cả hai khoảng đều chứa 0 | Truyền trace KHÔNG có tác dụng đo được ở cả hai task. Toàn bộ nhánh H9/H10 phải viết lại. |
+| Dấu ĐẢO NGƯỢC so với lần đo đầu | Lần đo đầu là nhiễu. Ghi rõ và rút lại. |
+
+## Chỉ số chính
+`trim_minus_full` từng fold; mean, min, max, range, std cho mỗi task.
+Kiểm tra chồng lấn: [min_GSM8K, max_GSM8K] ∩ [min_MATH, max_MATH] có rỗng không.
+
+## Ghi chú trung thực
+Nếu rơi vào hàng 2 hoặc 3, phần lớn nội dung README hiện tại phải viết lại. Điều đó vẫn phải làm.
