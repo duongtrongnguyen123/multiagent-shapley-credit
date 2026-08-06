@@ -554,3 +554,33 @@ LƯU Ý TRUNG THỰC: nhánh P->S->A là CẤU HÌNH THOÁI HOÁ — bộ tổng
 lần đảo dấu trước còn lẫn biến). Hướng chính của repo được cập nhật trong README:
   "Hiệu ứng của cơ chế phối hợp đa tác tử KHÔNG BỀN — đổi dấu theo task và cỡ model."
 Đã thêm docs/RESULTS.md tổng hợp toàn bộ số liệu.
+
+## [Loop] KIỂM TRA TRỰC TIẾP OUTPUT CỦA PLANNER — PHÁT HIỆN KIẾN TRÚC QUAN TRỌNG NHẤT
+Prompt của Planner: "Give a concise numbered plan. Do NOT compute the final answer."
+ĐỌC TRỰC TIẾP trace (results_trace/traces.json, GSM8K 1.5B, n=200): NÓ KHÔNG TUÂN.
+  case 1 : kế hoạch tính luôn "2 + 1 = 3 bolts" -> Solver ghi "The answer is 3." (16 ký tự)
+  case 10: kế hoạch tính luôn tới "= 366"       -> Solver ghi "The answer is 366." (18 ký tự)
+ĐO ĐƯỢC:
+  Kế hoạch ĐÃ CHỨA đáp án đúng            : 91/200 = 45.5%
+  Đáp án Solver TRÙNG số cuối của kế hoạch: 125/200 = 62.5%
+  Lời giải Solver < 60 ký tự              : 138/200 = 69.0%
+  CHÉP LẠI (ngắn VÀ trùng kế hoạch)       : 122/200 = 61.0%
+  Khi kế hoạch ĐÚNG (n=91) -> Solver đúng 98.9%
+  Khi kế hoạch SAI  (n=109) -> Solver đúng 37.6%
+  Median: kế hoạch 501 ký tự / lời giải Solver 20 ký tự.
+=> SOLVER KHÔNG GIẢI — NÓ CHÉP LẠI. Độ chính xác của nó gần như HOÀN TOÀN do Planner quyết định.
+
+### GIẢI THÍCH ĐƯỢC 4 CÂU ĐỐ TRƯỚC ĐÓ, CÙNG MỘT LÚC
+  1. Vì sao lời giải Solver chỉ 20 ký tự -> vì suy luận đã xảy ra ở bước LẬP KẾ HOẠCH.
+  2. Vì sao Planner "làm tăng" acc (.632 -> .684) -> vì CHÍNH NÓ mới là người giải.
+  3. Vì sao Verifier không có gì để kiểm -> suy luận nằm trong kế hoạch, pipeline KHÔNG chuyển tiếp.
+  4. Vì sao H5 (truyền kế hoạch cho Verifier) VẪN thất bại -> truyền kế hoạch là truyền luôn LỖI
+     của Planner, mà kế hoạch SAI tới 54.5%.
+
+### HỆ QUẢ NGHIÊM TÚC CHO CHÍNH KHUNG SHAPLEY CỦA DỰ ÁN
+BỐN VAI KHÔNG LÀM ĐÚNG VIỆC MÀ TÊN GỌI CỦA CHÚNG NÓI. Giá trị Shapley tính trên nhãn
+"Planner/Solver/Verifier/Aggregator" là đang đo NHÃN, không phải đo CHỨC NĂNG.
+Planner có đóng góp đo được thấp CHÍNH VÌ phần đóng góp của nó đã bị âm thầm tính sang cho Solver.
+=> Bài học: trong hệ đa tác tử, PHẢI KIỂM TRA agent thực sự LÀM GÌ, đừng tin vào tên vai và prompt.
+LƯU Ý: hiện tượng này ĐẶC THÙ GSM8K. Trên MATH, Solver vẫn viết 899 ký tự (median) và KHÔNG
+  suy thoái thành chép lại — thêm một trường hợp của chủ đề "hiệu ứng không bền theo task".
