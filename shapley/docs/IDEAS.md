@@ -809,3 +809,19 @@ muộn khiến nhiều vòng trước đã dành công sức diễn giải các 
   mean -7.0, range [-10.0, -2.0], std 2.68  -> CẢ 5 FOLD ĐỀU ÂM
 => Trên GSM8K, cắt trace LÀM HẠI một cách ổn định (~7 điểm). Chờ rc_m15 để xét chồng lấn
    và chốt kết luận cho H14 (phát hiện chủ đạo của dự án).
+
+## [Loop] VÒNG #17 — ra_m7 rơi HÀNG 4; LƯỚI 4 Ô GIỜ ĐÃ ĐẦY ĐỦ VÀ RẤT TỈNH TÁO
+### ra_m7 (H11 tại MATH 7B, n=200, solver .640)
+  P->S .640 | P->S->V .675 (+3.5) | P->S->V->A .670 (+3.0) | P->S->A .650 (+1.0)
+=> MỌI hiệu ứng đều DƯỚI ngưỡng nhiễu 5 điểm. Theo đúng quy tắc tôi đã tự khoá:
+   KHÔNG cái nào tính là bằng chứng. Rơi HÀNG 4: "không vai nào đóng góp gì".
+
+### LƯỚI GIÁ TRỊ CỦA VERIFIER — CẢ 4 Ô, ĐỌC CÙNG MỘT NGƯỠNG
+                 GSM8K                              MATH
+  1.5B    +4.4  [+1, +8]  5/5 fold  XÁC LẬP    +1.4  [-1, +4]  chứa 0  CHƯA XÁC LẬP
+  7B      ~0    (solver đã bão hoà .916)       +3.5  1 lần đo, dưới ngưỡng  CHƯA XÁC LẬP
+=> LỢI ÍCH CỦA ĐA TÁC TỬ CHỈ ĐƯỢC XÁC LẬP Ở ĐÚNG 1/4 Ô CỦA LƯỚI.
+=> PHÁT BIỂU ĐÚNG KHÔNG PHẢI "đa tác tử có ích", MÀ LÀ:
+   "đa tác tử có ích với MODEL YẾU trên BÀI DỄ, và không ở đâu khác mà chúng tôi đo được."
+Đây là phát biểu tỉnh táo hơn nhiều so với mọi thứ dự án từng viết ra trước đó, và nó chỉ
+xuất hiện được SAU KHI đo sàn nhiễu.
