@@ -505,3 +505,27 @@ pp_g7 (GSM8K 7B 4-bit, n=250, solver ĐÃ .896):
 META-PHÁT HIỆN (giờ đã rất vững, có 9 lần bác bỏ + nhiều lần ĐỔI DẤU làm bằng chứng):
   Hiệu ứng của các "mẹo" đa tác tử KHÔNG BỀN — chúng đổi dấu theo task và theo cỡ model.
   Muốn kết luận bất cứ điều gì, PHẢI đo trên lưới task x cỡ model, không được suy rộng từ một ô.
+
+## [Loop] VÒNG #10 — H10 (BẢN ĐÃ SỬA LỖI) trên GSM8K 1.5B: RƠI HÀNG 2, PHẢI RÚT LẠI KHUYẾN NGHỊ
+tr_g15 — mọi nhánh GIỮ NGUYÊN Planner->Solver; FULL và TRIM dùng CÙNG BỘ LỜI GIẢI (sT=sF),
+chỉ khác thứ V và A được nhìn thấy:
+  FULL (P->S->V->A, toàn văn)      .744   ctx 577k
+  NOVA (chỉ P->S, bỏ V và A)       .684   (-6.0 so với FULL)
+  TRIM (P->S->V->A, chỉ đáp án)    .668   (-7.6 so với FULL)  ctx 139k (rẻ 4.2 lần)
+  solver đơn                       .632   (-11.2)
+=> ĐO ĐƯỢC: truyền trace đáng giá +7.6 điểm ở mức ĐẦU-CUỐI. Rơi HÀNG 2 đã khoá trước:
+   PHẢI RÚT LẠI khuyến nghị "đừng truyền trace" (chờ 3 ô còn lại của lưới để chốt).
+
+### THỨ TỰ CÒN SẮC HƠN MỘT PHÉP ĐẢO NGƯỢC ĐƠN THUẦN
+  TRIM (.668) THẤP HƠN NOVA (.684): thêm Verifier + Aggregator mà chỉ cho chúng ĐÁP ÁN thì
+  CÒN TỆ HƠN LÀ KHÔNG CÓ CHÚNG. Nhưng CÙNG hai vai đó với toàn văn thì ĐÁNG +6.0.
+=> V và A không tự thân có hại hay có lợi: GIÁ TRỊ CỦA CHÚNG PHỤ THUỘC HOÀN TOÀN vào việc
+   có được nhận phần suy luận hay không. Bỏ đói context thì chúng thành ÂM.
+
+### BÀI HỌC PHƯƠNG PHÁP (quan trọng cho chính khung Shapley của dự án)
+Các thí nghiệm TỪNG VAI của tôi đo Verifier RIÊNG LẺ và thấy nó tốt hơn khi bị bịt mắt.
+Điều đó KHÔNG dự đoán được hiệu ứng ở mức pipeline, vì Aggregator phía sau CẦN trace để phân xử
+giữa Solver và Verifier.
+=> ĐO MỘT VAI RIÊNG LẺ LÀ CHỈ DẤU TỒI cho hành vi đầu-cuối. Đây là cảnh báo trực tiếp đối với
+   chính khung "Shapley theo từng vai" mà dự án khởi đầu — giá trị của một vai không tách rời
+   được khỏi thứ mà các vai khác nhận được.
