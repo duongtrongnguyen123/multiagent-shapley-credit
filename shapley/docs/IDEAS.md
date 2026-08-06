@@ -932,3 +932,32 @@ as_m  : verifier 7B  trên MATH = +14.0 [+8.3, +20.0] -> XÁC LẬP.
 => Giá trị của vai Verifier trên MATH KHÔNG nằm ở VAI TRÒ, mà nằm HOÀN TOÀN ở NĂNG LỰC model.
    Một verifier yếu ngang solver thì vô dụng; một verifier mạnh hơn thì đáng +14 điểm.
    Phát biểu này giải thích được vì sao mọi thí nghiệm verifier đồng cỡ trên MATH đều ra ~0.
+
+## [Loop] VÒNG #21 — BA KẾT QUẢ HỘI TỤ VỀ MỘT LỜI GIẢI THÍCH: TẤT CẢ LÀ NĂNG LỰC
+### nf_g7 (H16, GSM8K 7B, 5 fold) — solver .884 (gần bão hoà)
+  V_gain mean +1.0 range [-3, +5] CHỨA 0 | A_gain mean +0.4 range [-1, +1] CHỨA 0
+=> Khi solver đã mạnh, KHÔNG vai nào có giá trị đo được. Khớp HÀNG 1 của pre-reg #15 (chờ nf_m7).
+
+### tr_m7 (H10 tại MATH 7B, n=200) — truyền trace ĐÁNG +17.5 ĐIỂM
+  solo .625 | FULL .680 | TRIM .505 | NOVA .640
+  trim_minus_full = -17.5   full_minus_solo = +5.5
+  ĐỐI CHIẾU MATH 1.5B (rc_m15, 5 fold): trim_minus_full = +0.4, khoảng [-6, +4] -> KHÔNG có gì.
+=> Cắt trace mất 17.5 điểm ở 7B nhưng KHÔNG mất gì ở 1.5B. Vượt xa ngưỡng nhiễu 5 điểm,
+   NHƯNG là đo MỘT LẦN -> cần kiểm bằng 5 fold trước khi khẳng định.
+
+### ft_m15 (trace đầy đủ MATH 1.5B, n=300)
+  acc_S .4133 | acc_V .4267 | acc_A .3733 (Aggregator LÀM MẤT 9 điểm — khớp nf_m15 A_gain -6.4)
+  median: plan 873 | sol 986 | ver 1087 | agg 142
+  plan_boxed .157 | plan_has_ans_boxed .070 | plan_has_ans_tail .173
+  (GSM8K tương ứng: .033 / .013 / .320) -> "Planner giải hộ" vẫn là hiện tượng của GSM8K.
+
+### HỢP NHẤT: MỌI THỨ QUY VỀ NĂNG LỰC CỦA MODEL ĐI KIỂM
+  Trên MATH:            1.5B                          7B
+  giá trị Verifier      +1.4  [-1, +4]  KHÔNG          +14.0 [+8.3, +20.0]  CÓ (5/5 fold)
+  giá trị truyền trace  +0.4  [-6, +4]  KHÔNG          +17.5 (1 lần đo)     CÓ
+  Aggregator            -6.4  [-9, -4]  HẠI            ~0
+=> PHÁT BIỂU HỢP NHẤT: BỘ MÁY ĐA TÁC TỬ CHỈ HOẠT ĐỘNG KHI MODEL ĐI KIỂM ĐỦ MẠNH ĐỂ
+   DÙNG ĐƯỢC THỨ NÓ ĐƯỢC ĐƯA. Ở 1.5B, verifier không khai thác nổi trace -> truyền trace vô ích
+   và MỌI can thiệp đều thất bại. Ở 7B, cả verifier lẫn trace đều bắt đầu sinh lợi.
+   Một câu này giải thích được: H15 (xác nhận), tr_m7, và gần như toàn bộ thất bại ở 1.5B
+   suốt 20 vòng vừa qua.
