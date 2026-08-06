@@ -584,3 +584,34 @@ Planner có đóng góp đo được thấp CHÍNH VÌ phần đóng góp của 
 => Bài học: trong hệ đa tác tử, PHẢI KIỂM TRA agent thực sự LÀM GÌ, đừng tin vào tên vai và prompt.
 LƯU Ý: hiện tượng này ĐẶC THÙ GSM8K. Trên MATH, Solver vẫn viết 899 ký tự (median) và KHÔNG
   suy thoái thành chép lại — thêm một trường hợp của chủ đề "hiệu ứng không bền theo task".
+
+## [Loop] VÒNG #12 — H8 CÓ PHÉP THỬ HỢP LỆ VÀ BỊ BÁC; H11 trên MATH ĐẢO DẤU
+### ex_m7 (H8 chạy lại ở 7B) — NGƯỠNG HIỆU LỰC ĐẠT, rơi HÀNG 3
+  exec_success_rate = .735  (>= .50 đã khoá trước -> LẦN NÀY LÀ PHÉP THỬ HỢP LỆ)
+  exec_acc = .4286          (code CHẠY ĐƯỢC nhưng chỉ ĐÚNG 42.9%)
+  L_llm  +6.5 | 17 sửa /  4 phá
+  E_flag +2.5 |  9 sửa /  4 phá
+  E_take -18.0|  7 sửa / 43 phá
+=> H8 BỊ BÁC: verify bằng thực thi KHÔNG tổng quát sang math. Cả hai nhánh E đều THUA L_llm.
+CƠ CHẾ ĐO ĐƯỢC: model viết được code CHẠY (73.5%) nhưng code chỉ TÍNH ĐÚNG 42.9% —
+  còn THẤP HƠN cả việc nó giải trực tiếp (.625). Dịch đề toán bằng lời sang code ĐÚNG khó
+  ngang với giải bài. Trên HumanEval thì ĐẶC TẢ ĐÃ Ở DẠNG HÌNH THỨC SẴN; trên MATH thì không.
+=> KẾT LUẬN: verify cơ học chỉ dùng được KHI BÀI TOÁN VỐN ĐÃ LÀ CODE.
+
+### ra_m15 (H11 trên MATH 1.5B) — PIPELINE ĐẦY ĐỦ LÀ ÂM
+                    GSM8K 1.5B        MATH 1.5B
+  P->S              .684              .425
+  P->S->V           .732  (+4.8)      .445  (+2.0)
+  P->S->V->A        .744  (+6.0)      .385  (-4.0)   <-- THẤP HƠN cả P->S
+  P->S->A           .428  (-25.6)     .390  (-3.5)
+=> Aggregator GIÚP trên GSM8K (+1.2 khi thêm vào sau V) nhưng PHÁ 6 điểm trên MATH
+   (từ .445 xuống .385). THÊM MỘT LẦN ĐẢO DẤU.
+
+### pp_m7 (H5 tại MATH 7B) — H5 BỊ BÁC Ở Ô THỨ TƯ
+  V_none +4.0 (tốt nhất) | V_sol +3.5 | V_both +3.0 | V_plan -1.0
+=> Truyền KẾ HOẠCH cho Verifier KHÔNG BAO GIỜ giúp, ở CẢ 4 Ô của lưới.
+
+### HAI THỨ DUY NHẤT KHÔNG ĐẢO DẤU TRÊN TOÀN LƯỚI
+  (1) Truyền kế hoạch cho Verifier: vô ích hoặc có hại — 4/4 ô.
+  (2) Verifier có đóng góp DƯƠNG: GSM8K +4.8, MATH +2.0 — 2/2 task.
+  Ngược lại, AGGREGATOR đảo dấu (+1.2 GSM8K / -6.0 MATH) -> đây là vai đáng ngờ nhất.
