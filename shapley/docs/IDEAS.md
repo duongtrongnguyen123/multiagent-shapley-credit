@@ -825,3 +825,32 @@ muộn khiến nhiều vòng trước đã dành công sức diễn giải các 
    "đa tác tử có ích với MODEL YẾU trên BÀI DỄ, và không ở đâu khác mà chúng tôi đo được."
 Đây là phát biểu tỉnh táo hơn nhiều so với mọi thứ dự án từng viết ra trước đó, và nó chỉ
 xuất hiện được SAU KHI đo sàn nhiễu.
+
+## [Loop] TỰ KIỂM: TÔI KHÔNG ĐỌC OUTPUT THÔ — VÀ ĐÓ LÀ LỖ HỔNG NGHIÊM TRỌNG
+Kiểm kê: **3/26 kernel** có lưu trace thô (trace_kernel, plantrace_math_kernel, gendata_kernel).
+23 kernel còn lại VỨT BỎ toàn bộ văn bản mô hình sinh ra, chỉ giữ số tổng hợp.
+Trong suốt dự án tôi chỉ ĐỌC văn bản thô ĐÚNG HAI LẦN — và cả hai lần đều ra phát hiện
+giải thích được nhiều nhất trong vòng đó:
+  (1) đọc output Planner -> phát hiện Planner giải hộ, Solver chép lại (giải thích 4 câu đố)
+  (2) chấm tay 6 ca "phá" -> phát hiện Verifier không hỏng ở khâu KIỂM, mà bị ép GIẢI LẠI.
+
+### ĐỌC TRACE MATH (chưa từng mở) -> PHÁT HIỆN NGAY MỘT LỖI ĐO
+case 3 (pt_m15): Planner tính đủ `(2+1)(2+1) = 3 x 3 = 9`, tức ĐÃ GIẢI XONG.
+Nhưng `plan_tail` của tôi trích ra `"9\)."` — dính dấu đóng LaTeX -> so với gold `"9"` -> BÁO TRƯỢT.
+NGUYÊN NHÂN: hàm norm() bỏ `\left`/`\right` nhưng KHÔNG bỏ `\(` `\)` `\[` `\]`.
+### SỐ LIỆU SAU KHI SỬA
+                                  kernel báo   ->   tính lại
+  MATH 1.5B plan chứa đáp án đúng    .185           .225
+  MATH 1.5B Solver = plan            .280           .350
+  MATH 7B   plan chứa đáp án đúng    .070           .155   <-- SAI HƠN 2 LẦN
+  MATH 7B   Solver = plan            .095           .200
+  MATH 1.5B: plan ĐÚNG (n=45) -> Solver đúng 100.0% | plan SAI (n=155) -> 27.7%
+  MATH 7B  : plan ĐÚNG (n=31) -> Solver đúng  96.8% | plan SAI (n=169) -> 55.6%
+=> KẾT LUẬN ĐỊNH TÍNH VẪN ĐÚNG (GSM8K 45.5% vs MATH 22.5%, vẫn gấp ~2 lần) NHƯNG
+   ĐỘ LỚN TÔI ĐÃ BÁO CÁO SAI TỚI 2 LẦN, nặng nhất đúng ở ô 7B nơi tôi kết luận "gần bằng 0".
+
+### BÀI HỌC QUY TRÌNH (nghiêm trọng hơn bản thân lỗi này)
+23/26 kernel không lưu output -> KHÔNG THỂ kiểm tra hồi tố phần lớn kết quả của dự án.
+Mọi lỗi trích xuất/chấm điểm tương tự trong các kernel đó sẽ KHÔNG BAO GIỜ bị phát hiện.
+QUY TẮC TỪ NAY: mọi kernel PHẢI lưu ít nhất một mẫu output thô (vd 50 trace) cùng summary.
+Số tổng hợp chỉ đáng tin khi còn cách kiểm lại được văn bản sinh ra nó.
