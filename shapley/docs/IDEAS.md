@@ -747,3 +747,40 @@ BÀI HỌC QUY TRÌNH: các kernel sinh ra bằng cách thay chuỗi phải đư
   đẩy lên Kaggle. Hai lần chạy GPU đã bị lãng phí cho một lỗi 1 dòng mà `ast.parse` bắt được ngay.
   Từ nay: luôn `ast.parse` bản đã thay placeholder trước khi push.
 4 kernel còn lại (tr_g7, tr_m7, ra_m7, pt_m7 — đều là nhánh 7B 4-bit) vẫn đang chạy, chưa có số.
+
+## [Loop] VÒNG #15 — SÀN NHIỄU (H13): RƠI HÀNG 2. PHẢI HẠ CẤP CÁC KHẲNG ĐỊNH NHỎ.
+nf_g15 — GSM8K 1.5B, CÙNG cấu hình chạy trên 5 FOLD RỜI NHAU (mỗi fold 100 bài):
+  fold 0: PS .68 PSV .76 PSVA .75 | V_gain +8.0 | A_gain -1.0
+  fold 1: PS .67 PSV .68 PSVA .71 | V_gain +1.0 | A_gain +3.0
+  fold 2: PS .69 PSV .72 PSVA .73 | V_gain +3.0 | A_gain +1.0
+  fold 3: PS .66 PSV .69 PSVA .71 | V_gain +3.0 | A_gain +2.0
+  fold 4: PS .64 PSV .71 PSVA .72 | V_gain +7.0 | A_gain +1.0
+  V_gain: mean +4.4, range 7.0 (từ +1.0 tới +8.0), std 2.65
+  A_gain: mean +1.2, range 4.0 (từ -1.0 tới +3.0), std 1.33
+=> CÙNG MỘT THÍ NGHIỆM, CHẠY 5 LẦN, CHO GIÁ TRỊ VERIFIER TỪ +1.0 ĐẾN +8.0.
+=> Rơi HÀNG 2 đã khoá trước: PHẢI HẠ CẤP mọi khẳng định dựa trên MỘT lần chạy ở n<=250.
+
+### CÁI GÌ BỊ HẠ CẤP (bắt buộc)
+  Khoảng của A_gain (-1.0 .. +3.0) CHỨA SỐ 0 và có phần ÂM.
+  => Khẳng định "Aggregator đóng góp +1.2 trên GSM8K" (từ ra_g15) KHÔNG PHÂN BIỆT ĐƯỢC VỚI NHIỄU.
+     HẠ CẤP khẳng định này.
+  Quy đổi std sang n=250: ~1.7 điểm. HIỆU CỦA HAI phép đo có std ~2.4 -> NGƯỠNG 2 sigma ~ 5 ĐIỂM.
+  => MỌI hiệu ứng NHỎ HƠN ~5 ĐIỂM, đo MỘT LẦN ở n<=250, KHÔNG PHẢI LÀ BẰNG CHỨNG.
+
+### CÁI GÌ SỐNG SÓT
+  Các lần ĐẢO DẤU đều vượt ngưỡng 5 điểm:
+    truyền trace (H10) 16.6 | bỏ phiếu vs LLM-agg (H12) 13.1 | che giá trị (H6) 10.4
+    X_cross 9.1 | verifier bịt mắt (H1) 8.0 | vai Aggregator 7.2 (sát ngưỡng)
+  => PHÁT HIỆN CHÍNH CỦA DỰ ÁN (hiệu ứng đảo dấu theo task/cỡ model) VẪN ĐỨNG.
+     Nhưng NHIỀU CHI TIẾT PHỤ trong đó thì KHÔNG.
+
+### HAI KẾT QUẢ KHÁC
+pt_m7 (MATH 7B): copycat_rate 0.0% | Solver <60 ký tự 0.0% | plan chứa đáp án đúng chỉ 7%
+  => Hiệu ứng "Planner giải hộ" giờ đã được xác nhận là ĐẶC THÙ GSM8K-1.5B qua BA thiết lập.
+tr_g7 (GSM8K 7B, solver .916): FULL .904 | TRIM .912 | NOVA .896 | solo .916
+  => truyền trace đáng +0.8 (so với +7.6 ở 1.5B) — NẰM TRONG NHIỄU. Khi đã bão hoà, không gì
+     còn quan trọng nữa.
+
+### GHI CHÚ TỰ PHÊ BÌNH
+Đây là phép đo lẽ ra phải chạy ĐẦU TIÊN, trước khi diễn giải bất kỳ hiệu ứng nào. Việc chạy nó
+muộn khiến nhiều vòng trước đã dành công sức diễn giải các chênh lệch 1-3 điểm vốn không có ý nghĩa.
