@@ -600,3 +600,32 @@ acc từng nhánh trên CÙNG fold; `tokens_7B` sinh ra ở mỗi nhánh; acc tr
 Tôi đã ĐƯA cấu hình này lên tiêu đề README ở vòng #20 mà CHƯA hề so với mốc "chỉ dùng 7B".
 Đó là thiếu sót nghiêm trọng: một kết quả "+14 điểm" vô nghĩa nếu phương án đơn giản hơn còn tốt hơn.
 Nếu rơi hàng 2, README phải sửa NGAY.
+
+---
+
+# Đăng ký trước #18 — H19: SO ĐẦU-ĐỐI-ĐẦU TRÊN GSM8K (khớp với bs_m của MATH)
+**Viết TRƯỚC khi chạy.**
+
+## Lý do
+Vòng #23 tính được: pipeline 1.5B 4 vai (.724) THẤP HƠN 7B-solo (.884) tới 16 điểm trên GSM8K.
+Nhưng đó là SO CHÉO KERNEL, hai tập con khác nhau. Cần đo trên CÙNG bài, CÙNG fold.
+bs_m đang làm việc này cho MATH; H19 làm cho GSM8K.
+
+## H19
+5 fold x 100 bài GSM8K. Bốn nhánh trên CÙNG bài:
+  S15 (1.5B giải) | PIPE15 (P->S->V->A toàn 1.5B) | S7 (7B giải) | S7+V7 (7B giải + 7B soát)
+Kèm đếm token sinh ra để so trên cùng ngân sách.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| PIPE15 < S7 rõ rệt (ngoài nhiễu) | XÁC NHẬN kết luận vòng #23: đa tác tử model nhỏ BỊ THỐNG TRỊ bởi model lớn. Đây là kết luận chính của báo cáo. |
+| PIPE15 >= S7 | Kết luận vòng #23 SAI (do so chéo kernel). Phải rút lại NGAY và sửa README. |
+| PIPE15 < S7 nhưng dùng ÍT token hơn NHIỀU | Đa tác tử có chỗ đứng ở chế độ TIẾT KIỆM. Phải phát biểu kèm số token. |
+| S7+V7 > S7 rõ rệt | Vai SOÁT vẫn có giá trị ngay cả với model lớn -> khuyến nghị: dùng model lớn VÀ vẫn soát. |
+
+## Chỉ số chính
+acc từng nhánh trên CÙNG fold; tổng token sinh ra mỗi nhánh; acc trên mỗi 1000 token.
+
+## Ghi chú trung thực
+Nếu rơi hàng 2, kết luận vừa ghi ở vòng #23 phải bị RÚT LẠI. Đó là rủi ro thật vì so chéo
+kernel đã từng lừa tôi một lần (con số +9.0 trên MATH hoá ra là nhiễu).
