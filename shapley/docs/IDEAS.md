@@ -735,3 +735,15 @@ MÂU THUẪN PHẢI CÔNG BỐ: agf_7 (cùng 7B, cùng MATH, n=120) cho agg_full
   (.7167 vs .7583) -> bể mẫu khác nhau. TÔI KHÔNG GIẢI THÍCH ĐƯỢC. Ghi lại cả hai.
   Đây là bằng chứng thêm cho chính chủ đề của dự án: các hiệu ứng này KHÔNG BỀN, và
   KHÔNG ĐỦ ỔN ĐỊNH để rút kết luận từ MỘT lần chạy.
+
+## [Loop] VÒNG #14 — SỬA LỖI KERNEL SÀN NHIỄU, CHƯA CÓ KẾT QUẢ MỚI
+nf_m15 và nf_g15 (thí nghiệm SÀN NHIỄU) đều ERROR ngay từ đầu:
+  `NameError: name 'rows' is not defined` (dòng 23)
+NGUYÊN NHÂN: khi sinh kernel từ roleablate_kernel.py, tôi thay dòng `rows=list(...)` bằng
+  `ALL=...; NF=5; FOLD=...` nhưng dòng print NGAY SAU vẫn tham chiếu `len(rows)`.
+ĐÃ SỬA + kiểm tra bằng `ast.parse` và kiểm tra không còn tham chiếu `rows` trước vòng lặp fold,
+  rồi đẩy lại version 2.
+BÀI HỌC QUY TRÌNH: các kernel sinh ra bằng cách thay chuỗi phải được PARSE THỬ TẠI MÁY trước khi
+  đẩy lên Kaggle. Hai lần chạy GPU đã bị lãng phí cho một lỗi 1 dòng mà `ast.parse` bắt được ngay.
+  Từ nay: luôn `ast.parse` bản đã thay placeholder trước khi push.
+4 kernel còn lại (tr_g7, tr_m7, ra_m7, pt_m7 — đều là nhánh 7B 4-bit) vẫn đang chạy, chưa có số.
