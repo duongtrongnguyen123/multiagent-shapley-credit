@@ -39,11 +39,23 @@ lệch 1–3 điểm vốn không có ý nghĩa thống kê.*
 
 | Cải thiện | Thiết lập | Hiệu ứng | Khoảng | Fold cùng dấu |
 |---|---|---|---|---|
-| **Pipeline đa tác tử vs Solver đơn độc** | GSM8K 1.5B | **+5.6đ** | **[+4, +8]** | **5/5** ✅ |
-| **Verifier** (P→S→V vs P→S) | GSM8K 1.5B | **+4.4đ** | **[+1, +8]** | **5/5** ✅ |
+| **Solver 1.5B + Verifier 7B** | **MATH**, n=300 | **+14.0đ** | **[+8.3, +20.0]** | **5/5** ✅ |
+| ↳ *riêng phần do verifier MẠNH HƠN* (V7 − V15) | MATH, n=300 | **+11.0đ** | **[+3.3, +16.7]** | **5/5** ✅ |
+| **Pipeline đa tác tử vs Solver đơn độc** | GSM8K 1.5B | +5.6đ | [+4, +8] | **5/5** ✅ |
+| **Verifier** (P→S→V vs P→S) | GSM8K 1.5B | +4.4đ | [+1, +8] | **5/5** ✅ |
 
-Đây là HAI cải thiện duy nhất hiện có thanh sai số và mọi fold đều cùng dấu.
-**Cả hai đều chỉ trên GSM8K.**
+> ### KẾT QUẢ MẠNH NHẤT: BẤT ĐỐI XỨNG NĂNG LỰC
+> **Solver nhỏ + Verifier LỚN HƠN = +14.0đ trên MATH, 43 SỬA / 1 PHÁ trên 300 bài.**
+> Điều then chốt: verifier **cùng cỡ** chỉ cho +3.0đ với khoảng **chạm 0** (vô giá trị).
+> Giá trị nằm ở **CHÊNH LỆCH NĂNG LỰC**, không ở việc có thêm một vai.
+>
+> Điều này giải câu đố MATH: mọi thí nghiệm verifier ĐỒNG CỠ trên MATH đều ra ~0
+> (nf_m15: +1.4, khoảng [−1,+4]). Đổi sang verifier 7B: **+14.0**.
+> Và nó hoạt động ĐÚNG Ở TASK mà truyền trace, che giá trị, Aggregator đều thất bại.
+>
+> **Khuyến nghị thực dụng:** đừng nhân bản cùng một model thành nhiều vai. Dùng model nhỏ để
+> GIẢI, model lớn để SOÁT — rẻ hơn dùng model lớn cho mọi vai, và đây là cấu hình duy nhất
+> trong dự án vượt qua kiểm chứng thanh sai số trên bài khó.
 
 ### 1b. LỚN nhưng mới đo MỘT LẦN (vượt ngưỡng 5đ, chưa có thanh sai số)
 

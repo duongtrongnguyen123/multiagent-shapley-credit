@@ -53,15 +53,18 @@ bị diễn giải lại sau khi đã nhìn thấy số.
 
 ## 0. Tóm tắt kết quả
 
-**Những gì có tác dụng (đo được):**
+**Kết quả mạnh nhất — đã kiểm bằng 5 fold, mọi fold cùng dấu:**
 
-| Phương pháp | Kết quả |
-|---|---|
-| Solver 1.5B + **Verifier 7B** (post-hoc) | **.46 → .64**, 9 sửa / **0 phá** |
-| **loop** — Solver giải lại sau khi bị chê (MATH 1.5B) | **.40 → .60** |
-| Pipeline đầy đủ vs Solver đơn độc (GSM8K 1.5B) | **.632 → .744** |
-| **Self-consistency** maj@8 (MATH 1.5B) | **.50 → .60** |
-| **Sửa lỗi bằng chạy test** (HumanEval, 3 vòng) | .787 → **.835** (7B), **0 phá** |
+| Cải thiện | Thiết lập | Hiệu ứng | Khoảng |
+|---|---|---|---|
+| **Solver 1.5B + Verifier 7B** | MATH, n=300 | **+14.0đ** | **[+8.3, +20.0]** |
+| ↳ riêng phần do verifier MẠNH HƠN | MATH, n=300 | **+11.0đ** | **[+3.3, +16.7]** |
+| Pipeline đa tác tử vs Solver đơn | GSM8K, n=500 | +5.6đ | [+4, +8] |
+| Verifier (P→S→V vs P→S) | GSM8K, n=500 | +4.4đ | [+1, +8] |
+
+**Bất đối xứng năng lực là kết quả bền nhất của dự án:** 43 SỬA / 1 PHÁ trên 300 bài MATH.
+Verifier **cùng cỡ** chỉ cho +3.0đ (khoảng chạm 0) → giá trị nằm ở **chênh lệch năng lực**,
+không ở việc thêm một vai. Dùng model nhỏ để GIẢI, model lớn để SOÁT.
 
 **Phân bổ đóng góp đo ở mức đầu-cuối** (GSM8K 1.5B, n=250): P→S `.684` →
 **P→S→V `.732`** → P→S→V→A `.744`. **Verifier mang gần như toàn bộ giá trị.**
