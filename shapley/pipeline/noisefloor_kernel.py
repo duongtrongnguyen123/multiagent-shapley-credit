@@ -20,7 +20,7 @@ CSV=sorted(glob.glob(f"/kaggle/input/**/{FNAME}",recursive=True),key=len)[0]
 ALL=list(csv.DictReader(open(CSV)))
 NF=5; FOLD=N//NF
 print(f"5 fold x {FOLD} bai",flush=True)
-print(f"TASK={TASK} n={len(rows)}",flush=True)
+print(f"TASK={TASK} total={len(ALL)}",flush=True)
 
 tok=AutoTokenizer.from_pretrained(MODEL); tok.padding_side="left"
 if tok.pad_token is None: tok.pad_token=tok.eos_token
