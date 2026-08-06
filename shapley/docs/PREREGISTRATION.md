@@ -311,3 +311,35 @@ Pipeline 4 vai P->S->V->A, hai biến thể, CÙNG model, CÙNG bài:
 ## Ghi chú trung thực
 8 giả thuyết của tôi đã bị bác/rút lại. H9 cũng có thể. Hàng 2 ở trên là kết cục "bị bác" và
 đã khoá sẵn rằng nó sẽ là MÂU THUẪN CẦN GIẢI THÍCH, không được lờ đi.
+
+---
+
+# Đăng ký trước #9 — H10: SỬA LỖI THIẾT KẾ CỦA H9, ĐO TRÊN LƯỚI ĐẦY ĐỦ
+**Viết TRƯỚC khi chạy.** Sửa lỗi đã tự thú ở vòng #9.
+
+## Lỗi cần sửa
+Nhánh MIN của H9 bỏ ĐỒNG THỜI hai thứ: (a) trace -> Verifier/Aggregator, (b) Planner -> Solver.
+Đã ĐO ĐƯỢC (b) LÀM TĂNG acc (.632 -> .684) => MIN bị chấp ~5 điểm. So sánh KHÔNG SẠCH.
+
+## Thiết kế sửa lỗi — CHỈ đổi MỘT biến
+Cả ba nhánh đều GIỮ NGUYÊN đường Planner -> Solver. Chỉ đổi thứ Verifier/Aggregator được thấy:
+  FULL   : V và A nhận TOÀN VĂN lời giải (chuẩn hiện hành)
+  TRIM   : V và A chỉ nhận ĐÁP ÁN (giữ nguyên Planner -> Solver)
+  NOVA   : bỏ luôn V và A, chỉ P -> S (đo xem hai vai sau có đáng tồn tại không)
+Chạy trên LƯỚI ĐẦY ĐỦ: {GSM8K, MATH} x {1.5B, 7B} — vì vòng #9 cho thấy hiệu ứng ĐỔI DẤU theo ô.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| TRIM >= FULL ở ĐA SỐ ô | Cắt trace là ĐÚNG. Khuyến nghị có điều kiện, ghi rõ ô nào áp dụng được. |
+| FULL > TRIM ở ĐA SỐ ô | Truyền trace ĐÚNG là có giá trị. RÚT LẠI toàn bộ khuyến nghị "đừng truyền trace" của các vòng trước. Ghi rõ đã rút. |
+| Kết quả ĐỔI DẤU giữa các ô | Kết luận cuối của dự án là chính META-PHÁT HIỆN: hiệu ứng KHÔNG BỀN, phải đo theo ô. Đây là kết quả HỢP LỆ, không phải thất bại. |
+| NOVA >= FULL và >= TRIM | Hai vai V và A KHÔNG đáng tồn tại ở cấu hình này. Kết luận mạnh về kiến trúc. |
+
+## Chỉ số chính
+`acc_full`, `acc_trim`, `acc_nova`, `acc_solo`; kèm `chars_*` để tính chi phí.
+Bắt buộc báo theo TỪNG Ô của lưới, KHÔNG được gộp trung bình che mất đảo dấu.
+
+## Ghi chú trung thực
+9 giả thuyết của tôi đã bị bác, 1 kết quả bị rút lại, 1 thí nghiệm vô hiệu, và vòng #9 vừa
+lật ngược "phát hiện bền nhất". H10 nhiều khả năng cũng cho kết quả không đồng nhất —
+hàng 3 đã khoá sẵn rằng ĐÓ CHÍNH LÀ kết luận, không phải thất bại.
