@@ -470,3 +470,36 @@ Kiểm tra chồng lấn: [min_GSM8K, max_GSM8K] ∩ [min_MATH, max_MATH] có r�
 
 ## Ghi chú trung thực
 Nếu rơi vào hàng 2 hoặc 3, phần lớn nội dung README hiện tại phải viết lại. Điều đó vẫn phải làm.
+
+---
+
+# Đăng ký trước #14 — H15: KẾT QUẢ DƯƠNG MẠNH NHẤT CỦA DỰ ÁN CÓ SỐNG SÓT KHÔNG?
+**Viết TRƯỚC khi chạy.** Đây là phép kiểm mà kết quả tốt nhất của dự án đang thiếu.
+
+## Vấn đề
+Kết quả DƯƠNG mạnh nhất toàn dự án: "Solver 1.5B + Verifier 7B (post-hoc) = .46 -> .64,
++18 điểm, 9 sửa / 0 phá". Nhưng nó được đo **MỘT LẦN, ở n=50**.
+Sàn nhiễu đã đo (H13): ở n=100, V_gain trải 7 điểm; ở n=50 độ trải còn LỚN HƠN (~1.4 lần).
+=> Khẳng định MẠNH NHẤT của dự án đang dựa trên phép đo YẾU NHẤT. Không thể để nguyên.
+
+## H15
+Đo lại bất đối xứng năng lực trên **5 fold rời nhau**, mỗi fold 60 bài MATH (tổng 300).
+Cả hai model nằm đồng thời trên GPU: 1.5B fp16 (~3GB) + 7B nf4 (~5GB) < 16GB T4.
+Nhánh (mỗi fold): `solo` (1.5B không verify) | `V15` (verifier 1.5B) | `V7` (verifier 7B)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Khoảng của `V7_gain` TOÀN DƯƠNG và không chứa 0 | XÁC NHẬN. Bất đối xứng năng lực là kết quả dương THẬT, có thanh sai số. Đây là khuyến nghị chính đáng tin nhất của dự án. |
+| Khoảng `V7_gain` CHỨA 0 | **HẠ CẤP** khẳng định "+18 điểm". Phải sửa RESULTS.md và README: kết quả dương mạnh nhất KHÔNG xác lập được. |
+| `V7_gain` ~ `V15_gain` | Lợi ích đến từ VIỆC CÓ verifier, KHÔNG phải từ việc verifier MẠNH HƠN. Rút lại toàn bộ diễn giải "bất đối xứng năng lực". |
+| `V7_gain` ÂM | Kết quả n=50 ban đầu là nhiễu thuần tuý. Rút lại hoàn toàn. |
+
+## Chỉ số chính
+Mỗi fold: `solo`, `V15`, `V7`; số sửa/phá của từng verifier.
+Tổng hợp: mean/min/max/range/std của `V7_gain = V7 - solo` và `V15_gain = V15 - solo`,
+và của hiệu `V7 - V15` (đây mới là "bất đối xứng năng lực" đúng nghĩa).
+
+## Ghi chú trung thực
+Nếu rơi hàng 2/3/4 thì kết quả TỐT NHẤT của dự án bị mất. Vẫn phải báo cáo y nguyên.
+Kết quả "9 sửa / 0 phá" ở n=50 đặc biệt đáng ngờ: 0 phá trên 23 bài đúng là hoàn toàn có thể
+xảy ra do may mắn.
