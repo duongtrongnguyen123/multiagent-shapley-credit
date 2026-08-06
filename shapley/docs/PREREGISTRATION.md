@@ -280,3 +280,34 @@ KHÔNG thay đổi giả thuyết, KHÔNG thay đổi bảng diễn giải. Ch�
 Nếu lần này exec_success_rate vẫn dưới 50%, KHÔNG chạy lại lần ba. Kết luận cuối sẽ là:
 "verify bằng thực thi cần model đủ mạnh để viết code đúng; ở cỡ model chúng tôi thử nghiệm được
 thì điều kiện đó không thoả" — một giới hạn được ĐO ĐẠC, không phải một giả thuyết bị bác.
+
+---
+
+# Đăng ký trước #8 — H9: PIPELINE TỐI GIẢN CÓ BẰNG/HƠN PIPELINE TRUYỀN TOÀN BỘ TRACE KHÔNG?
+**Viết TRƯỚC khi chạy.** Đây là thí nghiệm HỢP NHẤT: biến phát hiện lặp lại nhiều lần thành
+MỘT phép so sánh đầu-cuối, đúng dạng có thể đưa vào tóm tắt báo cáo.
+
+## Xuất phát (ĐO ĐƯỢC, nhiều lần, nhiều vai, nhiều task, nhiều cỡ model)
+  Vai VERIFIER: chỉ-đáp-án tốt nhất hoặc gần nhất ở 3/3 thiết lập; thêm kế hoạch -> -2.8/-2.0;
+                context KHÔNG liên quan -> -3.6/-3.5/-1.6 (âm 3/3)
+  Vai AGGREGATOR: chỉ-danh-sách-đáp-án .533 vs toàn-văn .300 -> THÊM CONTEXT MẤT 23 ĐIỂM
+=> Mọi framework đa tác tử hiện nay đều truyền TOÀN BỘ trace giữa các agent. Dữ liệu nói đó là SAI.
+
+## H9
+Pipeline 4 vai P->S->V->A, hai biến thể, CÙNG model, CÙNG bài:
+  FULL : mỗi agent nhận TOÀN VĂN mọi output trước đó (chuẩn hiện hành)
+  MIN  : mỗi agent chỉ nhận ĐÁP ÁN của agent trước (không có trace suy luận)
+Đo: accuracy đầu-cuối VÀ chi phí (tổng ký tự context) -> tỉ số "điểm trên mỗi đơn vị context".
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| MIN >= FULL về accuracy VÀ rẻ hơn | H9 XÁC NHẬN. Khuyến nghị chính, có số đầu-cuối: ĐỪNG truyền trace, chỉ truyền đáp án. |
+| MIN < FULL rõ rệt | H9 BỊ BÁC. Ở mức ĐẦU-CUỐI thì truyền trace vẫn có giá trị, dù ở từng vai đo được là hại. Ghi rõ đã bác — đây sẽ là mâu thuẫn quan trọng phải giải thích. |
+| MIN ~ FULL (chênh trong nhiễu) | KẾT LUẬN THỰC DỤNG: trace KHÔNG đem lại gì nhưng tốn 3-4x context -> vẫn nên bỏ, vì lý do CHI PHÍ chứ không phải độ chính xác. |
+| cả hai < solver đơn lẻ | Kết luận mạnh hơn: TOÀN BỘ pipeline đa tác tử không đáng, ở cỡ model này. |
+
+## Chỉ số chính
+`acc_full`, `acc_min`, `chars_full`, `chars_min`, và accuracy của Solver đơn lẻ làm mốc.
+## Ghi chú trung thực
+8 giả thuyết của tôi đã bị bác/rút lại. H9 cũng có thể. Hàng 2 ở trên là kết cục "bị bác" và
+đã khoá sẵn rằng nó sẽ là MÂU THUẪN CẦN GIẢI THÍCH, không được lờ đi.
