@@ -1108,3 +1108,31 @@ nf_m7 (MATH 7B, 5 fold x 100): V_gain theo fold +2, +5, +4, +8, +3
 ### GHI CHÚ
 Đây là lần thứ hai một khẳng định "chỉ 1/4 ô" bị sửa vì đo thêm dữ liệu. Bài học lặp lại:
 KHÔNG phát biểu tổng quát khi lưới còn ô trống.
+
+## [Loop] VÒNG #28 — H20 RƠI HÀNG 1: "AGGREGATOR GÂY HẠI" LÀ LỖI PARSING, SỬA BẰNG 1 DÒNG
+af_m (MATH 1.5B, 5 fold x 100):
+  A_gain base      mean -6.4  range [-9, -4]   5/5 ÂM      (khớp chính xác nf_m15)
+  A_gain FALLBACK  mean +1.0  range [ 0, +2]   5/5 >= 0    <-- HẾT HẠI
+  A_gain forced    mean -2.4  range [-4, -1]   vẫn âm
+  A_gain both      mean +0.6  range [-1, +1]
+  boxed_rate: base .768 -> forced .874 (ép định dạng CÓ hiệu lực nhưng KHÔNG đủ)
+=> Rơi HÀNG 1 đã khoá trước: XÁC NHẬN. "Aggregator gây hại" là LỖI KỸ THUẬT.
+FALLBACK LÀ MIỄN PHÍ: khi output không có \boxed thì LẤY ĐÁP ÁN CỦA VERIFIER —
+  KHÔNG gọi thêm model, không tốn token. Chỉ vậy mà -6.4 thành +1.0.
+ÉP ĐỊNH DẠNG KÉM HƠN FALLBACK (-2.4 so với +1.0): khớp với các kết quả struct/showwork trước đây —
+  ép định dạng làm giảm chất lượng suy luận.
+
+### PHẢI SỬA LẠI MỘT KHẲNG ĐỊNH ĐÃ TỪNG ĐƯỢC COI LÀ CHẮC CHẮN
+Trước: "Aggregator GÂY HẠI trên MATH −6.4đ, đã kiểm 5/5 fold" — nằm trong danh sách
+  kết quả ĐÃ XÁC NHẬN của RESULTS.md và README.
+Nay:  phép ĐO vẫn đúng (với cấu hình chuẩn, aggregator làm mất 6.4đ), NHƯNG NGUYÊN NHÂN là
+  KHÔNG TRÍCH ĐƯỢC ĐÁP ÁN, không phải phán đoán kém. Sau khi xử lý định dạng, aggregator
+  TRUNG TÍNH (+1.0, khoảng [0,+2]).
+PHÁT BIỂU ĐÚNG: "Bộ tổng hợp LLM KHÔNG giúp cũng KHÔNG hại, một khi đã xử lý định dạng đầu ra.
+  Tác hại quan sát được trước đây là hiện vật của khâu trích xuất."
+
+### CHU TRÌNH ĐẦY ĐỦ ĐÃ HOẠT ĐỘNG
+đọc trace (vòng #25) -> 85% ca phá không có \boxed -> giả thuyết "lỗi định dạng, không phải
+phán đoán" -> ĐĂNG KÝ TRƯỚC (#19) -> chạy -> XÁC NHẬN.
+Đây là LẦN ĐẦU trong dự án một giả thuyết sinh ra từ việc ĐỌC OUTPUT THÔ sống sót qua
+kiểm chứng có đăng ký trước.

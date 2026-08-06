@@ -80,7 +80,7 @@ bản thân mẫu hình "không bao giờ phá" là tín hiệu đáng tin, dù 
 
 | Can thiệp | Kết quả |
 |---|---|
-| **Aggregator trên MATH** | **−6.4đ**, khoảng [−9, −4], **5/5 fold âm** |
+| **Aggregator trên MATH** | **−6.4đ** [−9,−4] 5/5 âm — NHƯNG xem ghi chú ⬇️ |
 | Verifier trên MATH | +1.4đ, khoảng [−1, +4] **chứa 0** → CHƯA XÁC LẬP |
 | interleaving, cổng lọc, truyền kế hoạch, che giá trị, verify bằng thực thi trên math | đều bị bác |
 
@@ -173,6 +173,18 @@ truyền trace cho V và A thực sự đáng giá. Trên MATH 1.5B thì **khôn
 > ⚠️ **Nửa sau của phát biểu (phần về trace) đang dựa trên MỘT phép đo.** Kernel `rc_m7` đang
 > kiểm bằng 5 fold. Nếu khoảng chứa 0, phát biểu phải THU HẸP còn: *"một verifier MẠNH HƠN
 > có giá trị"* — và không được nói gì về trace.
+
+> ### ⚠️ ĐÍNH CHÍNH: "AGGREGATOR GÂY HẠI" LÀ LỖI PARSING (H20, af_m)
+> Đọc trace: **85%** ca "phá" của Aggregator KHÔNG phát ra `\boxed`, chỉ **5%** là chọn nhầm thật.
+> Thêm một FALLBACK miễn phí (không có `\boxed` → lấy đáp án Verifier, **không gọi thêm model**):
+>
+> | | A_gain | khoảng | fold |
+> |---|---|---|---|
+> | base | **−6.4** | [−9,−4] | 5/5 âm |
+> | **+ fallback** | **+1.0** | **[0,+2]** | **5/5 ≥ 0** |
+>
+> ⇒ Phép ĐO đúng, nhưng DIỄN GIẢI "LLM tổng hợp phán đoán kém" là SAI.
+> Phát biểu đúng: **bộ tổng hợp LLM trung tính một khi đã xử lý định dạng đầu ra.**
 
 ## 5. Ràng buộc theo năng lực model
 
