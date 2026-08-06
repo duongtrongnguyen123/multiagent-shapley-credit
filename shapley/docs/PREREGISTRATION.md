@@ -410,3 +410,35 @@ Chạy trên CẢ HAI task với 1.5B.
 `acc` từng nhánh trên CÙNG bài; kèm số lần bỏ phiếu khác với đáp án Verifier.
 ## Ghi chú trung thực
 10 giả thuyết của tôi đã bị bác/rút lại/vô hiệu. H12 cũng có thể. Hàng 3 và 5 đã khoá sẵn.
+
+---
+
+# Đăng ký trước #12 — H13: SÀN NHIỄU. CÁC HIỆU ỨNG CHÚNG TÔI BÁO CÁO CÓ LỚN HƠN NHIỄU KHÔNG?
+**Viết TRƯỚC khi chạy.** Đây là thí nghiệm QUAN TRỌNG NHẤT còn lại, và nó có thể HẠ GIÁ
+phần lớn các kết luận trước đó của chính dự án này.
+
+## Lý do bắt buộc phải chạy
+agf_7 và am_7 (cùng 7B, cùng MATH, n=120, thiết lập gần như y hệt) cho KẾT LUẬN NGƯỢC NHAU:
+  agf_7: aggregator THẮNG bỏ phiếu +1.7   |   am_7: aggregator THUA bỏ phiếu -11.7
+Ngay cả mốc maj@8 cũng lệch (.7167 vs .7583). Nếu hai lần chạy gần giống nhau chênh tới ~13 điểm,
+thì MỌI hiệu ứng 2-7 điểm mà chúng tôi đã báo cáo có thể chỉ là NHIỄU.
+
+## H13 — đo trực tiếp phương sai giữa các lần chạy
+Chia MATH-500 thành 5 FOLD RỜI NHAU, mỗi fold 100 bài. Chạy CÙNG cấu hình (PS / PSV / PSVA)
+trên từng fold một cách độc lập. Báo cáo TRUNG BÌNH và ĐỘ TRẢI của từng hiệu ứng qua 5 fold.
+Đây là ước lượng SÀN NHIỄU do lấy mẫu bài toán — chính là thứ chưa bao giờ được đo.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Độ trải giữa các fold NHỎ hơn nhiều so với hiệu ứng đã báo cáo (vd < 2đ) | Các kết luận trước ĐỨNG VỮNG. Mâu thuẫn agf_7/am_7 phải có nguyên nhân khác, cần truy tiếp. |
+| Độ trải NGANG NGỬA hiệu ứng đã báo cáo (vd 4-8đ) | **PHẢI HẠ CẤP** mọi khẳng định dựa trên một lần chạy ở n<=250, kể cả các "đảo dấu". Bảng đảo dấu phải ghi rõ khoảng tin cậy. |
+| Độ trải LỚN HƠN hiệu ứng đã báo cáo | Phần lớn kết quả của dự án là NHIỄU. Kết luận trung thực duy nhất còn lại là meta-phát hiện, và phải phát biểu như "không đo được hiệu ứng ổn định", KHÔNG phải "hiệu ứng đảo dấu". |
+
+## Chỉ số chính
+Với từng fold: acc_PS, acc_PSV, acc_PSVA. Sau đó tính qua 5 fold:
+`mean` và `min-max range` và `std` của (PSV - PS) và (PSVA - PSV).
+So sánh trực tiếp độ trải đó với các hiệu ứng đã công bố (+4.8, +1.2, -6.0, +7.5, -5.6...).
+
+## Ghi chú trung thực
+Kết cục HÀNG 3 sẽ HẠ GIÁ phần lớn công sức của dự án. Nó vẫn phải được báo cáo y nguyên nếu xảy ra.
+Đây chính là phép thử mà lẽ ra tôi phải chạy TỪ ĐẦU, trước khi diễn giải bất kỳ hiệu ứng nào.
