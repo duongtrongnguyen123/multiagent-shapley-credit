@@ -1,5 +1,5 @@
-# Đánh giá đóng góp trong hệ suy luận multi-agent LLM: từ đo lường giá trị vai trò đến phối hợp động
-<sub>Credit Assignment in Multi-Agent LLM Reasoning: From Measuring Role Value to Dynamic Composition</sub>
+# Đánh giá đóng góp trong hệ suy luận multi-agent LLM: đo lường vai trò và tính KHÔNG BỀN của hiệu ứng
+<sub>Credit Assignment in Multi-Agent LLM Reasoning: Measuring Role Value and the Non-Transferability of Effects</sub>
 
 Các mô hình ngôn ngữ ngày càng phối hợp thành nhóm để giải toán, thay vì làm một mình: một *Planner* phác
 hướng, *Solver* giải, *Verifier* kiểm tra, *Aggregator* chốt đáp án — và chúng **phối hợp
@@ -7,12 +7,50 @@ hoàn toàn bằng ngôn ngữ** — mô hình sau đọc lời giải của mô
 hai lưỡi: lời của mô hình này có thể sửa lỗi cho mô hình kia, hoặc **làm hỏng một đáp án vốn đã
 đúng** (hiện tượng *sycophancy* — mô hình đang đúng lại hùa theo bạn cùng nhóm rồi sửa thành sai).
 
-Vậy **vai trò nào thực sự đóng góp?** Câu hỏi này bị che bởi thứ mà mọi người báo cáo — độ
-chính xác chung của cả nhóm — vì nó không cho biết mô hình nào giúp cải thiện,
-mô hình nào chỉ ăn theo, mô hình nào âm thầm làm hỏng. Chúng tôi trả lời bằng cách xem cả nhóm như
-một **trò chơi hợp tác** và đo phần đóng góp của từng vai trò bằng **giá trị Shapley** (Shapley chỉ là *thước
-đo*), rồi xét đóng góp đó đổi ra sao theo **độ khó** bài toán và **năng lực** mô hình. Suy luận chạy
-song song trên GPU Kaggle (T4). Bản nháp Intro đầy đủ cho báo cáo: [`shapley/docs/INTRO.md`](shapley/docs/INTRO.md).
+Xuất phát điểm của dự án là câu hỏi **vai trò nào thực sự đóng góp?**, đo bằng **giá trị Shapley**
+trên 2⁴ = 16 tổ hợp vai trò. Nhưng khi mở rộng sang lưới `task × cỡ model` và kiểm chứng bằng
+**đăng ký trước (pre-registration)**, chúng tôi gặp một hiện tượng lặp đi lặp lại quan trọng hơn
+chính bảng Shapley ban đầu:
+
+> ### Hướng chính hiện tại
+> **Hiệu ứng của các cơ chế phối hợp đa tác tử KHÔNG BỀN — chúng đổi dấu khi đổi task hoặc đổi cỡ model.**
+>
+> Cùng một lựa chọn kiến trúc, cùng mã nguồn, cùng bộ lời giải: truyền trace giữa các agent
+> **+7.6 điểm** trên GSM8K 1.5B nhưng **−9.0 điểm** trên MATH 1.5B. Che giá trị trung gian
+> **+8.4** rồi **−2.0**. Context không liên quan **−3.6** rồi **+5.5**. Bộ tổng hợp LLM **−6.7**
+> rồi **+1.7**. Năm can thiệp, năm lần đảo dấu — chi tiết ở [`RESULTS.md`](shapley/docs/RESULTS.md).
+>
+> **Hệ quả:** một nghiên cứu chỉ báo cáo **một ô** của lưới sẽ trông rất thuyết phục và vẫn sai.
+> Muốn kết luận bất cứ điều gì về phối hợp đa tác tử, phải đo trên **lưới**, không phải một điểm.
+
+Phát hiện này được củng cố bởi chính **kỷ luật kiểm chứng**: 9 giả thuyết của nhóm đã bị bác bỏ,
+1 kết quả phải tự rút lại, 1 thí nghiệm bị tuyên vô hiệu bởi ngưỡng hiệu lực khoá sẵn, và 1 lỗi
+thiết kế được tự công bố. Mỗi giả thuyết đều có **bảng diễn giải khoá trước khi chạy**
+([`PREREGISTRATION.md`](shapley/docs/PREREGISTRATION.md)) — lịch sử git chứng minh không kết quả nào
+bị diễn giải lại sau khi đã nhìn thấy số.
+
+**Đọc theo thứ tự:** [`RESULTS.md`](shapley/docs/RESULTS.md) (bảng tổng hợp) →
+[`PREREGISTRATION.md`](shapley/docs/PREREGISTRATION.md) (đăng ký trước) →
+[`IDEAS.md`](shapley/docs/IDEAS.md) (nhật ký từng vòng) → [`INTRO.md`](shapley/docs/INTRO.md) (nháp Intro).
+
+---
+
+## 0. Tóm tắt kết quả
+
+**Những gì có tác dụng (đo được):**
+
+| Phương pháp | Kết quả |
+|---|---|
+| Solver 1.5B + **Verifier 7B** (post-hoc) | **.46 → .64**, 9 sửa / **0 phá** |
+| **loop** — Solver giải lại sau khi bị chê (MATH 1.5B) | **.40 → .60** |
+| Pipeline đầy đủ vs Solver đơn độc (GSM8K 1.5B) | **.632 → .744** |
+| **Self-consistency** maj@8 (MATH 1.5B) | **.50 → .60** |
+| **Sửa lỗi bằng chạy test** (HumanEval, 3 vòng) | .787 → **.835** (7B), **0 phá** |
+
+**Phân bổ đóng góp đo ở mức đầu-cuối** (GSM8K 1.5B, n=250): P→S `.684` →
+**P→S→V `.732`** → P→S→V→A `.744`. **Verifier mang gần như toàn bộ giá trị.**
+Nhưng nếu V và A chỉ nhận đáp án (không nhận trace) thì pipeline tụt còn `.668` —
+**tệ hơn cả việc bỏ hẳn hai vai đó** (`.684`).
 
 ---
 

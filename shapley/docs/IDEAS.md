@@ -529,3 +529,28 @@ giữa Solver và Verifier.
 => ĐO MỘT VAI RIÊNG LẺ LÀ CHỈ DẤU TỒI cho hành vi đầu-cuối. Đây là cảnh báo trực tiếp đối với
    chính khung "Shapley theo từng vai" mà dự án khởi đầu — giá trị của một vai không tách rời
    được khỏi thứ mà các vai khác nhận được.
+
+## [Loop] VÒNG #11 — H11 (phân bổ vai) và H10 trên MATH: ĐỔI DẤU ĐƯỢC XÁC NHẬN SẠCH
+### ra_g15 (H11, GSM8K 1.5B, n=250) — rơi HÀNG 1
+  P->S        .684
+  P->S->V     .732   (+4.8)   <-- Verifier mang gần như TOÀN BỘ giá trị
+  P->S->V->A  .744   (+6.0)   (Aggregator thêm +1.2 khi ĐỨNG SAU Verifier)
+  P->S->A     .428   (-25.6)  <-- Aggregator ĐỨNG MỘT MÌNH thì sụp
+LƯU Ý TRUNG THỰC: nhánh P->S->A là CẤU HÌNH THOÁI HOÁ — bộ tổng hợp chỉ nhận MỘT ứng viên thì
+  không có gì để tổng hợp, nó đi giải lại và hỏng. -25.6 phản ánh điều đó, KHÔNG phải
+  "Aggregator vô dụng". Chỉ số synergy +.268 cũng bị thổi phồng bởi chính sự sụp đổ này.
+
+### tr_m15 (H10 bản đã sửa lỗi, MATH 1.5B, n=200)
+  TRIM (chỉ đáp án) .435 | NOVA (bỏ V,A) .425 | solver đơn .405 | FULL (toàn văn) .345
+  trim_minus_full = +.09   full_minus_solo = -.06
+=> Trên MATH: truyền trace LÀM HẠI (-9.0 so với cắt trace; -6.0 so với solver đơn).
+=> Trên GSM8K (tr_g15): truyền trace CÓ LỢI (+7.6).
+=> ĐỔI DẤU 16.6 ĐIỂM giữa hai task, với CÙNG mã nguồn và thiết kế ĐÃ KHỬ NHIỄU
+   (mọi nhánh giữ Planner->Solver; FULL và TRIM dùng CÙNG bộ lời giải).
+   Rơi HÀNG 3 của pre-registration #9: "kết quả đổi dấu giữa các ô -> META-PHÁT HIỆN LÀ KẾT LUẬN".
+
+### CHỐT HƯỚNG CHÍNH CỦA DỰ ÁN
+Đây là bằng chứng SẠCH NHẤT cho meta-phát hiện, vì H10 là thiết kế đã khử nhiễu (khác với các
+lần đảo dấu trước còn lẫn biến). Hướng chính của repo được cập nhật trong README:
+  "Hiệu ứng của cơ chế phối hợp đa tác tử KHÔNG BỀN — đổi dấu theo task và cỡ model."
+Đã thêm docs/RESULTS.md tổng hợp toàn bộ số liệu.
