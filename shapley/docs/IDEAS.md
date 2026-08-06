@@ -1021,3 +1021,36 @@ mà chính dữ liệu của mình cho thấy là BỊ THỐNG TRỊ.
 GHI CHÚ: đây là lần thứ HAI trong dự án tôi phải hạ cấp chính thứ mình vừa đưa lên tiêu đề
    (lần trước: bảng "đảo dấu"). Bài học: KHÔNG đưa kết quả lên tiêu đề khi chưa so với
    MỌI mốc tầm thường có liên quan — đặc biệt mốc "chỉ dùng model lớn hơn".
+
+## [Loop] VÒNG #25 — ĐỌC TRACE: "AGGREGATOR GÂY HẠI" PHẦN LỚN LÀ LỖI ĐỊNH DẠNG, KHÔNG PHẢI LỖI PHÁN ĐOÁN
+Không kernel nào xong (4 kernel 7B 4-bit vẫn chạy — chúng nặng thật). Chuyển sang ĐỌC 600 trace
+đầy đủ từ ft_g15/ft_m15 (đây là lần thứ TƯ đọc output thô, và lại ra phát hiện).
+
+### ĐỐI CHIẾU CƠ BẢN
+  MATH  (ft_m15, n=300): Aggregator PHÁ 20 / SỬA 4   -> net -16/300 = -5.3đ (khớp nf_m15 A_gain -6.4)
+  GSM8K (ft_g15, n=300): Aggregator PHÁ  0 / SỬA 5   -> net +5/300
+  median độ dài output Aggregator: GSM8K 18 ký tự | MATH 142 ký tự
+
+### PHÂN LOẠI 20 CA PHÁ TRÊN MATH (một ca có thể thuộc nhiều nhóm)
+  KHÔNG có \boxed trong output          17  (85%)
+  TỰ GIẢI LẠI (đáp án khác CẢ HAI ứng viên) 10  (50%)
+  output THOÁI HOÁ (<200 ký tự)          8  (40%)
+  **CHỌN NHẦM ứng viên (đúng việc của nó)  1  ( 5%)**
+  Tỉ lệ có \boxed trên toàn bộ 300 output Aggregator: 82% -> 18% KHÔNG trích được đáp án.
+
+### BA KIỂU HỎNG ĐỌC ĐƯỢC BẰNG MẮT
+  1. TỰ GIẢI LẠI: viết 1096 ký tự suy luận riêng, sai, rồi phát ra đáp án của chính nó,
+     BỎ QUA cả hai ứng viên. (Cùng kiểu "giải lại thay vì kiểm" đã thấy ở Verifier.)
+  2. KHÔNG CHỐT ĐÁP ÁN: bàn xem ứng viên nào trình bày hay hơn ("Candidate 1 offers more
+     insight") rồi KHÔNG phát ra \boxed -> bộ trích lấy nhầm số.
+  3. THOÁI HOÁ HOÀN TOÀN: phát ra "You are an AI assistant that helps people find information..."
+     — tức nhả lại một đoạn giống system prompt.
+
+### KẾT LUẬN PHẢI GHI
+ĐO ĐƯỢC: kết quả "-6.4đ Aggregator gây hại trên MATH" (đã kiểm 5/5 fold) PHẦN LỚN LÀ
+  LỖI ĐỊNH DẠNG/TRÍCH XUẤT, KHÔNG PHẢI lỗi phán đoán. Chỉ 1/20 ca là thực sự "chọn nhầm".
+=> Con số vẫn ĐÚNG như một phép đo hệ thống đầu-cuối, NHƯNG DIỄN GIẢI "LLM tổng hợp phán đoán kém"
+   LÀ SAI. Diễn giải đúng: ở bài khó, Aggregator không tuân được định dạng đầu ra, nên hệ thống
+   mất điểm — một vấn đề KỸ THUẬT có thể sửa (ép định dạng, fallback về ứng viên khi thiếu \boxed),
+   chứ không phải giới hạn về năng lực suy luận.
+=> ĐÂY LÀ LẦN THỨ TƯ đọc trace thô lật lại một diễn giải. Tỉ lệ 4/4.
