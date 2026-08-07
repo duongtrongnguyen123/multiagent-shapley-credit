@@ -15,8 +15,10 @@ N = int(os.environ.get("N", "150"))
 NF = int(os.environ.get("NF", "5"))
 BS = int(os.environ.get("BS", "8"))
 ACCOUNT = os.environ.get("ACCOUNT", "")
+BIG = os.environ.get("BIG", "0") not in ("0", "", "false", "False")
 KDIR = ROOT / "kernels_rescue"
 DS_MODEL = "xatri007/qwen2-5-1-5b-instruct"
+DS_BIG = "ragnar123/qwen2-5-7b-instruct"
 DS = {"gsm8k": [DS_MODEL, "thedevastator/grade-school-math-8k-q-a"],
       "math":  [DS_MODEL, "open-benchmarks/math-500-measuring-mathematical-problem-solving"]}
 
@@ -48,9 +50,13 @@ def pick():
 def main():
     user, token = pick()
     src = (TEMPLATE.replace("__TASK__", TASK).replace("__N__", str(N))
-                   .replace("__NF__", str(NF)).replace("__BS__", str(BS)))
+                   .replace("__NF__", str(NF)).replace("__BS__", str(BS))
+                   .replace("__BIG__", "True" if BIG else "False"))
+    left = re.findall(r"__[A-Z_]+__", src)
+    if left:
+        raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")      # catch syntax errors before pushing
-    slug = f"rescue-fullpipe-{TASK}"
+    slug = f"rescue-fullpipe-{TASK}" + ("-7b" if BIG else "")
     shutil.rmtree(KDIR, ignore_errors=True)
     d = KDIR / TASK
     d.mkdir(parents=True)
@@ -60,7 +66,8 @@ def main():
         {"id": ref, "title": slug, "code_file": "kernel.py", "language": "python",
          "kernel_type": "script", "is_private": True, "enable_gpu": True,
          "enable_internet": False, "machine_shape": "NvidiaTeslaT4",
-         "dataset_sources": DS[TASK], "competition_sources": [], "kernel_sources": []}, indent=2))
+         "dataset_sources": (DS[TASK] + [DS_BIG]) if BIG else DS[TASK],
+         "competition_sources": [], "kernel_sources": []}, indent=2))
     r = subprocess.run(["kaggle", "kernels", "push", "-p", str(d)],
                        env=dict(os.environ, KAGGLE_API_TOKEN=token),
                        capture_output=True, text=True)
