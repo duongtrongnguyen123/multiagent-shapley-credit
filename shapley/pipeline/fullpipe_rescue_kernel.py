@@ -185,6 +185,7 @@ for f in range(NF):
     print(f"  V cuu duoc: {d['V_rescued_plan_caused']}/{d['n_plan_caused']} ca loi-do-PLAN, "
           f"{d['V_rescued_solver_own']}/{d['n_solver_own']} ca loi-do-SOLVER", flush=True)
 
+
     # LƯU MỌI CÂU, MỌI FOLD: output nguyên văn của từng vai + đáp án trích ra + nhãn
     # phân loại sẵn, để phân tích ngoại tuyến không phải chạy lại và không phải tính lại.
     for i in range(n):
@@ -212,6 +213,17 @@ for f in range(NF):
                 "solver_copied_plan": (pa is not None and pred(sol[i]) is not None
                                        and eq(pred(sol[i]), pa)),
             }})
+        # ghi ngay sau MỖI câu: dòng JSONL nối thêm, không mất gì kể cả khi bị cắt giữa fold
+        with open("/kaggle/working/traces.jsonl", "a") as fh:
+            fh.write(json.dumps(sample[-1]) + "\n")
+
+    # CHECKPOINT sau MỖI fold: nếu kernel bị cắt (hết quota / quá 12h) thì các fold đã chạy vẫn
+    # còn nguyên. Bài học từ vòng debate: chỉ ghi ở dòng cuối = mất trắng khi bị cắt.
+    json.dump({"task": TASK, "folds_done": f + 1, "n_folds": NF, "fold_size": FOLD,
+               "complete": f + 1 == NF, "per_fold": fold_stats},
+              open("/kaggle/working/summary.json", "w"), indent=2)
+    json.dump(sample, open("/kaggle/working/traces.json", "w"), indent=1)
+    print(f"  [checkpoint] da ghi {f+1}/{NF} fold, {len(sample)} cau", flush=True)
 
 def st(key):
     xs = [d[key] for d in fold_stats]

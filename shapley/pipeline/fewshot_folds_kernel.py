@@ -228,6 +228,16 @@ for f in range(NF):
             "len": {"plan_base": len(plan_b[i]), "plan_fewshot": len(plan_f[i]),
                     **{t: len(sols[t][i] or "") for t in ARMS}},
         })
+        # ghi ngay sau MỖI câu: dòng JSONL nối thêm, không mất gì kể cả khi bị cắt giữa fold
+        with open("/kaggle/working/traces.jsonl", "a") as fh:
+            fh.write(json.dumps(sample_traces[-1]) + "\n")
+
+    # CHECKPOINT sau MỖI fold (bài học từ vòng debate: ghi ở dòng cuối = mất trắng khi bị cắt)
+    json.dump({"task": TASK, "folds_done": f + 1, "n_folds": NF, "fold_size": FOLD,
+               "complete": f + 1 == NF, "per_fold": per_fold, "plan_per_fold": plan_fold},
+              open("/kaggle/working/summary.json", "w"), indent=2)
+    json.dump(sample_traces, open("/kaggle/working/traces.json", "w"), indent=1)
+    print(f"  [checkpoint] da ghi {f+1}/{NF} fold, {len(sample_traces)} cau", flush=True)
 
 # ---- tổng hợp qua fold -----------------------------------------------------
 def stats(xs):
