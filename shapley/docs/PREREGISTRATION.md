@@ -1023,3 +1023,66 @@ VÔ HIỆU vì mẫu còn lại đã bị chọn lọc thiên lệch (chỉ gi�
 Sau dt2_g7 tôi NGHIÊNG về hàng 1 (phân biệt sống sót ở tầng ZERO đông hơn). Nhưng tôi đã sai
 nhiều lần trong dự án này khi ngoại suy từ mẫu nhỏ, và n=9 chính là mẫu nhỏ.
 Tôi ghi rõ: nếu ra hàng 2, tôi PHẢI rút lại cách đọc ở vòng #48 và nói thẳng là đã mừng sớm.
+
+---
+
+# Đăng ký trước #29 — H28: BỎ PHIẾU CÓ TRỌNG SỐ (giữ đồng thuận + dùng điểm)
+**Viết TRƯỚC khi chạy.** Rút thẳng từ nghịch lý của H27.
+
+## Sự việc đã đo
+Bộ chấm phân biệt rất tốt (**AUC .883**) nhưng dùng theo kiểu **argmax một mẫu** cho
+rerank@8 = .687 < maj@8 = .703. Khoảng trống maj->oracle còn **+14.0 điểm** chưa lấy được.
+GIẢ THUYẾT: argmax vứt bỏ thông tin ĐỒNG THUẬN mà đếm phiếu đang khai thác.
+
+## Thiết kế — CÙNG bộ 8 mẫu, CÙNG bộ chấm đã huấn luyện, chỉ đổi CÁCH TỔNG HỢP
+- `maj8`      : đếm phiếu thường (mốc)
+- `rerank8`   : argmax điểm (đã đo, để đối chiếu)
+- **`wvote_sum`** : gom mẫu theo đáp án; điểm nhóm = TỔNG prob(Yes); chọn nhóm cao nhất
+- **`wvote_mean`**: điểm nhóm = TRUNG BÌNH prob(Yes) (tách ảnh hưởng của cỡ nhóm)
+- `oracle8`   : trần
+Chỉ số chính: `wvote_sum − maj8` theo từng fold (5 fold, so sánh CẶP trên cùng mẫu).
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- AUC của bộ chấm phải > .55 (đã đạt .883 ở lần huấn luyện này; huấn luyện lại phải báo lại).
+- Nếu `maj8` lần này lệch quá 5 điểm so với .703 đã đo -> nghi vấn tái lập, phải báo.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `wvote_sum` > `maj8` >= 4/5 fold | **H28 XÁC NHẬN.** Bộ chấm CÓ giá trị nhưng phải dùng kèm đồng thuận, không dùng argmax. Đây là cách dùng đúng của nhãn tự động. |
+| `wvote_sum` ≈ `maj8` (trong sàn nhiễu) | Bộ chấm không thêm gì DÙ dùng đúng cách. Kết luận mạnh: ở 1.5B, đếm phiếu đã VẮT KIỆT tín hiệu; AUC cao KHÔNG chuyển thành độ chính xác. Phải nói thẳng. |
+| `wvote_sum` < `maj8` | Trọng số làm HỎNG đếm phiếu. Bác. Khuyến nghị: chỉ dùng đếm phiếu trần. |
+| `wvote_mean` >> `wvote_sum` | Ảnh hưởng đến từ cỡ nhóm chứ không phải điểm -> tức là vẫn chỉ là đếm phiếu trá hình. Phải nói rõ. |
+| Lấy được >= 50% khoảng trống maj->oracle | Kết quả mạnh nhất dự án. Phải kiểm rò rỉ train/test trước khi báo. |
+
+## Prior TRUNG THỰC (ghi trước)
+Prior trước của tôi (H27 sẽ thắng) đã SAI. Lần này tôi hạ kỳ vọng: tôi đoán `wvote_sum` hơn
+`maj8` khoảng 1–3 điểm, tức là VẪN nằm quanh sàn nhiễu và có thể rơi hàng 2.
+Lý do vẫn chạy: đây là phép sửa TỐI THIỂU và ĐÚNG LÝ cho nghịch lý vừa đo, chi phí thấp
+(dùng lại LoRA đã lưu ở `disc_lora`), và nó tách bạch "bộ chấm vô dụng" khỏi "cách dùng sai".
+
+---
+
+# Đăng ký trước #30 — H25d: SỬA CÁCH TIÊM LỖI CHO MATH
+**Viết TRƯỚC khi chạy.** dt3 vô hiệu vì chỉ .0875 bài MATH tiêm được.
+
+## Sửa gì
+Bỏ yêu cầu tìm biểu thức `a op b = c`. Thay bằng: chọn NGẪU NHIÊN một token số trong THÂN
+lời giải vàng (loại trừ đáp án `\boxed` cuối) và đổi giá trị -> tạo MÂU THUẪN NỘI TẠI giữa
+thân bài và kết luận. Phát hiện nó cần ĐỐI CHIẾU, không cần giải lại từ đầu.
+Kỳ vọng `pct_problems_corruptible` ~ 1.0.
+
+## HẠN CHẾ TỰ NHẬN (ghi trước)
+Đổi một số ngẫu nhiên có thể trúng số KHÔNG ẢNH HƯỞNG kết quả -> lỗi "vô hại", khó phát hiện
+một cách chính đáng. Điều này làm nhiệm vụ KHÓ HƠN, nên kết quả DƯƠNG là kết luận BẢO THỦ
+(an toàn); kết quả ÂM thì KHÔNG được đọc mạnh, vì có thể do lỗi vô hại.
+Bắt buộc báo `pct_corrupt_changes_final_answer` để ước lượng phần lỗi thực sự có hại.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số) — giữ mọi ngưỡng của #28
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| ZERO n>=40, phân biệt >= .40 ở 7B | **XÁC NHẬN kiểm lỗi tách rời khỏi giải** trên MIỀN THỨ HAI (MATH). Cùng với dt2_g7 thành hai miền -> phát biểu được. |
+| ZERO n>=40, phân biệt ≈ 0 ở 7B | **BÁC.** dt2_g7 chỉ là ảo ảnh n=9. Tôi PHẢI rút lại cách đọc lạc quan ở vòng #48 và nói rõ đã mừng sớm. |
+| ZERO vẫn n<40 | Ghi "thiếu lực", KHÔNG kết luận. |
+| Suy biến >.90 | Tầng đó VÔ HIỆU. |
+| pct_corruptible < .50 lần nữa | Bỏ hẳn hướng tiêm-lỗi trên MATH; ghi là KHÔNG ĐO ĐƯỢC bằng phương pháp này. |
