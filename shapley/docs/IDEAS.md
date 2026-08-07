@@ -1343,3 +1343,27 @@ TRẠNG THÁI CÂU HỎI CÒN MỞ:
   rc_m7b  : mắt xích cuối chưa có thanh sai số (truyền trace ở MATH 7B)
   pa2_m15 : giả thuyết VÁ LỖI của người dùng — lần đầu kiểm được đúng cách (chỉ MATH mới đủ bước)
   pc_he   : chỉ dẫn cấm của Planner có tổng quát sang CODE không (chấm bằng chạy test)
+
+## [Loop] VÒNG #41 — BA KẾT QUẢ LỚN: H21a BỊ BÁC (phép thử HỢP LỆ), H22 RƠI HÀNG 3+4
+### H21a (VÁ LỖI) — LẦN NÀY CAN THIỆP CÓ HIỆU LỰC, VÀ GIẢ THUYẾT BỊ BÁC
+  pat15 (MATH 1.5B, n=500, 5 fold): V_std .474 | V_patch .382 | patch−std **−9.2**
+     tái sử dụng: std .988 -> patch **1.000**  (CAN THIỆP CÓ HIỆU LỰC — khác hẳn lần trước)
+     sửa/phá: std 26/9  ->  patch **14/43**
+  pat7  (MATH 7B  , n=500, 5 fold): V_std .690 | V_patch .654 | patch−std **−3.6**
+     sửa/phá: std 38/5  ->  patch **38/23**
+=> Rơi HÀNG 3 của pre-reg #20: "V_patch < V_std -> TIỀN TỐ CỦA SOLVER LÀ GÁNH NẶNG,
+   GIẢI LẠI TỪ ĐẦU TỐT HƠN. Đảo ngược trực giác, phải ghi rõ."
+=> CƠ CHẾ: giữ tiền tố = GIỮ LUÔN LỖI. Số PHÁ tăng vọt (9->43 ở 1.5B, 5->23 ở 7B) vì verifier
+   bị cấm viết lại phần trước, nên lỗi nằm sớm trong chuỗi KHÔNG BAO GIỜ được sửa.
+=> ĐẢO NGƯỢC DIỄN GIẢI CŨ CỦA TÔI: tôi từng gọi "verifier giải lại thay vì kiểm" là KHIẾM KHUYẾT.
+   Thực ra ĐÓ CHÍNH LÀ THỨ LÀM NÓ HỮU ÍCH — giải lại là cách nó THOÁT khỏi lỗi của Solver.
+   Ép nó bám vào chuỗi cũ thì nó thừa hưởng luôn lỗi cũ.
+
+### H22 (bỏ chỉ dẫn cấm, trên CODE) — rơi ĐỒNG THỜI HÀNG 3 VÀ HÀNG 4
+  pc_he (HumanEval, 5 fold x 32): NoP **.5375** | P_hide .4312 | P_ask .4437 | P_free .3812
+  free−hide = **−5.0** (chỉ 1/5 fold dương)  -> HÀNG 3: ĐẢO DẤU so với toán (+3.5)
+  **NoP CAO HƠN MỌI nhánh có Planner (~+9đ)** -> HÀNG 4: TRÊN CODE, PLANNER GÂY HẠI, bỏ hẳn thì tốt hơn.
+  planCode: P_hide **.537** | P_free .738 | P_ask 1.0
+  => 53.7% kế hoạch VẪN CHỨA CODE dù bị cấm -> XÁC NHẬN trực tiếp giả thuyết của người dùng:
+     chỉ dẫn cấm KHÔNG ngăn được model làm, nó chỉ làm model GIẤU BỚT.
+     (Đây là phép đo trực tiếp, mạnh hơn hẳn chỉ số plan_acc gián tiếp ở H21b.)
