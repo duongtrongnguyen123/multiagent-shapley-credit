@@ -1367,3 +1367,25 @@ TRẠNG THÁI CÂU HỎI CÒN MỞ:
   => 53.7% kế hoạch VẪN CHỨA CODE dù bị cấm -> XÁC NHẬN trực tiếp giả thuyết của người dùng:
      chỉ dẫn cấm KHÔNG ngăn được model làm, nó chỉ làm model GIẤU BỚT.
      (Đây là phép đo trực tiếp, mạnh hơn hẳn chỉ số plan_acc gián tiếp ở H21b.)
+
+## [Loop] VÒNG #42 — pa2_m15 XÁC NHẬN ĐỘC LẬP H21a BỊ BÁC; GRPO TẠM DỪNG VÌ OOM
+### pa2_m15 (Kaggle, MATH 1.5B, 5 fold) — XÁC NHẬN LẦN THỨ BA
+  V_std .420 | V_patch .385 | patch−std **−3.5**, khoảng [−6.25, −1.25], 5/5 fold ÂM
+  tái sử dụng .820 -> **.955** (can thiệp CÓ hiệu lực)
+=> H21a BỊ BÁC trên BA lần chạy ĐỘC LẬP: pat15 (−9.2), pat7 (−3.6), pa2_m15 (−3.5).
+   Cả ba đều có reuse TĂNG -> đều là phép thử HỢP LỆ. Kết luận VỮNG.
+=> Phát biểu chốt: GIỮ TIỀN TỐ CỦA SOLVER LÀM VERIFIER TỆ ĐI. Việc "giải lại từ đầu" —
+   thứ tôi từng gọi là khiếm khuyết — CHÍNH LÀ cơ chế giúp verifier thoát khỏi lỗi của Solver.
+
+### GRPO (H23) — TẠM DỪNG: OOM DAI DẲNG, ĐÃ THỬ 4 CẤU HÌNH
+  BP12/CHUNK8 -> OOM | BP6/CHUNK4 + gradient checkpointing -> OOM
+  log_softmax bf16 thay float32 -> OOM | BP4/CHUNK1 -> VẪN OOM (1.36 GiB)
+CHẨN ĐOÁN: `vchunks` giữ TOÀN BỘ chuỗi đã sinh trên GPU suốt cả bước, cộng với đồ thị gradient
+  tích luỹ qua các chunk -> bộ nhớ không giảm dù chunk nhỏ. Cần viết lại: giải phóng chuỗi sau
+  mỗi chunk, hoặc tách hẳn pha sinh (lưu ra CPU) khỏi pha tính gradient.
+QUYẾT ĐỊNH: KHÔNG đốt thêm tài nguyên vào GRPO lúc này. Chuyển GPU sang sinh trace
+  (luôn có giá trị — mọi phát hiện cơ chế của dự án đều đến từ đọc trace).
+  GRPO vẫn giữ trong hàng đợi, sẽ viết lại phần quản lý bộ nhớ khi có điều kiện.
+GHI CHÚ TRUNG THỰC: prior tôi ghi trước ở pre-reg #22 là "khả năng cao rơi hàng 2 hoặc 3"
+  (RL không giúp). Việc dừng lại lúc này KHÔNG được tính là bằng chứng ủng hộ prior đó —
+  H23 vẫn là CHƯA KIỂM, không phải bị bác.
