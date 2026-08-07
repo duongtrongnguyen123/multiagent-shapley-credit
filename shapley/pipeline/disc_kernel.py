@@ -1,6 +1,9 @@
 # H27 — VERIFIER PHAN BIET (cham diem) + RERANK@8. Xem docs/PREREGISTRATION.md #27.
 # Nhan TU DONG tu grader, KHONG gan tay. Chay tren Kaggle T4 (remote da mat).
-import os, re, csv, json, glob, random, statistics as st, torch, torch.nn.functional as F
+import os, re, csv, json, glob, random, subprocess, sys, statistics as st
+# SUA LOI MOI TRUONG: anh Kaggle co torchao 0.10.0 nhung peft doi >0.16.0
+subprocess.run([sys.executable,"-m","pip","install","-q","-U","torchao>=0.16.0"],check=False)
+import torch, torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import LoraConfig, get_peft_model
 
