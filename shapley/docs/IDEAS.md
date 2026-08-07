@@ -1136,3 +1136,30 @@ PHÁT BIỂU ĐÚNG: "Bộ tổng hợp LLM KHÔNG giúp cũng KHÔNG hại, m�
 phán đoán" -> ĐĂNG KÝ TRƯỚC (#19) -> chạy -> XÁC NHẬN.
 Đây là LẦN ĐẦU trong dự án một giả thuyết sinh ra từ việc ĐỌC OUTPUT THÔ sống sót qua
 kiểm chứng có đăng ký trước.
+
+## [Loop] VÒNG #29 — bs_g: H18 RƠI HÀNG 2. BẤT ĐỐI XỨNG BỊ THỐNG TRỊ, CÓ THANH SAI SỐ.
+bs_g (GSM8K, 5 fold x 100, so ĐẦU-ĐỐI-ĐẦU trên CÙNG bài):
+  S15 (1.5B đơn)            .628
+  S15_V7 (1.5B + soát 7B)   .810   (+18.2 so với S15 — THẬT, nhưng...)
+  **S7 (7B đơn)             .910**
+  S7_V7 (7B + soát 7B)      .900
+  asym_minus_S7  mean -10.0  range [-13, -6]  5/5 fold ÂM  -> NGOÀI NHIỄU
+  S7V7_minus_S7  mean  -1.0  range [ -4, +3]  chứa 0
+=> Rơi HÀNG 2 của pre-reg #17: PHẢI HẠ CẤP KHUYẾN NGHỊ Ở ĐẦU README.
+   Lợi ích +18.2 so với mốc 1.5B là THẬT nhưng VÔ NGHĨA THỰC TIỄN: chỉ cần dùng 7B là hơn 10 điểm.
+
+### HẠCH TOÁN TOKEN — LẬP LUẬN "RẺ HƠN" CŨNG SỤP
+  token do 7B sinh ra: bất đối xứng 105,172  |  7B đơn 120,145
+  => chỉ TIẾT KIỆM 12.5% token 7B, để ĐÁNH ĐỔI 10 ĐIỂM chính xác.
+  Tính accuracy trên mỗi token 7B: .810/105k vs .910/120k -> chênh nhau <2%, coi như BẰNG NHAU.
+  VÀ điều đó CHƯA TÍNH lượt giải 1.5B mà bất đối xứng vẫn phải trả.
+  => KỂ CẢ VỀ CHI PHÍ, bất đối xứng KHÔNG THẮNG. Nó thua ở CẢ HAI TRỤC.
+
+### XÁC NHẬN LẠI: SOÁT VÔ NGHĨA KHI SOLVER ĐÃ MẠNH
+  S7_V7 - S7 = -1.0, khoảng [-4, +3] chứa 0. Khớp nf_g7 (GSM8K 7B bão hoà .884).
+  Ở mức .910 thì không còn gì để sửa — đúng như "dải độ khó" ở vòng #27.
+
+### TRẠNG THÁI KHUYẾN NGHỊ CỦA DỰ ÁN
+Vòng #20 tôi đưa "model nhỏ GIẢI + model lớn SOÁT" lên tiêu đề README.
+Vòng #23 nghi ngờ (so chéo kernel). Vòng #29 XÁC NHẬN bằng 5 fold đầu-đối-đầu: BỊ THỐNG TRỊ.
+=> Khuyến nghị đó ĐÃ CHẾT trên GSM8K. Chờ bs_m để chốt trên MATH.
