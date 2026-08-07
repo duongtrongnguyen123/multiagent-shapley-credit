@@ -662,3 +662,49 @@ Chạy 5 fold x 100 bài MATH, 1.5B.
 ## Ghi chú trung thực
 Nếu H20 xác nhận, thì một trong những "phát hiện" chắc chắn nhất của dự án (Aggregator gây hại,
 5/5 fold) hoá ra chỉ là lỗi parsing — và điều đó phải được ghi rõ ở đầu RESULTS.md.
+
+---
+
+# Đăng ký trước #20 — H21: VERIFIER "VÁ LỖI" vs VERIFIER "GIẢI LẠI"; và PLANNER CÓ ĐANG GIẤU ĐÁP ÁN?
+**Viết TRƯỚC khi chạy.** Cả hai câu hỏi do người dùng đặt ra; số đo hiện có ủng hộ mạnh.
+
+## Bằng chứng xuất phát (ĐO ĐƯỢC từ 600 trace)
+(a) Tỉ lệ Verifier TÁI SỬ DỤNG số của Solver, theo hành vi:
+      GSM8K: đồng ý .20 | SỬA **0.00** | PHÁ **0.00**      MATH: đồng ý 1.00 | SỬA .33 | PHÁ .29
+    => Mỗi khi CAN THIỆP, Verifier VỨT BỎ toàn bộ chuỗi của Solver và GIẢI LẠI TỪ ĐẦU.
+    => Giải thích được vì sao độ chính xác can thiệp chỉ ~56% ≈ ĐỘ CHÍNH XÁC TỰ GIẢI của model
+       (1.5B giải GSM8K ~.63), chứ không phải độ chính xác của việc KIỂM (lẽ ra phải dễ hơn).
+(b) Planner sinh 6 SỐ MỚI ở 100% số lượt (0% lượt không tính toán), nhưng chỉ 3.3% có \boxed.
+    => Giả thuyết: chỉ dẫn "Do NOT compute the final answer" KHÔNG ngăn nó tính,
+       chỉ khiến nó GIẤU đáp án.
+
+## H21a — ÉP VÁ LỖI THAY VÌ GIẢI LẠI
+Verifier chỉ được phép: chỉ ra BƯỚC SAI ĐẦU TIÊN và viết tiếp TỪ ĐÓ. Phần trước GIỮ NGUYÊN
+bằng CODE (ghép chuỗi), không phụ thuộc việc model có nghe lời hay không.
+  V_std  : verifier như hiện tại (mốc)
+  V_patch: ghép [tiền tố Solver tới bước sai] + [phần viết tiếp của Verifier]
+  V_none : chỉ đáp án (đối chứng)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| V_patch > V_std rõ rệt, và tỉ lệ tái sử dụng TĂNG | H21a XÁC NHẬN. "Verifier là solver thứ hai" là lỗi THIẾT KẾ, sửa được bằng cách ép vá lỗi. |
+| V_patch ~ V_std | Ép vá lỗi không giúp. Vấn đề không nằm ở việc giải lại. Ghi rõ đã bác. |
+| V_patch < V_std | Tiền tố của Solver là GÁNH NẶNG, không phải tài sản — giải lại từ đầu TỐT HƠN. Đảo ngược trực giác, phải ghi rõ. |
+| tỉ lệ tái sử dụng KHÔNG tăng | CAN THIỆP VÔ HIỆU (ghép chuỗi không có tác dụng). Không kết luận về H21a. |
+
+## H21b — PLANNER CÓ ĐANG GIẤU ĐÁP ÁN KHÔNG?
+  P_hide : prompt hiện tại ("Do NOT compute the final answer")
+  P_free : BỎ chỉ dẫn đó, cho phép tính thoải mái
+  P_ask  : YÊU CẦU tính luôn đáp án
+Đo: độ chính xác của ĐÁP ÁN NGẦM trong kế hoạch (trích 3 cách), và acc của Solver phía sau.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| acc đáp án ngầm của P_hide ≈ P_free ≈ P_ask | XÁC NHẬN: chỉ dẫn chỉ GIẤU, không ngăn tính. "Planner" thực chất là một Solver bị bịt miệng. |
+| P_hide THẤP HƠN rõ rệt | Chỉ dẫn THỰC SỰ ngăn nó tính. Bác giả thuyết. |
+| P_free/P_ask làm Solver phía sau TỐT HƠN | Giấu đáp án đang GÂY HẠI -> nên bỏ chỉ dẫn đó. Khuyến nghị trực tiếp. |
+| P_free/P_ask làm Solver phía sau TỆ HƠN | Giấu đáp án CÓ tác dụng (tránh mỏ neo). Giữ nguyên thiết kế. |
+
+## Ghi chú trung thực
+H21a có thể thất bại: tôi đã từng thử ép định dạng cho Verifier (struct/V_ST) và nó LÀM TỆ ĐI.
+Lần này khác ở chỗ việc GIỮ TIỀN TỐ do CODE làm, không nhờ model tuân lệnh.
