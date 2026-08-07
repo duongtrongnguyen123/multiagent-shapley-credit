@@ -532,3 +532,179 @@ Bảng cuối 4 ô x {V_gain, A_gain} với khoảng, đưa thẳng vào RESULTS
 ## Ghi chú trung thực
 Đây là thí nghiệm KHÉP LẠI, không phải mở hướng mới. Sau H16 (cộng rc_m15 và as_m đang chạy),
 dự án có đủ dữ liệu để viết báo cáo cuối; nên DỪNG mở giả thuyết mới và chuyển sang hợp nhất.
+
+---
+
+# Đăng ký trước #16 — H17: KIỂM CHỨNG PHÁT BIỂU HỢP NHẤT BẰNG THANH SAI SỐ
+**Viết TRƯỚC khi chạy.** Đây là phép kiểm cuối cùng của dự án.
+
+## Phát biểu cần kiểm (rút ra ở vòng #21)
+"Bộ máy đa tác tử chỉ hoạt động khi MODEL ĐI KIỂM đủ mạnh để dùng được thứ nó được đưa."
+Bằng chứng hiện có trên MATH:
+  verifier 7B  : +14.0 [+8.3, +20.0]  5/5 fold  (ĐÃ KIỂM — H15)
+  truyền trace 7B: -17.5 khi cắt      **1 LẦN ĐO** (tr_m7) — CHƯA KIỂM
+  cả hai ở 1.5B : khoảng chứa 0                  (ĐÃ KIỂM — nf_m15, rc_m15)
+Mắt xích YẾU NHẤT là con số -17.5: nó đang gánh nửa phát biểu mà chưa có thanh sai số.
+
+## H17
+Chạy lại FULL vs TRIM trên **5 fold rời nhau** ở **MATH 7B** (4-bit), mỗi fold 100 bài.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `trim_minus_full` TOÀN ÂM, không chứa 0 | XÁC NHẬN. Phát biểu hợp nhất đứng vững: trace chỉ có giá trị khi model kiểm đủ mạnh. |
+| Khoảng CHỨA 0 | Con số -17.5 là nhiễu. Phát biểu hợp nhất chỉ còn dựa trên H15, phải phát biểu HẸP hơn: "verifier MẠNH có giá trị", KHÔNG được nói gì về trace. |
+| TOÀN DƯƠNG | Đảo dấu so với lần đo đầu -> lần đầu sai hoàn toàn. Rút lại tr_m7. |
+| Khoảng chồng lấn với MATH 1.5B [-6,+4] | KHÔNG kết luận được là phụ thuộc năng lực. Phải hạ cấp phát biểu hợp nhất. |
+
+## Chỉ số chính
+`trim_minus_full` từng fold; mean/min/max/range/std. So chồng lấn với MATH 1.5B [-6, +4].
+
+## Ghi chú trung thực
+Sau H17, dự án DỪNG mở thí nghiệm mới. Đây là mắt xích cuối cùng chưa có thanh sai số trong
+phát biểu chính. Nếu nó sụp, phát biểu phải thu hẹp lại chỉ còn kết quả H15 — và điều đó vẫn
+là kết quả tốt nhất của dự án.
+
+---
+
+# Đăng ký trước #17 — H18: KẾT QUẢ "MẠNH NHẤT" CÓ THẮNG NỔI MỐC TẦM THƯỜNG KHÔNG?
+**Viết TRƯỚC khi chạy.** Đây là phép so sánh lẽ ra phải làm NGAY khi H15 được xác nhận.
+
+## Vấn đề mới phát hiện
+H15 xác nhận: 1.5B giải + 7B soát = **+14.0đ** so với 1.5B giải một mình (.423 -> .563).
+NHƯNG đối chiếu với các kernel khác: **7B GIẢI MỘT MÌNH trên MATH = .625–.640** (4 phép đo độc lập).
+=> Cấu hình "mạnh nhất" của dự án đang THẤP HƠN ~6 điểm so với việc CHỈ DÙNG 7B.
+Và nó cũng KHÔNG rẻ hơn: phải trả thêm một lượt 1.5B, còn lượt 7B soát sinh gần bằng số token
+mà 7B giải sẽ sinh.
+CẢNH BÁO SO SÁNH: as_m dùng n=300 (5 fold x 60); các số 7B-solo từ kernel n=200 trên tập KHÁC.
+Khoảng của V7 là [.517, .633] có CHẠM .625. Cần so ĐẦU-ĐỐI-ĐẦU trên CÙNG bài.
+
+## H18
+Trên CÙNG 5 fold (mỗi fold 60 bài MATH), đo 4 nhánh:
+  S15      : 1.5B giải một mình
+  S15+V7   : 1.5B giải + 7B soát   (cấu hình "mạnh nhất")
+  S7       : 7B giải một mình      (MỐC TẦM THƯỜNG)
+  S7+V7    : 7B giải + 7B soát
+Đồng thời đếm SỐ TOKEN SINH RA BỞI 7B ở mỗi nhánh -> so sánh trên cùng ngân sách.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| S15+V7 >= S7 | Bất đối xứng THẮNG mốc tầm thường. Khuyến nghị hiện tại ĐỨNG VỮNG. |
+| S15+V7 < S7 rõ rệt (ngoài nhiễu) | **PHẢI HẠ CẤP KHUYẾN NGHỊ ĐẦU README.** Cấu hình này bị THỐNG TRỊ bởi "chỉ dùng model lớn". Kết quả +14.0 vẫn đúng nhưng VÔ DỤNG THỰC TIỄN. |
+| S15+V7 < S7 nhưng dùng ÍT TOKEN 7B hơn rõ rệt | Có giá trị dưới dạng ĐÁNH ĐỔI CHI PHÍ. Phải phát biểu kèm số token, không được nói "tốt hơn". |
+| S7+V7 > S7 | Soát vẫn có ích ngay cả khi solver đã là 7B -> giá trị nằm ở VAI SOÁT, không ở chênh lệch năng lực. Phải sửa lại diễn giải của H15. |
+
+## Chỉ số chính
+acc từng nhánh trên CÙNG fold; `tokens_7B` sinh ra ở mỗi nhánh; acc trên mỗi 1000 token 7B.
+
+## Ghi chú trung thực
+Tôi đã ĐƯA cấu hình này lên tiêu đề README ở vòng #20 mà CHƯA hề so với mốc "chỉ dùng 7B".
+Đó là thiếu sót nghiêm trọng: một kết quả "+14 điểm" vô nghĩa nếu phương án đơn giản hơn còn tốt hơn.
+Nếu rơi hàng 2, README phải sửa NGAY.
+
+---
+
+# Đăng ký trước #18 — H19: SO ĐẦU-ĐỐI-ĐẦU TRÊN GSM8K (khớp với bs_m của MATH)
+**Viết TRƯỚC khi chạy.**
+
+## Lý do
+Vòng #23 tính được: pipeline 1.5B 4 vai (.724) THẤP HƠN 7B-solo (.884) tới 16 điểm trên GSM8K.
+Nhưng đó là SO CHÉO KERNEL, hai tập con khác nhau. Cần đo trên CÙNG bài, CÙNG fold.
+bs_m đang làm việc này cho MATH; H19 làm cho GSM8K.
+
+## H19
+5 fold x 100 bài GSM8K. Bốn nhánh trên CÙNG bài:
+  S15 (1.5B giải) | PIPE15 (P->S->V->A toàn 1.5B) | S7 (7B giải) | S7+V7 (7B giải + 7B soát)
+Kèm đếm token sinh ra để so trên cùng ngân sách.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| PIPE15 < S7 rõ rệt (ngoài nhiễu) | XÁC NHẬN kết luận vòng #23: đa tác tử model nhỏ BỊ THỐNG TRỊ bởi model lớn. Đây là kết luận chính của báo cáo. |
+| PIPE15 >= S7 | Kết luận vòng #23 SAI (do so chéo kernel). Phải rút lại NGAY và sửa README. |
+| PIPE15 < S7 nhưng dùng ÍT token hơn NHIỀU | Đa tác tử có chỗ đứng ở chế độ TIẾT KIỆM. Phải phát biểu kèm số token. |
+| S7+V7 > S7 rõ rệt | Vai SOÁT vẫn có giá trị ngay cả với model lớn -> khuyến nghị: dùng model lớn VÀ vẫn soát. |
+
+## Chỉ số chính
+acc từng nhánh trên CÙNG fold; tổng token sinh ra mỗi nhánh; acc trên mỗi 1000 token.
+
+## Ghi chú trung thực
+Nếu rơi hàng 2, kết luận vừa ghi ở vòng #23 phải bị RÚT LẠI. Đó là rủi ro thật vì so chéo
+kernel đã từng lừa tôi một lần (con số +9.0 trên MATH hoá ra là nhiễu).
+
+---
+
+# Đăng ký trước #19 — H20: SỬA LỖI ĐỊNH DẠNG CÓ CỨU ĐƯỢC AGGREGATOR KHÔNG?
+**Viết TRƯỚC khi chạy.** Rút thẳng từ phân tích trace ở vòng #25.
+
+## Xuất phát (ĐO ĐƯỢC)
+"Aggregator gây hại trên MATH −6.4đ" (5/5 fold) — nhưng đọc 20 ca PHÁ thì:
+  85% KHÔNG phát ra \boxed | 50% tự giải lại | 40% output thoái hoá | **chỉ 5% chọn nhầm thật**
+18% toàn bộ output Aggregator trên MATH không trích được đáp án.
+=> Giả thuyết: đây là LỖI KỸ THUẬT, sửa được — không phải giới hạn phán đoán.
+
+## H20 — hai bản sửa RẤT RẺ
+  A_base   : như hiện tại (mốc)
+  A_fallback: nếu output KHÔNG có \boxed -> LẤY ĐÁP ÁN CỦA VERIFIER (không gọi lại model)
+  A_forced : prompt ép "Reply with ONLY \boxed{...}, no explanation" (giới hạn 64 token)
+  A_both   : ép định dạng + fallback
+Chạy 5 fold x 100 bài MATH, 1.5B.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| A_fallback hoặc A_forced ĐƯA A_gain về ≥ 0 | H20 XÁC NHẬN. "Aggregator gây hại" là LỖI KỸ THUẬT, sửa bằng 1 dòng code. Phải sửa lại diễn giải trong RESULTS.md/README. |
+| Có cải thiện nhưng A_gain VẪN âm | Lỗi định dạng chỉ là MỘT PHẦN. Phải báo cả hai thành phần, không quy hết cho định dạng. |
+| Không cải thiện | Diễn giải "lỗi định dạng" SAI. Vấn đề nằm sâu hơn. Rút lại kết luận vòng #25. |
+| A_forced LÀM TỆ HƠN | Ép định dạng làm mất khả năng suy luận (khớp kết quả struct/showwork trước đây). Ghi rõ. |
+
+## Chỉ số chính
+`A_gain` (= acc_A − acc_V) từng nhánh, 5 fold, kèm khoảng; và `boxed_rate` từng nhánh
+(kiểm tra can thiệp CÓ hiệu lực).
+
+## Ghi chú trung thực
+Nếu H20 xác nhận, thì một trong những "phát hiện" chắc chắn nhất của dự án (Aggregator gây hại,
+5/5 fold) hoá ra chỉ là lỗi parsing — và điều đó phải được ghi rõ ở đầu RESULTS.md.
+
+---
+
+# Đăng ký trước #20 — H21: VERIFIER "VÁ LỖI" vs VERIFIER "GIẢI LẠI"; và PLANNER CÓ ĐANG GIẤU ĐÁP ÁN?
+**Viết TRƯỚC khi chạy.** Cả hai câu hỏi do người dùng đặt ra; số đo hiện có ủng hộ mạnh.
+
+## Bằng chứng xuất phát (ĐO ĐƯỢC từ 600 trace)
+(a) Tỉ lệ Verifier TÁI SỬ DỤNG số của Solver, theo hành vi:
+      GSM8K: đồng ý .20 | SỬA **0.00** | PHÁ **0.00**      MATH: đồng ý 1.00 | SỬA .33 | PHÁ .29
+    => Mỗi khi CAN THIỆP, Verifier VỨT BỎ toàn bộ chuỗi của Solver và GIẢI LẠI TỪ ĐẦU.
+    => Giải thích được vì sao độ chính xác can thiệp chỉ ~56% ≈ ĐỘ CHÍNH XÁC TỰ GIẢI của model
+       (1.5B giải GSM8K ~.63), chứ không phải độ chính xác của việc KIỂM (lẽ ra phải dễ hơn).
+(b) Planner sinh 6 SỐ MỚI ở 100% số lượt (0% lượt không tính toán), nhưng chỉ 3.3% có \boxed.
+    => Giả thuyết: chỉ dẫn "Do NOT compute the final answer" KHÔNG ngăn nó tính,
+       chỉ khiến nó GIẤU đáp án.
+
+## H21a — ÉP VÁ LỖI THAY VÌ GIẢI LẠI
+Verifier chỉ được phép: chỉ ra BƯỚC SAI ĐẦU TIÊN và viết tiếp TỪ ĐÓ. Phần trước GIỮ NGUYÊN
+bằng CODE (ghép chuỗi), không phụ thuộc việc model có nghe lời hay không.
+  V_std  : verifier như hiện tại (mốc)
+  V_patch: ghép [tiền tố Solver tới bước sai] + [phần viết tiếp của Verifier]
+  V_none : chỉ đáp án (đối chứng)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| V_patch > V_std rõ rệt, và tỉ lệ tái sử dụng TĂNG | H21a XÁC NHẬN. "Verifier là solver thứ hai" là lỗi THIẾT KẾ, sửa được bằng cách ép vá lỗi. |
+| V_patch ~ V_std | Ép vá lỗi không giúp. Vấn đề không nằm ở việc giải lại. Ghi rõ đã bác. |
+| V_patch < V_std | Tiền tố của Solver là GÁNH NẶNG, không phải tài sản — giải lại từ đầu TỐT HƠN. Đảo ngược trực giác, phải ghi rõ. |
+| tỉ lệ tái sử dụng KHÔNG tăng | CAN THIỆP VÔ HIỆU (ghép chuỗi không có tác dụng). Không kết luận về H21a. |
+
+## H21b — PLANNER CÓ ĐANG GIẤU ĐÁP ÁN KHÔNG?
+  P_hide : prompt hiện tại ("Do NOT compute the final answer")
+  P_free : BỎ chỉ dẫn đó, cho phép tính thoải mái
+  P_ask  : YÊU CẦU tính luôn đáp án
+Đo: độ chính xác của ĐÁP ÁN NGẦM trong kế hoạch (trích 3 cách), và acc của Solver phía sau.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| acc đáp án ngầm của P_hide ≈ P_free ≈ P_ask | XÁC NHẬN: chỉ dẫn chỉ GIẤU, không ngăn tính. "Planner" thực chất là một Solver bị bịt miệng. |
+| P_hide THẤP HƠN rõ rệt | Chỉ dẫn THỰC SỰ ngăn nó tính. Bác giả thuyết. |
+| P_free/P_ask làm Solver phía sau TỐT HƠN | Giấu đáp án đang GÂY HẠI -> nên bỏ chỉ dẫn đó. Khuyến nghị trực tiếp. |
+| P_free/P_ask làm Solver phía sau TỆ HƠN | Giấu đáp án CÓ tác dụng (tránh mỏ neo). Giữ nguyên thiết kế. |
+
+## Ghi chú trung thực
+H21a có thể thất bại: tôi đã từng thử ép định dạng cho Verifier (struct/V_ST) và nó LÀM TỆ ĐI.
+Lần này khác ở chỗ việc GIỮ TIỀN TỐ do CODE làm, không nhờ model tuân lệnh.

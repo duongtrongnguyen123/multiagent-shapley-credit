@@ -28,8 +28,21 @@ chính bảng Shapley ban đầu:
 > | Verifier có giá trị (MATH 1.5B) | +1.4đ, [−1,+4] | ❌ CHƯA XÁC LẬP |
 > | **"Truyền trace đảo dấu 16.6đ giữa 2 task"** | GSM8K [−10,−2] vs MATH [−6,+4] **CHỒNG LẤN** | ❌ **ĐÃ HẠ CẤP** |
 >
-> **Lợi ích của đa tác tử chỉ được xác lập ở ĐÚNG 1/4 ô của lưới** (task × cỡ model):
-> model yếu, bài dễ. Ở ba ô còn lại, khoảng tin cậy chứa số 0.
+> **Lợi ích của Verifier được xác lập ở 2/4 ô** — và chúng tạo thành ĐƯỜNG CHÉO:
+>
+> | `V_gain` | GSM8K | MATH |
+> |---|---|---|
+> | **1.5B** | **+4.4 [+1,+8]** ✅ 5/5 | +1.4 [−1,+4] ❌ |
+> | **7B** | +1.0 [−3,+5] ❌ | **+4.4 [+2,+8]** ✅ 5/5 |
+>
+> Xếp theo **độ chính xác của Solver** thì cơ chế lộ ra:
+> MATH·1.5B `.402` (NGỢP) ❌ · GSM8K·1.5B `.668` ✅ · MATH·7B `.598` ✅ · GSM8K·7B `.884` (BÃO HOÀ) ❌
+>
+> ### ⇒ VERIFY CHỈ SINH LỢI Ở GIỮA DẢI ĐỘ KHÓ (~.60–.67)
+> Quá khó → verifier không phân biệt nổi đúng/sai (**độ chính xác can thiệp chỉ 56%**).
+> Quá dễ → không còn gì để sửa. Và giá trị của verifier nằm ở **ĐỘ CHÍNH XÁC KHI CAN THIỆP**,
+> không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
+> đó chính là cơ chế của kết quả +14.0đ.
 
 ## Phát biểu đã bị RÚT LẠI
 
@@ -53,15 +66,49 @@ bị diễn giải lại sau khi đã nhìn thấy số.
 
 ## 0. Tóm tắt kết quả
 
-**Những gì có tác dụng (đo được):**
+> ## KẾT LUẬN CHÍNH — QUY TẮC QUYẾT ĐỊNH (tất cả đều đã kiểm 5 fold)
+>
+> ### ⚖️ 1. THAY model mạnh bằng "model yếu + verifier" — TUỲ TASK
+> | | acc | so 7B đơn | token 7B |
+> |---|---|---|---|
+> | **GSM8K** 1.5B+soát7B | .810 | **−10.0đ** (5/5 âm) | 105k vs 120k (−12%) |
+> | **MATH** 1.5B+soát7B | .563 | **−3.0đ [−8.3,+3.3]** ⟵ chứa 0 | **119k vs 152k (−22%)** |
+>
+> GSM8K: **BỊ THỐNG TRỊ** (7B đã bão hoà .910 → hạ xuống 1.5B mất quá nhiều).
+> MATH: **NGANG BẰNG về thống kê, rẻ hơn 22%** (7B chỉ ở .593 → verifier bù lại được).
+>
+> ### ✅ 2. THÊM verifier LÊN TRÊN model tốt nhất — CÓ ÍCH ở GIỮA DẢI ĐỘ KHÓ
+> | Model tốt nhất | acc | + verifier | kết quả |
+> |---|---|---|---|
+> | GSM8K·7B | .910 (**bão hoà**) | −1.0 [−4,+3] | ❌ vô ích |
+> | **MATH·7B** | **.593 (giữa dải)** | **+7.7 [+1.7,+11.7]** | ✅ **5/5 fold** |
+>
+> **`.670` (7B giải + 7B soát trên MATH) là cấu hình TỐT NHẤT đo được trong toàn dự án.**
+>
+> ### ⇒ QUY TẮC
+> 1. **Dùng model mạnh nhất** khi nó CHƯA bão hoà. Nếu nó ĐÃ bão hoà trên task của bạn,
+>    "model nhỏ + verifier" vẫn thua rõ (−10đ). Nếu nó ở GIỮA DẢI, phương án đó NGANG BẰNG
+>    mà rẻ hơn ~22% — một lựa chọn chi phí hợp lệ.
+> 2. **Chỉ thêm verifier** nếu model đó đạt độ chính xác **~.60–.67** trên task của bạn.
+>    Quá cao (bão hoà) → không còn gì để sửa. Quá thấp → verifier không phân biệt nổi đúng/sai
+>    (**độ chính xác can thiệp chỉ 56%** ở 1.5B, so với **98%** ở 7B).
+> 3. Bộ tổng hợp LLM **trung tính** — miễn là xử lý định dạng đầu ra (fallback miễn phí: −6.4 → +1.0).
+>
+> **Vì sao đáng nói:** nghiên cứu đa tác tử hầu như luôn so với mốc *cùng model, một lượt gọi*
+> (ở đây cho **+18.2đ**, rất thuyết phục) và hiếm khi so với *model lớn hơn ở chi phí tương đương*
+> (cho **−10.0đ**). Đo cả hai thì kết luận ĐẢO NGƯỢC.
+>
+> *(MATH: `bs_m` đang chạy để chốt bảng 1 trên task khó.)*
 
-| Phương pháp | Kết quả |
-|---|---|
-| Solver 1.5B + **Verifier 7B** (post-hoc) | **.46 → .64**, 9 sửa / **0 phá** |
-| **loop** — Solver giải lại sau khi bị chê (MATH 1.5B) | **.40 → .60** |
-| Pipeline đầy đủ vs Solver đơn độc (GSM8K 1.5B) | **.632 → .744** |
-| **Self-consistency** maj@8 (MATH 1.5B) | **.50 → .60** |
-| **Sửa lỗi bằng chạy test** (HumanEval, 3 vòng) | .787 → **.835** (7B), **0 phá** |
+**Các kết quả ĐÃ kiểm bằng 5 fold (mọi fold cùng dấu):**
+
+| Cải thiện | Thiết lập | Hiệu ứng | Khoảng |
+|---|---|---|---|
+| Solver 1.5B + Verifier 7B | MATH, n=300 | **+14.0đ** | [+8.3, +20.0] |
+| ↳ riêng phần do verifier MẠNH HƠN | MATH, n=300 | +11.0đ | [+3.3, +16.7] |
+| Pipeline đa tác tử vs Solver đơn | GSM8K, n=500 | +5.6đ | [+4, +8] |
+| Verifier (P→S→V vs P→S) | GSM8K, n=500 | +4.4đ | [+1, +8] |
+| Aggregator **GÂY HẠI** | MATH, n=500 | **−6.4đ** | [−9, −4] |
 
 **Phân bổ đóng góp đo ở mức đầu-cuối** (GSM8K 1.5B, n=250): P→S `.684` →
 **P→S→V `.732`** → P→S→V→A `.744`. **Verifier mang gần như toàn bộ giá trị.**
@@ -120,6 +167,16 @@ thu về bằng `sync_once.py`.
 ---
 
 ## 2. Kết quả chính
+
+> ⚠️ **CẢNH BÁO ĐỌC MỤC NÀY.** Các giá trị Shapley dưới đây được tính từ phép đo **MỘT LẦN**
+> cho mỗi tổ hợp, TRƯỚC khi chúng tôi đo sàn nhiễu. Sàn nhiễu đo được (5 fold, cùng cấu hình)
+> cho thấy giá trị của một vai có thể trải **7 điểm** giữa các lần lấy mẫu.
+> ⇒ **Mọi chênh lệch dưới ~5 điểm trong các bảng dưới đây KHÔNG phải bằng chứng.**
+> Cụ thể, chênh lệch giữa Solver (+0.252) và Verifier (+0.252) là 0, và khoảng cách giữa
+> Aggregator (+0.190) với hai vai kia nằm TRONG sàn nhiễu. Bảng MATH (φ từ +0.017 đến +0.148)
+> có MỌI chênh lệch nằm dưới ngưỡng.
+> Các kết luận đã được kiểm bằng 5 fold nằm ở [`RESULTS.md`](shapley/docs/RESULTS.md) mục 0–1.
+
 
 Trên GSM8K (bài toán dễ) với cấu hình đồng nhất 1.5B (N=1319), thứ hạng đóng góp như sau:
 

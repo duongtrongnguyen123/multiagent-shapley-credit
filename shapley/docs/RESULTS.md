@@ -39,11 +39,23 @@ lệch 1–3 điểm vốn không có ý nghĩa thống kê.*
 
 | Cải thiện | Thiết lập | Hiệu ứng | Khoảng | Fold cùng dấu |
 |---|---|---|---|---|
-| **Pipeline đa tác tử vs Solver đơn độc** | GSM8K 1.5B | **+5.6đ** | **[+4, +8]** | **5/5** ✅ |
-| **Verifier** (P→S→V vs P→S) | GSM8K 1.5B | **+4.4đ** | **[+1, +8]** | **5/5** ✅ |
+| **Solver 1.5B + Verifier 7B** | **MATH**, n=300 | **+14.0đ** | **[+8.3, +20.0]** | **5/5** ✅ |
+| ↳ *riêng phần do verifier MẠNH HƠN* (V7 − V15) | MATH, n=300 | **+11.0đ** | **[+3.3, +16.7]** | **5/5** ✅ |
+| **Pipeline đa tác tử vs Solver đơn độc** | GSM8K 1.5B | +5.6đ | [+4, +8] | **5/5** ✅ |
+| **Verifier** (P→S→V vs P→S) | GSM8K 1.5B | +4.4đ | [+1, +8] | **5/5** ✅ |
 
-Đây là HAI cải thiện duy nhất hiện có thanh sai số và mọi fold đều cùng dấu.
-**Cả hai đều chỉ trên GSM8K.**
+> ### KẾT QUẢ MẠNH NHẤT: BẤT ĐỐI XỨNG NĂNG LỰC
+> **Solver nhỏ + Verifier LỚN HƠN = +14.0đ trên MATH, 43 SỬA / 1 PHÁ trên 300 bài.**
+> Điều then chốt: verifier **cùng cỡ** chỉ cho +3.0đ với khoảng **chạm 0** (vô giá trị).
+> Giá trị nằm ở **CHÊNH LỆCH NĂNG LỰC**, không ở việc có thêm một vai.
+>
+> Điều này giải câu đố MATH: mọi thí nghiệm verifier ĐỒNG CỠ trên MATH đều ra ~0
+> (nf_m15: +1.4, khoảng [−1,+4]). Đổi sang verifier 7B: **+14.0**.
+> Và nó hoạt động ĐÚNG Ở TASK mà truyền trace, che giá trị, Aggregator đều thất bại.
+>
+> **Khuyến nghị thực dụng:** đừng nhân bản cùng một model thành nhiều vai. Dùng model nhỏ để
+> GIẢI, model lớn để SOÁT — rẻ hơn dùng model lớn cho mọi vai, và đây là cấu hình duy nhất
+> trong dự án vượt qua kiểm chứng thanh sai số trên bài khó.
 
 ### 1b. LỚN nhưng mới đo MỘT LẦN (vượt ngưỡng 5đ, chưa có thanh sai số)
 
@@ -68,7 +80,7 @@ bản thân mẫu hình "không bao giờ phá" là tín hiệu đáng tin, dù 
 
 | Can thiệp | Kết quả |
 |---|---|
-| **Aggregator trên MATH** | **−6.4đ**, khoảng [−9, −4], **5/5 fold âm** |
+| **Aggregator trên MATH** | **−6.4đ** [−9,−4] 5/5 âm — NHƯNG xem ghi chú ⬇️ |
 | Verifier trên MATH | +1.4đ, khoảng [−1, +4] **chứa 0** → CHƯA XÁC LẬP |
 | interleaving, cổng lọc, truyền kế hoạch, che giá trị, verify bằng thực thi trên math | đều bị bác |
 
@@ -95,20 +107,28 @@ bản thân mẫu hình "không bao giờ phá" là tín hiệu đáng tin, dù 
 | **Planner → Solver** | GSM8K / MATH 1.5B | .632→.684 / .405→.425 |
 | **Verifier đọc lời giải** | MATH 7B, n=200 | **+6.5đ** (17 sửa / 4 phá) |
 
-## 2. Phát hiện trung tâm: HIỆU ỨNG KHÔNG BỀN, ĐỔI DẤU THEO Ô
+## 2. BẢNG "ĐẢO DẤU" — ĐÃ HẠ CẤP TOÀN BỘ VÌ THIẾU KIỂM CHỨNG
 
-Cùng một lựa chọn kiến trúc, cùng mã nguồn, **đổi dấu** khi đổi task hoặc đổi cỡ model:
+Các bản trước trình bày bảng dưới đây như PHÁT HIỆN CHỦ ĐẠO. Sau khi đo sàn nhiễu (mục 0),
+**chỉ MỘT dòng từng được kiểm bằng 5 fold — và nó KHÔNG SỐNG SÓT.** Bốn dòng còn lại
+vẫn chỉ là **đo một lần mỗi ô**, chưa từng có thanh sai số.
 
-| Can thiệp | Ô A | Ô B | Biên độ đảo |
-|---|---|---|---|
-| **Truyền trace cho V và A** (H10, đã khử nhiễu) | GSM8K 1.5B: **+7.6đ** | MATH 1.5B: **−9.0đ** | 16.6đ |
-| Che giá trị trung gian (H6) | GSM8K 1.5B: **+8.4đ** | MATH 1.5B: **−2.0đ** | 10.4đ |
-| Verifier bịt mắt vs đọc lời giải (H1) | GSM8K 1.5B: **+2.0đ** | MATH 7B: **−6.0đ** | 8.0đ |
-| Context KHÔNG liên quan (X_cross) | GSM8K/MATH 1.5B: **−3.6 / −3.5đ** | MATH 7B: **+5.5đ** | 9.1đ |
-| Aggregator LLM vs bỏ phiếu (H2) | MATH 1.5B: **−6.7đ** | MATH 7B: **+1.7đ** | 8.4đ |
+| Can thiệp | Ô A | Ô B | Biên độ | Đã kiểm 5 fold? | Kết cục |
+|---|---|---|---|---|---|
+| **Truyền trace cho V và A** (H10/H14) | GSM8K: −7.0 **[−10,−2]** | MATH: **+0.4 [−6,+4]** | — | ✅ **CÓ** | ❌ **BỊ HẠ CẤP** — hai khoảng CHỒNG LẤN, MATH chứa 0 |
+| Che giá trị trung gian (H6) | GSM8K +8.4đ | MATH −2.0đ | 10.4 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
+| Verifier bịt mắt vs đọc (H1) | GSM8K +2.0đ | MATH 7B −6.0đ | 8.0 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
+| Context không liên quan (X_cross) | 1.5B −3.6/−3.5đ | MATH 7B +5.5đ | 9.1 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
+| Aggregator LLM vs bỏ phiếu (H2/H12) | MATH 1.5B −6.7đ | MATH 7B +1.7đ | 8.4 | ❌ chưa | ⚠️ CHƯA KIỂM CHỨNG |
 
-**Kết luận:** không được suy rộng một ô ra toàn cục. Một bài báo chỉ báo cáo một ô trong bảng
-trên sẽ trông rất thuyết phục — và sai.
+> ### BÀI HỌC QUAN TRỌNG NHẤT CỦA DỰ ÁN
+> Chúng tôi xây cả một câu chuyện trên bảng này. Khi đem **đúng một dòng** đi kiểm bằng 5 fold,
+> nó **tan biến**: con số +9.0 trên MATH hoá ra là nhiễu, chạy lại cho +0.4.
+> **Không có lý do gì để tin bốn dòng còn lại vững hơn dòng đã sụp.**
+> Mọi dòng ⚠️ phải được đọc như GIẢ THUYẾT CHƯA KIỂM CHỨNG, không phải kết quả.
+>
+> Phát biểu duy nhất còn đứng: **truyền trace có ích trên GSM8K** (−7.0đ khi cắt, 5/5 fold);
+> **trên MATH không đo được tác dụng**. Đó là PHỤ THUỘC ĐỘ LỚN theo task, KHÔNG phải đảo dấu.
 
 ## 3. Phân bổ đóng góp đo ở mức ĐẦU-CUỐI (H11, GSM8K 1.5B, n=250)
 
@@ -119,7 +139,9 @@ trên sẽ trông rất thuyết phục — và sai.
 | P→S→V→A (đủ) | .744 | +6.0 |
 | **P→S→A** (chỉ Aggregator) | **.428** | **−25.6** |
 
-**Verifier mang gần như toàn bộ giá trị**; Aggregator thêm được +1.2 khi đứng sau Verifier.
+**Verifier mang gần như toàn bộ giá trị** (+4.8 — đã kiểm 5 fold: +4.4, khoảng [+1,+8]).
+⚠️ Con số "Aggregator thêm +1.2" **DƯỚI ngưỡng nhiễu 5 điểm** và khoảng của nó là [−1,+3]
+(chứa 0) → **KHÔNG phải bằng chứng**.
 *Lưu ý trung thực:* nhánh P→S→A là **cấu hình thoái hoá** — một bộ tổng hợp chỉ nhận **một**
 ứng viên thì không có gì để tổng hợp, nên nó đi giải lại và hỏng. Con số −25.6 phản ánh điều đó,
 không phải "Aggregator vô dụng".
@@ -132,8 +154,37 @@ không phải "Aggregator vô dụng".
 | P→S (bỏ hẳn V và A) | .684 |
 | P→S→V→A, **chỉ đáp án** | **.668** |
 
-Hai vai V và A **bị bỏ đói context thì tệ hơn là không có chúng** (−1.6), nhưng có context thì
-đáng **+6.0**. Giá trị của một vai **không tách rời** khỏi thứ mà nó được nhận.
+⚠️ Chênh lệch −1.6 (TRIM vs NOVA) **DƯỚI ngưỡng nhiễu** → không kết luận được.
+Phần ĐỨNG VỮNG: FULL vs TRIM = **−7.0đ, khoảng [−10,−2], 5/5 fold** (rc_g15) — tức trên GSM8K,
+truyền trace cho V và A thực sự đáng giá. Trên MATH 1.5B thì **không** ([−6,+4], rc_m15).
+
+## 4b. PHÁT BIỂU HỢP NHẤT (đang chờ mắt xích cuối)
+
+| Trên MATH | Solver+Verifier 1.5B | Verifier 7B |
+|---|---|---|
+| giá trị Verifier | +1.4 **[−1, +4]** ❌ | **+14.0 [+8.3, +20.0]** ✅ 5/5 fold |
+| giá trị truyền trace | +0.4 **[−6, +4]** ❌ | **−17.5 khi cắt** ⚠️ *1 lần đo, đang kiểm (H17)* |
+| Aggregator | **−6.4 [−9, −4]** hại | ~0 |
+
+> **BỘ MÁY ĐA TÁC TỬ CHỈ HOẠT ĐỘNG KHI MODEL ĐI KIỂM ĐỦ MẠNH ĐỂ DÙNG ĐƯỢC THỨ NÓ ĐƯỢC ĐƯA.**
+> Ở 1.5B, verifier không khai thác nổi phần trình bày → truyền trace vô ích, và mọi can thiệp
+> đều thất bại. Ở 7B, cả verifier lẫn trace đều bắt đầu sinh lợi.
+>
+> ⚠️ **Nửa sau của phát biểu (phần về trace) đang dựa trên MỘT phép đo.** Kernel `rc_m7` đang
+> kiểm bằng 5 fold. Nếu khoảng chứa 0, phát biểu phải THU HẸP còn: *"một verifier MẠNH HƠN
+> có giá trị"* — và không được nói gì về trace.
+
+> ### ⚠️ ĐÍNH CHÍNH: "AGGREGATOR GÂY HẠI" LÀ LỖI PARSING (H20, af_m)
+> Đọc trace: **85%** ca "phá" của Aggregator KHÔNG phát ra `\boxed`, chỉ **5%** là chọn nhầm thật.
+> Thêm một FALLBACK miễn phí (không có `\boxed` → lấy đáp án Verifier, **không gọi thêm model**):
+>
+> | | A_gain | khoảng | fold |
+> |---|---|---|---|
+> | base | **−6.4** | [−9,−4] | 5/5 âm |
+> | **+ fallback** | **+1.0** | **[0,+2]** | **5/5 ≥ 0** |
+>
+> ⇒ Phép ĐO đúng, nhưng DIỄN GIẢI "LLM tổng hợp phán đoán kém" là SAI.
+> Phát biểu đúng: **bộ tổng hợp LLM trung tính một khi đã xử lý định dạng đầu ra.**
 
 ## 5. Ràng buộc theo năng lực model
 

@@ -882,3 +882,360 @@ nf_g7/nf_m7 lỗi `NameError: _sp is not defined`: bản vá 7B chèn `import su
   QUANT nên BẢN VÁ LÀ THỪA. Đã bỏ vá, đẩy lại version 2.
   `ast.parse` KHÔNG bắt được lỗi này (cú pháp vẫn hợp lệ) -> cần thêm kiểm tra ngữ nghĩa,
   hoặc tốt hơn: ĐỪNG sinh kernel bằng thay chuỗi khi template đã có sẵn tham số.
+
+## [Loop] VÒNG #19 — HỢP NHẤT (theo đúng cam kết ở pre-registration #15: DỪNG mở giả thuyết mới)
+Không có kernel nào xong trong vòng này (5 kernel vẫn chạy). Chuyển sang RÀ SOÁT các khẳng định
+cũ mâu thuẫn với sàn nhiễu.
+
+### 1. HẠ CẤP TOÀN BỘ BẢNG "ĐẢO DẤU" trong RESULTS.md
+Bảng này từng là PHÁT HIỆN CHỦ ĐẠO với 5 dòng. Sự thật:
+  - CHỈ 1/5 dòng từng được kiểm bằng 5 fold (truyền trace, H14) -> VÀ NÓ ĐÃ SỤP.
+  - 4 dòng còn lại vẫn là đo MỘT LẦN mỗi ô, CHƯA TỪNG có thanh sai số.
+=> Đã đánh dấu 4 dòng đó là "⚠️ CHƯA KIỂM CHỨNG" và ghi rõ:
+   "Không có lý do gì để tin bốn dòng còn lại vững hơn dòng đã sụp."
+   Đây là suy luận bắt buộc: cùng một quy trình đo, cùng cỡ mẫu, cùng loại hiệu ứng.
+
+### 2. THÊM CẢNH BÁO VÀO BẢNG SHAPLEY GỐC (README mục 2)
+Bảng φ ban đầu (Solver +0.252, Verifier +0.252, Aggregator +0.190, Planner -0.014) được tính
+TRƯỚC khi có sàn nhiễu. Đối chiếu ngưỡng ~5 điểm:
+  - Solver vs Verifier: chênh 0 -> vô nghĩa để xếp hạng
+  - Aggregator so với hai vai kia: chênh ~6 điểm, SÁT ngưỡng
+  - Bảng MATH (φ .017 -> .148): MỌI chênh lệch DƯỚI ngưỡng -> KHÔNG xếp hạng được
+=> Đã thêm cảnh báo đọc ngay trên bảng, dẫn sang RESULTS.md mục 0-1 cho các kết luận đã kiểm.
+
+### GHI CHÚ TỰ ĐÁNH GIÁ
+Hai vòng gần nhất không tạo ra kết quả mới nào — chỉ đi HẠ CẤP kết quả cũ của chính mình.
+Đó là công việc đúng đắn ở giai đoạn này, nhưng cũng cho thấy: nếu đo sàn nhiễu TỪ ĐẦU,
+phần lớn 19 vòng vừa qua đã có thể tránh được.
+
+## [Loop] VÒNG #20 — H15 RƠI HÀNG 1: XÁC NHẬN. KẾT QUẢ MẠNH NHẤT CỦA DỰ ÁN SỐNG SÓT.
+as_m — MATH, 5 fold x 60 (n=300), Solver 1.5B + Verifier {1.5B | 7B}, cả 2 model cùng trên GPU:
+  V7_gain      mean +14.0  range [+8.3, +20.0]  5/5 fold DƯƠNG   <-- không chứa 0
+  V7_minus_V15 mean +11.0  range [+3.3, +16.7]  5/5 fold DƯƠNG   <-- không chứa 0
+  V15_gain     mean  +3.0  range [ 0.0,  +6.7]  CHỨA 0           <-- CHƯA XÁC LẬP
+  Tổng 300 bài: verifier 7B = 43 SỬA / 1 PHÁ | verifier 1.5B = 15 SỬA / 6 PHÁ
+=> Rơi HÀNG 1 của pre-registration #14: XÁC NHẬN. Đây là kết quả dương DUY NHẤT của dự án
+   vượt qua kiểm chứng bằng thanh sai số.
+
+### BA ĐIỀU ĐƯỢC XÁC LẬP MÀ TRƯỚC ĐÂY CHƯA CÓ
+1. Con số "+18 điểm ở n=50" LÀ THẬT — nó nằm TRONG khoảng [+8.3, +20.0] đo ở n=300.
+   Tôi từng cảnh báo "9 sửa / 0 phá có thể do may mắn"; ở n=300 tỉ lệ là 43 SỬA / 1 PHÁ.
+2. Lợi ích đến từ việc VERIFIER MẠNH HƠN, KHÔNG phải từ việc CÓ verifier.
+   V7 - V15 dương ở 5/5 fold. Verifier CÙNG CỠ chỉ cho +3.0 với khoảng chạm 0 -> vô giá trị.
+   Đây là phân tách mà thí nghiệm n=50 ban đầu KHÔNG hề tách được.
+3. Kết quả này ở trên MATH — đúng cái task mà Verifier, Aggregator, truyền trace và che giá trị
+   ĐỀU THẤT BẠI. Bất đối xứng năng lực hoạt động ĐÚNG Ở NƠI mọi thứ khác không hoạt động.
+
+### HỢP NHẤT VỚI CÂU ĐỐ MATH TRƯỚC ĐÓ
+nf_m15: verifier 1.5B trên MATH = +1.4 [-1, +4] -> CHƯA XÁC LẬP.
+as_m  : verifier 7B  trên MATH = +14.0 [+8.3, +20.0] -> XÁC LẬP.
+=> Giá trị của vai Verifier trên MATH KHÔNG nằm ở VAI TRÒ, mà nằm HOÀN TOÀN ở NĂNG LỰC model.
+   Một verifier yếu ngang solver thì vô dụng; một verifier mạnh hơn thì đáng +14 điểm.
+   Phát biểu này giải thích được vì sao mọi thí nghiệm verifier đồng cỡ trên MATH đều ra ~0.
+
+## [Loop] VÒNG #21 — BA KẾT QUẢ HỘI TỤ VỀ MỘT LỜI GIẢI THÍCH: TẤT CẢ LÀ NĂNG LỰC
+### nf_g7 (H16, GSM8K 7B, 5 fold) — solver .884 (gần bão hoà)
+  V_gain mean +1.0 range [-3, +5] CHỨA 0 | A_gain mean +0.4 range [-1, +1] CHỨA 0
+=> Khi solver đã mạnh, KHÔNG vai nào có giá trị đo được. Khớp HÀNG 1 của pre-reg #15 (chờ nf_m7).
+
+### tr_m7 (H10 tại MATH 7B, n=200) — truyền trace ĐÁNG +17.5 ĐIỂM
+  solo .625 | FULL .680 | TRIM .505 | NOVA .640
+  trim_minus_full = -17.5   full_minus_solo = +5.5
+  ĐỐI CHIẾU MATH 1.5B (rc_m15, 5 fold): trim_minus_full = +0.4, khoảng [-6, +4] -> KHÔNG có gì.
+=> Cắt trace mất 17.5 điểm ở 7B nhưng KHÔNG mất gì ở 1.5B. Vượt xa ngưỡng nhiễu 5 điểm,
+   NHƯNG là đo MỘT LẦN -> cần kiểm bằng 5 fold trước khi khẳng định.
+
+### ft_m15 (trace đầy đủ MATH 1.5B, n=300)
+  acc_S .4133 | acc_V .4267 | acc_A .3733 (Aggregator LÀM MẤT 9 điểm — khớp nf_m15 A_gain -6.4)
+  median: plan 873 | sol 986 | ver 1087 | agg 142
+  plan_boxed .157 | plan_has_ans_boxed .070 | plan_has_ans_tail .173
+  (GSM8K tương ứng: .033 / .013 / .320) -> "Planner giải hộ" vẫn là hiện tượng của GSM8K.
+
+### HỢP NHẤT: MỌI THỨ QUY VỀ NĂNG LỰC CỦA MODEL ĐI KIỂM
+  Trên MATH:            1.5B                          7B
+  giá trị Verifier      +1.4  [-1, +4]  KHÔNG          +14.0 [+8.3, +20.0]  CÓ (5/5 fold)
+  giá trị truyền trace  +0.4  [-6, +4]  KHÔNG          +17.5 (1 lần đo)     CÓ
+  Aggregator            -6.4  [-9, -4]  HẠI            ~0
+=> PHÁT BIỂU HỢP NHẤT: BỘ MÁY ĐA TÁC TỬ CHỈ HOẠT ĐỘNG KHI MODEL ĐI KIỂM ĐỦ MẠNH ĐỂ
+   DÙNG ĐƯỢC THỨ NÓ ĐƯỢC ĐƯA. Ở 1.5B, verifier không khai thác nổi trace -> truyền trace vô ích
+   và MỌI can thiệp đều thất bại. Ở 7B, cả verifier lẫn trace đều bắt đầu sinh lợi.
+   Một câu này giải thích được: H15 (xác nhận), tr_m7, và gần như toàn bộ thất bại ở 1.5B
+   suốt 20 vòng vừa qua.
+
+## [Loop] VÒNG #22 — HỢP NHẤT TIẾP (không mở thí nghiệm mới, theo cam kết pre-reg #16)
+Hai kernel cuối (nf_m7, rc_m7) vẫn chạy. Không có số mới. Tiếp tục RÀ SOÁT tài liệu.
+
+### Đã sửa trong RESULTS.md
+1. §3 (phân bổ đóng góp): con số "Aggregator thêm +1.2" nay ghi rõ DƯỚI ngưỡng nhiễu và
+   khoảng [-1,+3] chứa 0 -> KHÔNG phải bằng chứng. Phần Verifier +4.8 nay dẫn kèm bản đã
+   kiểm 5 fold (+4.4, [+1,+8]).
+2. §4 (giá trị V,A phụ thuộc context): chênh lệch -1.6 (TRIM vs NOVA) DƯỚI ngưỡng -> không
+   kết luận. Phần còn đứng: FULL vs TRIM = -7.0 [-10,-2] 5/5 fold trên GSM8K; trên MATH 1.5B
+   thì KHÔNG ([-6,+4]).
+3. Thêm §4b: PHÁT BIỂU HỢP NHẤT, kèm cảnh báo rõ rằng NỬA SAU (phần về trace) mới chỉ có
+   MỘT phép đo và đang được kiểm bởi rc_m7.
+
+### TRẠNG THÁI TÀI LIỆU
+Mọi con số trong RESULTS.md giờ đều được gắn một trong ba nhãn:
+  ✅ đã kiểm 5 fold, mọi fold cùng dấu
+  ⚠️ chưa kiểm / đang kiểm / dưới ngưỡng nhiễu
+  ❌ đã bị hạ cấp hoặc rút lại
+Đây là điều lẽ ra phải làm từ vòng đầu, nhưng chỉ khả thi sau khi có sàn nhiễu.
+
+## [Loop] VÒNG #23 — KẾT LUẬN CUỐI CÙNG (VÀ KHẮC NGHIỆT NHẤT) CỦA DỰ ÁN
+Tính từ dữ liệu ĐÃ CÓ, không cần kernel mới:
+                              1.5B solo   cấu hình đa tác tử TỐT NHẤT   7B SOLO      chênh
+  GSM8K                        .6680       .7240  (+5.6đ)               **.8840**   -16.0đ
+  MATH                         .4233       .5633  (+14.0đ)              **.6250**   - 6.2đ
+CHI PHÍ THÔ: pipeline 1.5B 4 vai = 4 lượt x 1.5B = 6.0B-params-lượt (còn sinh NHIỀU token hơn)
+             7B solo            = 1 lượt x 7B   = 7.0B-params-lượt
+=> XẤP XỈ NHAU VỀ COMPUTE. Nhưng 7B-solo CHÍNH XÁC HƠN Ở CẢ HAI TASK.
+
+### => MỌI "CẢI THIỆN" MÀ DỰ ÁN XÁC NHẬN ĐỀU BỊ THỐNG TRỊ BỞI "CHỈ DÙNG MODEL LỚN HƠN"
+  Cả hai kết quả đã kiểm bằng 5 fold (+5.6đ pipeline GSM8K; +14.0đ bất đối xứng MATH)
+  đều là cải thiện SO VỚI MỐC YẾU. Khi so với phương án đơn giản nhất — bỏ hẳn kiến trúc
+  đa tác tử và dùng model lớn hơn — cả hai đều THUA, ở mức compute tương đương.
+  Khoảng cách 16.0đ và 6.2đ đều VƯỢT XA ngưỡng nhiễu 5 điểm -> hướng kết luận là chắc chắn.
+
+### VÌ SAO ĐIỀU NÀY QUAN TRỌNG
+Các nghiên cứu đa tác tử thường so với mốc "cùng model, một lượt gọi" — mốc đó DỄ THẮNG.
+Rất hiếm khi so với "dùng model lớn hơn ở compute tương đương". Dự án này đã đo cả hai,
+và kết quả đảo ngược hoàn toàn kết luận.
+
+### CẢNH BÁO TRUNG THỰC
+1. Đây là so sánh CHÉO KERNEL trên các tập con KHÁC NHAU. Kernel bs_m đang chạy sẽ cho
+   so sánh đầu-đối-đầu SẠCH trên MATH; cần một kernel tương tự cho GSM8K.
+2. Hạch toán compute là THÔ (số lượt x số tham số), chưa tính chính xác token sinh ra.
+3. Chỉ 2 task, 2 cỡ model. Không suy rộng ra mọi kiến trúc đa tác tử.
+NHƯNG: với biên độ 16 và 6.2 điểm so với ngưỡng nhiễu 5 điểm, HƯỚNG của kết luận khó đảo.
+
+## [Loop] VÒNG #24 — ĐƯA KẾT LUẬN CHÍNH LÊN ĐẦU README (không có kernel nào xong)
+4 kernel vẫn chạy. Công việc vòng này: sửa README, vì nó vẫn đang KHUYẾN NGHỊ một cấu hình
+mà chính dữ liệu của mình cho thấy là BỊ THỐNG TRỊ.
+- Vòng #20 tôi đã đưa "dùng model nhỏ GIẢI, model lớn SOÁT" lên tiêu đề README.
+- Vòng #23 phát hiện cấu hình đó THẤP HƠN 7B-solo 6.2 điểm (MATH) và pipeline 1.5B thấp hơn
+  7B-solo 16.0 điểm (GSM8K), ở compute tương đương.
+=> Đã thay phần đầu README bằng KẾT LUẬN CHÍNH có cảnh báo ⚠️, giữ nguyên bảng các kết quả
+   đã kiểm 5 fold (chúng vẫn ĐÚNG — chỉ là cải thiện so với mốc yếu), và ghi rõ rằng
+   bs_m/bs_g đang chạy để kiểm chéo; nếu chúng lật kết quả thì mục này sẽ bị rút lại.
+GHI CHÚ: đây là lần thứ HAI trong dự án tôi phải hạ cấp chính thứ mình vừa đưa lên tiêu đề
+   (lần trước: bảng "đảo dấu"). Bài học: KHÔNG đưa kết quả lên tiêu đề khi chưa so với
+   MỌI mốc tầm thường có liên quan — đặc biệt mốc "chỉ dùng model lớn hơn".
+
+## [Loop] VÒNG #25 — ĐỌC TRACE: "AGGREGATOR GÂY HẠI" PHẦN LỚN LÀ LỖI ĐỊNH DẠNG, KHÔNG PHẢI LỖI PHÁN ĐOÁN
+Không kernel nào xong (4 kernel 7B 4-bit vẫn chạy — chúng nặng thật). Chuyển sang ĐỌC 600 trace
+đầy đủ từ ft_g15/ft_m15 (đây là lần thứ TƯ đọc output thô, và lại ra phát hiện).
+
+### ĐỐI CHIẾU CƠ BẢN
+  MATH  (ft_m15, n=300): Aggregator PHÁ 20 / SỬA 4   -> net -16/300 = -5.3đ (khớp nf_m15 A_gain -6.4)
+  GSM8K (ft_g15, n=300): Aggregator PHÁ  0 / SỬA 5   -> net +5/300
+  median độ dài output Aggregator: GSM8K 18 ký tự | MATH 142 ký tự
+
+### PHÂN LOẠI 20 CA PHÁ TRÊN MATH (một ca có thể thuộc nhiều nhóm)
+  KHÔNG có \boxed trong output          17  (85%)
+  TỰ GIẢI LẠI (đáp án khác CẢ HAI ứng viên) 10  (50%)
+  output THOÁI HOÁ (<200 ký tự)          8  (40%)
+  **CHỌN NHẦM ứng viên (đúng việc của nó)  1  ( 5%)**
+  Tỉ lệ có \boxed trên toàn bộ 300 output Aggregator: 82% -> 18% KHÔNG trích được đáp án.
+
+### BA KIỂU HỎNG ĐỌC ĐƯỢC BẰNG MẮT
+  1. TỰ GIẢI LẠI: viết 1096 ký tự suy luận riêng, sai, rồi phát ra đáp án của chính nó,
+     BỎ QUA cả hai ứng viên. (Cùng kiểu "giải lại thay vì kiểm" đã thấy ở Verifier.)
+  2. KHÔNG CHỐT ĐÁP ÁN: bàn xem ứng viên nào trình bày hay hơn ("Candidate 1 offers more
+     insight") rồi KHÔNG phát ra \boxed -> bộ trích lấy nhầm số.
+  3. THOÁI HOÁ HOÀN TOÀN: phát ra "You are an AI assistant that helps people find information..."
+     — tức nhả lại một đoạn giống system prompt.
+
+### KẾT LUẬN PHẢI GHI
+ĐO ĐƯỢC: kết quả "-6.4đ Aggregator gây hại trên MATH" (đã kiểm 5/5 fold) PHẦN LỚN LÀ
+  LỖI ĐỊNH DẠNG/TRÍCH XUẤT, KHÔNG PHẢI lỗi phán đoán. Chỉ 1/20 ca là thực sự "chọn nhầm".
+=> Con số vẫn ĐÚNG như một phép đo hệ thống đầu-cuối, NHƯNG DIỄN GIẢI "LLM tổng hợp phán đoán kém"
+   LÀ SAI. Diễn giải đúng: ở bài khó, Aggregator không tuân được định dạng đầu ra, nên hệ thống
+   mất điểm — một vấn đề KỸ THUẬT có thể sửa (ép định dạng, fallback về ứng viên khi thiếu \boxed),
+   chứ không phải giới hạn về năng lực suy luận.
+=> ĐÂY LÀ LẦN THỨ TƯ đọc trace thô lật lại một diễn giải. Tỉ lệ 4/4.
+
+## [Loop] VÒNG #26 — ĐỌC TRACE (lần 5): VERIFIER HỎNG KHÁC HẲN AGGREGATOR, VÀ CƠ CHẾ CỦA +14 LỘ RA
+### PHÂN LOẠI CA "PHÁ" CỦA VERIFIER (từ ft_m15 / ft_g15, mỗi bộ n=300)
+  MATH : SỬA 18 / PHÁ 14 | 13/14 (93%) là ĐỔI SANG ĐÁP ÁN KHÁC, chỉ 1 ca lỗi trích xuất
+  GSM8K: SỬA 32 / PHÁ 22 | 22/22 (100%) là ĐỔI SANG ĐÁP ÁN KHÁC, 0 ca lỗi trích xuất
+=> TRÁI NGƯỢC HẲN với Aggregator (85% là lỗi ĐỊNH DẠNG). Ca "phá" của Verifier là
+   LỖI PHÁN ĐOÁN THẬT: nó đọc một lời giải ĐÚNG rồi chủ động sửa thành SAI.
+   Không thể chữa bằng cách ép định dạng.
+=> HAI VAI HỎNG THEO HAI CÁCH KHÁC NHAU:
+     Aggregator: lỗi KỸ THUẬT (không phát ra \boxed) -> SỬA ĐƯỢC (H20 đang kiểm)
+     Verifier  : lỗi PHÁN ĐOÁN (sửa nhầm lời giải đúng) -> KHÔNG sửa được bằng định dạng
+
+### ĐỘ CHÍNH XÁC CỦA CAN THIỆP — CƠ CHẾ CỦA KẾT QUẢ +14.0
+  Verifier          số SỬA  số PHÁ   ĐỘ CHÍNH XÁC KHI CAN THIỆP
+  1.5B (MATH ft)      18      14            56%
+  1.5B (GSM8K ft)     32      22            59%
+  1.5B (MATH as_m)    15       6            71%
+  **7B  (MATH as_m)   43       1            98%**
+=> VERIFIER 1.5B CHỈ NHỈNH HƠN TUNG ĐỒNG XU về việc KHI NÀO nên can thiệp (56-59%).
+   Nó làm việc thật theo cả hai chiều và chỉ hoà vốn nhẹ -> ĐÚNG LÝ DO vì sao giá trị đo được
+   của nó nhỏ và khoảng tin cậy chứa 0.
+=> VERIFIER 7B không chỉ can thiệp NHIỀU HƠN (44 vs 21) mà còn CHÍNH XÁC HƠN HẲN (98% vs 71%).
+   ĐÂY LÀ CƠ CHẾ ĐỊNH LƯỢNG CỦA KẾT QUẢ +14.0 — thứ mà H15 xác nhận nhưng không giải thích được.
+=> PHÁT BIỂU GỌN: giá trị của một verifier KHÔNG nằm ở việc nó bắt được bao nhiêu lỗi,
+   mà ở ĐỘ CHÍNH XÁC CỦA QUYẾT ĐỊNH CAN THIỆP. Dưới ~60% thì nó gần như vô dụng;
+   ở 98% thì nó đáng +14 điểm.
+
+## [Loop] VÒNG #27 — nf_m7 HOÀN TẤT LƯỚI: RƠI HÀNG 2, LÀ 2/4 Ô CHỨ KHÔNG PHẢI 1/4
+nf_m7 (MATH 7B, 5 fold x 100): V_gain theo fold +2, +5, +4, +8, +3
+  V_gain mean +4.4  range [+2, +8]  5/5 fold DƯƠNG -> XÁC LẬP
+  A_gain mean +0.6  range [-1, +3]  chứa 0 -> chưa xác lập
+=> Rơi HÀNG 2 của pre-reg #15: "MATH 7B TOÀN DƯƠNG -> thành 2/4 ô, phải sửa phát biểu."
+   Khẳng định "chỉ 1/4 ô xác lập" ở vòng #17 ĐÃ SAI. Phải sửa thành 2/4.
+
+### LƯỚI ĐẦY ĐỦ (cả 4 ô cùng chuẩn 5-fold) — VÀ NÓ LÀ ĐƯỜNG CHÉO
+  V_gain      GSM8K                      MATH
+  1.5B        +4.4 [+1,+8]  5/5  ✅      +1.4 [-1,+4]  ❌
+  7B          +1.0 [-3,+5]  ❌           +4.4 [+2,+8]  5/5  ✅
+
+### CƠ CHẾ: XẾP THEO ĐỘ CHÍNH XÁC CỦA SOLVER THÌ MỌI THỨ SÁNG RA
+  ô            acc Solver   verifier
+  MATH 1.5B      .402       ❌ (model bị NGỢP)
+  GSM8K 1.5B     .668       ✅ +4.4
+  MATH 7B        .598       ✅ +4.4
+  GSM8K 7B       .884       ❌ (đã BÃO HOÀ)
+=> ĐO ĐƯỢC: VERIFY CHỈ SINH LỢI Ở GIỮA DẢI ĐỘ KHÓ (~.60-.67 độ chính xác của Solver).
+   Quá khó -> verifier không phân biệt nổi đúng/sai (độ chính xác can thiệp chỉ 56%, vòng #26).
+   Quá dễ -> không còn gì để sửa.
+=> Phát biểu này THAY THẾ "đa tác tử giúp model yếu ở bài dễ" (vòng #17) — cái đó chỉ là
+   NGẪU NHIÊN của hai ô tôi đã đo. Phát biểu mới DỰ ĐOÁN ĐƯỢC cả hai ô thành công LẪN hai ô
+   thất bại, và khớp trực tiếp với số liệu độ chính xác can thiệp ở vòng #26.
+### GHI CHÚ
+Đây là lần thứ hai một khẳng định "chỉ 1/4 ô" bị sửa vì đo thêm dữ liệu. Bài học lặp lại:
+KHÔNG phát biểu tổng quát khi lưới còn ô trống.
+
+## [Loop] VÒNG #28 — H20 RƠI HÀNG 1: "AGGREGATOR GÂY HẠI" LÀ LỖI PARSING, SỬA BẰNG 1 DÒNG
+af_m (MATH 1.5B, 5 fold x 100):
+  A_gain base      mean -6.4  range [-9, -4]   5/5 ÂM      (khớp chính xác nf_m15)
+  A_gain FALLBACK  mean +1.0  range [ 0, +2]   5/5 >= 0    <-- HẾT HẠI
+  A_gain forced    mean -2.4  range [-4, -1]   vẫn âm
+  A_gain both      mean +0.6  range [-1, +1]
+  boxed_rate: base .768 -> forced .874 (ép định dạng CÓ hiệu lực nhưng KHÔNG đủ)
+=> Rơi HÀNG 1 đã khoá trước: XÁC NHẬN. "Aggregator gây hại" là LỖI KỸ THUẬT.
+FALLBACK LÀ MIỄN PHÍ: khi output không có \boxed thì LẤY ĐÁP ÁN CỦA VERIFIER —
+  KHÔNG gọi thêm model, không tốn token. Chỉ vậy mà -6.4 thành +1.0.
+ÉP ĐỊNH DẠNG KÉM HƠN FALLBACK (-2.4 so với +1.0): khớp với các kết quả struct/showwork trước đây —
+  ép định dạng làm giảm chất lượng suy luận.
+
+### PHẢI SỬA LẠI MỘT KHẲNG ĐỊNH ĐÃ TỪNG ĐƯỢC COI LÀ CHẮC CHẮN
+Trước: "Aggregator GÂY HẠI trên MATH −6.4đ, đã kiểm 5/5 fold" — nằm trong danh sách
+  kết quả ĐÃ XÁC NHẬN của RESULTS.md và README.
+Nay:  phép ĐO vẫn đúng (với cấu hình chuẩn, aggregator làm mất 6.4đ), NHƯNG NGUYÊN NHÂN là
+  KHÔNG TRÍCH ĐƯỢC ĐÁP ÁN, không phải phán đoán kém. Sau khi xử lý định dạng, aggregator
+  TRUNG TÍNH (+1.0, khoảng [0,+2]).
+PHÁT BIỂU ĐÚNG: "Bộ tổng hợp LLM KHÔNG giúp cũng KHÔNG hại, một khi đã xử lý định dạng đầu ra.
+  Tác hại quan sát được trước đây là hiện vật của khâu trích xuất."
+
+### CHU TRÌNH ĐẦY ĐỦ ĐÃ HOẠT ĐỘNG
+đọc trace (vòng #25) -> 85% ca phá không có \boxed -> giả thuyết "lỗi định dạng, không phải
+phán đoán" -> ĐĂNG KÝ TRƯỚC (#19) -> chạy -> XÁC NHẬN.
+Đây là LẦN ĐẦU trong dự án một giả thuyết sinh ra từ việc ĐỌC OUTPUT THÔ sống sót qua
+kiểm chứng có đăng ký trước.
+
+## [Loop] VÒNG #29 — bs_g: H18 RƠI HÀNG 2. BẤT ĐỐI XỨNG BỊ THỐNG TRỊ, CÓ THANH SAI SỐ.
+bs_g (GSM8K, 5 fold x 100, so ĐẦU-ĐỐI-ĐẦU trên CÙNG bài):
+  S15 (1.5B đơn)            .628
+  S15_V7 (1.5B + soát 7B)   .810   (+18.2 so với S15 — THẬT, nhưng...)
+  **S7 (7B đơn)             .910**
+  S7_V7 (7B + soát 7B)      .900
+  asym_minus_S7  mean -10.0  range [-13, -6]  5/5 fold ÂM  -> NGOÀI NHIỄU
+  S7V7_minus_S7  mean  -1.0  range [ -4, +3]  chứa 0
+=> Rơi HÀNG 2 của pre-reg #17: PHẢI HẠ CẤP KHUYẾN NGHỊ Ở ĐẦU README.
+   Lợi ích +18.2 so với mốc 1.5B là THẬT nhưng VÔ NGHĨA THỰC TIỄN: chỉ cần dùng 7B là hơn 10 điểm.
+
+### HẠCH TOÁN TOKEN — LẬP LUẬN "RẺ HƠN" CŨNG SỤP
+  token do 7B sinh ra: bất đối xứng 105,172  |  7B đơn 120,145
+  => chỉ TIẾT KIỆM 12.5% token 7B, để ĐÁNH ĐỔI 10 ĐIỂM chính xác.
+  Tính accuracy trên mỗi token 7B: .810/105k vs .910/120k -> chênh nhau <2%, coi như BẰNG NHAU.
+  VÀ điều đó CHƯA TÍNH lượt giải 1.5B mà bất đối xứng vẫn phải trả.
+  => KỂ CẢ VỀ CHI PHÍ, bất đối xứng KHÔNG THẮNG. Nó thua ở CẢ HAI TRỤC.
+
+### XÁC NHẬN LẠI: SOÁT VÔ NGHĨA KHI SOLVER ĐÃ MẠNH
+  S7_V7 - S7 = -1.0, khoảng [-4, +3] chứa 0. Khớp nf_g7 (GSM8K 7B bão hoà .884).
+  Ở mức .910 thì không còn gì để sửa — đúng như "dải độ khó" ở vòng #27.
+
+### TRẠNG THÁI KHUYẾN NGHỊ CỦA DỰ ÁN
+Vòng #20 tôi đưa "model nhỏ GIẢI + model lớn SOÁT" lên tiêu đề README.
+Vòng #23 nghi ngờ (so chéo kernel). Vòng #29 XÁC NHẬN bằng 5 fold đầu-đối-đầu: BỊ THỐNG TRỊ.
+=> Khuyến nghị đó ĐÃ CHẾT trên GSM8K. Chờ bs_m để chốt trên MATH.
+
+## [Loop] VÒNG #30 — NỬA CÒN LẠI CỦA KẾT LUẬN: ĐA TÁC TỬ CÓ ÍCH, NHƯNG ÁP LÊN MODEL TỐT NHẤT
+Tôi đã phát biểu "kiến trúc đa tác tử bị thống trị" — CHỈ ĐÚNG với phiên bản DÙNG MODEL NHỎ.
+Kiểm lại phiên bản áp lên MODEL TỐT NHẤT:
+  GSM8K 7B: S7 .910 (BÃO HOÀ) -> S7+V7 .900 = -1.0đ, khoảng [-4,+3] CHỨA 0 -> vô ích
+  MATH  7B: PS .598 (GIỮA DẢI) -> PSV .642 = +4.4đ, khoảng [+2,+8] 5/5 DƯƠNG -> CÓ ÍCH
+=> ĐA TÁC TỬ THỰC SỰ CÓ GIÁ TRỊ khi áp LÊN TRÊN model mạnh nhất — với điều kiện model đó
+   nằm GIỮA DẢI ĐỘ KHÓ của task.
+
+### QUY TẮC QUYẾT ĐỊNH HOÀN CHỈNH (mọi số đều đã kiểm 5 fold)
+  1. LUÔN dùng model mạnh nhất có thể. ĐỪNG thay bằng "model nhỏ + verifier" (-10.0đ, 5/5 âm).
+  2. CHỈ thêm verifier nếu model đó đạt ~.60-.67 trên task.
+     Bão hoà (.91) -> không còn gì để sửa. Quá khó (.40) -> verifier chỉ đúng 56% khi can thiệp.
+  3. Bộ tổng hợp LLM TRUNG TÍNH nếu xử lý định dạng (fallback miễn phí: -6.4 -> +1.0).
+
+### GHI CHÚ TỰ PHÊ BÌNH
+Ba vòng liền tôi phát biểu kết luận theo hướng CÀNG LÚC CÀNG TIÊU CỰC ("bị thống trị"),
+trong khi dữ liệu ĐÃ CÓ SẴN cho thấy nửa tích cực (nf_m7, đo từ vòng #27).
+Tôi đã không ghép hai mảnh lại vì đang tập trung vào việc hạ cấp khẳng định cũ.
+BÀI HỌC: khi đang sửa sai, vẫn phải rà xem dữ liệu có phần KHẲNG ĐỊNH nào bị bỏ sót không —
+thiên lệch theo hướng tiêu cực cũng là thiên lệch.
+
+## [Loop] VÒNG #31 — bs_m: MATH KHÁC HẲN GSM8K, RƠI ĐỒNG THỜI HÀNG 3 VÀ HÀNG 4
+bs_m (MATH, 5 fold x 60, đầu-đối-đầu cùng bài):
+  S15 (1.5B đơn)          .4233
+  S15_V7 (bất đối xứng)   .5633   asym_minus_S7 mean -3.0  range [-8.3, +3.3] CHỨA 0
+  S7 (7B đơn)             .5933
+  **S7_V7 (7B + soát 7B)  .6700   S7V7_minus_S7 mean +7.7 range [+1.7,+11.7] 5/5 DƯƠNG**
+  token 7B: asym 118,969 | S7 151,700 | S7_V7 260,595
+  verifier 7B: 43 SỬA / 1 PHÁ (khớp CHÍNH XÁC as_m)
+
+### HÀNG 3 — ĐÁNH ĐỔI CHI PHÍ HỢP LỆ (chỉ trên MATH)
+  Bất đối xứng NGANG 7B-đơn về mặt thống kê (khoảng chứa 0) mà dùng ÍT HƠN 21.6% token 7B.
+  => Trên MATH đây là LỰA CHỌN CHI PHÍ HỢP LỆ.
+  KHÁC HẲN GSM8K (bs_g): ở đó bất đối xứng -10.0đ, 5/5 fold ÂM -> BỊ THỐNG TRỊ.
+  CƠ CHẾ: GSM8K solver 7B đã .910 -> hạ xuống 1.5B mất rất nhiều. MATH solver 7B chỉ .593
+  -> khoảng cách đủ nhỏ để verifier bù lại. Khớp "dải độ khó" ở vòng #27.
+
+### HÀNG 4 — XÁC NHẬN ĐẦU-ĐỐI-ĐẦU: THÊM VERIFIER LÊN MODEL TỐT NHẤT CÓ ÍCH
+  S7_V7 hơn S7 +7.7đ, 5/5 fold DƯƠNG, khoảng [+1.7, +11.7].
+  .6700 LÀ CẤU HÌNH TỐT NHẤT ĐO ĐƯỢC TRONG TOÀN DỰ ÁN.
+  => Quy tắc 2 (thêm verifier khi model ở giữa dải độ khó) ĐƯỢC XÁC NHẬN bằng so sánh trực tiếp,
+     không chỉ suy ra từ lưới.
+
+### QUY TẮC 1 PHẢI ĐƯỢC ĐIỀU CHỈNH
+Trước: "ĐỪNG thay model mạnh bằng model yếu + verifier" (dựa trên GSM8K -10.0).
+Nay:  đúng khi model mạnh ĐÃ BÃO HOÀ trên task (GSM8K .910 -> mất 10 điểm).
+      Khi model mạnh chỉ ở GIỮA DẢI (MATH .593) thì bất đối xứng NGANG BẰNG mà rẻ hơn 21.6%.
+=> Phát biểu đúng: giá trị của bất đối xứng phụ thuộc vào việc model MẠNH đang ở đâu trên
+   dải độ khó — y hệt quy luật đã tìm ra cho verifier.
+
+## [Loop] VÒNG #32 — HAI CÂU HỎI CỦA NGƯỜI DÙNG, CẢ HAI ĐỀU ĐÚNG THEO SỐ ĐO
+### (1) "Verifier có làm đúng việc không? Lẽ ra nó chỉ cần SỬA và ĐI TIẾP từ đường của Solver"
+ĐO TỈ LỆ VERIFIER TÁI SỬ DỤNG SỐ CỦA SOLVER (bỏ các số vốn có trong đề):
+              toàn bộ   khi ĐỒNG Ý   khi SỬA   khi PHÁ
+  GSM8K        .17         .20        **0.00**  **0.00**
+  MATH         .83        1.00          .33       .29
+=> MỖI KHI CAN THIỆP, VERIFIER VỨT BỎ TOÀN BỘ CHUỖI CỦA SOLVER VÀ GIẢI LẠI TỪ ĐẦU.
+   Nó chỉ tái sử dụng khi ĐỒNG Ý (tức là đang đọc lướt và gật đầu).
+=> GIẢI THÍCH TRỌN VẸN con số 56%: nếu can thiệp = tự giải lại, thì độ chính xác can thiệp
+   phải xấp xỉ ĐỘ CHÍNH XÁC TỰ GIẢI của model (1.5B giải GSM8K ~.63), CHỨ KHÔNG PHẢI độ chính xác
+   của việc KIỂM (đáng lẽ dễ hơn nhiều).
+=> "VERIFIER KHÔNG PHẢI LÀ BỘ KIỂM TRA TỒI — NÓ LÀ MỘT SOLVER THỨ HAI ĐỘI LỐT BỘ KIỂM TRA."
+   Cũng giải thích luôn vì sao verifier 7B giúp nhiều (98%): thực chất ta đang mua một
+   SOLVER TỐT HƠN cho lượt thứ hai, không phải một bộ kiểm tra tốt hơn.
+
+### (2) "Planner có làm việc thật không, hay nó GIẢI XONG RỒI? Prompt 'đừng tính đáp án' chỉ ép nó GIẤU"
+ĐO ĐƯỢC: Planner sinh 6 SỐ MỚI ở 100% số lượt (0% lượt không tính toán) nhưng chỉ 3.3% có \boxed;
+  đáp án ngầm vẫn trích được ở 32-45% số kế hoạch.
+=> Ủng hộ mạnh giả thuyết: chỉ dẫn KHÔNG ngăn nó tính, chỉ khiến nó KHÔNG NÓI RA.
+
+### ĐÃ ĐĂNG KÝ TRƯỚC + PHÓNG (pre-reg #20)
+  H21a: verifier VÁ LỖI — GIỮ TIỀN TỐ CỦA SOLVER BẰNG CODE (ghép chuỗi), model chỉ viết phần TIẾP.
+        Khác lần trước (struct/V_ST) ở chỗ không phụ thuộc model có tuân lệnh hay không.
+  H21b: 3 kiểu Planner (giấu / tự do / yêu cầu tính) -> đo acc đáp án NGẦM và acc Solver phía sau.
+  Kernel: pa_g15, pa_m15 (5 fold x 80).
