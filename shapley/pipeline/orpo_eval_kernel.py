@@ -16,6 +16,7 @@ from collections import Counter
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"   # tránh DataParallel gather (xem orpo_kernel.py)
 
+TASK = "__TASK__"   # math = in-domain (adapter train tren MATH) | gsm8k = cross-task
 N    = __N__
 NF   = __NF__
 BS   = __BS__
@@ -35,7 +36,8 @@ if not _a:
     raise FileNotFoundError("khong thay adapter_config.json :: "
                             + str(glob.glob("/kaggle/input/**", recursive=True)[:30]))
 ADAPTER = os.path.dirname(sorted(_a, key=len)[0])
-CSV = sorted(glob.glob("/kaggle/input/**/math_500_test.csv", recursive=True), key=len)[0]
+FNAME = "main_test.csv" if TASK == "gsm8k" else "math_500_test.csv"
+CSV = sorted(glob.glob(f"/kaggle/input/**/{FNAME}", recursive=True), key=len)[0]
 ALL = list(csv.DictReader(open(CSV)))[:N]
 print(f"MODEL={MODEL}\nADAPTER={ADAPTER}\n{NF} fold x {FOLD}", flush=True)
 
@@ -104,15 +106,32 @@ def eq(p, g):
     try: return abs(float(p) - float(g)) < 1e-6
     except (ValueError, TypeError): return False
 def pred(t):
+    if TASK == "gsm8k":     # đáp án là SỐ, không có \boxed -> bắt số như template.py
+        m = (re.findall(r"(?:answer is|=)\s*\$?(-?\d[\d,]*(?:\.\d+)?)", t or "", re.I)
+             or NUM.findall(t or ""))
+        return m[-1].replace(",", "") if m else None
     b = boxed(t)
     if b is not None: return b
     m = re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I)
     return m[-1].strip() if m else None
 
-SOLVE_SYS = ("You are an expert mathematician. Solve the problem step by step. Put the final "
-             "answer in \\boxed{}.")
-AGG_SYS   = ("You are given a problem and one or more candidate solutions. Decide the correct "
-             "final answer by re-checking. Put the final answer in \\boxed{}.")
+if TASK == "gsm8k":
+    SOLVE_SYS = ("You are a careful math solver. Solve step by step, showing arithmetic. "
+                 "End with a line: 'The answer is <number>'.")
+    AGG_SYS   = ("You are given a math problem and one or more candidate solutions. Decide the "
+                 "correct final answer by re-checking and majority. End with 'The answer is "
+                 "<number>'.")
+    q_of = lambda r: r["question"]
+    def gold_of(r):
+        m = re.search(r"####\s*([-\d,\.]+)", r["answer"])
+        return m.group(1).replace(",", "").strip() if m else None
+else:
+    SOLVE_SYS = ("You are an expert mathematician. Solve the problem step by step. Put the final "
+                 "answer in \\boxed{}.")
+    AGG_SYS   = ("You are given a problem and one or more candidate solutions. Decide the correct "
+                 "final answer by re-checking. Put the final answer in \\boxed{}.")
+    q_of = lambda r: r["Question"]
+    gold_of = lambda r: boxed(r["Answer"])
 
 def agg_user(q, cands):
     body = "\n\n".join(f"Candidate {j+1}:\n{c}" for j, c in enumerate(cands))
@@ -129,8 +148,8 @@ fold_stats, sample = [], []
 
 for f in range(NF):
     rows = ALL[f * FOLD:(f + 1) * FOLD]
-    qs = [r["Question"] for r in rows]
-    gs = [boxed(r["Answer"]) for r in rows]
+    qs = [q_of(r) for r in rows]
+    gs = [gold_of(r) for r in rows]
     n = len(rows)
     print(f"\n===== FOLD {f+1}/{NF} ({n} bai) =====", flush=True)
 
@@ -147,7 +166,8 @@ for f in range(NF):
 
     # fallback miễn phí: không trích được \boxed -> lấy đáp án bỏ phiếu (AGG_FORMAT_CHECK.md)
     def fb(i):
-        p = boxed(agg_o[i])
+        # GSM8K không dùng \boxed -> fallback khi không trích được đáp án nào
+        p = boxed(agg_o[i]) if TASK != "gsm8k" else pred(agg_o[i])
         return p if p is not None else vote3[i]
 
     ok = {

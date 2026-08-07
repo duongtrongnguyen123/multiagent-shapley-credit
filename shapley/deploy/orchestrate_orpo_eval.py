@@ -9,15 +9,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt")).expanduser()
 SRC = ROOT / "pipeline" / "orpo_eval_kernel.py"
+TASK = os.environ.get("TASK", "math")
 N = int(os.environ.get("N", "150"))
 NF = int(os.environ.get("NF", "5"))
 BS = int(os.environ.get("BS", "4"))
 ACCOUNT = os.environ.get("ACCOUNT", "")
 KDIR = ROOT / "kernels_orpoeval"
 ADAPTER_DS = os.environ.get("ADAPTER_DS", "tbmdemi/orpo-agg-adapter")
-DATASETS = ["xatri007/qwen2-5-1-5b-instruct",
-            "open-benchmarks/math-500-measuring-mathematical-problem-solving",
-            ADAPTER_DS]
+DS_TASK = {"gsm8k": "thedevastator/grade-school-math-8k-q-a",
+           "math": "open-benchmarks/math-500-measuring-mathematical-problem-solving"}
+DATASETS = ["xatri007/qwen2-5-1-5b-instruct", DS_TASK[TASK], ADAPTER_DS]
 
 def accounts():
     out = []
@@ -47,13 +48,14 @@ def pick():
 def main():
     user, token = pick()
     src = (SRC.read_text(encoding="utf-8")
+              .replace("__TASK__", TASK)
               .replace("__N__", str(N)).replace("__NF__", str(NF))
               .replace("__BS__", str(BS)))
     left = re.findall(r"__[A-Z_]+__", src)
     if left:
         raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")
-    slug = "orpo-eval-math"
+    slug = f"orpo-eval-{TASK}"
     shutil.rmtree(KDIR, ignore_errors=True)
     d = KDIR / "eval"
     d.mkdir(parents=True)
@@ -69,7 +71,7 @@ def main():
                        env=dict(os.environ, KAGGLE_API_TOKEN=token),
                        capture_output=True, text=True)
     ok = "successfully pushed" in (r.stdout or "")
-    print(f"[{slug}] N={N} NF={NF} -> {user} {'OK' if ok else 'FAIL'} "
+    print(f"[{slug}] TASK={TASK} N={N} NF={NF} -> {user} {'OK' if ok else 'FAIL'} "
           f"{(r.stdout or r.stderr).strip().splitlines()[-1][:70]}", flush=True)
     (ROOT / "manifest_orpoeval.json").write_text(json.dumps(
         [{"user": user, "token": token, "slug": slug, "ref": ref, "pushed": ok}], indent=2))
