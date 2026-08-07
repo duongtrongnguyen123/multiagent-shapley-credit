@@ -1498,3 +1498,40 @@ mất một nửa số lần sửa. Đó là ĐÁNH ĐỔI, không phải cải 
 THÍ NGHIỆM TIẾP NẾU QUAY LẠI RL (chưa chạy, chưa đăng ký): phạt sự im lặng —
 reward 0 cho "không đổi khi Solver ĐÚNG" nhưng −0.5 cho "không đổi khi Solver SAI".
 Khi đó im lặng không còn miễn phí. HIỆN CHƯA LÀM: ưu tiên đang là H24.
+
+## [Loop] VÒNG #45 — H25 SỤP SÀN (100% nói "NO"); H24 ô MATH 1.5B; RÚT KINH NGHIỆM THIẾT KẾ
+### dt_g15 (H25, GSM8K 1.5B) — ĐO ĐƯỢC nhưng PHÉP ĐO KHÔNG HỢP LỆ cho câu hỏi đã đặt
+phân tầng: HIGH 78 | MID 99 | ZERO 23 (giải đúng trung bình .546/8 mẫu)
+| tầng | phát hiện trên CORRUPT | báo động giả trên CLEAN | PHÂN BIỆT |
+|---|---|---|---|
+| HIGH | .000 | .000 | **+.000** |
+| MID  | .000 | .000 | **+.000** |
+| ZERO | .000 | .000 | **+.000** |
+TRACE (392/392): model xuất ra ĐÚNG chuỗi `NO` trong **100%** lượt. Không phải lỗi parser —
+đã kiểm bằng trace. Ví dụ bị bỏ sót: `9 * 2 = <<9*2=17>>17` (9×2=18) -> vẫn trả lời "NO".
+
+THEO BẢNG ĐÃ KHOÁ, đây là HÀNG 3: "phát hiện thấp ở MỌI tầng -> model không làm nổi cả
+nhiệm vụ kiểm đơn giản nhất". NHƯNG tôi PHẢI ghi kèm KHIẾM KHUYẾT THIẾT KẾ CỦA CHÍNH TÔI:
+kernel đặt `max_new_tokens=16` và bắt trả lời YES/NO NGAY -> model KHÔNG CÓ CHỖ ĐỂ TÍNH.
+Phân biệt = 0.000 CHÍNH XÁC ở cả ba tầng, kể cả tầng HIGH (bài nó giải đúng 6-8/8 lần) —
+hiệu ứng SÀN như vậy thường tố cáo DỤNG CỤ ĐO, không phải năng lực.
+=> Phép đo này HỢP LỆ cho phát biểu HẸP: "1.5B không phán đoán đúng/sai được nếu KHÔNG được
+   suy luận trước". Nó KHÔNG HỢP LỆ cho câu hỏi đã đăng ký ("kiểm lỗi có tách rời khỏi giải").
+=> Tự phê: pre-reg #24 KHÔNG khoá ngưỡng hiệu lực (như H8 đã từng làm với exec_success_rate .50).
+   Nếu có khoá, tôi đã bắt được lỗi này TRƯỚC khi chạy. Ghi lại thành LUẬT: mọi thí nghiệm
+   phán đoán nhị phân phải khoá trước ngưỡng "tỉ lệ trả lời suy biến < 90%".
+=> CHẠY LẠI (dt2): cho phép kiểm từng bước rồi mới chốt `VERDICT: YES/NO`, 400 token.
+   H25 hiện là CHƯA KIỂM, KHÔNG phải đã bác.
+
+### rs_m15 (H24, MATH 1.5B) — ô thứ 2/4
+solver .405
+| nhánh | acc | thêm | sửa | phá |
+|---|---|---|---|---|
+| V_inf | .455 | +.050 | 13 | 3 |
+| V_bli | .460 | +.055 | 20 | 9 |
+| S_anc | .440 | +.035 | 17 | 10 |
+| S_pln | .430 | +.025 | 23 | **18** |
+Ở ô này S_pln SỬA NHIỀU NHẤT (23) nhưng PHÁ GẤP ĐÔI (18 vs 9) -> khớp HÀNG 3 của bảng khoá
+("sửa ngang nhau nhưng V_bli phá ít hơn -> khung kiểm tăng TÍNH CHỌN LỌC, không tăng PHÁT HIỆN").
+Ô GSM8K 1.5B trước đó khớp HÀNG 4 (mỏ neo làm hết việc, S_anc ≈ V_bli).
+=> HAI ô, HAI hàng khác nhau. CHƯA KẾT LUẬN — chờ rs_g7 và rs_m7. Bảng đã khoá yêu cầu >=3/4 ô.
