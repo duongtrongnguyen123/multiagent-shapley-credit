@@ -1535,3 +1535,42 @@ solver .405
 ("sửa ngang nhau nhưng V_bli phá ít hơn -> khung kiểm tăng TÍNH CHỌN LỌC, không tăng PHÁT HIỆN").
 Ô GSM8K 1.5B trước đó khớp HÀNG 4 (mỏ neo làm hết việc, S_anc ≈ V_bli).
 => HAI ô, HAI hàng khác nhau. CHƯA KẾT LUẬN — chờ rs_g7 và rs_m7. Bảng đã khoá yêu cầu >=3/4 ô.
+
+## [Loop] VÒNG #46 — H25b VẪN SUY BIẾN dù đã cho suy luận -> HÀNG 4 (VÔ HIỆU); MẤT MÁY REMOTE
+### dt2_g15 (H25b, GSM8K 1.5B, 400 token + dòng VERDICT)
+parse_fail = **0.000** (parser tốt, không phải lỗi đọc) | phân tầng HIGH 84 / MID 96 / ZERO 20
+| tầng | phát hiện | báo động giả | phân biệt | suy biến | HỢP LỆ |
+|---|---|---|---|---|---|
+| HIGH | .012 | .000 | +.012 | **.994** | **KHÔNG** |
+| MID  | .021 | .000 | +.021 | **.990** | **KHÔNG** |
+| ZERO | .050 | .050 | +.000 | **.950** | **KHÔNG** |
+
+=> **RƠI ĐÚNG HÀNG 4 của bảng đã khoá ở #26**: "vẫn suy biến >.90 dù đã cho 400 token ->
+   KHÔNG kết luận gì về năng lực. Ghi: nhiệm vụ phán nhị phân KHÔNG đo được ở 1.5B bằng cách hỏi này."
+   Cho model 400 token để kiểm từng bước KHÔNG cứu được: nó vẫn nói "NO" ~99% số lượt.
+
+GIÁ TRỊ CỦA VIỆC KHOÁ NGƯỠNG TRƯỚC: kernel TỰ ĐÁNH DẤU `VALID=false` cho cả 3 tầng.
+Vòng trước (dt_g15) tôi phải phát hiện thủ công bằng cách đọc trace; lần này ngưỡng đã khoá ở
+pre-reg #26 bắt được ngay trong kernel. Luật mới hoạt động đúng như mong đợi.
+
+ĐỌC ĐÚNG MỰC: đây KHÔNG phải bằng chứng "1.5B không kiểm được lỗi". Nó là bằng chứng
+"KHÔNG THỂ MOI RA phán đoán nhị phân từ 1.5B BẰNG PROMPT" — dù có cho suy luận dài.
+Phân biệt +.012/+.021 tuy dương và đúng hướng nhưng vô nghĩa khi 99% câu trả lời giống nhau.
+
+HỆ QUẢ TRỰC TIẾP CHO H27 (verifier PHÂN BIỆT, pre-reg #27): kết quả này làm H27 QUAN TRỌNG HƠN,
+không phải kém đi. Prompt không moi được phán đoán -> câu hỏi còn lại là HUẤN LUYỆN có moi được không.
+H27 dạy thẳng model xuất Yes/No trên 6400 nhãn tự động — nhắm ĐÚNG vào sự suy biến này.
+Nếu H27 cũng cho AUC <= .55 thì lúc đó mới được nói "1.5B không học được hàm phân biệt".
+
+### MẤT MÁY REMOTE (180.189.55.43:18440) — GHI NHẬN THIỆT HẠI TRUNG THỰC
+Máy KHÔNG còn truy cập được: cổng đóng, ping mất 100% gói. Toàn bộ hàng đợi 5 tầng mất:
+  role_rl (H26, đang ở ~bước 30/60) | eval_role | dtl7b | dtl15 | disc15
+**Chưa có kết quả nào của H26 được kéo về local.** Số liệu duy nhất còn giữ là các dòng log
+đã in ra trong phiên: `reveal` 0.28 -> 0.53 (bước 10 -> 20), Rp âm suốt, Rs ~+0.63.
+Đó là phần thưởng TRÊN MẺ HUẤN LUYỆN, KHÔNG phải kết quả đánh giá -> **H26 là CHƯA KIỂM.**
+KHÔNG được dùng mấy con số đó để kết luận gì; đặc biệt KHÔNG được nói "planner hội tụ về
+tiết lộ đáp án" như một phát hiện — nó mới chỉ là xu hướng trên mẻ, chưa qua tập kiểm.
+
+BÀI HỌC (thành LUẬT): mọi công việc chạy dài trên máy thuê PHẢI kéo kết quả trung gian về local
+theo chu kỳ (vd mỗi 10 bước scp `*_hist.json`), vì máy thuê có thể biến mất bất cứ lúc nào.
+Tôi đã KHÔNG làm việc đó và mất toàn bộ H26. Lỗi của tôi, không phải rủi ro không lường được.
