@@ -1449,3 +1449,52 @@ median_sol_len 861 -> 26 ký tự mà kết quả KHÔNG đổi.
 => XÁC NHẬN lại: bắt Solver trình bày làm Solver TỆ ĐI (−4.0 điểm).
 => Và ở MATH 7B, giấu phần trình bày khỏi Verifier KHÔNG đổi gì -> khớp với ô MATH 7B của H1
    (nhánh ngược chiều). Hai phép đo ĐỘC LẬP cùng nói: ở MATH 7B, H1 không đúng.
+
+## [Loop] VÒNG #44 — H23 (GRPO): RƠI ĐÚNG HÀNG 2 ĐÃ KHOÁ — "HỌC CÁCH IM LẶNG"
+GRPO chạy xong 100 bước (bp=24, k=4, 2400 bài GSM8K main_train), eval 5 fold GSM8K test.
+Cả hai nhánh DÙNG CHUNG lời giải của Solver (Solver luôn chạy trên model gốc) -> so sánh CẶP.
+
+| fold | S | V_base | V_lora | gain_base | gain_lora | can thiệp base | can thiệp lora | prec base | prec lora |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | .56 | .66 | .63 | +.100 | +.070 | 23 | 13 | .86 | **1.00** |
+| 1 | .63 | .68 | .66 | +.050 | +.030 | 20 |  8 | .78 | **1.00** |
+| 2 | .66 | .73 | .72 | +.070 | +.060 | 18 |  9 | .77 | **1.00** |
+| 3 | .62 | .66 | .63 | +.040 | +.010 | 21 |  5 | .70 | **1.00** |
+| 4 | .64 | .72 | .69 | +.080 | +.050 | 19 |  7 | .90 | **1.00** |
+
+ĐO ĐƯỢC:
+  ĐỘ CHÍNH XÁC CAN THIỆP: .70–.90 -> **1.00 ở CẢ 5 FOLD** (tổng 22 sửa / **0 phá**)
+  V_gain:                 +.068 -> **+.044**  (GIẢM 2.4 điểm, **0/5 fold** tốt hơn)
+  SỐ LẦN CAN THIỆP:       20.2/100 -> **8.4/100** (còn 42%)
+  tổng sửa/phá:           base 45/11  ->  lora **22/0**
+
+=> **RƠI ĐÚNG HÀNG 2 của bảng đã khoá**: "độ chính xác can thiệp tăng nhưng V_gain KHÔNG tăng
+   -> nó học cách CAN THIỆP ÍT ĐI chứ không CHÍNH XÁC HƠN. Phải báo kèm SỐ LẦN can thiệp."
+   Chính vì đã khoá trước chỉ số "số lần can thiệp" mà không thể kể câu chuyện đẹp
+   "độ chính xác can thiệp đạt 100%!" — nó đạt 100% bằng cách NÓI ÍT ĐI MỘT NỬA.
+
+CƠ CHẾ (rõ ràng, không phải suy đoán): reward = +1 sửa / −1 phá / 0 nếu không đổi.
+Chiến lược tối ưu TẦM THƯỜNG của reward này là CAN THIỆP ÍT ĐI: bớt can thiệp -> bớt phá ->
+reward trung bình tăng, trong khi "im lặng" được cho 0 điểm chứ không bị phạt.
+Model đã tối ưu ĐÚNG thứ tôi viết ra. Lỗi ở HÀM THƯỞNG, không ở thuật toán.
+Dấu vết trong log huấn luyện khớp: `nseq` (số chuỗi có advantage khác 0) tụt còn 4–24/96
+ở các bước cuối — phần lớn mẫu KHÔNG còn tín hiệu học vì chúng đã giống hệt nhau (đều im lặng).
+
+Ý NGHĨA THỐNG KÊ: −2.4 điểm là NHỎ, dưới sàn nhiễu không ghép cặp (~5 điểm). NHƯNG hai nhánh
+dùng CHUNG lời giải nên đây là so sánh CẶP, nhạy hơn; hướng nhất quán 5/5 fold
+(kiểm định dấu một phía p≈.031). Kết luận: GRPO KHÔNG cải thiện độ chính xác ròng.
+
+SO VỚI MỐC BẮT BUỘC (7B verifier KHÔNG huấn luyện, độ chính xác can thiệp 98%):
+LoRA đạt precision 1.00 nhưng chỉ mang +4.4 điểm, trong khi 7B không huấn luyện mang nhiều hơn.
+=> **Khuyến nghị GIỮ NGUYÊN: dùng model lớn hơn, đừng huấn luyện model nhỏ bằng RL.**
+
+PRIOR ĐÃ GHI TRƯỚC (pre-reg #22): "khả năng cao rơi vào hàng 2 hoặc 3". **Prior ĐÚNG.**
+Ghi rõ để cân bằng: rất nhiều prior khác của tôi trong dự án này đã SAI; lần này đúng.
+
+ĐIỀU CÓ THẬT VÀ ĐÁNG GIỮ: lora KHÔNG BAO GIỜ phá một đáp án đúng (0/11 so với base).
+Nếu ai cần một verifier "không gây hại" thì đây là cách có được nó — nhưng phải chấp nhận
+mất một nửa số lần sửa. Đó là ĐÁNH ĐỔI, không phải cải thiện.
+
+THÍ NGHIỆM TIẾP NẾU QUAY LẠI RL (chưa chạy, chưa đăng ký): phạt sự im lặng —
+reward 0 cho "không đổi khi Solver ĐÚNG" nhưng −0.5 cho "không đổi khi Solver SAI".
+Khi đó im lặng không còn miễn phí. HIỆN CHƯA LÀM: ưu tiên đang là H24.
