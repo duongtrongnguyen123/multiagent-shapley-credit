@@ -1253,3 +1253,17 @@ Bốn cơ chế đã đưa vào:
   (4) Aggregator hỏng vì ĐỊNH DẠNG (85% không có \boxed), chỉ 5% là chọn nhầm thật
 GHI CHÚ: cả bốn đều đến từ ĐỌC OUTPUT THÔ, không từ số tổng hợp. Năm lần đọc trace, năm lần
   lật lại một diễn giải. Đây là lập luận mạnh nhất cho quy tắc "mọi kernel PHẢI lưu trace".
+
+## [Loop] VÒNG #35 — rc_m7 CHẠM TRẦN 12H CỦA KAGGLE; PHÓNG LẠI BẢN NHẸ
+rc_m7 đã ở trạng thái RUNNING hơn 13 giờ — vượt trần 12h của Kaggle, coi như CHẾT.
+NGUYÊN NHÂN: tôi đặt 5 fold x 100 bài trên 7B 4-bit với 5 lượt sinh mỗi bài
+  (~2500 lượt sinh 7B 4-bit) — QUÁ NẶNG cho một session.
+ĐÃ PHÓNG LẠI: rc_m7b = 3 fold x 60 bài (180 bài, nhẹ hơn ~2.8 lần) trên tuananhtran37.
+  (zhongzhing đã hết quota tuần 30h — tài khoản thứ ba chạm quota trong dự án.)
+
+### BÀI HỌC VỀ QUY MÔ THÍ NGHIỆM
+Các kernel 7B 4-bit tốn gấp nhiều lần dự tính. Quy tắc rút ra cho phần còn lại:
+  - 1.5B fp16: 5 fold x 100 là AN TOÀN
+  - 7B  4-bit: TỐI ĐA 3 fold x 60, và chỉ khi số nhánh <= 3
+Ba tài khoản đã cạn quota tuần (truongdinhduc06, tuetrandoanminh, zhongzhing) -> phải
+tính ngân sách GPU như một ràng buộc thật, không phải tài nguyên vô hạn.
