@@ -1267,3 +1267,387 @@ Các kernel 7B 4-bit tốn gấp nhiều lần dự tính. Quy tắc rút ra cho
   - 7B  4-bit: TỐI ĐA 3 fold x 60, và chỉ khi số nhánh <= 3
 Ba tài khoản đã cạn quota tuần (truongdinhduc06, tuetrandoanminh, zhongzhing) -> phải
 tính ngân sách GPU như một ràng buộc thật, không phải tài nguyên vô hạn.
+
+## [Loop] VÒNG #36 — H21a VÔ HIỆU VÌ LỖI CODE CỦA TÔI; H21b ĐO SAI THỨ CẦN ĐO
+### H21a (verifier VÁ LỖI) — rơi HÀNG 4: THÍ NGHIỆM VÔ HIỆU
+  V_std .705 | V_patch .5875 | patch_minus_std -11.75 (5/5 fold ÂM)
+  reuse_std .157 -> reuse_patch .169  ==> TỈ LỆ TÁI SỬ DỤNG GẦN NHƯ KHÔNG ĐỔI
+=> Đúng HÀNG 4 đã khoá trước: "tỉ lệ tái sử dụng KHÔNG tăng -> CAN THIỆP VÔ HIỆU,
+   KHÔNG kết luận về H21a."
+NGUYÊN NHÂN LÀ LỖI CODE CỦA TÔI, không phải model không nghe lời:
+    merged=[f"{sols[i]}\n[correction]\n{v_pat[i]}" ...]   # có tính
+    a_pat=[pred(v_pat[i]) ...]                            # NHƯNG KHÔNG DÙNG
+  Tôi dựng chuỗi ghép rồi VỨT ĐI, và lấy đáp án CHỈ TỪ phần vá.
+  => Thí nghiệm thực chất đo "verifier bị bắt viết ngắn hơn" (494 vs 551 ký tự), chứ KHÔNG
+     đo "verifier giữ tiền tố của Solver". Con số -11.75 KHÔNG bác bỏ giả thuyết của người dùng.
+=> GIẢ THUYẾT VẪN CHƯA ĐƯỢC KIỂM. Phóng lại bản đã sửa.
+
+### H21b (Planner có giấu đáp án không?) — HÀNG 2 theo chữ nghĩa, NHƯNG CHỈ SỐ KHÔNG ĐỦ SỨC PHÂN GIẢI
+  plan_acc: hide .333 | free .485 | ask .463
+  solver sau đó: hide .670 | free .703  (chênh +3.25, khoảng [-3.75, +10.0] CHỨA 0, dưới ngưỡng 5đ)
+=> Theo chữ nghĩa: rơi HÀNG 2 ("chỉ dẫn THỰC SỰ làm giảm").
+=> NHƯNG PHẢI GHI RÕ HẠN CHẾ: chỉ số `plan_acc` chỉ đo ĐÁP ÁN TRÍCH XUẤT ĐƯỢC.
+   Tỉ lệ thấp hơn khi "hide" NHẤT QUÁN VỚI CẢ HAI cách giải thích: (a) nó không tính,
+   (b) nó có tính nhưng KHÔNG NÓI RA. Chỉ số này KHÔNG phân biệt được hai điều đó.
+   => Tôi đã thiết kế một phép đo không trả lời được câu hỏi mình đặt ra.
+BẰNG CHỨNG MẠNH HƠN VẪN LÀ CÁI CŨ: Planner sinh 6 SỐ MỚI ở 100% số lượt kể cả khi bị bảo
+   "đừng tính" (0% lượt không có số mới). Tức là NÓ VẪN TÍNH. Giả thuyết của người dùng
+   vẫn được ủng hộ bởi phép đếm số, không phải bởi phép đo này.
+### TỰ PHÊ BÌNH
+Hai vòng liên tiếp có lỗi do TÔI: rc_m7 quá nặng (chạm trần 12h), pa_* ghép chuỗi không dùng.
+Cả hai đều LÃNG PHÍ GPU và làm chậm câu trả lời cho câu hỏi của người dùng.
+
+## [Loop] VÒNG #37 — pa_m15: H21a VÔ HIỆU (cùng lỗi), H21b RƠI HÀNG 3 TRÊN MATH
+### H21a trên MATH — VÔ HIỆU, cùng lỗi code như pa_g15
+  V_std .420 | V_patch .355 | patch_minus_std -6.5 (5/5 ÂM)
+  reuse_std .820 -> reuse_patch .871 (CÓ tăng, nhưng MATH vốn đã cao sẵn)
+=> Dù tỉ lệ tái sử dụng có nhích lên, ĐÁP ÁN VẪN LẤY TỪ RIÊNG PHẦN VÁ (lỗi code đã nêu ở vòng #36).
+   Phép đo SAI bất kể reuse ra sao. KHÔNG dùng mức tăng reuse trên MATH để kết luận HÀNG 3.
+   CẢ HAI pa_g15 và pa_m15 ĐỀU VÔ HIỆU. pa2_g15 (bản đã sửa) mới là phép thử hợp lệ.
+
+### H21b — RƠI HÀNG 3: BỎ CHỈ DẪN "ĐỪNG TÍNH ĐÁP ÁN" THÌ SOLVER PHÍA SAU TỐT HƠN
+  MATH  solver sau kế hoạch: hide .4075 -> free .4450  = +3.75, theo fold: +2.5 +1.25 +1.25 +5.0 +8.75
+        -> 5/5 FOLD DƯƠNG
+  GSM8K solver sau kế hoạch: hide .6700 -> free .7025  = +3.25, 4/5 fold dương
+  GỘP HAI TASK: 9/10 fold DƯƠNG -> sign test p ~ .02
+=> ĐO ĐƯỢC: BỎ chỉ dẫn "Do NOT compute the final answer" của Planner LÀM SOLVER PHÍA SAU TỐT HƠN.
+   Hiệu ứng KHIÊM TỐN (~+3.5đ) nhưng NHẤT QUÁN qua cả hai task.
+=> Khớp với trực giác của người dùng theo đúng chỗ quan trọng: chỉ dẫn KHÔNG ngăn Planner tính
+   (nó vẫn sinh 6 số mới ở 100% lượt), nó chỉ khiến Planner GIẤU kết quả — và việc giấu đó
+   LÀM MẤT một phần giá trị cho Solver.
+=> KHUYẾN NGHỊ THỰC DỤNG: bỏ chỉ dẫn "đừng tính đáp án" khỏi prompt của Planner.
+   Đây là thay đổi MỘT DÒNG, không tốn thêm compute.
+LƯU Ý: plan_acc (hide .2125 vs free .2775 trên MATH) vẫn KHÔNG phân biệt được "không tính" với
+  "tính mà không nói" — hạn chế đã ghi ở vòng #36 vẫn giữ nguyên.
+
+## [Loop] VÒNG #38 — pa2_g15: H21a KHÔNG THỂ KIỂM ĐƯỢC TRÊN GSM8K (do chính cấu trúc pipeline)
+pa2_g15 (bản ĐÃ sửa lỗi ghép chuỗi): reuse_std .157 -> reuse_patch .175 — VẪN gần như không đổi.
+NGUYÊN NHÂN: trên GSM8K, Solver chỉ viết MỘT DÒNG (~18 ký tự, "The answer is 42.").
+  Hàm splice của tôi BỎ DÒNG CUỐI để nối phần vá -> bỏ luôn TOÀN BỘ -> merged = chỉ phần vá.
+=> H21a KHÔNG THỂ KIỂM TRÊN GSM8K VỀ MẶT CẤU TRÚC: không thể "vá" một lời giải KHÔNG CÓ BƯỚC NÀO.
+   Đây là hệ quả TRỰC TIẾP của phát hiện cũ: Planner đã giải xong nên Solver chỉ chép một dòng,
+   KHÔNG CÓ TIỀN TỐ để giữ lại.
+=> Chỉ MATH mới kiểm được (Solver viết ~986 ký tự; pa_m15 cho thấy reuse .820 -> .871).
+ĐÃ SỬA splice cho an toàn (chỉ bỏ dòng cuối khi lời giải có >=3 dòng) và phóng pa2_m15 trên MATH.
+GHI CHÚ: đây là lần thứ ba một thí nghiệm bị vô hiệu vì tôi giả định Solver có nhiều bước,
+  trong khi CHÍNH DỰ ÁN NÀY đã đo được nó chỉ viết một dòng. Tôi không áp dụng phát hiện của
+  chính mình khi thiết kế thí nghiệm sau đó.
+
+## [Loop] VÒNG #39 — KHÔNG CÓ KẾT QUẢ MỚI; CHỦ ĐỘNG KHÔNG PHÓNG THÊM
+3 kernel đang chạy (rc_m7b, pa2_m15, pc_he), không cái nào xong.
+QUYẾT ĐỊNH: KHÔNG phóng thí nghiệm thứ tư trong vòng này, vì:
+  - 3 câu hỏi còn mở đã được 3 kernel này phủ hết
+  - 3/19 tài khoản đã cạn quota tuần 30h -> ngân sách GPU là ràng buộc thật
+  - thêm kernel lúc này chỉ tạo hàng đợi mà không rút ngắn được thời gian có câu trả lời
+TRẠNG THÁI CÂU HỎI CÒN MỞ:
+  rc_m7b  : mắt xích cuối chưa có thanh sai số (truyền trace ở MATH 7B)
+  pa2_m15 : giả thuyết VÁ LỖI của người dùng — lần đầu kiểm được đúng cách (chỉ MATH mới đủ bước)
+  pc_he   : chỉ dẫn cấm của Planner có tổng quát sang CODE không (chấm bằng chạy test)
+
+## [Loop] VÒNG #41 — BA KẾT QUẢ LỚN: H21a BỊ BÁC (phép thử HỢP LỆ), H22 RƠI HÀNG 3+4
+### H21a (VÁ LỖI) — LẦN NÀY CAN THIỆP CÓ HIỆU LỰC, VÀ GIẢ THUYẾT BỊ BÁC
+  pat15 (MATH 1.5B, n=500, 5 fold): V_std .474 | V_patch .382 | patch−std **−9.2**
+     tái sử dụng: std .988 -> patch **1.000**  (CAN THIỆP CÓ HIỆU LỰC — khác hẳn lần trước)
+     sửa/phá: std 26/9  ->  patch **14/43**
+  pat7  (MATH 7B  , n=500, 5 fold): V_std .690 | V_patch .654 | patch−std **−3.6**
+     sửa/phá: std 38/5  ->  patch **38/23**
+=> Rơi HÀNG 3 của pre-reg #20: "V_patch < V_std -> TIỀN TỐ CỦA SOLVER LÀ GÁNH NẶNG,
+   GIẢI LẠI TỪ ĐẦU TỐT HƠN. Đảo ngược trực giác, phải ghi rõ."
+=> CƠ CHẾ: giữ tiền tố = GIỮ LUÔN LỖI. Số PHÁ tăng vọt (9->43 ở 1.5B, 5->23 ở 7B) vì verifier
+   bị cấm viết lại phần trước, nên lỗi nằm sớm trong chuỗi KHÔNG BAO GIỜ được sửa.
+=> ĐẢO NGƯỢC DIỄN GIẢI CŨ CỦA TÔI: tôi từng gọi "verifier giải lại thay vì kiểm" là KHIẾM KHUYẾT.
+   Thực ra ĐÓ CHÍNH LÀ THỨ LÀM NÓ HỮU ÍCH — giải lại là cách nó THOÁT khỏi lỗi của Solver.
+   Ép nó bám vào chuỗi cũ thì nó thừa hưởng luôn lỗi cũ.
+
+### H22 (bỏ chỉ dẫn cấm, trên CODE) — rơi ĐỒNG THỜI HÀNG 3 VÀ HÀNG 4
+  pc_he (HumanEval, 5 fold x 32): NoP **.5375** | P_hide .4312 | P_ask .4437 | P_free .3812
+  free−hide = **−5.0** (chỉ 1/5 fold dương)  -> HÀNG 3: ĐẢO DẤU so với toán (+3.5)
+  **NoP CAO HƠN MỌI nhánh có Planner (~+9đ)** -> HÀNG 4: TRÊN CODE, PLANNER GÂY HẠI, bỏ hẳn thì tốt hơn.
+  planCode: P_hide **.537** | P_free .738 | P_ask 1.0
+  => 53.7% kế hoạch VẪN CHỨA CODE dù bị cấm -> XÁC NHẬN trực tiếp giả thuyết của người dùng:
+     chỉ dẫn cấm KHÔNG ngăn được model làm, nó chỉ làm model GIẤU BỚT.
+     (Đây là phép đo trực tiếp, mạnh hơn hẳn chỉ số plan_acc gián tiếp ở H21b.)
+
+## [Loop] VÒNG #42 — pa2_m15 XÁC NHẬN ĐỘC LẬP H21a BỊ BÁC; GRPO TẠM DỪNG VÌ OOM
+### pa2_m15 (Kaggle, MATH 1.5B, 5 fold) — XÁC NHẬN LẦN THỨ BA
+  V_std .420 | V_patch .385 | patch−std **−3.5**, khoảng [−6.25, −1.25], 5/5 fold ÂM
+  tái sử dụng .820 -> **.955** (can thiệp CÓ hiệu lực)
+=> H21a BỊ BÁC trên BA lần chạy ĐỘC LẬP: pat15 (−9.2), pat7 (−3.6), pa2_m15 (−3.5).
+   Cả ba đều có reuse TĂNG -> đều là phép thử HỢP LỆ. Kết luận VỮNG.
+=> Phát biểu chốt: GIỮ TIỀN TỐ CỦA SOLVER LÀM VERIFIER TỆ ĐI. Việc "giải lại từ đầu" —
+   thứ tôi từng gọi là khiếm khuyết — CHÍNH LÀ cơ chế giúp verifier thoát khỏi lỗi của Solver.
+
+### GRPO (H23) — TẠM DỪNG: OOM DAI DẲNG, ĐÃ THỬ 4 CẤU HÌNH
+  BP12/CHUNK8 -> OOM | BP6/CHUNK4 + gradient checkpointing -> OOM
+  log_softmax bf16 thay float32 -> OOM | BP4/CHUNK1 -> VẪN OOM (1.36 GiB)
+CHẨN ĐOÁN: `vchunks` giữ TOÀN BỘ chuỗi đã sinh trên GPU suốt cả bước, cộng với đồ thị gradient
+  tích luỹ qua các chunk -> bộ nhớ không giảm dù chunk nhỏ. Cần viết lại: giải phóng chuỗi sau
+  mỗi chunk, hoặc tách hẳn pha sinh (lưu ra CPU) khỏi pha tính gradient.
+QUYẾT ĐỊNH: KHÔNG đốt thêm tài nguyên vào GRPO lúc này. Chuyển GPU sang sinh trace
+  (luôn có giá trị — mọi phát hiện cơ chế của dự án đều đến từ đọc trace).
+  GRPO vẫn giữ trong hàng đợi, sẽ viết lại phần quản lý bộ nhớ khi có điều kiện.
+GHI CHÚ TRUNG THỰC: prior tôi ghi trước ở pre-reg #22 là "khả năng cao rơi hàng 2 hoặc 3"
+  (RL không giúp). Việc dừng lại lúc này KHÔNG được tính là bằng chứng ủng hộ prior đó —
+  H23 vẫn là CHƯA KIỂM, không phải bị bác.
+
+## [Loop] VÒNG #43 — H1 KHÔNG KẾT LUẬN CHUNG; H2 BỊ BÁC Ở 7B (kết quả cũ PHẦN LỚN LÀ NHIỄU PROMPT)
+Bảy kernel của đăng ký trước #2 đã xong: bl_g15 / bl_g7 / bl_m15 / bl_m7 / agf_15 / agf_7 / sw_m7.
+
+### H1 — "verifier bị bịt mắt bắt lỗi tốt hơn". Chỉ số chính = `fixes` (CÙNG bộ lời giải)
+| ô | S | fixes I | fixes B | B>I? | add I | add B |
+|---|---|---|---|---|---|---|
+| GSM8K 1.5B | .632 | 20 | **42** | CÓ (2.1×) | +.056 | +.076 |
+| GSM8K 7B   | .916 |  4 |  **6** | có (yếu)  | −.008 | +.000 |
+| MATH 1.5B  | .405 | 13 | **19** | CÓ        | +.050 | +.050 |
+| MATH 7B    | .625 | **17** | 9 | **NGƯỢC** | +.065 | +.005 |
+=> Rơi vào HÀNG 4 của bảng đã khoá: "chỉ 1 task có, 1 task không -> KHÔNG kết luận chung,
+   ghi là PHỤ THUỘC, cần thêm dữ liệu". H1 KHÔNG được phát biểu như khẳng định.
+
+ĐO ĐƯỢC (GSM8K 1.5B, kiểm định 2 tỉ lệ): bịt mắt sửa .457 vs .217 (z=3.44, p<.001)
+  NHƯNG cũng phá .146 vs .038 (z=3.31, p<.001). Sửa nhiều hơn ĐI KÈM phá nhiều hơn
+  theo tỉ lệ gần như y hệt -> giá trị gia tăng RÒNG gần như không đổi (+.076 vs +.056,
+  dưới sàn nhiễu ~5 điểm). "Bịt mắt" KHÔNG phải bữa trưa miễn phí.
+
+### Nhánh P (thấy suy luận, XOÁ đáp án) — tách cơ chế, đã khoá trước
+fix/break: g15 .163/.006 | g7 .143/.022 | m15 .109/.148 | m7 .200/.024
+P GIỐNG I ở cả 4 ô, KHÔNG giống B.
+=> Theo cam kết đã khoá: **thủ phạm là PHẦN SUY LUẬN, không phải đáp án**. Xoá mỗi con số
+   cuối KHÔNG khôi phục được tính hoài nghi; chính lập luận trôi chảy mới thuyết phục verifier.
+   (P ở GSM8K 1.5B có break_rate .006 — THẤP NHẤT mọi nhánh — đáng chú ý cho luật định tuyến.)
+
+### Nhánh X (giả dược: thấy lời giải BÀI KHÁC) — CẢNH BÁO cho chính H1
+fix_rate: g15 .315 | **g7 .381** | m15 .193 | m7 .200
+Ở GSM8K 7B, X có fix_rate CAO NHẤT trong cả 4 nhánh (.381 > B .286 > I .191).
+Context của X là VÔ NGHĨA -> "sửa" của nó không thể là kiểm lỗi thật, chỉ có thể là GIẢI LẠI.
+=> Một phần hiệu ứng "bịt mắt bắt lỗi tốt hơn" KHÔNG phải do hoài nghi mà do
+   context bị phá vỡ khiến model bỏ qua lời giải và tự giải lại. Khớp với phát hiện cũ
+   (verifier tái sử dụng 0% số của Solver). ĐÂY LÀ GIẢ THUYẾT, chưa tách được — xem H3.
+
+### H2 — bộ tổng hợp LLM khi ĐƯỢC ĐỐI XỬ CÔNG BẰNG (cùng CoT, cùng 1024 token)
+| ô | maj@8 | agg_fair | vs_maj | phá/cứu đa số |
+|---|---|---|---|---|
+| 1.5B | .533 | .467 | −.067 | 15 / 7 |
+| 7B   | .717 | .725 | **+.008** | **3 / 4** |
+(agg_full_sol: 1.5B .358 −.175 (26/5) — thảm hoạ; 7B .733 **+.017** (7/9))
+SỐ CŨ (không công bằng) ở 7B: đè lên **26** đa số đúng, cứu **0**.
+SỐ MỚI (công bằng)   ở 7B: đè **3**, cứu **4**.
+=> Rơi vào HÀNG 2 của bảng đã khoá: "khoảng cách thu hẹp rõ -> kết quả cũ PHẦN LỚN do
+   NHIỄU PROMPT, phải sửa lại phát biểu". Ở 7B thậm chí chạm HÀNG 3 (aggregator >= bỏ phiếu)
+   -> **H2 BỊ BÁC ở 7B**. Ở 1.5B vẫn âm (−.067) nhưng kiểm định dấu 15/7 cho p≈.13,
+   KHÔNG đạt p<.05, và độ lớn nằm quanh sàn nhiễu.
+### RÚT LẠI CÔNG KHAI
+Phát biểu cũ của dự án — "aggregator LLM là SAI LOẠI, phải thay bằng thống kê" — được xây
+trên một so sánh KHÔNG CÔNG BẰNG (aggregator không có chỉ dẫn CoT, chỉ 384 token so với
+1024). Khi sửa lại cho công bằng, hiệu ứng gần như biến mất ở 7B. TÔI RÚT LẠI phát biểu đó.
+Phát biểu thay thế (HẸP HƠN): ở model YẾU (1.5B), tổng hợp bằng LLM có xu hướng kém bỏ phiếu,
+đặc biệt khi phải đọc TOÀN BỘ lời giải (−.175); ở 7B không còn khác biệt đo được.
+
+### sw_m7 — bắt Solver TRÌNH BÀY, và Verifier có cần thấy phần trình bày không?
+A_bare .6467 | B_work_shown .6067 | C_work_hidden .6067  (B và C DÙNG CHUNG lời giải)
+verifier: B .660 (11 sửa/3 phá) vs C .6667 (12 sửa/3 phá) — chênh .007, KHÔNG có gì.
+median_sol_len 861 -> 26 ký tự mà kết quả KHÔNG đổi.
+=> XÁC NHẬN lại: bắt Solver trình bày làm Solver TỆ ĐI (−4.0 điểm).
+=> Và ở MATH 7B, giấu phần trình bày khỏi Verifier KHÔNG đổi gì -> khớp với ô MATH 7B của H1
+   (nhánh ngược chiều). Hai phép đo ĐỘC LẬP cùng nói: ở MATH 7B, H1 không đúng.
+
+## [Loop] VÒNG #44 — H23 (GRPO): RƠI ĐÚNG HÀNG 2 ĐÃ KHOÁ — "HỌC CÁCH IM LẶNG"
+GRPO chạy xong 100 bước (bp=24, k=4, 2400 bài GSM8K main_train), eval 5 fold GSM8K test.
+Cả hai nhánh DÙNG CHUNG lời giải của Solver (Solver luôn chạy trên model gốc) -> so sánh CẶP.
+
+| fold | S | V_base | V_lora | gain_base | gain_lora | can thiệp base | can thiệp lora | prec base | prec lora |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | .56 | .66 | .63 | +.100 | +.070 | 23 | 13 | .86 | **1.00** |
+| 1 | .63 | .68 | .66 | +.050 | +.030 | 20 |  8 | .78 | **1.00** |
+| 2 | .66 | .73 | .72 | +.070 | +.060 | 18 |  9 | .77 | **1.00** |
+| 3 | .62 | .66 | .63 | +.040 | +.010 | 21 |  5 | .70 | **1.00** |
+| 4 | .64 | .72 | .69 | +.080 | +.050 | 19 |  7 | .90 | **1.00** |
+
+ĐO ĐƯỢC:
+  ĐỘ CHÍNH XÁC CAN THIỆP: .70–.90 -> **1.00 ở CẢ 5 FOLD** (tổng 22 sửa / **0 phá**)
+  V_gain:                 +.068 -> **+.044**  (GIẢM 2.4 điểm, **0/5 fold** tốt hơn)
+  SỐ LẦN CAN THIỆP:       20.2/100 -> **8.4/100** (còn 42%)
+  tổng sửa/phá:           base 45/11  ->  lora **22/0**
+
+=> **RƠI ĐÚNG HÀNG 2 của bảng đã khoá**: "độ chính xác can thiệp tăng nhưng V_gain KHÔNG tăng
+   -> nó học cách CAN THIỆP ÍT ĐI chứ không CHÍNH XÁC HƠN. Phải báo kèm SỐ LẦN can thiệp."
+   Chính vì đã khoá trước chỉ số "số lần can thiệp" mà không thể kể câu chuyện đẹp
+   "độ chính xác can thiệp đạt 100%!" — nó đạt 100% bằng cách NÓI ÍT ĐI MỘT NỬA.
+
+CƠ CHẾ (rõ ràng, không phải suy đoán): reward = +1 sửa / −1 phá / 0 nếu không đổi.
+Chiến lược tối ưu TẦM THƯỜNG của reward này là CAN THIỆP ÍT ĐI: bớt can thiệp -> bớt phá ->
+reward trung bình tăng, trong khi "im lặng" được cho 0 điểm chứ không bị phạt.
+Model đã tối ưu ĐÚNG thứ tôi viết ra. Lỗi ở HÀM THƯỞNG, không ở thuật toán.
+Dấu vết trong log huấn luyện khớp: `nseq` (số chuỗi có advantage khác 0) tụt còn 4–24/96
+ở các bước cuối — phần lớn mẫu KHÔNG còn tín hiệu học vì chúng đã giống hệt nhau (đều im lặng).
+
+Ý NGHĨA THỐNG KÊ: −2.4 điểm là NHỎ, dưới sàn nhiễu không ghép cặp (~5 điểm). NHƯNG hai nhánh
+dùng CHUNG lời giải nên đây là so sánh CẶP, nhạy hơn; hướng nhất quán 5/5 fold
+(kiểm định dấu một phía p≈.031). Kết luận: GRPO KHÔNG cải thiện độ chính xác ròng.
+
+SO VỚI MỐC BẮT BUỘC (7B verifier KHÔNG huấn luyện, độ chính xác can thiệp 98%):
+LoRA đạt precision 1.00 nhưng chỉ mang +4.4 điểm, trong khi 7B không huấn luyện mang nhiều hơn.
+=> **Khuyến nghị GIỮ NGUYÊN: dùng model lớn hơn, đừng huấn luyện model nhỏ bằng RL.**
+
+PRIOR ĐÃ GHI TRƯỚC (pre-reg #22): "khả năng cao rơi vào hàng 2 hoặc 3". **Prior ĐÚNG.**
+Ghi rõ để cân bằng: rất nhiều prior khác của tôi trong dự án này đã SAI; lần này đúng.
+
+ĐIỀU CÓ THẬT VÀ ĐÁNG GIỮ: lora KHÔNG BAO GIỜ phá một đáp án đúng (0/11 so với base).
+Nếu ai cần một verifier "không gây hại" thì đây là cách có được nó — nhưng phải chấp nhận
+mất một nửa số lần sửa. Đó là ĐÁNH ĐỔI, không phải cải thiện.
+
+THÍ NGHIỆM TIẾP NẾU QUAY LẠI RL (chưa chạy, chưa đăng ký): phạt sự im lặng —
+reward 0 cho "không đổi khi Solver ĐÚNG" nhưng −0.5 cho "không đổi khi Solver SAI".
+Khi đó im lặng không còn miễn phí. HIỆN CHƯA LÀM: ưu tiên đang là H24.
+
+## [Loop] VÒNG #45 — H25 SỤP SÀN (100% nói "NO"); H24 ô MATH 1.5B; RÚT KINH NGHIỆM THIẾT KẾ
+### dt_g15 (H25, GSM8K 1.5B) — ĐO ĐƯỢC nhưng PHÉP ĐO KHÔNG HỢP LỆ cho câu hỏi đã đặt
+phân tầng: HIGH 78 | MID 99 | ZERO 23 (giải đúng trung bình .546/8 mẫu)
+| tầng | phát hiện trên CORRUPT | báo động giả trên CLEAN | PHÂN BIỆT |
+|---|---|---|---|
+| HIGH | .000 | .000 | **+.000** |
+| MID  | .000 | .000 | **+.000** |
+| ZERO | .000 | .000 | **+.000** |
+TRACE (392/392): model xuất ra ĐÚNG chuỗi `NO` trong **100%** lượt. Không phải lỗi parser —
+đã kiểm bằng trace. Ví dụ bị bỏ sót: `9 * 2 = <<9*2=17>>17` (9×2=18) -> vẫn trả lời "NO".
+
+THEO BẢNG ĐÃ KHOÁ, đây là HÀNG 3: "phát hiện thấp ở MỌI tầng -> model không làm nổi cả
+nhiệm vụ kiểm đơn giản nhất". NHƯNG tôi PHẢI ghi kèm KHIẾM KHUYẾT THIẾT KẾ CỦA CHÍNH TÔI:
+kernel đặt `max_new_tokens=16` và bắt trả lời YES/NO NGAY -> model KHÔNG CÓ CHỖ ĐỂ TÍNH.
+Phân biệt = 0.000 CHÍNH XÁC ở cả ba tầng, kể cả tầng HIGH (bài nó giải đúng 6-8/8 lần) —
+hiệu ứng SÀN như vậy thường tố cáo DỤNG CỤ ĐO, không phải năng lực.
+=> Phép đo này HỢP LỆ cho phát biểu HẸP: "1.5B không phán đoán đúng/sai được nếu KHÔNG được
+   suy luận trước". Nó KHÔNG HỢP LỆ cho câu hỏi đã đăng ký ("kiểm lỗi có tách rời khỏi giải").
+=> Tự phê: pre-reg #24 KHÔNG khoá ngưỡng hiệu lực (như H8 đã từng làm với exec_success_rate .50).
+   Nếu có khoá, tôi đã bắt được lỗi này TRƯỚC khi chạy. Ghi lại thành LUẬT: mọi thí nghiệm
+   phán đoán nhị phân phải khoá trước ngưỡng "tỉ lệ trả lời suy biến < 90%".
+=> CHẠY LẠI (dt2): cho phép kiểm từng bước rồi mới chốt `VERDICT: YES/NO`, 400 token.
+   H25 hiện là CHƯA KIỂM, KHÔNG phải đã bác.
+
+### rs_m15 (H24, MATH 1.5B) — ô thứ 2/4
+solver .405
+| nhánh | acc | thêm | sửa | phá |
+|---|---|---|---|---|
+| V_inf | .455 | +.050 | 13 | 3 |
+| V_bli | .460 | +.055 | 20 | 9 |
+| S_anc | .440 | +.035 | 17 | 10 |
+| S_pln | .430 | +.025 | 23 | **18** |
+Ở ô này S_pln SỬA NHIỀU NHẤT (23) nhưng PHÁ GẤP ĐÔI (18 vs 9) -> khớp HÀNG 3 của bảng khoá
+("sửa ngang nhau nhưng V_bli phá ít hơn -> khung kiểm tăng TÍNH CHỌN LỌC, không tăng PHÁT HIỆN").
+Ô GSM8K 1.5B trước đó khớp HÀNG 4 (mỏ neo làm hết việc, S_anc ≈ V_bli).
+=> HAI ô, HAI hàng khác nhau. CHƯA KẾT LUẬN — chờ rs_g7 và rs_m7. Bảng đã khoá yêu cầu >=3/4 ô.
+
+## [Loop] VÒNG #46 — H25b VẪN SUY BIẾN dù đã cho suy luận -> HÀNG 4 (VÔ HIỆU); MẤT MÁY REMOTE
+### dt2_g15 (H25b, GSM8K 1.5B, 400 token + dòng VERDICT)
+parse_fail = **0.000** (parser tốt, không phải lỗi đọc) | phân tầng HIGH 84 / MID 96 / ZERO 20
+| tầng | phát hiện | báo động giả | phân biệt | suy biến | HỢP LỆ |
+|---|---|---|---|---|---|
+| HIGH | .012 | .000 | +.012 | **.994** | **KHÔNG** |
+| MID  | .021 | .000 | +.021 | **.990** | **KHÔNG** |
+| ZERO | .050 | .050 | +.000 | **.950** | **KHÔNG** |
+
+=> **RƠI ĐÚNG HÀNG 4 của bảng đã khoá ở #26**: "vẫn suy biến >.90 dù đã cho 400 token ->
+   KHÔNG kết luận gì về năng lực. Ghi: nhiệm vụ phán nhị phân KHÔNG đo được ở 1.5B bằng cách hỏi này."
+   Cho model 400 token để kiểm từng bước KHÔNG cứu được: nó vẫn nói "NO" ~99% số lượt.
+
+GIÁ TRỊ CỦA VIỆC KHOÁ NGƯỠNG TRƯỚC: kernel TỰ ĐÁNH DẤU `VALID=false` cho cả 3 tầng.
+Vòng trước (dt_g15) tôi phải phát hiện thủ công bằng cách đọc trace; lần này ngưỡng đã khoá ở
+pre-reg #26 bắt được ngay trong kernel. Luật mới hoạt động đúng như mong đợi.
+
+ĐỌC ĐÚNG MỰC: đây KHÔNG phải bằng chứng "1.5B không kiểm được lỗi". Nó là bằng chứng
+"KHÔNG THỂ MOI RA phán đoán nhị phân từ 1.5B BẰNG PROMPT" — dù có cho suy luận dài.
+Phân biệt +.012/+.021 tuy dương và đúng hướng nhưng vô nghĩa khi 99% câu trả lời giống nhau.
+
+HỆ QUẢ TRỰC TIẾP CHO H27 (verifier PHÂN BIỆT, pre-reg #27): kết quả này làm H27 QUAN TRỌNG HƠN,
+không phải kém đi. Prompt không moi được phán đoán -> câu hỏi còn lại là HUẤN LUYỆN có moi được không.
+H27 dạy thẳng model xuất Yes/No trên 6400 nhãn tự động — nhắm ĐÚNG vào sự suy biến này.
+Nếu H27 cũng cho AUC <= .55 thì lúc đó mới được nói "1.5B không học được hàm phân biệt".
+
+### MẤT MÁY REMOTE (180.189.55.43:18440) — GHI NHẬN THIỆT HẠI TRUNG THỰC
+Máy KHÔNG còn truy cập được: cổng đóng, ping mất 100% gói. Toàn bộ hàng đợi 5 tầng mất:
+  role_rl (H26, đang ở ~bước 30/60) | eval_role | dtl7b | dtl15 | disc15
+**Chưa có kết quả nào của H26 được kéo về local.** Số liệu duy nhất còn giữ là các dòng log
+đã in ra trong phiên: `reveal` 0.28 -> 0.53 (bước 10 -> 20), Rp âm suốt, Rs ~+0.63.
+Đó là phần thưởng TRÊN MẺ HUẤN LUYỆN, KHÔNG phải kết quả đánh giá -> **H26 là CHƯA KIỂM.**
+KHÔNG được dùng mấy con số đó để kết luận gì; đặc biệt KHÔNG được nói "planner hội tụ về
+tiết lộ đáp án" như một phát hiện — nó mới chỉ là xu hướng trên mẻ, chưa qua tập kiểm.
+
+BÀI HỌC (thành LUẬT): mọi công việc chạy dài trên máy thuê PHẢI kéo kết quả trung gian về local
+theo chu kỳ (vd mỗi 10 bước scp `*_hist.json`), vì máy thuê có thể biến mất bất cứ lúc nào.
+Tôi đã KHÔNG làm việc đó và mất toàn bộ H26. Lỗi của tôi, không phải rủi ro không lường được.
+
+## [Loop] VÒNG #47 — H24 ô 7B (BÃO HOÀ, ít thông tin); H25 ở 7B KHÔNG suy biến; disc_g15 LỖI MÔI TRƯỜNG
+### rs_g7 (H24, GSM8K 7B) — ô thứ 3/4
+solver **.916** -> chỉ còn 21 bài sai, mọi hiệu ứng đều bé hơn sàn nhiễu.
+| nhánh | thêm | sửa | phá | fixR |
+|---|---|---|---|---|
+| V_inf | +.004 | 4 | 3 | .191 |
+| V_bli | +.004 | 7 | 6 | .333 |
+| S_anc | **+.008** | 10 | 8 | **.476** |
+| S_pln | +.000 | 7 | 7 | .333 |
+Ô này KHÔNG kết luận được gì (bão hoà) — nhưng đáng ghi: `S_anc`, nhánh KHÔNG có khung kiểm,
+lại có fix_rate CAO NHẤT (.476) và giá trị thêm cao nhất.
+
+### TỔNG HỢP H24 sau 3/4 ô — mẫu hình NHẤT QUÁN đã lộ
+| ô | V_inf | V_bli | **S_anc** | **S_pln** |
+|---|---|---|---|---|
+| GSM8K 1.5B | +.060 | +.076 | **+.080** | **−.012** |
+| MATH 1.5B  | +.050 | +.055 | +.035 | +.025 |
+| GSM8K 7B   | +.004 | +.004 | **+.008** | +.000 |
+`S_pln` (giải lại KHÔNG có mỏ neo) là NHÁNH TỆ NHẤT ở cả 3 ô.
+`S_anc` (có mỏ neo, KHÔNG có một chữ nào về "kiểm tra") ngang hoặc hơn `V_bli` ở 2/3 ô.
+=> HƯỚNG VỀ HÀNG 4 của bảng khoá: thứ có tác dụng là **MỎ NEO ĐÁP ÁN**, không phải khung kiểm.
+   CHƯA CHỐT — bảng yêu cầu >=3/4 ô và ô GSM8K 7B bão hoà nên không tính được. Chờ rs_m7.
+
+### dt_g7 (H25 ở 7B, bản 16 token) — KHÔNG suy biến, nên ĐỌC ĐƯỢC
+phân tầng HIGH 166 / MID 28 / ZERO **6** | solve_rate .872
+| tầng | phát hiện | báo động giả | phân biệt | tỉ lệ nói "NO" |
+|---|---|---|---|---|
+| HIGH | .204 | .111 | **+.093** | ~.84 (HỢP LỆ) |
+| MID  | .357 | .321 | +.036 | ~.66 (HỢP LỆ) |
+| ZERO | .500 | .500 | +.000 | .50 (n=**6**, VÔ DỤNG) |
+KHÁC HẲN 1.5B: ở 7B model CÓ trả lời đa dạng (không kẹt ở "NO"), nên dụng cụ đo HOẠT ĐỘNG.
+Nhưng phân biệt YẾU ở mọi tầng, và GIẢM dần theo độ khó: .093 -> .036 -> .000.
+Hướng giảm này KHỚP với hàng 2 ("kiểm lỗi bị chặn bởi năng lực giải") NHƯNG:
+  (a) độ lớn quá bé để khẳng định; (b) tầng ZERO chỉ có **6 bài** — không đọc được;
+  (c) đây vẫn là bản 16 TOKEN, không cho suy luận — cùng khiếm khuyết đã biết.
+=> H25 ở 7B: CHƯA KIỂM. Chờ dt2_g7 (có suy luận) mới đọc theo bảng.
+=> Ghi nhận thêm: 7B giải đúng .872 nên tầng ZERO gần như RỖNG. Muốn đo "bài không giải nổi"
+   ở 7B thì PHẢI đổi sang tập khó hơn (MATH), không dùng GSM8K được nữa. Ghi vào thiết kế sau.
+
+### disc_g15 LỖI: `ImportError: torchao 0.10.0, chỉ hỗ trợ >0.16.0`
+Không phải lỗi khoa học — lỗi MÔI TRƯỜNG: `peft` trên ảnh Kaggle kéo theo torchao quá cũ.
+Sửa: cài `torchao>=0.16.0` ngay đầu kernel (đã bật enable_internet). Phóng lại.
+
+## [Loop] VÒNG #48 — dt2_g7: KIỂM LỖI **TÁCH RỜI** KHỎI GIẢI Ở 7B (hàng 1) — nhưng tầng quyết định chỉ n=9
+### dt2_g7 (H25b, GSM8K **7B**, có suy luận 400 token + dòng VERDICT)
+parse_fail = .0026 (<.20 ✓) | phân tầng HIGH 170 / MID 21 / ZERO **9** | solve_rate .867
+| tầng | phát hiện | báo động giả | **PHÂN BIỆT** | bal_acc | suy biến | HỢP LỆ |
+|---|---|---|---|---|---|---|
+| HIGH | .723 | .072 | **+.651** | .825 | .602 | **CÓ** |
+| MID  | .550 | .048 | **+.502** | .751 | .707 | **CÓ** |
+| ZERO | .667 | .222 | **+.444** | .722 | .556 | **CÓ** |
+
+=> **RƠI VÀO HÀNG 1 của bảng đã khoá ở #26**: "phân biệt ở ZERO >= .40 -> KIỂM LỖI LÀ KỸ NĂNG
+   TÁCH RỜI. Vai verifier CÓ THẬT; huấn luyện theo vai là đúng hướng."
+   Ở tầng ZERO — những bài model KHÔNG GIẢI ĐÚNG DÙ MỘT LẦN trong 8 mẫu — nó vẫn phát hiện
+   được lỗi số học bị tiêm với tỉ lệ .667 và chỉ báo động giả .222.
+
+### GIỚI HẠN PHẢI NÓI TRƯỚC KHI AI KỊP MỪNG: tầng ZERO chỉ có **9 CẶP**
+Với n=9, khoảng tin cậy của phân biệt .444 rộng tới mức gần như chắc chắn CHỨA 0.
+Hàng 1 nổ lên ĐÚNG THEO NGƯỠNG ĐÃ KHOÁ (.40), nhưng ngưỡng đó được khoá khi tôi chưa biết
+tầng ZERO sẽ nhỏ đến vậy. **Kết luận "kiểm lỗi tách rời khỏi giải" hiện CHƯA ĐỦ BẰNG CHỨNG.**
+Thứ ĐO ĐƯỢC CHẮC CHẮN là hai tầng có đủ mẫu: HIGH +.651 (n=166) và MID +.502 (n=20).
+Nghĩa là: 7B PHÁT HIỆN ĐƯỢC lỗi số học tiêm sẵn rất tốt — điều mà 1.5B KHÔNG làm nổi.
+
+### ĐỐI CHIẾU 1.5B vs 7B — NGƯỠNG NĂNG LỰC, KHÔNG PHẢI NHIỆM VỤ BẤT KHẢ
+dt2_g15 (1.5B): suy biến **.99** ở mọi tầng -> VÔ HIỆU, không moi được phán đoán.
+dt2_g7  (7B)  : suy biến .60 -> hợp lệ, phân biệt **+.651**.
+=> Cùng prompt, cùng dữ liệu, cùng lỗi tiêm. Khác biệt DUY NHẤT là năng lực model.
+=> Củng cố phát biểu xuyên suốt dự án: **bộ máy đa tác tử chỉ hoạt động khi MODEL ĐI KIỂM
+   đủ mạnh**. Giờ có thêm bằng chứng ở mức NHIỆM VỤ KIỂM THUẦN TUÝ, không lẫn với việc giải.
+
+### VÌ SAO GSM8K KHÔNG TRẢ LỜI ĐƯỢC CÂU HỎI TRUNG TÂM (đã ghi trước ở vòng #47)
+7B giải đúng .867 trên GSM8K -> tầng "không giải nổi" chỉ còn 9/200 bài. Tầng quyết định
+BỊ RỖNG DO THIẾT KẾ, không phải do ngẫu nhiên. Muốn đo "phát hiện lỗi ở bài KHÔNG giải nổi"
+thì PHẢI đổi sang tập khó hơn. Tôi đã ghi điều này ở vòng trước, TRƯỚC khi thấy kết quả này.
+=> Thí nghiệm tiếp: dt3 trên **MATH** ở 7B, nơi solver chỉ .625 -> tầng ZERO sẽ đông hơn nhiều.

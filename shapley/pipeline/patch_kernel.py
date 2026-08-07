@@ -106,13 +106,20 @@ for fi in range(NF):
     a_std=[pred(x) for x in v_std]
     # VÁ LỖI: model chỉ viết phần TIẾP; ta GHÉP tiền tố Solver vào bằng CODE
     v_pat=gen(PATCH,[f"{q}\n\nProposed solution:\n{s}" for q,s in zip(qs,sols)],512)
-    merged=[f"{sols[i]}\n[correction]\n{v_pat[i]}" for i in range(len(qs))]
-    a_pat=[pred(v_pat[i]) if pred(v_pat[i]) is not None else sa[i] for i in range(len(qs))]
+    # SUA LOI: lay dap an TU CHUOI GHEP (tien to Solver + phan tiep cua Verifier),
+    # dung y nghia "va loi": phan truoc GIU NGUYEN bang CODE.
+    def splice(sol, pat):
+        # cat tien to Solver toi dong dau tien ma Verifier nhac lai (neu co), roi noi phan va
+        lines=[l for l in (sol or "").split("\n") if l.strip()]
+        keep=lines[:len(lines)-1] if len(lines)>=3 else lines      # bo dong ket luan cu cua Solver
+        return "\n".join(keep)+"\n"+(pat or "")
+    merged=[splice(sols[i],v_pat[i]) for i in range(len(qs))]
+    a_pat=[pred(merged[i]) if pred(merged[i]) is not None else sa[i] for i in range(len(qs))]
     def reuse(vtxt,stxt,qtxt):
         vv=nums(vtxt)-nums(qtxt)
         return len(vv & nums(stxt))/len(vv) if vv else None
     ru_std=[reuse(v_std[i],sols[i],qs[i]) for i in range(len(qs))]; ru_std=[x for x in ru_std if x is not None]
-    ru_pat=[reuse(v_pat[i],sols[i],qs[i]) for i in range(len(qs))]; ru_pat=[x for x in ru_pat if x is not None]
+    ru_pat=[reuse(merged[i],sols[i],qs[i]) for i in range(len(qs))]; ru_pat=[x for x in ru_pat if x is not None]
     r={"fold":fi,"n":len(qs),
        "S":acc(sa),"V_std":acc(a_std),"V_patch":acc(a_pat),"V_none":acc(sa),
        "patch_minus_std":round(acc(a_pat)-acc(a_std),4),

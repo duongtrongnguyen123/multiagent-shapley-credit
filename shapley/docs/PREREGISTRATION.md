@@ -708,3 +708,318 @@ bằng CODE (ghép chuỗi), không phụ thuộc việc model có nghe lời ha
 ## Ghi chú trung thực
 H21a có thể thất bại: tôi đã từng thử ép định dạng cho Verifier (struct/V_ST) và nó LÀM TỆ ĐI.
 Lần này khác ở chỗ việc GIỮ TIỀN TỐ do CODE làm, không nhờ model tuân lệnh.
+
+---
+
+# Đăng ký trước #21 — H22: BỎ CHỈ DẪN "ĐỪNG TÍNH/ĐỪNG VIẾT CODE" CÓ CÒN ĐÚNG TRÊN CODE KHÔNG?
+**Viết TRƯỚC khi chạy.**
+ĐO ĐƯỢC (H21b): bỏ "Do NOT compute the final answer" khỏi Planner làm Solver TỐT HƠN
+  MATH +3.75 (5/5 fold), GSM8K +3.25 (4/5) -> gộp 9/10 fold, p~.02.
+Câu hỏi: có chuyển sang MIỀN CODE không? (HumanEval, chấm bằng CHẠY TEST -> chân lý chính xác)
+Nhánh (5 fold x 32 bài, 1.5B): NoP (không planner) | P_hide ("đừng viết code")
+  | P_free (không cấm) | P_ask (yêu cầu viết luôn code)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| P_free/P_ask > P_hide ở đa số fold | XÁC NHẬN, hiệu ứng TỔNG QUÁT qua 3 miền -> khuyến nghị chung: bỏ chỉ dẫn cấm. |
+| P_free ~ P_hide | KHÔNG tổng quát sang code. Kết luận H21b chỉ giới hạn ở toán. Ghi rõ. |
+| P_free < P_hide | ĐẢO DẤU trên code. Thêm một bằng chứng "hiệu ứng không bền theo miền". |
+| NoP >= mọi nhánh có planner | Trên code, Planner VÔ DỤNG hoặc CÓ HẠI bất kể prompt. Kết luận kiến trúc. |
+
+Chỉ số chính: pass@1 (chạy test) từng nhánh, 5 fold, kèm khoảng + số fold cùng dấu.
+Ghi chú: HumanEval n=164 nên fold nhỏ (32 bài) -> nhiễu lớn hơn; chỉ kết luận khi ĐA SỐ fold cùng dấu.
+
+---
+
+# Đăng ký trước #22 — H23: GRPO TRÊN VERIFIER (tối ưu ĐỘ CHÍNH XÁC CAN THIỆP)
+**Viết TRƯỚC khi chạy.** Chạy trên RTX 5090, sau khi pat15/pat7 xong.
+
+## Mục tiêu — đúng khiếm khuyết ĐÃ ĐO
+Verifier 1.5B can thiệp với độ chính xác chỉ **56%** (≈ độ chính xác TỰ GIẢI của nó), vì nó
+GIẢI LẠI thay vì KIỂM (tái sử dụng 0% số của Solver khi can thiệp).
+=> Phần thưởng RL ĐẶT ĐÚNG vào đó: +1 nếu SỬA ĐÚNG (Solver sai -> Verifier đúng),
+   −1 nếu PHÁ (Solver đúng -> Verifier sai), 0 nếu không đổi kết quả.
+   Đây CHÍNH LÀ đại lượng mà mọi thí nghiệm trước đo được là hỏng.
+
+## Thiết lập
+GRPO + LoRA trên Qwen2.5-1.5B (không cần value model; policy tham chiếu = tắt adapter).
+Dữ liệu: GSM8K **main_train** (tách hoàn toàn khỏi test). Mỗi bài: Solver sinh 1 lời giải (đóng băng),
+Verifier sinh k=4 phản hồi -> tính reward -> advantage = r − mean(r) trong nhóm.
+Đánh giá: GSM8K test, 5 fold, so `V_gain` và ĐỘ CHÍNH XÁC CAN THIỆP trước/sau.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Độ chính xác can thiệp TĂNG rõ (>65%) VÀ V_gain tăng | H23 XÁC NHẬN. RL sửa được khiếm khuyết mà prompting không sửa nổi. |
+| Độ chính xác can thiệp tăng nhưng V_gain KHÔNG tăng | Nó học cách CAN THIỆP ÍT ĐI chứ không CHÍNH XÁC HƠN. Phải báo kèm SỐ LẦN can thiệp. |
+| Không đổi | RL không giúp ở quy mô này. Ghi rõ đã bác. Củng cố khuyến nghị "dùng model lớn hơn". |
+| Sụp đổ / reward hacking (vd luôn đồng ý) | Ghi rõ. Phần thưởng thưa (chỉ ~15-20% bài có can thiệp) là rủi ro đã biết. |
+
+## Chỉ số BẮT BUỘC báo
+`V_gain`, ĐỘ CHÍNH XÁC CAN THIỆP, **SỐ LẦN CAN THIỆP** (để phát hiện "học cách im lặng"),
+và so với mốc **7B verifier không huấn luyện** (98%) — nếu RL không vượt được mốc đó thì
+khuyến nghị vẫn là "dùng model lớn hơn".
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đã lập luận RL là công cụ SAI ở đây vì đã có nhãn trực tiếp (grader) -> học có giám sát
+dùng tín hiệu đó tốt hơn. Reward rất THƯA. Tôi cho rằng khả năng cao rơi vào hàng 2 hoặc 3.
+Vẫn chạy vì người dùng yêu cầu và vì nó nhắm ĐÚNG khiếm khuyết đã đo.
+
+---
+
+# Đăng ký trước #23 — H24: "SỬA LỖI" CỦA VERIFIER CHỈ LÀ GIẢI LẠI, KHÔNG PHẢI KIỂM LỖI
+**Viết TRƯỚC khi chạy.** Rút ra từ vòng #43.
+
+## Vì sao hỏi câu này
+Nhánh giả dược X (verifier thấy lời giải của BÀI KHÁC) có fix_rate CAO NHẤT ở GSM8K 7B
+(.381 > blind .286 > informed .191). Context của X vô nghĩa nên "sửa" của nó KHÔNG THỂ là
+kiểm lỗi. Cộng với phát hiện cũ (verifier tái sử dụng 0% con số của Solver) và với H21a
+(ép giữ tiền tố của Solver làm verifier TỆ ĐI, 3 lần chạy độc lập), giả thuyết hợp lý là:
+**vai "verifier" không kiểm gì cả — nó chỉ là một LẦN LẤY MẪU THỨ HAI được đặt tên khác.**
+Nếu đúng, toàn bộ khung "verification" của dự án phải phát biểu lại, và khuyến nghị thực tế
+là thay verifier bằng lấy mẫu nhiều lần + bỏ phiếu (rẻ hơn, đã biết là mạnh).
+
+## Thiết kế — CÙNG MỘT bộ lời giải của Solver, 4 nhánh, mỗi nhánh ĐÚNG 1 lần sinh thêm
+- **V_inf**  : "Check the proposed solution..." + TOÀN BỘ lời giải   (đối chứng trên)
+- **V_bli**  : "Check the proposed solution..." + CHỈ đáp án          (nhánh mạnh nhất ở #2)
+- **S_anc**  : "Solve step by step. A previous attempt answered <A>." — CÓ mỏ neo, KHÔNG có khung kiểm
+- **S_pln**  : "Solve step by step."  (temp 0.7, hạt giống khác)      — KHÔNG neo, KHÔNG khung kiểm
+Chi phí bằng nhau (1 lần sinh). So sánh trên CÙNG phân hoạch đúng/sai của Solver.
+
+## Chỉ số chính
+`fixes` (Solver sai -> nhánh đúng) và `breaks` (Solver đúng -> nhánh sai), theo từng nhánh.
+Phụ: `changed_answer`, và tỉ lệ nhánh nhắc lại con số của Solver (đo mỏ neo có hiệu lực).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| S_pln ≈ V_bli ở CẢ fixes VÀ breaks (chênh trong sàn nhiễu) ở >=3/4 ô | **H24 XÁC NHẬN.** Khung "kiểm lỗi" không đóng góp gì ngoài một mẫu thứ hai. Phải phát biểu lại toàn bộ ngôn ngữ "verifier" của dự án và khuyến nghị bỏ phiếu thay vì verify. |
+| V_bli sửa NHIỀU HƠN S_pln, p<.05, >=3/4 ô | **H24 BỊ BÁC.** Khung kiểm lỗi làm việc thật. Giữ nguyên ngôn ngữ verifier. |
+| fixes bằng nhau NHƯNG V_bli phá ÍT HƠN S_pln, p<.05 | H24 BÁC MỘT PHẦN. Khung kiểm không tăng PHÁT HIỆN mà tăng TÍNH CHỌN LỌC. Phải phát biểu hẹp đúng như vậy. |
+| S_anc ≈ V_bli nhưng cả hai khác S_pln | Thứ có tác dụng là MỎ NEO ĐÁP ÁN, không phải khung kiểm. Ngôn ngữ "verify" vẫn phải bỏ. |
+| Kết quả trái chiều giữa các ô | KHÔNG kết luận chung. Ghi "phụ thuộc ô", không được chọn ô đẹp để kể. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi cho rằng H24 nhiều khả năng XÁC NHẬN (hàng 1) hoặc rơi hàng 4. Ba mảnh bằng chứng độc lập
+đã chỉ cùng hướng: reuse 0%, H21a bị bác 3 lần, X-giả dược sửa nhiều nhất. Nếu đúng thì đây là
+phát hiện LỚN NHẤT của dự án và đồng thời là lời tự bác bỏ mạnh nhất — phần lớn công sức trước
+đây được tiêu vào việc tinh chỉnh một vai mà có thể chưa bao giờ làm đúng việc nó được đặt tên.
+Tôi ghi rõ điều này TRƯỚC khi có số để không thể diễn giải lại sau.
+
+## Bắt buộc
+Lưu >=50 trace thô mỗi nhánh (`traces.json`) — mọi phát hiện cơ chế của dự án đều đến từ đọc trace.
+
+---
+
+# Đăng ký trước #24 — H25: KIỂM LỖI CÓ PHẢI KỸ NĂNG TÁCH RỜI KHỎI GIẢI KHÔNG?
+**Viết TRƯỚC khi chạy.** Trả lời đề xuất "fine-tune / thưởng theo bước để củng cố đúng vai".
+
+## Vì sao phải hỏi câu này TRƯỚC khi huấn luyện
+Đề xuất: SFT trên đáp án ĐÚNG, hoặc thưởng theo BƯỚC đúng, để củng cố từng vai.
+VẤN ĐỀ LOGIC: nếu SFT verifier trên "câu kiểm đúng", các câu đó chỉ có thể sinh ra từ việc
+model GIẢI ĐÚNG. Vậy SFT-trên-đáp-án-đúng = huấn luyện một SOLVER TỐT HƠN rồi gọi nó là verifier.
+Nó sẽ LÀM SÂU THÊM sự sụp đổ vai mà vòng #43-#44 đã đo, chứ không sửa được.
+Vai chỉ có ý nghĩa nếu verifier làm được thứ solver KHÔNG làm được.
+=> Phải đo TRƯỚC: **model có phát hiện được lỗi trong bài mà chính nó KHÔNG giải nổi không?**
+Nếu KHÔNG -> kiểm lỗi bị chặn bởi năng lực giải, không có vai nào để củng cố, mọi kế hoạch
+huấn luyện vai đều vô nghĩa. Nếu CÓ -> vai kiểm lỗi CÓ THẬT và đáng huấn luyện.
+
+## Thiết kế — TRÁNH nhiễu văn phong (đã tính trước)
+Không dùng "lời giải model" làm nhánh sai và "lời giải vàng" làm nhánh đúng — văn phong sẽ
+LỘ NHÃN. Thay vào đó CẢ HAI nhánh đều là chuỗi vàng của GSM8K:
+- **CLEAN** : chuỗi vàng nguyên vẹn
+- **CORRUPT**: chuỗi vàng bị đổi kết quả của ĐÚNG MỘT bước `<<a op b = c>>` thành c' != c
+  (chỉ một bước sai số học; mọi thứ khác giữ nguyên) — phát hiện nó KHÔNG cần giải lại từ đầu
+Câu hỏi cho model: "Does this solution contain a computational error? YES/NO."
+
+## Phân tầng theo NĂNG LỰC GIẢI (đo bằng chính model, k=8 mẫu, temp .8)
+- `HIGH` : giải đúng >= 6/8   | `MID` : 1–5/8   | `ZERO`: **0/8 — model KHÔNG giải nổi**
+Chỉ số chính: **độ chính xác phát hiện trong tầng ZERO**, cùng độ lệch phản hồi
+(tỉ lệ nói "YES" trên CLEAN vs CORRUPT — đo phân biệt, miễn nhiễm với thiên lệch trả lời).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phát hiện ở ZERO cao rõ (>=70%) và gần bằng HIGH | **Kiểm lỗi LÀ kỹ năng tách rời.** Vai verifier CÓ THẬT. Đề xuất huấn luyện theo vai là ĐÚNG HƯỚNG -> chuyển sang SFT phân biệt / thưởng theo bước. |
+| Phát hiện ở ZERO ≈ ngẫu nhiên (45–55%) trong khi HIGH cao | **Kiểm lỗi BỊ CHẶN bởi năng lực giải.** Không có vai để củng cố. Phải nói thẳng: mọi kế hoạch huấn luyện vai trên model này là vô nghĩa; khuyến nghị vẫn là dùng model lớn hơn. |
+| Phát hiện thấp ở MỌI tầng | Model không làm nổi cả nhiệm vụ kiểm đơn giản nhất. Ghi rõ. Bác bỏ toàn bộ hướng "vai". |
+| Phát hiện cao ở MỌI tầng kể cả ZERO, nhưng cũng nói "có lỗi" trên CLEAN | Không phải phát hiện — chỉ là thiên lệch luôn-nói-sai. Phải báo tỉ lệ YES trên CLEAN. |
+| 1.5B và 7B trái chiều | Ghi "phụ thuộc năng lực", không kết luận chung. |
+
+## Prior TRUNG THỰC (ghi trước)
+Ba bằng chứng độc lập (tái sử dụng 0%, H21a bác 3 lần, giả dược X sửa nhiều nhất) đều nói
+verifier chỉ đang giải lại. Nhưng CẢ BA đều đo nhiệm vụ SỬA, chưa bao giờ đo nhiệm vụ PHÁT HIỆN
+tách riêng. Tôi cho rằng phát hiện lỗi số học ĐƯỢC TIÊM SẴN sẽ dễ hơn hẳn, nên tôi nghiêng về
+hàng 1 ở tầng HIGH/MID, và THẬT SỰ KHÔNG BIẾT ở tầng ZERO — đó chính là lý do phải chạy.
+Nếu ra hàng 2 thì đề xuất huấn luyện vai bị bác, và tôi phải nói thẳng điều đó.
+
+## Bắt buộc
+Lưu >=50 trace mỗi tầng × mỗi nhánh. Báo tỉ lệ nói YES trên CLEAN (thiên lệch) cùng độ chính xác.
+
+---
+
+# Đăng ký trước #25 — H26: MỖI VAI MỘT ADAPTER RIÊNG, THƯỞNG BẰNG ĐÓNG GÓP BIÊN
+**Viết TRƯỚC khi chạy.** Theo đề xuất: "củng cố TỪNG MODEL vào ĐÚNG VAI của nó."
+
+## Khác gì H23 (đã thất bại)
+H23: MỘT model, MỘT adapter, đội mũ prompt khác nhau -> vẫn là một model. Đã đo: sụp đổ vai.
+H26: **BA adapter LoRA RIÊNG BIỆT** trên cùng base 1.5B (A_plan / A_solve / A_verify),
+mỗi adapter có HÀM THƯỞNG RIÊNG. Đây mới đúng là "mỗi model một vai".
+
+## Phần thưởng = ĐÓNG GÓP BIÊN (leave-one-out) — chính đại lượng dự án này đo bằng Shapley
+Mỗi bài chạy 4 biến thể: {S}, {P,S}, {S,V}, {P,S,V}. Từ đó:
+  r_solve  = 1[{S} đúng]
+  r_plan   = 1[{P,S} đúng] − 1[{S} đúng]
+  r_verify = 1[{S,V} đúng] − 1[{S} đúng]  **CỘNG phạt im lặng: −0.3 nếu {S} SAI mà V không đổi gì**
+Phạt im lặng là bản vá TRỰC TIẾP cho lỗi đã đo ở H23: reward cũ cho "không đổi" = 0 nên
+IM LẶNG LÀ MIỄN PHÍ và policy đã chọn đúng lối đó. Giờ im lặng khi Solver sai PHẢI trả giá.
+
+## Chỉ số BẮT BUỘC báo (mỗi vai)
+- V_gain, SỐ LẦN CAN THIỆP (bẫy im lặng — H23 đã dính)
+- **`plan_reveals_answer`**: tỉ lệ kế hoạch chứa đáp án cuối. Đã đo ở vòng trước: Planner
+  vốn GIẢI RỒI GIẤU. Nếu thưởng theo đóng góp biên, lối tối ưu TẦM THƯỜNG là kế hoạch
+  NÓI THẲNG đáp án. KHÔNG cấm — để nó tự tìm, và ĐO xem có tìm ra không.
+- Độ tương đồng giữa 3 adapter (chuẩn LoRA delta) — vai có THỰC SỰ tách ra không?
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Cả 3 vai đều tăng đóng góp biên, pipeline {P,S,V} > baseline, và 3 adapter KHÁC nhau rõ | **H26 XÁC NHẬN. Chuyên biệt hoá theo vai LÀ HỌC ĐƯỢC.** Đề xuất của người dùng đúng; hướng đi mới của dự án. |
+| Chỉ A_solve tăng, A_plan/A_verify ≈ 0 | Chỉ có vai GIẢI là học được. Vai phụ không có tín hiệu để học. Ghi rõ: phân rã vai không phải trừu tượng đúng ở quy mô này. |
+| A_plan hội tụ về NÓI THẲNG ĐÁP ÁN (`plan_reveals_answer` tăng mạnh) | Chuyên biệt hoá "thành công" bằng cách BIẾN PLANNER THÀNH SOLVER. Phải báo đúng như vậy, KHÔNG được kể là chuyên biệt hoá vai. |
+| A_verify lại im lặng dù đã phạt | Phạt chưa đủ / reward vẫn thưa. H23+H26 cùng bác -> DỪNG hướng RL cho verifier. |
+| 3 adapter hội tụ về gần như GIỐNG NHAU (delta tương đồng cao) | Vai KHÔNG tách được kể cả khi cho tham số riêng. Đây là bằng chứng MẠNH NHẤT cho sự sụp đổ vai. |
+| Pipeline sau huấn luyện < maj@8 chưa huấn luyện | Toàn bộ hướng đa tác tử thua lấy mẫu song song. Phải nói thẳng. |
+
+## Phụ thuộc
+Nhánh A_verify chỉ có ý nghĩa nếu **H25 (đăng ký #24)** cho thấy phát hiện lỗi TÁCH RỜI khỏi giải.
+Nếu H25 ra hàng 2 (phát hiện bị chặn bởi năng lực giải) thì A_verify KHÔNG có gì để học,
+và điều đó phải được ghi là ĐÃ BIẾT TRƯỚC, không phải phát hiện sau.
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi nghiêng về hàng 2 hoặc hàng 3. Lý do: H24 ô đầu vừa đo được `S_anc` (KHÔNG có khung kiểm)
+ngang `V_bli` -> khung vai không mang thông tin; và Planner đã được đo là "giải rồi giấu",
+nên thưởng theo đóng góp biên nhiều khả năng đẩy nó tới chỗ NÓI THẲNG đáp án.
+Tôi ghi trước để nếu ra hàng 3 thì KHÔNG được kể thành công.
+Vẫn chạy vì: (a) chưa ai cho mỗi vai THAM SỐ RIÊNG — mọi kết luận sụp đổ vai trước đây đều ở
+điều kiện dùng CHUNG tham số, nên chưa phải phép thử công bằng; (b) đó là phép thử SẠCH nhất
+cho câu hỏi trung tâm của dự án.
+
+---
+
+# Đăng ký trước #26 — H25b: CHẠY LẠI H25, CHO PHÉP SUY LUẬN TRƯỚC KHI PHÁN
+**Viết TRƯỚC khi chạy.** Sửa khiếm khuyết thiết kế của chính tôi ở #24.
+
+## Vì sao chạy lại
+dt_g15 cho phân biệt = **.000 CHÍNH XÁC ở cả 3 tầng**, trace cho thấy model xuất `NO` ở
+**392/392** lượt. Kernel chỉ cho `max_new_tokens=16` và ép phán ngay -> model không có chỗ tính.
+Hiệu ứng sàn hoàn hảo tố cáo DỤNG CỤ, không phải năng lực. H25 do đó là CHƯA KIỂM.
+
+## Sửa gì
+- Cho kiểm TỪNG BƯỚC rồi mới chốt dòng cuối `VERDICT: YES` / `VERDICT: NO`, **400 token**.
+- Vẫn giữ nguyên: hai nhánh đều là chuỗi vàng (CLEAN vs CORRUPT một bước) -> không lộ nhãn qua văn phong.
+- Vẫn phân tầng theo năng lực giải của chính model (k=8).
+
+## NGƯỠNG HIỆU LỰC — khoá TRƯỚC (đây chính là thứ #24 THIẾU)
+- `degenerate_rate` = tỉ lệ của câu trả lời phổ biến nhất. Nếu **> .90** ở một tầng ->
+  tầng đó **VÔ HIỆU**, KHÔNG được đọc là "không phát hiện được".
+- `parse_fail_rate` > .20 -> toàn bộ lần chạy VÔ HIỆU.
+Hai ngưỡng này áp dụng cho MỌI thí nghiệm phán đoán nhị phân về sau. Đây là LUẬT mới của dự án.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số) — chỉ đọc các tầng HỢP LỆ
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phân biệt ở ZERO >= .40 và gần HIGH | **Kiểm lỗi LÀ kỹ năng tách rời.** Vai verifier có thật -> huấn luyện theo vai là đúng hướng. |
+| Phân biệt HIGH cao nhưng ZERO ≈ 0 | **Kiểm lỗi BỊ CHẶN bởi năng lực giải.** Không có vai để củng cố. Nhánh A_verify của H26 vô nghĩa. |
+| Phân biệt thấp ở mọi tầng HỢP LỆ | Model không kiểm được lỗi số học dù được suy luận. Bác hướng "vai kiểm". |
+| Vẫn suy biến >.90 dù đã cho 400 token | Không kết luận gì về năng lực. Ghi: nhiệm vụ phán nhị phân KHÔNG đo được ở 1.5B; phải đổi cách hỏi. |
+| 1.5B và 7B trái chiều | "Phụ thuộc năng lực", không kết luận chung. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi cho rằng khi được suy luận, model sẽ hết suy biến và phân biệt sẽ DƯƠNG RÕ ở tầng HIGH.
+Ở tầng ZERO tôi vẫn THẬT SỰ KHÔNG BIẾT — đó vẫn là câu hỏi trung tâm.
+Lưu ý trung thực: lỗi được TIÊM vào là lỗi SỐ HỌC MỘT BƯỚC, dễ hơn lỗi suy luận thật.
+Nếu ngay cả lỗi này cũng không phát hiện nổi thì kết luận rất mạnh; nhưng nếu phát hiện được,
+KHÔNG được suy rộng thành "biết kiểm lỗi nói chung".
+
+---
+
+# Đăng ký trước #27 — H27: VERIFIER PHÂN BIỆT (chấm điểm) THAY VÌ VERIFIER SINH VĂN BẢN
+**Viết TRƯỚC khi chạy.** Trả lời đề xuất "lấy output rồi gán nhãn để có dữ liệu fine-tune".
+
+## Ba điều dữ liệu ĐÃ ĐO nói trước khi thiết kế
+1. **Nhãn KHÔNG cần gán tay.** Grader (đáp án vàng) đã cho nhãn đúng/sai MIỄN PHÍ ở quy mô
+   không giới hạn. Gán tay chỉ đáng cho nhãn TỪNG BƯỚC — mà thứ đó cũng lấy tự động được
+   (tung nhiều lần từ mỗi tiền tố, hoặc TIÊM lỗi vào chuỗi vàng như kernel dt đang làm).
+2. **Mọi thứ đã thất bại đều là verifier SINH VĂN BẢN** (H21a bác 3 lần, H23 im lặng,
+   H24 ô g15 cho thấy `S_anc` không có khung kiểm vẫn ngang `V_bli`). Chưa BAO GIỜ thử
+   verifier PHÂN BIỆT (xuất một điểm số, không viết lại lời giải).
+3. **Khoảng trống ĐÃ ĐO**: maj@8 -> oracle@8 = **+17.5 điểm (1.5B)**, **+11.7 điểm (7B)**.
+   Câu trả lời ĐÚNG đã nằm sẵn trong 8 mẫu; bỏ phiếu chỉ không chọn được nó.
+   Đây là chỗ DUY NHẤT trong dự án có headroom lớn đã đo, không phải phỏng đoán.
+
+## Thiết kế
+- **Dữ liệu (nhãn tự động)**: 800 bài GSM8K *train*, mỗi bài 8 mẫu (temp .8) -> ~6400 cặp
+  (lời giải, đúng/sai) do grader chấm. KHÔNG có nhãn tay.
+- **Huấn luyện**: LoRA, dạy model xuất token `Yes`/`No` cho câu "Is this solution correct?".
+  Điểm số khi suy luận = logprob của token `Yes`. Không thêm đầu phân loại -> giữ đơn giản.
+- **Dùng**: sinh k=8 trên test, CHẤM cả 8, chọn điểm cao nhất (**rerank@8**).
+- **So với**: greedy, maj@8, oracle@8 (trần), và maj@8 CỦA CÙNG 8 MẪU ĐÓ (so sánh cặp).
+
+## NGƯỠNG HIỆU LỰC — khoá TRƯỚC (theo luật mới lập ở #26)
+- **AUC** của bộ chấm trên tập test phải **> .55**. Nếu AUC ≈ .50 -> bộ chấm KHÔNG học được gì,
+  kết quả rerank là NGẪU NHIÊN và KHÔNG được đọc là "phân biệt thất bại vì nhiệm vụ khó".
+- `degenerate_rate` của Yes/No > .90 -> VÔ HIỆU.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| rerank@8 > maj@8, >=4/5 fold, và AUC > .55 | **H27 XÁC NHẬN.** Verifier PHÂN BIỆT làm được thứ verifier SINH VĂN BẢN không làm nổi. Đây là hướng đúng để dùng nhãn tự động; khuyến nghị của dự án phải đổi. |
+| rerank@8 ≈ maj@8 (chênh trong sàn nhiễu) | Chấm điểm không thêm gì so với đếm phiếu. Bỏ phiếu vẫn là cách tổng hợp nên dùng. |
+| rerank@8 < maj@8 | Bộ chấm TỆ HƠN đếm phiếu. Ghi rõ đã bác. Không được đổ cho "thiếu dữ liệu" nếu AUC > .55. |
+| AUC <= .55 | VÔ HIỆU cho câu hỏi rerank. Kết luận HẸP: 1.5B không học được hàm phân biệt đúng/sai từ 6400 mẫu. Phải nói rõ đây là giới hạn NĂNG LỰC/DỮ LIỆU, chưa bác được hướng phân biệt. |
+| rerank@8 chạm gần oracle@8 (>= 80% khoảng trống) | Kết quả MẠNH NHẤT dự án từng có. Phải kiểm lại rò rỉ dữ liệu train/test trước khi báo. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đây là hướng tôi tin NHẤT trong toàn dự án, vì: (a) nhãn miễn phí và nhiều; (b) phân biệt là
+nhiệm vụ DỄ HƠN sinh; (c) headroom đã ĐO chứ không suy đoán. Tôi đoán rerank@8 sẽ vượt maj@8
+vài điểm nhưng KHÔNG chạm oracle.
+CẢNH BÁO tự đặt: nếu H25b cho thấy 1.5B không phân biệt nổi chuỗi vàng SẠCH và chuỗi BỊ TIÊM LỖI,
+thì AUC ở đây nhiều khả năng thấp -> phải đọc theo hàng 4, KHÔNG được kể thành "cần thêm dữ liệu".
+
+---
+
+# Đăng ký trước #28 — H25c: LÀM ĐÔNG TẦNG "KHÔNG GIẢI NỔI" BẰNG MATH
+**Viết TRƯỚC khi chạy.** dt2_g7 cho hàng 1 nhưng tầng quyết định chỉ có **9 cặp**.
+
+## Vấn đề CHÍNH XÁC cần sửa
+7B giải GSM8K .867 -> tầng ZERO rỗng do THIẾT KẾ. Phân biệt .444 ở n=9 có khoảng tin cậy
+gần như chắc chắn chứa 0. Không được kết luận từ đó.
+=> Chạy lại trên **MATH-500** ở 7B (solver đã đo .625) và **MATH ở 1.5B** (solver .405),
+   nơi tầng ZERO sẽ đông hơn nhiều lần.
+=> Cỡ mẫu MỤC TIÊU: >= 40 cặp ở tầng ZERO. Nếu không đạt, ghi rõ là KHÔNG ĐỦ LỰC.
+
+## Khác biệt kỹ thuật với dt2
+MATH không có chú thích `<<a op b=c>>` như GSM8K -> phải tiêm lỗi bằng cách khác:
+lấy chuỗi lời giải VÀNG của MATH, tìm biểu thức số học `a op b = c` bằng regex thường,
+đổi `c` thành `c'`. Nếu không tìm được biểu thức nào thì BỎ bài đó (ghi số bài bị bỏ).
+**Kiểm tra hiệu lực BẮT BUỘC**: báo `pct_problems_corruptible`. Nếu < .50 thì phép đo
+VÔ HIỆU vì mẫu còn lại đã bị chọn lọc thiên lệch (chỉ giữ bài nhiều số học).
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên từ #26, thêm một điều kiện)
+- `degenerate_rate` > .90 ở một tầng -> tầng đó VÔ HIỆU
+- `parse_fail_rate` > .20 -> cả lần chạy VÔ HIỆU
+- **n_pairs < 40 ở tầng ZERO -> tầng ZERO KHÔNG ĐƯỢC DÙNG ĐỂ KẾT LUẬN** (chỉ báo cáo, ghi "thiếu lực")
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| ZERO n>=40 và phân biệt >= .40 ở 7B | **XÁC NHẬN: kiểm lỗi TÁCH RỜI khỏi giải ở 7B.** Đây là phát hiện dương mạnh nhất của dự án. Vai verifier có thật; huấn luyện phân biệt là hướng đúng. |
+| ZERO n>=40 và phân biệt ≈ 0 ở 7B, trong khi HIGH cao | **BÁC: kiểm lỗi BỊ CHẶN bởi năng lực giải.** dt2_g7 chỉ là ảo ảnh của n=9. Phải rút lại cách đọc lạc quan ở vòng #48. |
+| 7B phân biệt tốt mọi tầng, 1.5B vẫn suy biến | "Phụ thuộc NĂNG LỰC" — có ngưỡng năng lực cho việc kiểm. Không được suy rộng xuống model nhỏ. |
+| Cả hai model suy biến trên MATH | Nhiệm vụ tiêm-lỗi không đo được trên MATH. Kết quả GSM8K đứng một mình, phải nói rõ chỉ có 1 miền. |
+| `pct_problems_corruptible` < .50 | Lần chạy VÔ HIỆU. Thiết kế lại cách tiêm lỗi. |
+
+## Prior TRUNG THỰC (ghi trước)
+Sau dt2_g7 tôi NGHIÊNG về hàng 1 (phân biệt sống sót ở tầng ZERO đông hơn). Nhưng tôi đã sai
+nhiều lần trong dự án này khi ngoại suy từ mẫu nhỏ, và n=9 chính là mẫu nhỏ.
+Tôi ghi rõ: nếu ra hàng 2, tôi PHẢI rút lại cách đọc ở vòng #48 và nói thẳng là đã mừng sớm.
