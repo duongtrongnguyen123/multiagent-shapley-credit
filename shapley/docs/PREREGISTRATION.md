@@ -854,3 +854,52 @@ Nếu ra hàng 2 thì đề xuất huấn luyện vai bị bác, và tôi phải
 
 ## Bắt buộc
 Lưu >=50 trace mỗi tầng × mỗi nhánh. Báo tỉ lệ nói YES trên CLEAN (thiên lệch) cùng độ chính xác.
+
+---
+
+# Đăng ký trước #25 — H26: MỖI VAI MỘT ADAPTER RIÊNG, THƯỞNG BẰNG ĐÓNG GÓP BIÊN
+**Viết TRƯỚC khi chạy.** Theo đề xuất: "củng cố TỪNG MODEL vào ĐÚNG VAI của nó."
+
+## Khác gì H23 (đã thất bại)
+H23: MỘT model, MỘT adapter, đội mũ prompt khác nhau -> vẫn là một model. Đã đo: sụp đổ vai.
+H26: **BA adapter LoRA RIÊNG BIỆT** trên cùng base 1.5B (A_plan / A_solve / A_verify),
+mỗi adapter có HÀM THƯỞNG RIÊNG. Đây mới đúng là "mỗi model một vai".
+
+## Phần thưởng = ĐÓNG GÓP BIÊN (leave-one-out) — chính đại lượng dự án này đo bằng Shapley
+Mỗi bài chạy 4 biến thể: {S}, {P,S}, {S,V}, {P,S,V}. Từ đó:
+  r_solve  = 1[{S} đúng]
+  r_plan   = 1[{P,S} đúng] − 1[{S} đúng]
+  r_verify = 1[{S,V} đúng] − 1[{S} đúng]  **CỘNG phạt im lặng: −0.3 nếu {S} SAI mà V không đổi gì**
+Phạt im lặng là bản vá TRỰC TIẾP cho lỗi đã đo ở H23: reward cũ cho "không đổi" = 0 nên
+IM LẶNG LÀ MIỄN PHÍ và policy đã chọn đúng lối đó. Giờ im lặng khi Solver sai PHẢI trả giá.
+
+## Chỉ số BẮT BUỘC báo (mỗi vai)
+- V_gain, SỐ LẦN CAN THIỆP (bẫy im lặng — H23 đã dính)
+- **`plan_reveals_answer`**: tỉ lệ kế hoạch chứa đáp án cuối. Đã đo ở vòng trước: Planner
+  vốn GIẢI RỒI GIẤU. Nếu thưởng theo đóng góp biên, lối tối ưu TẦM THƯỜNG là kế hoạch
+  NÓI THẲNG đáp án. KHÔNG cấm — để nó tự tìm, và ĐO xem có tìm ra không.
+- Độ tương đồng giữa 3 adapter (chuẩn LoRA delta) — vai có THỰC SỰ tách ra không?
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Cả 3 vai đều tăng đóng góp biên, pipeline {P,S,V} > baseline, và 3 adapter KHÁC nhau rõ | **H26 XÁC NHẬN. Chuyên biệt hoá theo vai LÀ HỌC ĐƯỢC.** Đề xuất của người dùng đúng; hướng đi mới của dự án. |
+| Chỉ A_solve tăng, A_plan/A_verify ≈ 0 | Chỉ có vai GIẢI là học được. Vai phụ không có tín hiệu để học. Ghi rõ: phân rã vai không phải trừu tượng đúng ở quy mô này. |
+| A_plan hội tụ về NÓI THẲNG ĐÁP ÁN (`plan_reveals_answer` tăng mạnh) | Chuyên biệt hoá "thành công" bằng cách BIẾN PLANNER THÀNH SOLVER. Phải báo đúng như vậy, KHÔNG được kể là chuyên biệt hoá vai. |
+| A_verify lại im lặng dù đã phạt | Phạt chưa đủ / reward vẫn thưa. H23+H26 cùng bác -> DỪNG hướng RL cho verifier. |
+| 3 adapter hội tụ về gần như GIỐNG NHAU (delta tương đồng cao) | Vai KHÔNG tách được kể cả khi cho tham số riêng. Đây là bằng chứng MẠNH NHẤT cho sự sụp đổ vai. |
+| Pipeline sau huấn luyện < maj@8 chưa huấn luyện | Toàn bộ hướng đa tác tử thua lấy mẫu song song. Phải nói thẳng. |
+
+## Phụ thuộc
+Nhánh A_verify chỉ có ý nghĩa nếu **H25 (đăng ký #24)** cho thấy phát hiện lỗi TÁCH RỜI khỏi giải.
+Nếu H25 ra hàng 2 (phát hiện bị chặn bởi năng lực giải) thì A_verify KHÔNG có gì để học,
+và điều đó phải được ghi là ĐÃ BIẾT TRƯỚC, không phải phát hiện sau.
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi nghiêng về hàng 2 hoặc hàng 3. Lý do: H24 ô đầu vừa đo được `S_anc` (KHÔNG có khung kiểm)
+ngang `V_bli` -> khung vai không mang thông tin; và Planner đã được đo là "giải rồi giấu",
+nên thưởng theo đóng góp biên nhiều khả năng đẩy nó tới chỗ NÓI THẲNG đáp án.
+Tôi ghi trước để nếu ra hàng 3 thì KHÔNG được kể thành công.
+Vẫn chạy vì: (a) chưa ai cho mỗi vai THAM SỐ RIÊNG — mọi kết luận sụp đổ vai trước đây đều ở
+điều kiện dùng CHUNG tham số, nên chưa phải phép thử công bằng; (b) đó là phép thử SẠCH nhất
+cho câu hỏi trung tâm của dự án.
