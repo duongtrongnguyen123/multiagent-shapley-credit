@@ -940,3 +940,48 @@ Tôi cho rằng khi được suy luận, model sẽ hết suy biến và phân b
 Lưu ý trung thực: lỗi được TIÊM vào là lỗi SỐ HỌC MỘT BƯỚC, dễ hơn lỗi suy luận thật.
 Nếu ngay cả lỗi này cũng không phát hiện nổi thì kết luận rất mạnh; nhưng nếu phát hiện được,
 KHÔNG được suy rộng thành "biết kiểm lỗi nói chung".
+
+---
+
+# Đăng ký trước #27 — H27: VERIFIER PHÂN BIỆT (chấm điểm) THAY VÌ VERIFIER SINH VĂN BẢN
+**Viết TRƯỚC khi chạy.** Trả lời đề xuất "lấy output rồi gán nhãn để có dữ liệu fine-tune".
+
+## Ba điều dữ liệu ĐÃ ĐO nói trước khi thiết kế
+1. **Nhãn KHÔNG cần gán tay.** Grader (đáp án vàng) đã cho nhãn đúng/sai MIỄN PHÍ ở quy mô
+   không giới hạn. Gán tay chỉ đáng cho nhãn TỪNG BƯỚC — mà thứ đó cũng lấy tự động được
+   (tung nhiều lần từ mỗi tiền tố, hoặc TIÊM lỗi vào chuỗi vàng như kernel dt đang làm).
+2. **Mọi thứ đã thất bại đều là verifier SINH VĂN BẢN** (H21a bác 3 lần, H23 im lặng,
+   H24 ô g15 cho thấy `S_anc` không có khung kiểm vẫn ngang `V_bli`). Chưa BAO GIỜ thử
+   verifier PHÂN BIỆT (xuất một điểm số, không viết lại lời giải).
+3. **Khoảng trống ĐÃ ĐO**: maj@8 -> oracle@8 = **+17.5 điểm (1.5B)**, **+11.7 điểm (7B)**.
+   Câu trả lời ĐÚNG đã nằm sẵn trong 8 mẫu; bỏ phiếu chỉ không chọn được nó.
+   Đây là chỗ DUY NHẤT trong dự án có headroom lớn đã đo, không phải phỏng đoán.
+
+## Thiết kế
+- **Dữ liệu (nhãn tự động)**: 800 bài GSM8K *train*, mỗi bài 8 mẫu (temp .8) -> ~6400 cặp
+  (lời giải, đúng/sai) do grader chấm. KHÔNG có nhãn tay.
+- **Huấn luyện**: LoRA, dạy model xuất token `Yes`/`No` cho câu "Is this solution correct?".
+  Điểm số khi suy luận = logprob của token `Yes`. Không thêm đầu phân loại -> giữ đơn giản.
+- **Dùng**: sinh k=8 trên test, CHẤM cả 8, chọn điểm cao nhất (**rerank@8**).
+- **So với**: greedy, maj@8, oracle@8 (trần), và maj@8 CỦA CÙNG 8 MẪU ĐÓ (so sánh cặp).
+
+## NGƯỠNG HIỆU LỰC — khoá TRƯỚC (theo luật mới lập ở #26)
+- **AUC** của bộ chấm trên tập test phải **> .55**. Nếu AUC ≈ .50 -> bộ chấm KHÔNG học được gì,
+  kết quả rerank là NGẪU NHIÊN và KHÔNG được đọc là "phân biệt thất bại vì nhiệm vụ khó".
+- `degenerate_rate` của Yes/No > .90 -> VÔ HIỆU.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| rerank@8 > maj@8, >=4/5 fold, và AUC > .55 | **H27 XÁC NHẬN.** Verifier PHÂN BIỆT làm được thứ verifier SINH VĂN BẢN không làm nổi. Đây là hướng đúng để dùng nhãn tự động; khuyến nghị của dự án phải đổi. |
+| rerank@8 ≈ maj@8 (chênh trong sàn nhiễu) | Chấm điểm không thêm gì so với đếm phiếu. Bỏ phiếu vẫn là cách tổng hợp nên dùng. |
+| rerank@8 < maj@8 | Bộ chấm TỆ HƠN đếm phiếu. Ghi rõ đã bác. Không được đổ cho "thiếu dữ liệu" nếu AUC > .55. |
+| AUC <= .55 | VÔ HIỆU cho câu hỏi rerank. Kết luận HẸP: 1.5B không học được hàm phân biệt đúng/sai từ 6400 mẫu. Phải nói rõ đây là giới hạn NĂNG LỰC/DỮ LIỆU, chưa bác được hướng phân biệt. |
+| rerank@8 chạm gần oracle@8 (>= 80% khoảng trống) | Kết quả MẠNH NHẤT dự án từng có. Phải kiểm lại rò rỉ dữ liệu train/test trước khi báo. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đây là hướng tôi tin NHẤT trong toàn dự án, vì: (a) nhãn miễn phí và nhiều; (b) phân biệt là
+nhiệm vụ DỄ HƠN sinh; (c) headroom đã ĐO chứ không suy đoán. Tôi đoán rerank@8 sẽ vượt maj@8
+vài điểm nhưng KHÔNG chạm oracle.
+CẢNH BÁO tự đặt: nếu H25b cho thấy 1.5B không phân biệt nổi chuỗi vàng SẠCH và chuỗi BỊ TIÊM LỖI,
+thì AUC ở đây nhiều khả năng thấp -> phải đọc theo hàng 4, KHÔNG được kể thành "cần thêm dữ liệu".
