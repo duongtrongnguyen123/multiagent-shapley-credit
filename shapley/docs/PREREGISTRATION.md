@@ -728,3 +728,38 @@ Nhánh (5 fold x 32 bài, 1.5B): NoP (không planner) | P_hide ("đừng viết 
 
 Chỉ số chính: pass@1 (chạy test) từng nhánh, 5 fold, kèm khoảng + số fold cùng dấu.
 Ghi chú: HumanEval n=164 nên fold nhỏ (32 bài) -> nhiễu lớn hơn; chỉ kết luận khi ĐA SỐ fold cùng dấu.
+
+---
+
+# Đăng ký trước #22 — H23: GRPO TRÊN VERIFIER (tối ưu ĐỘ CHÍNH XÁC CAN THIỆP)
+**Viết TRƯỚC khi chạy.** Chạy trên RTX 5090, sau khi pat15/pat7 xong.
+
+## Mục tiêu — đúng khiếm khuyết ĐÃ ĐO
+Verifier 1.5B can thiệp với độ chính xác chỉ **56%** (≈ độ chính xác TỰ GIẢI của nó), vì nó
+GIẢI LẠI thay vì KIỂM (tái sử dụng 0% số của Solver khi can thiệp).
+=> Phần thưởng RL ĐẶT ĐÚNG vào đó: +1 nếu SỬA ĐÚNG (Solver sai -> Verifier đúng),
+   −1 nếu PHÁ (Solver đúng -> Verifier sai), 0 nếu không đổi kết quả.
+   Đây CHÍNH LÀ đại lượng mà mọi thí nghiệm trước đo được là hỏng.
+
+## Thiết lập
+GRPO + LoRA trên Qwen2.5-1.5B (không cần value model; policy tham chiếu = tắt adapter).
+Dữ liệu: GSM8K **main_train** (tách hoàn toàn khỏi test). Mỗi bài: Solver sinh 1 lời giải (đóng băng),
+Verifier sinh k=4 phản hồi -> tính reward -> advantage = r − mean(r) trong nhóm.
+Đánh giá: GSM8K test, 5 fold, so `V_gain` và ĐỘ CHÍNH XÁC CAN THIỆP trước/sau.
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Độ chính xác can thiệp TĂNG rõ (>65%) VÀ V_gain tăng | H23 XÁC NHẬN. RL sửa được khiếm khuyết mà prompting không sửa nổi. |
+| Độ chính xác can thiệp tăng nhưng V_gain KHÔNG tăng | Nó học cách CAN THIỆP ÍT ĐI chứ không CHÍNH XÁC HƠN. Phải báo kèm SỐ LẦN can thiệp. |
+| Không đổi | RL không giúp ở quy mô này. Ghi rõ đã bác. Củng cố khuyến nghị "dùng model lớn hơn". |
+| Sụp đổ / reward hacking (vd luôn đồng ý) | Ghi rõ. Phần thưởng thưa (chỉ ~15-20% bài có can thiệp) là rủi ro đã biết. |
+
+## Chỉ số BẮT BUỘC báo
+`V_gain`, ĐỘ CHÍNH XÁC CAN THIỆP, **SỐ LẦN CAN THIỆP** (để phát hiện "học cách im lặng"),
+và so với mốc **7B verifier không huấn luyện** (98%) — nếu RL không vượt được mốc đó thì
+khuyến nghị vẫn là "dùng model lớn hơn".
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đã lập luận RL là công cụ SAI ở đây vì đã có nhãn trực tiếp (grader) -> học có giám sát
+dùng tín hiệu đó tốt hơn. Reward rất THƯA. Tôi cho rằng khả năng cao rơi vào hàng 2 hoặc 3.
+Vẫn chạy vì người dùng yêu cầu và vì nó nhắm ĐÚNG khiếm khuyết đã đo.
