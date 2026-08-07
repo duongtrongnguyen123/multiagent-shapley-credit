@@ -1319,3 +1319,16 @@ Cả hai đều LÃNG PHÍ GPU và làm chậm câu trả lời cho câu hỏi c
    Đây là thay đổi MỘT DÒNG, không tốn thêm compute.
 LƯU Ý: plan_acc (hide .2125 vs free .2775 trên MATH) vẫn KHÔNG phân biệt được "không tính" với
   "tính mà không nói" — hạn chế đã ghi ở vòng #36 vẫn giữ nguyên.
+
+## [Loop] VÒNG #38 — pa2_g15: H21a KHÔNG THỂ KIỂM ĐƯỢC TRÊN GSM8K (do chính cấu trúc pipeline)
+pa2_g15 (bản ĐÃ sửa lỗi ghép chuỗi): reuse_std .157 -> reuse_patch .175 — VẪN gần như không đổi.
+NGUYÊN NHÂN: trên GSM8K, Solver chỉ viết MỘT DÒNG (~18 ký tự, "The answer is 42.").
+  Hàm splice của tôi BỎ DÒNG CUỐI để nối phần vá -> bỏ luôn TOÀN BỘ -> merged = chỉ phần vá.
+=> H21a KHÔNG THỂ KIỂM TRÊN GSM8K VỀ MẶT CẤU TRÚC: không thể "vá" một lời giải KHÔNG CÓ BƯỚC NÀO.
+   Đây là hệ quả TRỰC TIẾP của phát hiện cũ: Planner đã giải xong nên Solver chỉ chép một dòng,
+   KHÔNG CÓ TIỀN TỐ để giữ lại.
+=> Chỉ MATH mới kiểm được (Solver viết ~986 ký tự; pa_m15 cho thấy reuse .820 -> .871).
+ĐÃ SỬA splice cho an toàn (chỉ bỏ dòng cuối khi lời giải có >=3 dòng) và phóng pa2_m15 trên MATH.
+GHI CHÚ: đây là lần thứ ba một thí nghiệm bị vô hiệu vì tôi giả định Solver có nhiều bước,
+  trong khi CHÍNH DỰ ÁN NÀY đã đo được nó chỉ viết một dòng. Tôi không áp dụng phát hiện của
+  chính mình khi thiết kế thí nghiệm sau đó.

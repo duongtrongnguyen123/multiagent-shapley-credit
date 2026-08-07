@@ -111,7 +111,7 @@ for fi in range(NF):
     def splice(sol, pat):
         # cat tien to Solver toi dong dau tien ma Verifier nhac lai (neu co), roi noi phan va
         lines=[l for l in (sol or "").split("\n") if l.strip()]
-        keep=lines[:max(0,len(lines)-1)]      # bo dong ket luan cu cua Solver
+        keep=lines[:len(lines)-1] if len(lines)>=3 else lines      # bo dong ket luan cu cua Solver
         return "\n".join(keep)+"\n"+(pat or "")
     merged=[splice(sols[i],v_pat[i]) for i in range(len(qs))]
     a_pat=[pred(merged[i]) if pred(merged[i]) is not None else sa[i] for i in range(len(qs))]
