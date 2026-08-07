@@ -1184,3 +1184,32 @@ trong khi dữ liệu ĐÃ CÓ SẴN cho thấy nửa tích cực (nf_m7, đo t�
 Tôi đã không ghép hai mảnh lại vì đang tập trung vào việc hạ cấp khẳng định cũ.
 BÀI HỌC: khi đang sửa sai, vẫn phải rà xem dữ liệu có phần KHẲNG ĐỊNH nào bị bỏ sót không —
 thiên lệch theo hướng tiêu cực cũng là thiên lệch.
+
+## [Loop] VÒNG #31 — bs_m: MATH KHÁC HẲN GSM8K, RƠI ĐỒNG THỜI HÀNG 3 VÀ HÀNG 4
+bs_m (MATH, 5 fold x 60, đầu-đối-đầu cùng bài):
+  S15 (1.5B đơn)          .4233
+  S15_V7 (bất đối xứng)   .5633   asym_minus_S7 mean -3.0  range [-8.3, +3.3] CHỨA 0
+  S7 (7B đơn)             .5933
+  **S7_V7 (7B + soát 7B)  .6700   S7V7_minus_S7 mean +7.7 range [+1.7,+11.7] 5/5 DƯƠNG**
+  token 7B: asym 118,969 | S7 151,700 | S7_V7 260,595
+  verifier 7B: 43 SỬA / 1 PHÁ (khớp CHÍNH XÁC as_m)
+
+### HÀNG 3 — ĐÁNH ĐỔI CHI PHÍ HỢP LỆ (chỉ trên MATH)
+  Bất đối xứng NGANG 7B-đơn về mặt thống kê (khoảng chứa 0) mà dùng ÍT HƠN 21.6% token 7B.
+  => Trên MATH đây là LỰA CHỌN CHI PHÍ HỢP LỆ.
+  KHÁC HẲN GSM8K (bs_g): ở đó bất đối xứng -10.0đ, 5/5 fold ÂM -> BỊ THỐNG TRỊ.
+  CƠ CHẾ: GSM8K solver 7B đã .910 -> hạ xuống 1.5B mất rất nhiều. MATH solver 7B chỉ .593
+  -> khoảng cách đủ nhỏ để verifier bù lại. Khớp "dải độ khó" ở vòng #27.
+
+### HÀNG 4 — XÁC NHẬN ĐẦU-ĐỐI-ĐẦU: THÊM VERIFIER LÊN MODEL TỐT NHẤT CÓ ÍCH
+  S7_V7 hơn S7 +7.7đ, 5/5 fold DƯƠNG, khoảng [+1.7, +11.7].
+  .6700 LÀ CẤU HÌNH TỐT NHẤT ĐO ĐƯỢC TRONG TOÀN DỰ ÁN.
+  => Quy tắc 2 (thêm verifier khi model ở giữa dải độ khó) ĐƯỢC XÁC NHẬN bằng so sánh trực tiếp,
+     không chỉ suy ra từ lưới.
+
+### QUY TẮC 1 PHẢI ĐƯỢC ĐIỀU CHỈNH
+Trước: "ĐỪNG thay model mạnh bằng model yếu + verifier" (dựa trên GSM8K -10.0).
+Nay:  đúng khi model mạnh ĐÃ BÃO HOÀ trên task (GSM8K .910 -> mất 10 điểm).
+      Khi model mạnh chỉ ở GIỮA DẢI (MATH .593) thì bất đối xứng NGANG BẰNG mà rẻ hơn 21.6%.
+=> Phát biểu đúng: giá trị của bất đối xứng phụ thuộc vào việc model MẠNH đang ở đâu trên
+   dải độ khó — y hệt quy luật đã tìm ra cho verifier.

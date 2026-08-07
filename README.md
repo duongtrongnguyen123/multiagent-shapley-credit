@@ -68,23 +68,27 @@ bị diễn giải lại sau khi đã nhìn thấy số.
 
 > ## KẾT LUẬN CHÍNH — QUY TẮC QUYẾT ĐỊNH (tất cả đều đã kiểm 5 fold)
 >
-> ### ❌ 1. THAY model mạnh bằng "model yếu + verifier" — LUÔN THUA
-> | GSM8K, 5 fold, cùng bài | acc | so 7B đơn | token 7B |
+> ### ⚖️ 1. THAY model mạnh bằng "model yếu + verifier" — TUỲ TASK
+> | | acc | so 7B đơn | token 7B |
 > |---|---|---|---|
-> | 1.5B giải + **7B soát** | .810 | **−10.0đ** (5/5 âm) | 105k |
-> | **7B GIẢI MỘT MÌNH** | **.910** | — | 120k |
+> | **GSM8K** 1.5B+soát7B | .810 | **−10.0đ** (5/5 âm) | 105k vs 120k (−12%) |
+> | **MATH** 1.5B+soát7B | .563 | **−3.0đ [−8.3,+3.3]** ⟵ chứa 0 | **119k vs 152k (−22%)** |
 >
-> Bất đối xứng hơn mốc 1.5B tới **+18.2đ** — nhưng **kém 10 điểm so với chỉ dùng 7B**, mà chỉ
-> tiết kiệm **12.5%** token 7B (accuracy/token chênh <2%, chưa tính lượt 1.5B). **Thua cả hai trục.**
+> GSM8K: **BỊ THỐNG TRỊ** (7B đã bão hoà .910 → hạ xuống 1.5B mất quá nhiều).
+> MATH: **NGANG BẰNG về thống kê, rẻ hơn 22%** (7B chỉ ở .593 → verifier bù lại được).
 >
-> ### ✅ 2. THÊM verifier LÊN TRÊN model tốt nhất — CÓ ÍCH, nhưng chỉ ở GIỮA DẢI ĐỘ KHÓ
+> ### ✅ 2. THÊM verifier LÊN TRÊN model tốt nhất — CÓ ÍCH ở GIỮA DẢI ĐỘ KHÓ
 > | Model tốt nhất | acc | + verifier | kết quả |
 > |---|---|---|---|
 > | GSM8K·7B | .910 (**bão hoà**) | −1.0 [−4,+3] | ❌ vô ích |
-> | **MATH·7B** | **.598 (giữa dải)** | **+4.4 [+2,+8]** | ✅ **5/5 fold** |
+> | **MATH·7B** | **.593 (giữa dải)** | **+7.7 [+1.7,+11.7]** | ✅ **5/5 fold** |
+>
+> **`.670` (7B giải + 7B soát trên MATH) là cấu hình TỐT NHẤT đo được trong toàn dự án.**
 >
 > ### ⇒ QUY TẮC
-> 1. **Luôn dùng model mạnh nhất trong khả năng** — đừng thay bằng "model nhỏ + verifier".
+> 1. **Dùng model mạnh nhất** khi nó CHƯA bão hoà. Nếu nó ĐÃ bão hoà trên task của bạn,
+>    "model nhỏ + verifier" vẫn thua rõ (−10đ). Nếu nó ở GIỮA DẢI, phương án đó NGANG BẰNG
+>    mà rẻ hơn ~22% — một lựa chọn chi phí hợp lệ.
 > 2. **Chỉ thêm verifier** nếu model đó đạt độ chính xác **~.60–.67** trên task của bạn.
 >    Quá cao (bão hoà) → không còn gì để sửa. Quá thấp → verifier không phân biệt nổi đúng/sai
 >    (**độ chính xác can thiệp chỉ 56%** ở 1.5B, so với **98%** ở 7B).
