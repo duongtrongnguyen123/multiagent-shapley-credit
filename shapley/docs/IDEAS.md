@@ -1332,3 +1332,14 @@ NGUYÊN NHÂN: trên GSM8K, Solver chỉ viết MỘT DÒNG (~18 ký tự, "The 
 GHI CHÚ: đây là lần thứ ba một thí nghiệm bị vô hiệu vì tôi giả định Solver có nhiều bước,
   trong khi CHÍNH DỰ ÁN NÀY đã đo được nó chỉ viết một dòng. Tôi không áp dụng phát hiện của
   chính mình khi thiết kế thí nghiệm sau đó.
+
+## [Loop] VÒNG #39 — KHÔNG CÓ KẾT QUẢ MỚI; CHỦ ĐỘNG KHÔNG PHÓNG THÊM
+3 kernel đang chạy (rc_m7b, pa2_m15, pc_he), không cái nào xong.
+QUYẾT ĐỊNH: KHÔNG phóng thí nghiệm thứ tư trong vòng này, vì:
+  - 3 câu hỏi còn mở đã được 3 kernel này phủ hết
+  - 3/19 tài khoản đã cạn quota tuần 30h -> ngân sách GPU là ràng buộc thật
+  - thêm kernel lúc này chỉ tạo hàng đợi mà không rút ngắn được thời gian có câu trả lời
+TRẠNG THÁI CÂU HỎI CÒN MỞ:
+  rc_m7b  : mắt xích cuối chưa có thanh sai số (truyền trace ở MATH 7B)
+  pa2_m15 : giả thuyết VÁ LỖI của người dùng — lần đầu kiểm được đúng cách (chỉ MATH mới đủ bước)
+  pc_he   : chỉ dẫn cấm của Planner có tổng quát sang CODE không (chấm bằng chạy test)
