@@ -1,0 +1,14 @@
+{
+  "task": "math",
+  "n": 200,
+  "acc_solver_only": 0.405,
+  "acc_full": 0.345,
+  "acc_trim": 0.435,
+  "acc_nova": 0.425,
+  "chars_full": 903840,
+  "chars_trim": 96802,
+  "trim_minus_full": 0.09,
+  "nova_minus_full": 0.08,
+  "full_minus_solo": -0.06,
+  "trim_minus_solo": 0.03
+}

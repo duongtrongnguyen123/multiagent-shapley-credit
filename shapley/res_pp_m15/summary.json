@@ -1,0 +1,43 @@
+{
+  "task": "math",
+  "n": 200,
+  "quant": false,
+  "solver_acc": 0.425,
+  "solver_correct": 85,
+  "median_plan_len": 759,
+  "median_sol_len": 899,
+  "arms": {
+    "V_sol": {
+      "verifier_acc": 0.445,
+      "value_added": 0.02,
+      "fixes": 11,
+      "breaks": 7,
+      "changed_answer": 79,
+      "median_ctx_chars": 1066
+    },
+    "V_plan": {
+      "verifier_acc": 0.435,
+      "value_added": 0.01,
+      "fixes": 11,
+      "breaks": 9,
+      "changed_answer": 80,
+      "median_ctx_chars": 988
+    },
+    "V_both": {
+      "verifier_acc": 0.445,
+      "value_added": 0.02,
+      "fixes": 11,
+      "breaks": 7,
+      "changed_answer": 67,
+      "median_ctx_chars": 1762
+    },
+    "V_none": {
+      "verifier_acc": 0.465,
+      "value_added": 0.04,
+      "fixes": 23,
+      "breaks": 15,
+      "changed_answer": 111,
+      "median_ctx_chars": 204
+    }
+  }
+}

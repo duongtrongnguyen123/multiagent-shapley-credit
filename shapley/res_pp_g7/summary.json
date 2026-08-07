@@ -1,0 +1,43 @@
+{
+  "task": "gsm8k",
+  "n": 250,
+  "quant": true,
+  "solver_acc": 0.896,
+  "solver_correct": 224,
+  "median_plan_len": 324,
+  "median_sol_len": 459,
+  "arms": {
+    "V_sol": {
+      "verifier_acc": 0.904,
+      "value_added": 0.008,
+      "fixes": 8,
+      "breaks": 6,
+      "changed_answer": 17,
+      "median_ctx_chars": 707
+    },
+    "V_plan": {
+      "verifier_acc": 0.912,
+      "value_added": 0.016,
+      "fixes": 7,
+      "breaks": 3,
+      "changed_answer": 11,
+      "median_ctx_chars": 620
+    },
+    "V_both": {
+      "verifier_acc": 0.904,
+      "value_added": 0.008,
+      "fixes": 3,
+      "breaks": 1,
+      "changed_answer": 4,
+      "median_ctx_chars": 1062
+    },
+    "V_none": {
+      "verifier_acc": 0.92,
+      "value_added": 0.024,
+      "fixes": 12,
+      "breaks": 6,
+      "changed_answer": 23,
+      "median_ctx_chars": 260
+    }
+  }
+}

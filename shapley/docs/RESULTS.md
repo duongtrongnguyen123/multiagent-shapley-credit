@@ -186,6 +186,53 @@ truyền trace cho V và A thực sự đáng giá. Trên MATH 1.5B thì **khôn
 > ⇒ Phép ĐO đúng, nhưng DIỄN GIẢI "LLM tổng hợp phán đoán kém" là SAI.
 > Phát biểu đúng: **bộ tổng hợp LLM trung tính một khi đã xử lý định dạng đầu ra.**
 
+---
+
+## 4c. CƠ CHẾ — VÌ SAO CÁC VAI HÀNH XỬ NHƯ VẬY (từ 600 trace thô)
+
+Toàn bộ mục này rút ra từ việc ĐỌC output thô, không phải từ số tổng hợp.
+Năm lần đọc trace, năm lần lật lại một diễn giải.
+
+### (1) AI THỰC SỰ TÍNH TOÁN? — chỉ 2/4 vai
+| Agent | median ký tự | số MỚI/lượt | % lượt KHÔNG có số mới | đáp án = agent trước |
+|---|---|---|---|---|
+| **Planner** | 501 | **6** | **0.0%** | — |
+| Solver | 20 | 0 | 69.0% | 62.5% |
+| **Verifier** | 592 | **4** | 20.5% | 69.0% |
+| Aggregator | 18 | 0 | **100.0%** | **96.0%** |
+
+Pipeline "4 tác tử" thực chất là **2 tác tử tính toán + 2 trạm chuyển tiếp** (số liệu GSM8K 1.5B).
+
+### (2) PLANNER KHÔNG LẬP KẾ HOẠCH — NÓ GIẢI, RỒI GIẤU ĐÁP ÁN
+Nó sinh 6 số mới ở **100%** số lượt (0% lượt không tính) nhưng chỉ **3.3%** có `\boxed`;
+đáp án ngầm vẫn trích được ở **32–45%** kế hoạch.
+⇒ Chỉ dẫn *"Do NOT compute the final answer"* **không ngăn nó tính**, chỉ khiến nó **không nói ra**.
+Hệ quả: khi kế hoạch ĐÚNG, Solver đúng **98.9%**; khi kế hoạch SAI, chỉ **37.6%**.
+
+### (3) VERIFIER KHÔNG KIỂM TRA — NÓ GIẢI LẠI TỪ ĐẦU
+Tỉ lệ Verifier **tái sử dụng số của Solver** (bỏ số vốn có trong đề):
+| | toàn bộ | khi ĐỒNG Ý | khi SỬA | khi PHÁ |
+|---|---|---|---|---|
+| GSM8K | .17 | .20 | **0.00** | **0.00** |
+| MATH | .83 | 1.00 | .33 | .29 |
+
+Mỗi khi **can thiệp**, nó **vứt bỏ toàn bộ chuỗi của Solver**. Chỉ tái sử dụng khi đang **đồng ý**.
+⇒ Vì thế độ chính xác can thiệp ≈ **độ chính xác TỰ GIẢI** của model, chứ không phải độ chính xác
+của việc KIỂM (đáng lẽ dễ hơn nhiều):
+
+| Verifier | sửa/phá | độ chính xác can thiệp |
+|---|---|---|
+| 1.5B | 18/14, 32/22 | **56–59%** ≈ chính nó tự giải (~.63) |
+| **7B** | **43/1** | **98%** |
+
+⇒ **Verifier không phải bộ kiểm tra tồi — nó là một SOLVER THỨ HAI đội lốt bộ kiểm tra.**
+Mua verifier 7B tức là mua một **solver tốt hơn** cho lượt thứ hai.
+
+### (4) AGGREGATOR HỎNG KHÁC HẲN: LỖI ĐỊNH DẠNG, KHÔNG PHẢI PHÁN ĐOÁN
+Phân loại 20 ca PHÁ trên MATH: **85%** không phát ra `\boxed` · 50% tự giải lại ·
+40% output thoái hoá · **chỉ 5% chọn nhầm ứng viên thật**.
+⇒ Sửa bằng fallback **miễn phí**: −6.4 → **+1.0** (xem đính chính ở mục 4b).
+
 ## 5. Ràng buộc theo năng lực model
 
 | Quan sát | Số liệu |

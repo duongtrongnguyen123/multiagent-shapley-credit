@@ -1239,3 +1239,31 @@ Nay:  đúng khi model mạnh ĐÃ BÃO HOÀ trên task (GSM8K .910 -> mất 10 
         Khác lần trước (struct/V_ST) ở chỗ không phụ thuộc model có tuân lệnh hay không.
   H21b: 3 kiểu Planner (giấu / tự do / yêu cầu tính) -> đo acc đáp án NGẦM và acc Solver phía sau.
   Kernel: pa_g15, pa_m15 (5 fold x 80).
+
+## [Loop] VÒNG #33 — HỢP NHẤT CÁC CƠ CHẾ VÀO RESULTS.md (không kernel nào xong)
+3 kernel vẫn chạy. rc_m7 đã chạy ~12h — CHẠM TRẦN của Kaggle; nếu vòng sau vẫn RUN hoặc ERROR
+thì sẽ phóng lại bản NHẸ HƠN (3 fold x 60 thay vì 5 fold x 100).
+Công việc vòng này: gom TOÀN BỘ phát hiện về CƠ CHẾ (vốn nằm rải rác trong IDEAS.md) vào
+RESULTS.md thành mục 4c, vì đó mới là phần giải thích được "vì sao", còn các bảng số chỉ nói "cái gì".
+Bốn cơ chế đã đưa vào:
+  (1) chỉ 2/4 vai thực sự tính toán (Planner, Verifier); Solver và Aggregator là trạm chuyển tiếp
+  (2) Planner GIẢI rồi GIẤU đáp án — chỉ dẫn "đừng tính" không ngăn được việc tính
+  (3) Verifier GIẢI LẠI chứ không KIỂM (tái sử dụng 0% khi can thiệp) -> độ chính xác can thiệp
+      ≈ độ chính xác tự giải, không phải độ chính xác kiểm
+  (4) Aggregator hỏng vì ĐỊNH DẠNG (85% không có \boxed), chỉ 5% là chọn nhầm thật
+GHI CHÚ: cả bốn đều đến từ ĐỌC OUTPUT THÔ, không từ số tổng hợp. Năm lần đọc trace, năm lần
+  lật lại một diễn giải. Đây là lập luận mạnh nhất cho quy tắc "mọi kernel PHẢI lưu trace".
+
+## [Loop] VÒNG #35 — rc_m7 CHẠM TRẦN 12H CỦA KAGGLE; PHÓNG LẠI BẢN NHẸ
+rc_m7 đã ở trạng thái RUNNING hơn 13 giờ — vượt trần 12h của Kaggle, coi như CHẾT.
+NGUYÊN NHÂN: tôi đặt 5 fold x 100 bài trên 7B 4-bit với 5 lượt sinh mỗi bài
+  (~2500 lượt sinh 7B 4-bit) — QUÁ NẶNG cho một session.
+ĐÃ PHÓNG LẠI: rc_m7b = 3 fold x 60 bài (180 bài, nhẹ hơn ~2.8 lần) trên tuananhtran37.
+  (zhongzhing đã hết quota tuần 30h — tài khoản thứ ba chạm quota trong dự án.)
+
+### BÀI HỌC VỀ QUY MÔ THÍ NGHIỆM
+Các kernel 7B 4-bit tốn gấp nhiều lần dự tính. Quy tắc rút ra cho phần còn lại:
+  - 1.5B fp16: 5 fold x 100 là AN TOÀN
+  - 7B  4-bit: TỐI ĐA 3 fold x 60, và chỉ khi số nhánh <= 3
+Ba tài khoản đã cạn quota tuần (truongdinhduc06, tuetrandoanminh, zhongzhing) -> phải
+tính ngân sách GPU như một ràng buộc thật, không phải tài nguyên vô hạn.

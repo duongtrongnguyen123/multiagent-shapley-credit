@@ -1,0 +1,31 @@
+{
+  "task": "math",
+  "n": 200,
+  "median_plan_len": 759,
+  "arms": {
+    "NP_no_planner": {
+      "solver_acc": 0.405,
+      "median_sol_len": 1319,
+      "mean_sol_len": 1306,
+      "pct_under_200": 0.0
+    },
+    "WP_with_planner": {
+      "solver_acc": 0.425,
+      "median_sol_len": 899,
+      "mean_sol_len": 937,
+      "pct_under_200": 0.195
+    },
+    "WPE_plan_plus_reminder": {
+      "solver_acc": 0.425,
+      "median_sol_len": 853,
+      "mean_sol_len": 914,
+      "pct_under_200": 0.22
+    },
+    "PO_plan_only": {
+      "solver_acc": 0.36,
+      "median_sol_len": 1071,
+      "mean_sol_len": 1000,
+      "pct_under_200": 0.185
+    }
+  }
+}

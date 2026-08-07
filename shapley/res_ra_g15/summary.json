@@ -1,0 +1,25 @@
+{
+  "task": "gsm8k",
+  "n": 250,
+  "quant": false,
+  "acc_PS": 0.684,
+  "arms": {
+    "PSV": {
+      "acc": 0.732,
+      "changed_by_V": 79
+    },
+    "PSA": {
+      "acc": 0.428,
+      "changed_by_A": 100
+    },
+    "PSVA": {
+      "acc": 0.744,
+      "changed_vs_S": 74,
+      "changed_vs_V": 15
+    }
+  },
+  "V_alone_gain": 0.048,
+  "A_alone_gain": -0.256,
+  "both_gain": 0.06,
+  "synergy": 0.268
+}

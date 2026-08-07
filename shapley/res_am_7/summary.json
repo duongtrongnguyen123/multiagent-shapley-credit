@@ -1,0 +1,32 @@
+{
+  "n": 120,
+  "K": 8,
+  "maj@8": 0.7583,
+  "oracle@8": 0.8417,
+  "arms": {
+    "A_answers": {
+      "acc": 0.7167,
+      "vs_maj": -0.0416,
+      "breaks_majority": 7,
+      "fixes_majority": 2,
+      "agree_rate": 0.8,
+      "median_ctx_chars": 253
+    },
+    "A_full": {
+      "acc": 0.6417,
+      "vs_maj": -0.1166,
+      "breaks_majority": 14,
+      "fixes_majority": 0,
+      "agree_rate": 0.7583,
+      "median_ctx_chars": 2894
+    },
+    "A_masked": {
+      "acc": 0.675,
+      "vs_maj": -0.0833,
+      "breaks_majority": 11,
+      "fixes_majority": 1,
+      "agree_rate": 0.7833,
+      "median_ctx_chars": 3265
+    }
+  }
+}

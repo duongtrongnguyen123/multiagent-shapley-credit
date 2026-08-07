@@ -1,0 +1,17 @@
+{
+  "task": "math",
+  "n": 200,
+  "quant": true,
+  "median_plan_len": 492,
+  "median_sol_len": 1141,
+  "solver_acc": 0.625,
+  "plan_has_correct_answer": 0.07,
+  "plan_contains_boxed": 0.035,
+  "solver_answer_equals_plan": 0.095,
+  "solver_under_60_chars": 0.0,
+  "copycat_rate": 0.0,
+  "solver_acc_when_plan_right": 0.9286,
+  "solver_acc_when_plan_wrong": 0.6022,
+  "n_plan_right": 14,
+  "n_plan_wrong": 186
+}

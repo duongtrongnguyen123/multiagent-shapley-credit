@@ -1,0 +1,92 @@
+{
+  "code_m15": {
+    "status": "DONE",
+    "summary": {
+      "n": 164,
+      "A_noverify": {
+        "acc": 0.5305
+      },
+      "B_llm_verify": {
+        "acc": 0.5427,
+        "flagged": 15,
+        "false_alarm": 3,
+        "false_alarm_rate": 0.034,
+        "caught": 12,
+        "missed": 65,
+        "recall_on_bugs": 0.156,
+        "fix_vs_A": 2,
+        "break_vs_A": 0
+      },
+      "C_exec_repair_1": {
+        "acc": 0.561
+      },
+      "D_exec_repair_3": {
+        "acc": 0.5671,
+        "acc_by_round": [
+          0.5305,
+          0.561,
+          0.5671,
+          0.5671
+        ],
+        "fix_by_round": [
+          5,
+          1,
+          0
+        ],
+        "break_by_round": [
+          0,
+          0,
+          0
+        ],
+        "break_total": 0,
+        "fix_vs_A": 6,
+        "break_vs_A": 0
+      }
+    }
+  },
+  "code_m7": {
+    "status": "DONE",
+    "summary": {
+      "n": 164,
+      "A_noverify": {
+        "acc": 0.7866
+      },
+      "B_llm_verify": {
+        "acc": 0.7683,
+        "flagged": 12,
+        "false_alarm": 6,
+        "false_alarm_rate": 0.047,
+        "caught": 6,
+        "missed": 29,
+        "recall_on_bugs": 0.171,
+        "fix_vs_A": 1,
+        "break_vs_A": 4
+      },
+      "C_exec_repair_1": {
+        "acc": 0.8232
+      },
+      "D_exec_repair_3": {
+        "acc": 0.8354,
+        "acc_by_round": [
+          0.7866,
+          0.8232,
+          0.8354,
+          0.8354
+        ],
+        "fix_by_round": [
+          6,
+          2,
+          0
+        ],
+        "break_by_round": [
+          0,
+          0,
+          0
+        ],
+        "break_total": 0,
+        "fix_vs_A": 8,
+        "break_vs_A": 0
+      }
+    }
+  }
+}

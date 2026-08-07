@@ -1,0 +1,34 @@
+{
+  "n": 50,
+  "A_noverify": {
+    "acc": 0.46
+  },
+  "B_interleaved_1p5B": {
+    "acc": 0.22,
+    "interventions": 139,
+    "steps": 192,
+    "step_err_rate": 0.724,
+    "fix_vs_A": 2,
+    "break_vs_A": 14
+  },
+  "C_interleaved_7B": {
+    "acc": 0.34,
+    "interventions": 89,
+    "steps": 209,
+    "step_err_rate": 0.426,
+    "fix_vs_A": 5,
+    "break_vs_A": 11
+  },
+  "D_posthoc_7B": {
+    "acc": 0.64,
+    "fix_vs_A": 9,
+    "break_vs_A": 0
+  },
+  "E_7Bplan_atomic_1p5Bexec": {
+    "acc": 0.26,
+    "avg_plan_steps": 4.36,
+    "exec_calls": 218,
+    "fix_vs_A": 5,
+    "break_vs_A": 15
+  }
+}

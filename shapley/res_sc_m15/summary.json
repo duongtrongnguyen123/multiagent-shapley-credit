@@ -1,0 +1,1 @@
+{"n": 100, "acc": 0.25, "valid_json_rate": {"plan": 0.54, "solve": 0.12, "verify": 0.77, "agg": 0.74}, "verifier_fix": 1, "verifier_break": 34}
