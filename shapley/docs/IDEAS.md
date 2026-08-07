@@ -1651,3 +1651,43 @@ dt2_g7  (7B)  : suy biến .60 -> hợp lệ, phân biệt **+.651**.
 BỊ RỖNG DO THIẾT KẾ, không phải do ngẫu nhiên. Muốn đo "phát hiện lỗi ở bài KHÔNG giải nổi"
 thì PHẢI đổi sang tập khó hơn. Tôi đã ghi điều này ở vòng trước, TRƯỚC khi thấy kết quả này.
 => Thí nghiệm tiếp: dt3 trên **MATH** ở 7B, nơi solver chỉ .625 -> tầng ZERO sẽ đông hơn nhiều.
+
+## [Loop] VÒNG #49 — H27: BỘ CHẤM RẤT GIỎI (AUC .883) NHƯNG RERANK **KHÔNG** THẮNG BỎ PHIẾU; dt3_m15 VÔ HIỆU
+### disc_g15 (H27, GSM8K 1.5B, 3200 cặp nhãn TỰ ĐỘNG)
+**AUC = .8829** (ngưỡng hiệu lực .55 -> HỢP LỆ, và cao hơn nhiều). Tỉ lệ nhãn dương .632.
+| fold | greedy | maj@8 | rerank@8 | oracle@8 | rerank−maj |
+|---|---|---|---|---|---|
+| 0 | .483 | .700 | .650 | .850 | **−.050** |
+| 1 | .567 | .717 | .733 | .867 | +.017 |
+| 2 | .533 | .667 | .667 | .817 | .000 |
+| 3 | .567 | .733 | .750 | .867 | +.017 |
+| 4 | .517 | .700 | .633 | .817 | **−.067** |
+trung bình: greedy .533 | **maj@8 .703** | **rerank@8 .687** | oracle@8 .843
+rerank − maj = **−.017**, khoảng [−.067,+.017], chỉ **2/5** fold dương.
+
+=> **RƠI VÀO HÀNG 2 của bảng đã khoá ở #27**: "rerank@8 ≈ maj@8 (chênh trong sàn nhiễu)
+   -> chấm điểm KHÔNG thêm gì so với đếm phiếu. BỎ PHIẾU vẫn là cách tổng hợp nên dùng."
+   KHÔNG đọc là hàng 3 (tệ hơn hẳn) vì độ lớn dưới sàn nhiễu và dấu lẫn lộn.
+
+### PRIOR CỦA TÔI SAI — ghi rõ
+Ở pre-reg #27 tôi viết: "Đây là hướng tôi tin NHẤT trong toàn dự án... tôi đoán rerank@8 sẽ
+vượt maj@8 vài điểm". **Sai.** Nó không vượt. Tôi đã tin nhất vào hướng này và nó không ra.
+
+### NGHỊCH LÝ ĐÁNG GIÁ NHẤT: AUC .883 mà vẫn thua đếm phiếu
+Bộ chấm PHÂN BIỆT rất tốt (AUC .883 — nó THỰC SỰ biết lời giải nào đúng).
+Nhưng dùng nó theo kiểu **argmax một mẫu** thì thua **đếm phiếu**.
+GIẢ THUYẾT (chưa kiểm): đếm phiếu khai thác THÔNG TIN ĐỒNG THUẬN giữa 8 mẫu; argmax VỨT BỎ
+thông tin đó — nó chọn 1 mẫu và bỏ qua việc 5 mẫu khác cùng nói một đáp án.
+Một bộ chấm dù giỏi, khi dùng theo kiểu chọn-một, vẫn có thể thua một thống kê tập hợp.
+=> Cách dùng ĐÚNG phải là **BỎ PHIẾU CÓ TRỌNG SỐ**: gom mẫu theo đáp án, cộng điểm trong mỗi
+   nhóm, chọn nhóm tổng điểm cao nhất. Vừa giữ đồng thuận, vừa dùng điểm. Xem pre-reg #29.
+=> Ghi nhận: khoảng trống maj->oracle vẫn còn **+14.0 điểm** (.703 -> .843) CHƯA ai lấy được.
+
+### dt3_m15 (H25c, MATH 1.5B) — **VÔ HIỆU** theo ngưỡng đã khoá
+`pct_problems_corruptible` = **.0875** < .50 -> `VALID_corruptible=false`.
+Chỉ 8.75% bài MATH có biểu thức `a op b = c` để tiêm lỗi: lời giải vàng của MATH là văn xuôi
+LaTeX, hiếm khi viết phép tính tường minh. Mẫu còn lại bị CHỌN LỌC THIÊN LỆCH nặng.
+(Các tầng cũng suy biến: MID 1.000, ZERO .979 -> VALID=false.)
+=> Theo hàng cuối của bảng #28: "pct < .50 -> lần chạy VÔ HIỆU, thiết kế lại cách tiêm lỗi."
+=> `dt3_m7` đang chạy DÙNG CÙNG MÃ TIÊM LỖI nên chắc chắn cũng vô hiệu -> thay bằng bản sửa.
+LẦN THỨ BA ngưỡng hiệu lực khoá trước cứu tôi khỏi đọc nhầm một phép đo hỏng.
