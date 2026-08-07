@@ -1163,3 +1163,24 @@ bs_g (GSM8K, 5 fold x 100, so ĐẦU-ĐỐI-ĐẦU trên CÙNG bài):
 Vòng #20 tôi đưa "model nhỏ GIẢI + model lớn SOÁT" lên tiêu đề README.
 Vòng #23 nghi ngờ (so chéo kernel). Vòng #29 XÁC NHẬN bằng 5 fold đầu-đối-đầu: BỊ THỐNG TRỊ.
 => Khuyến nghị đó ĐÃ CHẾT trên GSM8K. Chờ bs_m để chốt trên MATH.
+
+## [Loop] VÒNG #30 — NỬA CÒN LẠI CỦA KẾT LUẬN: ĐA TÁC TỬ CÓ ÍCH, NHƯNG ÁP LÊN MODEL TỐT NHẤT
+Tôi đã phát biểu "kiến trúc đa tác tử bị thống trị" — CHỈ ĐÚNG với phiên bản DÙNG MODEL NHỎ.
+Kiểm lại phiên bản áp lên MODEL TỐT NHẤT:
+  GSM8K 7B: S7 .910 (BÃO HOÀ) -> S7+V7 .900 = -1.0đ, khoảng [-4,+3] CHỨA 0 -> vô ích
+  MATH  7B: PS .598 (GIỮA DẢI) -> PSV .642 = +4.4đ, khoảng [+2,+8] 5/5 DƯƠNG -> CÓ ÍCH
+=> ĐA TÁC TỬ THỰC SỰ CÓ GIÁ TRỊ khi áp LÊN TRÊN model mạnh nhất — với điều kiện model đó
+   nằm GIỮA DẢI ĐỘ KHÓ của task.
+
+### QUY TẮC QUYẾT ĐỊNH HOÀN CHỈNH (mọi số đều đã kiểm 5 fold)
+  1. LUÔN dùng model mạnh nhất có thể. ĐỪNG thay bằng "model nhỏ + verifier" (-10.0đ, 5/5 âm).
+  2. CHỈ thêm verifier nếu model đó đạt ~.60-.67 trên task.
+     Bão hoà (.91) -> không còn gì để sửa. Quá khó (.40) -> verifier chỉ đúng 56% khi can thiệp.
+  3. Bộ tổng hợp LLM TRUNG TÍNH nếu xử lý định dạng (fallback miễn phí: -6.4 -> +1.0).
+
+### GHI CHÚ TỰ PHÊ BÌNH
+Ba vòng liền tôi phát biểu kết luận theo hướng CÀNG LÚC CÀNG TIÊU CỰC ("bị thống trị"),
+trong khi dữ liệu ĐÃ CÓ SẴN cho thấy nửa tích cực (nf_m7, đo từ vòng #27).
+Tôi đã không ghép hai mảnh lại vì đang tập trung vào việc hạ cấp khẳng định cũ.
+BÀI HỌC: khi đang sửa sai, vẫn phải rà xem dữ liệu có phần KHẲNG ĐỊNH nào bị bỏ sót không —
+thiên lệch theo hướng tiêu cực cũng là thiên lệch.

@@ -66,27 +66,35 @@ bị diễn giải lại sau khi đã nhìn thấy số.
 
 ## 0. Tóm tắt kết quả
 
-> ## ⚠️ KẾT LUẬN CHÍNH: KIẾN TRÚC ĐA TÁC TỬ BỊ THỐNG TRỊ BỞI "DÙNG MODEL LỚN HƠN"
+> ## KẾT LUẬN CHÍNH — QUY TẮC QUYẾT ĐỊNH (tất cả đều đã kiểm 5 fold)
 >
-> Đo ĐẦU-ĐỐI-ĐẦU trên CÙNG bài, 5 fold (GSM8K, n=500) — **`bs_g`**:
->
-> | Cấu hình | acc | so với 7B đơn | token 7B |
+> ### ❌ 1. THAY model mạnh bằng "model yếu + verifier" — LUÔN THUA
+> | GSM8K, 5 fold, cùng bài | acc | so 7B đơn | token 7B |
 > |---|---|---|---|
-> | 1.5B đơn | .628 | −28.2 | 0 |
-> | **1.5B giải + 7B soát** | **.810** | **−10.0** (5/5 fold âm) | 105k |
+> | 1.5B giải + **7B soát** | .810 | **−10.0đ** (5/5 âm) | 105k |
 > | **7B GIẢI MỘT MÌNH** | **.910** | — | 120k |
-> | 7B giải + 7B soát | .900 | −1.0 (chứa 0) | 205k |
 >
-> Cấu hình bất đối xứng **hơn 18.2 điểm so với mốc 1.5B** — nhưng **kém 10 điểm so với
-> việc chỉ dùng 7B**, và chỉ tiết kiệm **12.5%** token 7B. Tính accuracy trên mỗi token 7B
-> thì hai bên chênh **<2%**, mà bất đối xứng còn phải trả thêm cả lượt giải 1.5B.
-> ⇒ **Nó thua ở CẢ HAI TRỤC: chính xác VÀ chi phí.**
+> Bất đối xứng hơn mốc 1.5B tới **+18.2đ** — nhưng **kém 10 điểm so với chỉ dùng 7B**, mà chỉ
+> tiết kiệm **12.5%** token 7B (accuracy/token chênh <2%, chưa tính lượt 1.5B). **Thua cả hai trục.**
 >
-> **Vì sao điều này đáng nói:** nghiên cứu đa tác tử hầu như luôn so với mốc *cùng model,
-> một lượt gọi* — mốc DỄ THẮNG (ở đây: +18.2đ). Rất hiếm khi so với *model lớn hơn ở chi phí
-> tương đương*. Đo cả hai thì kết luận ĐẢO NGƯỢC.
+> ### ✅ 2. THÊM verifier LÊN TRÊN model tốt nhất — CÓ ÍCH, nhưng chỉ ở GIỮA DẢI ĐỘ KHÓ
+> | Model tốt nhất | acc | + verifier | kết quả |
+> |---|---|---|---|
+> | GSM8K·7B | .910 (**bão hoà**) | −1.0 [−4,+3] | ❌ vô ích |
+> | **MATH·7B** | **.598 (giữa dải)** | **+4.4 [+2,+8]** | ✅ **5/5 fold** |
 >
-> *(MATH: kernel `bs_m` đang chạy để chốt. Ước tính sơ bộ từ so chéo kernel: −6.2đ.)*
+> ### ⇒ QUY TẮC
+> 1. **Luôn dùng model mạnh nhất trong khả năng** — đừng thay bằng "model nhỏ + verifier".
+> 2. **Chỉ thêm verifier** nếu model đó đạt độ chính xác **~.60–.67** trên task của bạn.
+>    Quá cao (bão hoà) → không còn gì để sửa. Quá thấp → verifier không phân biệt nổi đúng/sai
+>    (**độ chính xác can thiệp chỉ 56%** ở 1.5B, so với **98%** ở 7B).
+> 3. Bộ tổng hợp LLM **trung tính** — miễn là xử lý định dạng đầu ra (fallback miễn phí: −6.4 → +1.0).
+>
+> **Vì sao đáng nói:** nghiên cứu đa tác tử hầu như luôn so với mốc *cùng model, một lượt gọi*
+> (ở đây cho **+18.2đ**, rất thuyết phục) và hiếm khi so với *model lớn hơn ở chi phí tương đương*
+> (cho **−10.0đ**). Đo cả hai thì kết luận ĐẢO NGƯỢC.
+>
+> *(MATH: `bs_m` đang chạy để chốt bảng 1 trên task khó.)*
 
 **Các kết quả ĐÃ kiểm bằng 5 fold (mọi fold cùng dấu):**
 
