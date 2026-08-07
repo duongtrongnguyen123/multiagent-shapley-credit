@@ -1574,3 +1574,46 @@ tiết lộ đáp án" như một phát hiện — nó mới chỉ là xu hướ
 BÀI HỌC (thành LUẬT): mọi công việc chạy dài trên máy thuê PHẢI kéo kết quả trung gian về local
 theo chu kỳ (vd mỗi 10 bước scp `*_hist.json`), vì máy thuê có thể biến mất bất cứ lúc nào.
 Tôi đã KHÔNG làm việc đó và mất toàn bộ H26. Lỗi của tôi, không phải rủi ro không lường được.
+
+## [Loop] VÒNG #47 — H24 ô 7B (BÃO HOÀ, ít thông tin); H25 ở 7B KHÔNG suy biến; disc_g15 LỖI MÔI TRƯỜNG
+### rs_g7 (H24, GSM8K 7B) — ô thứ 3/4
+solver **.916** -> chỉ còn 21 bài sai, mọi hiệu ứng đều bé hơn sàn nhiễu.
+| nhánh | thêm | sửa | phá | fixR |
+|---|---|---|---|---|
+| V_inf | +.004 | 4 | 3 | .191 |
+| V_bli | +.004 | 7 | 6 | .333 |
+| S_anc | **+.008** | 10 | 8 | **.476** |
+| S_pln | +.000 | 7 | 7 | .333 |
+Ô này KHÔNG kết luận được gì (bão hoà) — nhưng đáng ghi: `S_anc`, nhánh KHÔNG có khung kiểm,
+lại có fix_rate CAO NHẤT (.476) và giá trị thêm cao nhất.
+
+### TỔNG HỢP H24 sau 3/4 ô — mẫu hình NHẤT QUÁN đã lộ
+| ô | V_inf | V_bli | **S_anc** | **S_pln** |
+|---|---|---|---|---|
+| GSM8K 1.5B | +.060 | +.076 | **+.080** | **−.012** |
+| MATH 1.5B  | +.050 | +.055 | +.035 | +.025 |
+| GSM8K 7B   | +.004 | +.004 | **+.008** | +.000 |
+`S_pln` (giải lại KHÔNG có mỏ neo) là NHÁNH TỆ NHẤT ở cả 3 ô.
+`S_anc` (có mỏ neo, KHÔNG có một chữ nào về "kiểm tra") ngang hoặc hơn `V_bli` ở 2/3 ô.
+=> HƯỚNG VỀ HÀNG 4 của bảng khoá: thứ có tác dụng là **MỎ NEO ĐÁP ÁN**, không phải khung kiểm.
+   CHƯA CHỐT — bảng yêu cầu >=3/4 ô và ô GSM8K 7B bão hoà nên không tính được. Chờ rs_m7.
+
+### dt_g7 (H25 ở 7B, bản 16 token) — KHÔNG suy biến, nên ĐỌC ĐƯỢC
+phân tầng HIGH 166 / MID 28 / ZERO **6** | solve_rate .872
+| tầng | phát hiện | báo động giả | phân biệt | tỉ lệ nói "NO" |
+|---|---|---|---|---|
+| HIGH | .204 | .111 | **+.093** | ~.84 (HỢP LỆ) |
+| MID  | .357 | .321 | +.036 | ~.66 (HỢP LỆ) |
+| ZERO | .500 | .500 | +.000 | .50 (n=**6**, VÔ DỤNG) |
+KHÁC HẲN 1.5B: ở 7B model CÓ trả lời đa dạng (không kẹt ở "NO"), nên dụng cụ đo HOẠT ĐỘNG.
+Nhưng phân biệt YẾU ở mọi tầng, và GIẢM dần theo độ khó: .093 -> .036 -> .000.
+Hướng giảm này KHỚP với hàng 2 ("kiểm lỗi bị chặn bởi năng lực giải") NHƯNG:
+  (a) độ lớn quá bé để khẳng định; (b) tầng ZERO chỉ có **6 bài** — không đọc được;
+  (c) đây vẫn là bản 16 TOKEN, không cho suy luận — cùng khiếm khuyết đã biết.
+=> H25 ở 7B: CHƯA KIỂM. Chờ dt2_g7 (có suy luận) mới đọc theo bảng.
+=> Ghi nhận thêm: 7B giải đúng .872 nên tầng ZERO gần như RỖNG. Muốn đo "bài không giải nổi"
+   ở 7B thì PHẢI đổi sang tập khó hơn (MATH), không dùng GSM8K được nữa. Ghi vào thiết kế sau.
+
+### disc_g15 LỖI: `ImportError: torchao 0.10.0, chỉ hỗ trợ >0.16.0`
+Không phải lỗi khoa học — lỗi MÔI TRƯỜNG: `peft` trên ảnh Kaggle kéo theo torchao quá cũ.
+Sửa: cài `torchao>=0.16.0` ngay đầu kernel (đã bật enable_internet). Phóng lại.
