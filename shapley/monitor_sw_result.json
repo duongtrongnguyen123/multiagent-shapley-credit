@@ -1,0 +1,123 @@
+{
+  "sw_g15": {
+    "status": "DONE",
+    "summary": {
+      "task": "gsm8k",
+      "n": 250,
+      "quant": false,
+      "A_bare": {
+        "solver_acc": 0.684,
+        "verifier_acc": 0.732,
+        "solver_correct": 171,
+        "breaks": 14,
+        "fixes": 26,
+        "break_rate": 0.0819,
+        "median_sol_len": 18,
+        "pct_under_200_chars": 0.884
+      },
+      "B_work_shown": {
+        "solver_acc": 0.62,
+        "verifier_acc": 0.612,
+        "solver_correct": 155,
+        "breaks": 12,
+        "fixes": 10,
+        "break_rate": 0.0774,
+        "median_sol_len": 542,
+        "pct_under_200_chars": 0.128
+      },
+      "C_work_hidden": {
+        "solver_acc": 0.62,
+        "verifier_acc": 0.728,
+        "solver_correct": 155,
+        "breaks": 13,
+        "fixes": 40,
+        "break_rate": 0.0839,
+        "median_sol_len": 17,
+        "pct_under_200_chars": 1.0
+      },
+      "note": "B vs C d\u00f9ng C\u00d9NG l\u1eddi gi\u1ea3i; ch\u1ec9 kh\u00e1c Verifier c\u00f3 th\u1ea5y ph\u1ea7n tr\u00ecnh b\u00e0y hay kh\u00f4ng"
+    }
+  },
+  "sw_g7": {
+    "status": "DONE",
+    "summary": {
+      "task": "gsm8k",
+      "n": 250,
+      "quant": true,
+      "A_bare": {
+        "solver_acc": 0.896,
+        "verifier_acc": 0.904,
+        "solver_correct": 224,
+        "breaks": 6,
+        "fixes": 8,
+        "break_rate": 0.0268,
+        "median_sol_len": 459,
+        "pct_under_200_chars": 0.188
+      },
+      "B_work_shown": {
+        "solver_acc": 0.836,
+        "verifier_acc": 0.84,
+        "solver_correct": 209,
+        "breaks": 8,
+        "fixes": 9,
+        "break_rate": 0.0383,
+        "median_sol_len": 407,
+        "pct_under_200_chars": 0.128
+      },
+      "C_work_hidden": {
+        "solver_acc": 0.836,
+        "verifier_acc": 0.916,
+        "solver_correct": 209,
+        "breaks": 6,
+        "fixes": 26,
+        "break_rate": 0.0287,
+        "median_sol_len": 17,
+        "pct_under_200_chars": 1.0
+      },
+      "note": "B vs C d\u00f9ng C\u00d9NG l\u1eddi gi\u1ea3i; ch\u1ec9 kh\u00e1c Verifier c\u00f3 th\u1ea5y ph\u1ea7n tr\u00ecnh b\u00e0y hay kh\u00f4ng"
+    }
+  },
+  "sw_m15": {
+    "status": "DONE",
+    "summary": {
+      "task": "math",
+      "n": 150,
+      "quant": false,
+      "A_bare": {
+        "solver_acc": 0.44,
+        "verifier_acc": 0.4733,
+        "solver_correct": 66,
+        "breaks": 5,
+        "fixes": 10,
+        "break_rate": 0.0758,
+        "median_sol_len": 894,
+        "pct_under_200_chars": 0.193
+      },
+      "B_work_shown": {
+        "solver_acc": 0.4333,
+        "verifier_acc": 0.4467,
+        "solver_correct": 65,
+        "breaks": 4,
+        "fixes": 6,
+        "break_rate": 0.0615,
+        "median_sol_len": 892,
+        "pct_under_200_chars": 0.167
+      },
+      "C_work_hidden": {
+        "solver_acc": 0.4333,
+        "verifier_acc": 0.5,
+        "solver_correct": 65,
+        "breaks": 10,
+        "fixes": 20,
+        "break_rate": 0.1538,
+        "median_sol_len": 26,
+        "pct_under_200_chars": 0.987
+      },
+      "note": "B vs C d\u00f9ng C\u00d9NG l\u1eddi gi\u1ea3i; ch\u1ec9 kh\u00e1c Verifier c\u00f3 th\u1ea5y ph\u1ea7n tr\u00ecnh b\u00e0y hay kh\u00f4ng"
+    }
+  },
+  "sw_m7": {
+    "status": "RUN",
+    "summary": null
+  }
+}

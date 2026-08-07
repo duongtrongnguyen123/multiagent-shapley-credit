@@ -1,0 +1,18 @@
+{
+  "task": "math",
+  "n": 300,
+  "acc_S": 0.4133,
+  "acc_V": 0.4267,
+  "acc_A": 0.3733,
+  "median_len": {
+    "plan": 873,
+    "sol": 986,
+    "ver": 1087,
+    "agg": 142
+  },
+  "V_fix": 18,
+  "V_break": 14,
+  "plan_boxed_rate": 0.1567,
+  "plan_has_ans_boxed": 0.07,
+  "plan_has_ans_tail": 0.1733
+}

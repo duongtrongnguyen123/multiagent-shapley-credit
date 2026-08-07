@@ -1,0 +1,14 @@
+{
+  "task": "gsm8k",
+  "n": 250,
+  "acc_solver_only": 0.632,
+  "acc_full": 0.744,
+  "acc_trim": 0.668,
+  "acc_nova": 0.684,
+  "chars_full": 576846,
+  "chars_trim": 138525,
+  "trim_minus_full": -0.076,
+  "nova_minus_full": -0.06,
+  "full_minus_solo": 0.112,
+  "trim_minus_solo": 0.036
+}

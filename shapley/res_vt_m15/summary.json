@@ -1,0 +1,28 @@
+{
+  "task": "math",
+  "n": 200,
+  "quant": false,
+  "acc_PS": 0.425,
+  "arms": {
+    "PSV": {
+      "acc": 0.445,
+      "changed_by_V": 79
+    },
+    "PSVA": {
+      "acc": 0.385
+    },
+    "PSV_vote3": {
+      "acc": 0.44,
+      "differs_from_V": 72
+    },
+    "PSV_vote5": {
+      "acc": 0.46,
+      "differs_from_V": 72
+    }
+  },
+  "V_gain": 0.02,
+  "llmagg_vs_PSV": -0.06,
+  "vote3_vs_PSV": -0.005,
+  "vote5_vs_PSV": 0.015,
+  "vote5_vs_llmagg": 0.075
+}

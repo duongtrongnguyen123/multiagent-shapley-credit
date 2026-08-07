@@ -1,0 +1,75 @@
+{
+  "task": "math",
+  "n_folds": 5,
+  "fold_n": 100,
+  "folds": [
+    {
+      "fold": 0,
+      "n": 100,
+      "solo": 0.48,
+      "FULL": 0.46,
+      "TRIM": 0.4,
+      "trim_minus_full": -0.06
+    },
+    {
+      "fold": 1,
+      "n": 100,
+      "solo": 0.38,
+      "FULL": 0.3,
+      "TRIM": 0.34,
+      "trim_minus_full": 0.04
+    },
+    {
+      "fold": 2,
+      "n": 100,
+      "solo": 0.34,
+      "FULL": 0.29,
+      "TRIM": 0.33,
+      "trim_minus_full": 0.04
+    },
+    {
+      "fold": 3,
+      "n": 100,
+      "solo": 0.41,
+      "FULL": 0.36,
+      "TRIM": 0.39,
+      "trim_minus_full": 0.03
+    },
+    {
+      "fold": 4,
+      "n": 100,
+      "solo": 0.4,
+      "FULL": 0.35,
+      "TRIM": 0.32,
+      "trim_minus_full": -0.03
+    }
+  ],
+  "solo": {
+    "mean": 0.402,
+    "min": 0.34,
+    "max": 0.48,
+    "range": 0.14,
+    "std": 0.0458
+  },
+  "FULL": {
+    "mean": 0.352,
+    "min": 0.29,
+    "max": 0.46,
+    "range": 0.17,
+    "std": 0.0605
+  },
+  "TRIM": {
+    "mean": 0.356,
+    "min": 0.32,
+    "max": 0.4,
+    "range": 0.08,
+    "std": 0.0326
+  },
+  "trim_minus_full": {
+    "mean": 0.004,
+    "min": -0.06,
+    "max": 0.04,
+    "range": 0.1,
+    "std": 0.0413
+  }
+}

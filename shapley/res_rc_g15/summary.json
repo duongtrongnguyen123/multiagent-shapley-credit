@@ -1,0 +1,75 @@
+{
+  "task": "gsm8k",
+  "n_folds": 5,
+  "fold_n": 100,
+  "folds": [
+    {
+      "fold": 0,
+      "n": 100,
+      "solo": 0.68,
+      "FULL": 0.75,
+      "TRIM": 0.67,
+      "trim_minus_full": -0.08
+    },
+    {
+      "fold": 1,
+      "n": 100,
+      "solo": 0.67,
+      "FULL": 0.71,
+      "TRIM": 0.64,
+      "trim_minus_full": -0.07
+    },
+    {
+      "fold": 2,
+      "n": 100,
+      "solo": 0.69,
+      "FULL": 0.73,
+      "TRIM": 0.71,
+      "trim_minus_full": -0.02
+    },
+    {
+      "fold": 3,
+      "n": 100,
+      "solo": 0.66,
+      "FULL": 0.71,
+      "TRIM": 0.63,
+      "trim_minus_full": -0.08
+    },
+    {
+      "fold": 4,
+      "n": 100,
+      "solo": 0.64,
+      "FULL": 0.72,
+      "TRIM": 0.62,
+      "trim_minus_full": -0.1
+    }
+  ],
+  "solo": {
+    "mean": 0.668,
+    "min": 0.64,
+    "max": 0.69,
+    "range": 0.05,
+    "std": 0.0172
+  },
+  "FULL": {
+    "mean": 0.724,
+    "min": 0.71,
+    "max": 0.75,
+    "range": 0.04,
+    "std": 0.015
+  },
+  "TRIM": {
+    "mean": 0.654,
+    "min": 0.62,
+    "max": 0.71,
+    "range": 0.09,
+    "std": 0.0326
+  },
+  "trim_minus_full": {
+    "mean": -0.07,
+    "min": -0.1,
+    "max": -0.02,
+    "range": 0.08,
+    "std": 0.0268
+  }
+}

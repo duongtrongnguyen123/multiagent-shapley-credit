@@ -1,0 +1,31 @@
+{
+  "task": "gsm8k",
+  "n": 250,
+  "median_plan_len": 435,
+  "arms": {
+    "NP_no_planner": {
+      "solver_acc": 0.632,
+      "median_sol_len": 600,
+      "mean_sol_len": 633,
+      "pct_under_200": 0.028
+    },
+    "WP_with_planner": {
+      "solver_acc": 0.684,
+      "median_sol_len": 18,
+      "mean_sol_len": 101,
+      "pct_under_200": 0.884
+    },
+    "WPE_plan_plus_reminder": {
+      "solver_acc": 0.672,
+      "median_sol_len": 18,
+      "mean_sol_len": 154,
+      "pct_under_200": 0.824
+    },
+    "PO_plan_only": {
+      "solver_acc": 0.656,
+      "median_sol_len": 18,
+      "mean_sol_len": 106,
+      "pct_under_200": 0.868
+    }
+  }
+}
