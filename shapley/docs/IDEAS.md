@@ -1239,3 +1239,17 @@ Nay:  đúng khi model mạnh ĐÃ BÃO HOÀ trên task (GSM8K .910 -> mất 10 
         Khác lần trước (struct/V_ST) ở chỗ không phụ thuộc model có tuân lệnh hay không.
   H21b: 3 kiểu Planner (giấu / tự do / yêu cầu tính) -> đo acc đáp án NGẦM và acc Solver phía sau.
   Kernel: pa_g15, pa_m15 (5 fold x 80).
+
+## [Loop] VÒNG #33 — HỢP NHẤT CÁC CƠ CHẾ VÀO RESULTS.md (không kernel nào xong)
+3 kernel vẫn chạy. rc_m7 đã chạy ~12h — CHẠM TRẦN của Kaggle; nếu vòng sau vẫn RUN hoặc ERROR
+thì sẽ phóng lại bản NHẸ HƠN (3 fold x 60 thay vì 5 fold x 100).
+Công việc vòng này: gom TOÀN BỘ phát hiện về CƠ CHẾ (vốn nằm rải rác trong IDEAS.md) vào
+RESULTS.md thành mục 4c, vì đó mới là phần giải thích được "vì sao", còn các bảng số chỉ nói "cái gì".
+Bốn cơ chế đã đưa vào:
+  (1) chỉ 2/4 vai thực sự tính toán (Planner, Verifier); Solver và Aggregator là trạm chuyển tiếp
+  (2) Planner GIẢI rồi GIẤU đáp án — chỉ dẫn "đừng tính" không ngăn được việc tính
+  (3) Verifier GIẢI LẠI chứ không KIỂM (tái sử dụng 0% khi can thiệp) -> độ chính xác can thiệp
+      ≈ độ chính xác tự giải, không phải độ chính xác kiểm
+  (4) Aggregator hỏng vì ĐỊNH DẠNG (85% không có \boxed), chỉ 5% là chọn nhầm thật
+GHI CHÚ: cả bốn đều đến từ ĐỌC OUTPUT THÔ, không từ số tổng hợp. Năm lần đọc trace, năm lần
+  lật lại một diễn giải. Đây là lập luận mạnh nhất cho quy tắc "mọi kernel PHẢI lưu trace".
