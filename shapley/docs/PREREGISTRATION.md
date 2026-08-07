@@ -708,3 +708,23 @@ bằng CODE (ghép chuỗi), không phụ thuộc việc model có nghe lời ha
 ## Ghi chú trung thực
 H21a có thể thất bại: tôi đã từng thử ép định dạng cho Verifier (struct/V_ST) và nó LÀM TỆ ĐI.
 Lần này khác ở chỗ việc GIỮ TIỀN TỐ do CODE làm, không nhờ model tuân lệnh.
+
+---
+
+# Đăng ký trước #21 — H22: BỎ CHỈ DẪN "ĐỪNG TÍNH/ĐỪNG VIẾT CODE" CÓ CÒN ĐÚNG TRÊN CODE KHÔNG?
+**Viết TRƯỚC khi chạy.**
+ĐO ĐƯỢC (H21b): bỏ "Do NOT compute the final answer" khỏi Planner làm Solver TỐT HƠN
+  MATH +3.75 (5/5 fold), GSM8K +3.25 (4/5) -> gộp 9/10 fold, p~.02.
+Câu hỏi: có chuyển sang MIỀN CODE không? (HumanEval, chấm bằng CHẠY TEST -> chân lý chính xác)
+Nhánh (5 fold x 32 bài, 1.5B): NoP (không planner) | P_hide ("đừng viết code")
+  | P_free (không cấm) | P_ask (yêu cầu viết luôn code)
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| P_free/P_ask > P_hide ở đa số fold | XÁC NHẬN, hiệu ứng TỔNG QUÁT qua 3 miền -> khuyến nghị chung: bỏ chỉ dẫn cấm. |
+| P_free ~ P_hide | KHÔNG tổng quát sang code. Kết luận H21b chỉ giới hạn ở toán. Ghi rõ. |
+| P_free < P_hide | ĐẢO DẤU trên code. Thêm một bằng chứng "hiệu ứng không bền theo miền". |
+| NoP >= mọi nhánh có planner | Trên code, Planner VÔ DỤNG hoặc CÓ HẠI bất kể prompt. Kết luận kiến trúc. |
+
+Chỉ số chính: pass@1 (chạy test) từng nhánh, 5 fold, kèm khoảng + số fold cùng dấu.
+Ghi chú: HumanEval n=164 nên fold nhỏ (32 bài) -> nhiễu lớn hơn; chỉ kết luận khi ĐA SỐ fold cùng dấu.
