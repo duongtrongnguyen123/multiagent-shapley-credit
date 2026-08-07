@@ -14,6 +14,16 @@
 # 1.5B chứ không phải vấn đề thiếu dữ liệu.
 import os, sys, json, glob, subprocess
 
+# PHẢI đặt TRƯỚC khi import torch, nếu không allocator đã khởi tạo và biến này vô tác dụng.
+# Lần chạy v4 đặt sau import nên không có hiệu lực -> vẫn OOM vì phân mảnh.
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
+# CHỈ dùng 1 GPU. Kaggle T4 cấp 2 GPU, HF Trainer thấy vậy thì tự bật DataParallel, rồi
+# `scatter_gather` gom logits của cả hai về GPU 0 — với vocab 152k x seq 1536 x 2 (chosen+
+# rejected) thì riêng phép gather đó đòi 13.91 GiB và giết kernel ở cuối epoch 1. Traceback
+# v5 chỉ thẳng vào torch/nn/parallel/comm.py:255. Một GPU chậm hơn nhưng chạy được.
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 EPOCHS = __EPOCHS__
 LR     = __LR__
 BETA   = __BETA__      # hệ số odds-ratio của ORPO
@@ -25,7 +35,6 @@ MAXLEN = __MAXLEN__
 subprocess.run([sys.executable, "-m", "pip", "install", "-q",
                 "trl==0.13.0", "peft>=0.13,<0.15", "accelerate>=0.34", "datasets<4",
                 "bitsandbytes>=0.46.1"], check=False)
-os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -41,9 +50,11 @@ if not _c:
                             + str(glob.glob("/kaggle/input/**", recursive=True)[:30]))
 MODEL = os.path.dirname(sorted(_c, key=len)[0])
 
-_p = glob.glob("/kaggle/input/**/pairs_all.jsonl", recursive=True)
+# ưu tiên bản K=2 (prompt ngắn hơn ~1/3 -> ít bị cắt hơn nhiều); fallback bản K=3
+_p = (glob.glob("/kaggle/input/**/pairs_k2.jsonl", recursive=True)
+      or glob.glob("/kaggle/input/**/pairs_all.jsonl", recursive=True))
 if not _p:
-    raise FileNotFoundError("khong thay pairs_all.jsonl :: "
+    raise FileNotFoundError("khong thay pairs_*.jsonl :: "
                             + str(glob.glob("/kaggle/input/**", recursive=True)[:30]))
 PAIRS = sorted(_p, key=len)[0]
 print(f"MODEL={MODEL}\nPAIRS={PAIRS}", flush=True)
@@ -93,6 +104,7 @@ _cfg_kw = dict(
     output_dir="/kaggle/working/orpo_out",
     num_train_epochs=EPOCHS,
     per_device_train_batch_size=1,
+    per_device_eval_batch_size=1,      # eval là chỗ OOM ở v5 (cuối epoch 1)
     gradient_accumulation_steps=8,
     learning_rate=LR,
     beta=BETA,
