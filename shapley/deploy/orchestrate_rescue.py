@@ -65,7 +65,8 @@ def main():
     (d / "kernel-metadata.json").write_text(json.dumps(
         {"id": ref, "title": slug, "code_file": "kernel.py", "language": "python",
          "kernel_type": "script", "is_private": True, "enable_gpu": True,
-         "enable_internet": False, "machine_shape": "NvidiaTeslaT4",
+         # BIG=1 cần cài bitsandbytes lúc chạy -> phải bật internet, khác các vòng 1.5B
+         "enable_internet": bool(BIG), "machine_shape": "NvidiaTeslaT4",
          "dataset_sources": (DS[TASK] + [DS_BIG]) if BIG else DS[TASK],
          "competition_sources": [], "kernel_sources": []}, indent=2))
     r = subprocess.run(["kaggle", "kernels", "push", "-p", str(d)],
