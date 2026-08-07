@@ -66,26 +66,27 @@ bị diễn giải lại sau khi đã nhìn thấy số.
 
 ## 0. Tóm tắt kết quả
 
-> ## ⚠️ KẾT LUẬN CHÍNH: MỌI CẢI THIỆN ĐO ĐƯỢC ĐỀU BỊ THỐNG TRỊ BỞI "DÙNG MODEL LỚN HƠN"
+> ## ⚠️ KẾT LUẬN CHÍNH: KIẾN TRÚC ĐA TÁC TỬ BỊ THỐNG TRỊ BỞI "DÙNG MODEL LỚN HƠN"
 >
-> | | 1.5B solo | cấu hình đa tác tử TỐT NHẤT | **7B SOLO** | chênh |
-> |---|---|---|---|---|
-> | **GSM8K** | .668 | .724 (+5.6đ ✅ 5/5 fold) | **.884** | **−16.0đ** |
-> | **MATH** | .423 | .563 (+14.0đ ✅ 5/5 fold) | **.625** | **−6.2đ** |
+> Đo ĐẦU-ĐỐI-ĐẦU trên CÙNG bài, 5 fold (GSM8K, n=500) — **`bs_g`**:
 >
-> Hai cải thiện trên ĐÃ được kiểm bằng 5 fold và mọi fold cùng dấu — chúng là **THẬT**.
-> Nhưng chúng chỉ là cải thiện **so với mốc YẾU**. Khi so với phương án đơn giản nhất —
-> **bỏ hẳn kiến trúc đa tác tử, dùng model lớn hơn** — cả hai đều THUA, ở **compute tương đương**
-> (4 lượt × 1.5B ≈ 6B-params-lượt, so với 1 lượt × 7B = 7B-params-lượt; pipeline còn sinh nhiều
-> token hơn).
+> | Cấu hình | acc | so với 7B đơn | token 7B |
+> |---|---|---|---|
+> | 1.5B đơn | .628 | −28.2 | 0 |
+> | **1.5B giải + 7B soát** | **.810** | **−10.0** (5/5 fold âm) | 105k |
+> | **7B GIẢI MỘT MÌNH** | **.910** | — | 120k |
+> | 7B giải + 7B soát | .900 | −1.0 (chứa 0) | 205k |
 >
-> **Vì sao điều này đáng nói:** các nghiên cứu đa tác tử hầu như luôn so với mốc *cùng model,
-> một lượt gọi* — mốc DỄ THẮNG. Rất hiếm khi so với *model lớn hơn ở compute tương đương*.
-> Đo cả hai thì kết luận ĐẢO NGƯỢC.
+> Cấu hình bất đối xứng **hơn 18.2 điểm so với mốc 1.5B** — nhưng **kém 10 điểm so với
+> việc chỉ dùng 7B**, và chỉ tiết kiệm **12.5%** token 7B. Tính accuracy trên mỗi token 7B
+> thì hai bên chênh **<2%**, mà bất đối xứng còn phải trả thêm cả lượt giải 1.5B.
+> ⇒ **Nó thua ở CẢ HAI TRỤC: chính xác VÀ chi phí.**
 >
-> ⚠️ *Bảng trên là so CHÉO KERNEL trên các tập con khác nhau. Hai kernel `bs_m` và `bs_g` đang
-> chạy để so ĐẦU-ĐỐI-ĐẦU trên cùng bài, kèm đếm token. Nếu chúng lật kết quả, mục này sẽ được
-> rút lại — cam kết ở [`PREREGISTRATION.md`](shapley/docs/PREREGISTRATION.md) #17, #18.*
+> **Vì sao điều này đáng nói:** nghiên cứu đa tác tử hầu như luôn so với mốc *cùng model,
+> một lượt gọi* — mốc DỄ THẮNG (ở đây: +18.2đ). Rất hiếm khi so với *model lớn hơn ở chi phí
+> tương đương*. Đo cả hai thì kết luận ĐẢO NGƯỢC.
+>
+> *(MATH: kernel `bs_m` đang chạy để chốt. Ước tính sơ bộ từ so chéo kernel: −6.2đ.)*
 
 **Các kết quả ĐÃ kiểm bằng 5 fold (mọi fold cùng dấu):**
 
