@@ -1617,3 +1617,37 @@ Hướng giảm này KHỚP với hàng 2 ("kiểm lỗi bị chặn bởi năng
 ### disc_g15 LỖI: `ImportError: torchao 0.10.0, chỉ hỗ trợ >0.16.0`
 Không phải lỗi khoa học — lỗi MÔI TRƯỜNG: `peft` trên ảnh Kaggle kéo theo torchao quá cũ.
 Sửa: cài `torchao>=0.16.0` ngay đầu kernel (đã bật enable_internet). Phóng lại.
+
+## [Loop] VÒNG #48 — dt2_g7: KIỂM LỖI **TÁCH RỜI** KHỎI GIẢI Ở 7B (hàng 1) — nhưng tầng quyết định chỉ n=9
+### dt2_g7 (H25b, GSM8K **7B**, có suy luận 400 token + dòng VERDICT)
+parse_fail = .0026 (<.20 ✓) | phân tầng HIGH 170 / MID 21 / ZERO **9** | solve_rate .867
+| tầng | phát hiện | báo động giả | **PHÂN BIỆT** | bal_acc | suy biến | HỢP LỆ |
+|---|---|---|---|---|---|---|
+| HIGH | .723 | .072 | **+.651** | .825 | .602 | **CÓ** |
+| MID  | .550 | .048 | **+.502** | .751 | .707 | **CÓ** |
+| ZERO | .667 | .222 | **+.444** | .722 | .556 | **CÓ** |
+
+=> **RƠI VÀO HÀNG 1 của bảng đã khoá ở #26**: "phân biệt ở ZERO >= .40 -> KIỂM LỖI LÀ KỸ NĂNG
+   TÁCH RỜI. Vai verifier CÓ THẬT; huấn luyện theo vai là đúng hướng."
+   Ở tầng ZERO — những bài model KHÔNG GIẢI ĐÚNG DÙ MỘT LẦN trong 8 mẫu — nó vẫn phát hiện
+   được lỗi số học bị tiêm với tỉ lệ .667 và chỉ báo động giả .222.
+
+### GIỚI HẠN PHẢI NÓI TRƯỚC KHI AI KỊP MỪNG: tầng ZERO chỉ có **9 CẶP**
+Với n=9, khoảng tin cậy của phân biệt .444 rộng tới mức gần như chắc chắn CHỨA 0.
+Hàng 1 nổ lên ĐÚNG THEO NGƯỠNG ĐÃ KHOÁ (.40), nhưng ngưỡng đó được khoá khi tôi chưa biết
+tầng ZERO sẽ nhỏ đến vậy. **Kết luận "kiểm lỗi tách rời khỏi giải" hiện CHƯA ĐỦ BẰNG CHỨNG.**
+Thứ ĐO ĐƯỢC CHẮC CHẮN là hai tầng có đủ mẫu: HIGH +.651 (n=166) và MID +.502 (n=20).
+Nghĩa là: 7B PHÁT HIỆN ĐƯỢC lỗi số học tiêm sẵn rất tốt — điều mà 1.5B KHÔNG làm nổi.
+
+### ĐỐI CHIẾU 1.5B vs 7B — NGƯỠNG NĂNG LỰC, KHÔNG PHẢI NHIỆM VỤ BẤT KHẢ
+dt2_g15 (1.5B): suy biến **.99** ở mọi tầng -> VÔ HIỆU, không moi được phán đoán.
+dt2_g7  (7B)  : suy biến .60 -> hợp lệ, phân biệt **+.651**.
+=> Cùng prompt, cùng dữ liệu, cùng lỗi tiêm. Khác biệt DUY NHẤT là năng lực model.
+=> Củng cố phát biểu xuyên suốt dự án: **bộ máy đa tác tử chỉ hoạt động khi MODEL ĐI KIỂM
+   đủ mạnh**. Giờ có thêm bằng chứng ở mức NHIỆM VỤ KIỂM THUẦN TUÝ, không lẫn với việc giải.
+
+### VÌ SAO GSM8K KHÔNG TRẢ LỜI ĐƯỢC CÂU HỎI TRUNG TÂM (đã ghi trước ở vòng #47)
+7B giải đúng .867 trên GSM8K -> tầng "không giải nổi" chỉ còn 9/200 bài. Tầng quyết định
+BỊ RỖNG DO THIẾT KẾ, không phải do ngẫu nhiên. Muốn đo "phát hiện lỗi ở bài KHÔNG giải nổi"
+thì PHẢI đổi sang tập khó hơn. Tôi đã ghi điều này ở vòng trước, TRƯỚC khi thấy kết quả này.
+=> Thí nghiệm tiếp: dt3 trên **MATH** ở 7B, nơi solver chỉ .625 -> tầng ZERO sẽ đông hơn nhiều.
