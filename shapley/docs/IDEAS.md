@@ -1296,3 +1296,26 @@ BẰNG CHỨNG MẠNH HƠN VẪN LÀ CÁI CŨ: Planner sinh 6 SỐ MỚI ở 100
 ### TỰ PHÊ BÌNH
 Hai vòng liên tiếp có lỗi do TÔI: rc_m7 quá nặng (chạm trần 12h), pa_* ghép chuỗi không dùng.
 Cả hai đều LÃNG PHÍ GPU và làm chậm câu trả lời cho câu hỏi của người dùng.
+
+## [Loop] VÒNG #37 — pa_m15: H21a VÔ HIỆU (cùng lỗi), H21b RƠI HÀNG 3 TRÊN MATH
+### H21a trên MATH — VÔ HIỆU, cùng lỗi code như pa_g15
+  V_std .420 | V_patch .355 | patch_minus_std -6.5 (5/5 ÂM)
+  reuse_std .820 -> reuse_patch .871 (CÓ tăng, nhưng MATH vốn đã cao sẵn)
+=> Dù tỉ lệ tái sử dụng có nhích lên, ĐÁP ÁN VẪN LẤY TỪ RIÊNG PHẦN VÁ (lỗi code đã nêu ở vòng #36).
+   Phép đo SAI bất kể reuse ra sao. KHÔNG dùng mức tăng reuse trên MATH để kết luận HÀNG 3.
+   CẢ HAI pa_g15 và pa_m15 ĐỀU VÔ HIỆU. pa2_g15 (bản đã sửa) mới là phép thử hợp lệ.
+
+### H21b — RƠI HÀNG 3: BỎ CHỈ DẪN "ĐỪNG TÍNH ĐÁP ÁN" THÌ SOLVER PHÍA SAU TỐT HƠN
+  MATH  solver sau kế hoạch: hide .4075 -> free .4450  = +3.75, theo fold: +2.5 +1.25 +1.25 +5.0 +8.75
+        -> 5/5 FOLD DƯƠNG
+  GSM8K solver sau kế hoạch: hide .6700 -> free .7025  = +3.25, 4/5 fold dương
+  GỘP HAI TASK: 9/10 fold DƯƠNG -> sign test p ~ .02
+=> ĐO ĐƯỢC: BỎ chỉ dẫn "Do NOT compute the final answer" của Planner LÀM SOLVER PHÍA SAU TỐT HƠN.
+   Hiệu ứng KHIÊM TỐN (~+3.5đ) nhưng NHẤT QUÁN qua cả hai task.
+=> Khớp với trực giác của người dùng theo đúng chỗ quan trọng: chỉ dẫn KHÔNG ngăn Planner tính
+   (nó vẫn sinh 6 số mới ở 100% lượt), nó chỉ khiến Planner GIẤU kết quả — và việc giấu đó
+   LÀM MẤT một phần giá trị cho Solver.
+=> KHUYẾN NGHỊ THỰC DỤNG: bỏ chỉ dẫn "đừng tính đáp án" khỏi prompt của Planner.
+   Đây là thay đổi MỘT DÒNG, không tốn thêm compute.
+LƯU Ý: plan_acc (hide .2125 vs free .2775 trên MATH) vẫn KHÔNG phân biệt được "không tính" với
+  "tính mà không nói" — hạn chế đã ghi ở vòng #36 vẫn giữ nguyên.
