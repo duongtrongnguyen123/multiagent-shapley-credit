@@ -260,3 +260,68 @@ Phân loại 20 ca PHÁ trên MATH: **85%** không phát ra `\boxed` · 50% tự
 Ngưỡng hiệu lực của H8 được khoá **trước** khi chạy: nếu model không viết nổi code chạy được thì
 đó là **giới hạn năng lực**, không phải bằng chứng bác bỏ. Nhờ vậy tránh được kết luận sai
 "verify bằng thực thi thất bại trên math" — số liệu không hề ủng hộ kết luận đó.
+
+---
+
+## 7. CẬP NHẬT VÒNG #43–#49 — HAI RÚT LẠI VÀ MỘT PHÁT HIỆN DƯƠNG
+*(mọi số dưới đây ĐO ĐƯỢC, có đăng ký trước; xem PREREGISTRATION.md #2, #23–#30)*
+
+### 7.1 RÚT LẠI: "Aggregator LLM là SAI LOẠI, phải thay bằng thống kê"
+Phát biểu cũ dựa trên so sánh KHÔNG CÔNG BẰNG (aggregator không có chỉ dẫn CoT, 384 token
+so với 1024 của solver). Chạy lại CÔNG BẰNG (cùng CoT, cùng 1024 token):
+| ô | maj@8 | agg_fair | vs maj | đè/cứu đa số |
+|---|---|---|---|---|
+| 1.5B | .533 | .467 | −.067 | 15 / 7 |
+| **7B** | .717 | **.725** | **+.008** | **3 / 4** |
+Số cũ ở 7B: đè **26** đa số đúng, cứu **0**. Số mới: đè **3**, cứu **4**.
+=> **H2 BỊ BÁC ở 7B.** Phát biểu thay thế (HẸP): ở model yếu (1.5B) tổng hợp bằng LLM kém
+   bỏ phiếu, đặc biệt khi phải đọc TOÀN BỘ lời giải (−.175); ở 7B **không còn khác biệt đo được**.
+
+### 7.2 RÚT LẠI: "verifier bịt mắt bắt lỗi tốt hơn" (H1)
+`fixes` blind vs informed: GSM8K 1.5B 42/20 · GSM8K 7B 6/4 · MATH 1.5B 19/13 · **MATH 7B 9/17 (NGƯỢC)**
+=> HÀNG 4 của bảng khoá: **KHÔNG kết luận chung**. Ở GSM8K 1.5B bịt mắt sửa nhiều hơn thật
+   (.457 vs .217, p<.001) NHƯNG cũng phá nhiều hơn đúng tỉ lệ (.146 vs .038, p<.001)
+   -> giá trị RÒNG gần như không đổi. **Bịt mắt KHÔNG phải bữa trưa miễn phí.**
+Nhánh P (xoá đáp án, giữ suy luận) GIỐNG informed ở cả 4 ô => thủ phạm là **PHẦN SUY LUẬN**,
+không phải mỏ neo đáp án.
+
+### 7.3 KHUNG "KIỂM TRA" KHÔNG MANG THÔNG TIN — MỎ NEO MỚI MANG (H24, 3/4 ô)
+Cùng bộ lời giải, mỗi nhánh đúng 1 lần sinh thêm:
+| ô | V_inf | V_bli | **S_anc** (không có chữ "kiểm") | **S_pln** (không mỏ neo) |
+|---|---|---|---|---|
+| GSM8K 1.5B | +.060 | +.076 | **+.080** | **−.012** |
+| MATH 1.5B | +.050 | +.055 | +.035 | +.025 |
+| GSM8K 7B | +.004 | +.004 | **+.008** | +.000 |
+`S_pln` TỆ NHẤT ở cả 3 ô; `S_anc` ngang/hơn `V_bli` ở 2/3.
+=> Thứ tạo ra giá trị là **cho model thấy đáp án trước đó**, không phải bảo nó "hãy kiểm tra".
+   (CHƯA CHỐT — chờ ô thứ 4.)
+
+### 7.4 PHÁT HIỆN DƯƠNG: 7B PHÁT HIỆN ĐƯỢC LỖI SỐ HỌC — 1.5B THÌ KHÔNG
+Lỗi số học TIÊM SẴN vào chuỗi vàng (cả hai nhánh cùng văn phong -> không lộ nhãn):
+| model | suy biến | phân biệt (HIGH) | HỢP LỆ |
+|---|---|---|---|
+| 1.5B | **.99** (luôn nói "NO") | — | **KHÔNG** |
+| **7B** | .60 | **+.651** (n=166) | **CÓ** |
+=> Ngưỡng NĂNG LỰC cho việc kiểm, đo ở nhiệm vụ kiểm THUẦN TUÝ (không lẫn với giải).
+⚠️ Tầng "model KHÔNG giải nổi" ở GSM8K 7B chỉ có **9 cặp** -> câu hỏi "kiểm có tách rời khỏi
+   giải không" **CHƯA trả lời được**. Đang chạy lại trên MATH (tầng đó đông hơn).
+
+### 7.5 NGHỊCH LÝ: bộ chấm AUC .883 VẪN KHÔNG thắng đếm phiếu
+Verifier PHÂN BIỆT huấn luyện trên 3200 nhãn TỰ ĐỘNG (grader, không gán tay):
+**AUC .883** | greedy .533 | **maj@8 .703** | **rerank@8 .687** | oracle@8 .843
+=> rerank − maj = **−.017** (2/5 fold dương) -> HÀNG 2: **chấm điểm không thêm gì so với đếm phiếu**.
+GIẢ THUYẾT: `argmax` chọn MỘT mẫu và vứt bỏ thông tin ĐỒNG THUẬN mà đếm phiếu đang dùng.
+Đang kiểm bằng **bỏ phiếu có trọng số** (pre-reg #29).
+**Khoảng trống maj@8 -> oracle@8 = +14.0 điểm vẫn CHƯA ai lấy được.**
+
+### 7.6 RL TRÊN VERIFIER: HỌC CÁCH IM LẶNG (H23)
+GRPO thưởng theo độ chính xác can thiệp: precision .70–.90 -> **1.00 cả 5 fold** (22 sửa/**0 phá**)
+NHƯNG V_gain +.068 -> **+.044** (0/5 fold tốt hơn) và số lần can thiệp **20.2 -> 8.4 /100**.
+=> Đạt precision 1.00 bằng cách NÓI ÍT ĐI MỘT NỬA. Lỗi ở HÀM THƯỞNG (im lặng được 0 điểm,
+   tức là MIỄN PHÍ), không ở thuật toán. Chỉ số "số lần can thiệp" đã khoá trước mới lộ ra điều này.
+
+### 7.7 LUẬT PHƯƠNG PHÁP MỚI (rút từ 3 phép đo hỏng liên tiếp)
+Mọi thí nghiệm phán đoán nhị phân PHẢI khoá TRƯỚC:
+`degenerate_rate` <= .90 (tầng vi phạm -> VÔ HIỆU) · `parse_fail_rate` <= .20 (cả lần chạy VÔ HIỆU)
+· cỡ mẫu tối thiểu cho tầng dùng để kết luận · và với thí nghiệm tiêm lỗi: `pct_corruptible` >= .50.
+Ba lần ngưỡng này đã cứu khỏi đọc nhầm một phép đo hỏng (dt_g15, dt2_g15, dt3_m15).
