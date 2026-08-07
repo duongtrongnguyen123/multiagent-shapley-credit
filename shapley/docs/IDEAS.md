@@ -1267,3 +1267,32 @@ Các kernel 7B 4-bit tốn gấp nhiều lần dự tính. Quy tắc rút ra cho
   - 7B  4-bit: TỐI ĐA 3 fold x 60, và chỉ khi số nhánh <= 3
 Ba tài khoản đã cạn quota tuần (truongdinhduc06, tuetrandoanminh, zhongzhing) -> phải
 tính ngân sách GPU như một ràng buộc thật, không phải tài nguyên vô hạn.
+
+## [Loop] VÒNG #36 — H21a VÔ HIỆU VÌ LỖI CODE CỦA TÔI; H21b ĐO SAI THỨ CẦN ĐO
+### H21a (verifier VÁ LỖI) — rơi HÀNG 4: THÍ NGHIỆM VÔ HIỆU
+  V_std .705 | V_patch .5875 | patch_minus_std -11.75 (5/5 fold ÂM)
+  reuse_std .157 -> reuse_patch .169  ==> TỈ LỆ TÁI SỬ DỤNG GẦN NHƯ KHÔNG ĐỔI
+=> Đúng HÀNG 4 đã khoá trước: "tỉ lệ tái sử dụng KHÔNG tăng -> CAN THIỆP VÔ HIỆU,
+   KHÔNG kết luận về H21a."
+NGUYÊN NHÂN LÀ LỖI CODE CỦA TÔI, không phải model không nghe lời:
+    merged=[f"{sols[i]}\n[correction]\n{v_pat[i]}" ...]   # có tính
+    a_pat=[pred(v_pat[i]) ...]                            # NHƯNG KHÔNG DÙNG
+  Tôi dựng chuỗi ghép rồi VỨT ĐI, và lấy đáp án CHỈ TỪ phần vá.
+  => Thí nghiệm thực chất đo "verifier bị bắt viết ngắn hơn" (494 vs 551 ký tự), chứ KHÔNG
+     đo "verifier giữ tiền tố của Solver". Con số -11.75 KHÔNG bác bỏ giả thuyết của người dùng.
+=> GIẢ THUYẾT VẪN CHƯA ĐƯỢC KIỂM. Phóng lại bản đã sửa.
+
+### H21b (Planner có giấu đáp án không?) — HÀNG 2 theo chữ nghĩa, NHƯNG CHỈ SỐ KHÔNG ĐỦ SỨC PHÂN GIẢI
+  plan_acc: hide .333 | free .485 | ask .463
+  solver sau đó: hide .670 | free .703  (chênh +3.25, khoảng [-3.75, +10.0] CHỨA 0, dưới ngưỡng 5đ)
+=> Theo chữ nghĩa: rơi HÀNG 2 ("chỉ dẫn THỰC SỰ làm giảm").
+=> NHƯNG PHẢI GHI RÕ HẠN CHẾ: chỉ số `plan_acc` chỉ đo ĐÁP ÁN TRÍCH XUẤT ĐƯỢC.
+   Tỉ lệ thấp hơn khi "hide" NHẤT QUÁN VỚI CẢ HAI cách giải thích: (a) nó không tính,
+   (b) nó có tính nhưng KHÔNG NÓI RA. Chỉ số này KHÔNG phân biệt được hai điều đó.
+   => Tôi đã thiết kế một phép đo không trả lời được câu hỏi mình đặt ra.
+BẰNG CHỨNG MẠNH HƠN VẪN LÀ CÁI CŨ: Planner sinh 6 SỐ MỚI ở 100% số lượt kể cả khi bị bảo
+   "đừng tính" (0% lượt không có số mới). Tức là NÓ VẪN TÍNH. Giả thuyết của người dùng
+   vẫn được ủng hộ bởi phép đếm số, không phải bởi phép đo này.
+### TỰ PHÊ BÌNH
+Hai vòng liên tiếp có lỗi do TÔI: rc_m7 quá nặng (chạm trần 12h), pa_* ghép chuỗi không dùng.
+Cả hai đều LÃNG PHÍ GPU và làm chậm câu trả lời cho câu hỏi của người dùng.
