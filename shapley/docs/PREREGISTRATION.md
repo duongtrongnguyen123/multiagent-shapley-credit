@@ -807,3 +807,50 @@ Tôi ghi rõ điều này TRƯỚC khi có số để không thể diễn giải
 
 ## Bắt buộc
 Lưu >=50 trace thô mỗi nhánh (`traces.json`) — mọi phát hiện cơ chế của dự án đều đến từ đọc trace.
+
+---
+
+# Đăng ký trước #24 — H25: KIỂM LỖI CÓ PHẢI KỸ NĂNG TÁCH RỜI KHỎI GIẢI KHÔNG?
+**Viết TRƯỚC khi chạy.** Trả lời đề xuất "fine-tune / thưởng theo bước để củng cố đúng vai".
+
+## Vì sao phải hỏi câu này TRƯỚC khi huấn luyện
+Đề xuất: SFT trên đáp án ĐÚNG, hoặc thưởng theo BƯỚC đúng, để củng cố từng vai.
+VẤN ĐỀ LOGIC: nếu SFT verifier trên "câu kiểm đúng", các câu đó chỉ có thể sinh ra từ việc
+model GIẢI ĐÚNG. Vậy SFT-trên-đáp-án-đúng = huấn luyện một SOLVER TỐT HƠN rồi gọi nó là verifier.
+Nó sẽ LÀM SÂU THÊM sự sụp đổ vai mà vòng #43-#44 đã đo, chứ không sửa được.
+Vai chỉ có ý nghĩa nếu verifier làm được thứ solver KHÔNG làm được.
+=> Phải đo TRƯỚC: **model có phát hiện được lỗi trong bài mà chính nó KHÔNG giải nổi không?**
+Nếu KHÔNG -> kiểm lỗi bị chặn bởi năng lực giải, không có vai nào để củng cố, mọi kế hoạch
+huấn luyện vai đều vô nghĩa. Nếu CÓ -> vai kiểm lỗi CÓ THẬT và đáng huấn luyện.
+
+## Thiết kế — TRÁNH nhiễu văn phong (đã tính trước)
+Không dùng "lời giải model" làm nhánh sai và "lời giải vàng" làm nhánh đúng — văn phong sẽ
+LỘ NHÃN. Thay vào đó CẢ HAI nhánh đều là chuỗi vàng của GSM8K:
+- **CLEAN** : chuỗi vàng nguyên vẹn
+- **CORRUPT**: chuỗi vàng bị đổi kết quả của ĐÚNG MỘT bước `<<a op b = c>>` thành c' != c
+  (chỉ một bước sai số học; mọi thứ khác giữ nguyên) — phát hiện nó KHÔNG cần giải lại từ đầu
+Câu hỏi cho model: "Does this solution contain a computational error? YES/NO."
+
+## Phân tầng theo NĂNG LỰC GIẢI (đo bằng chính model, k=8 mẫu, temp .8)
+- `HIGH` : giải đúng >= 6/8   | `MID` : 1–5/8   | `ZERO`: **0/8 — model KHÔNG giải nổi**
+Chỉ số chính: **độ chính xác phát hiện trong tầng ZERO**, cùng độ lệch phản hồi
+(tỉ lệ nói "YES" trên CLEAN vs CORRUPT — đo phân biệt, miễn nhiễm với thiên lệch trả lời).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phát hiện ở ZERO cao rõ (>=70%) và gần bằng HIGH | **Kiểm lỗi LÀ kỹ năng tách rời.** Vai verifier CÓ THẬT. Đề xuất huấn luyện theo vai là ĐÚNG HƯỚNG -> chuyển sang SFT phân biệt / thưởng theo bước. |
+| Phát hiện ở ZERO ≈ ngẫu nhiên (45–55%) trong khi HIGH cao | **Kiểm lỗi BỊ CHẶN bởi năng lực giải.** Không có vai để củng cố. Phải nói thẳng: mọi kế hoạch huấn luyện vai trên model này là vô nghĩa; khuyến nghị vẫn là dùng model lớn hơn. |
+| Phát hiện thấp ở MỌI tầng | Model không làm nổi cả nhiệm vụ kiểm đơn giản nhất. Ghi rõ. Bác bỏ toàn bộ hướng "vai". |
+| Phát hiện cao ở MỌI tầng kể cả ZERO, nhưng cũng nói "có lỗi" trên CLEAN | Không phải phát hiện — chỉ là thiên lệch luôn-nói-sai. Phải báo tỉ lệ YES trên CLEAN. |
+| 1.5B và 7B trái chiều | Ghi "phụ thuộc năng lực", không kết luận chung. |
+
+## Prior TRUNG THỰC (ghi trước)
+Ba bằng chứng độc lập (tái sử dụng 0%, H21a bác 3 lần, giả dược X sửa nhiều nhất) đều nói
+verifier chỉ đang giải lại. Nhưng CẢ BA đều đo nhiệm vụ SỬA, chưa bao giờ đo nhiệm vụ PHÁT HIỆN
+tách riêng. Tôi cho rằng phát hiện lỗi số học ĐƯỢC TIÊM SẴN sẽ dễ hơn hẳn, nên tôi nghiêng về
+hàng 1 ở tầng HIGH/MID, và THẬT SỰ KHÔNG BIẾT ở tầng ZERO — đó chính là lý do phải chạy.
+Nếu ra hàng 2 thì đề xuất huấn luyện vai bị bác, và tôi phải nói thẳng điều đó.
+
+## Bắt buộc
+Lưu >=50 trace mỗi tầng × mỗi nhánh. Báo tỉ lệ nói YES trên CLEAN (thiên lệch) cùng độ chính xác.
