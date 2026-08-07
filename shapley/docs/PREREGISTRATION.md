@@ -903,3 +903,40 @@ Tôi ghi trước để nếu ra hàng 3 thì KHÔNG được kể thành công.
 Vẫn chạy vì: (a) chưa ai cho mỗi vai THAM SỐ RIÊNG — mọi kết luận sụp đổ vai trước đây đều ở
 điều kiện dùng CHUNG tham số, nên chưa phải phép thử công bằng; (b) đó là phép thử SẠCH nhất
 cho câu hỏi trung tâm của dự án.
+
+---
+
+# Đăng ký trước #26 — H25b: CHẠY LẠI H25, CHO PHÉP SUY LUẬN TRƯỚC KHI PHÁN
+**Viết TRƯỚC khi chạy.** Sửa khiếm khuyết thiết kế của chính tôi ở #24.
+
+## Vì sao chạy lại
+dt_g15 cho phân biệt = **.000 CHÍNH XÁC ở cả 3 tầng**, trace cho thấy model xuất `NO` ở
+**392/392** lượt. Kernel chỉ cho `max_new_tokens=16` và ép phán ngay -> model không có chỗ tính.
+Hiệu ứng sàn hoàn hảo tố cáo DỤNG CỤ, không phải năng lực. H25 do đó là CHƯA KIỂM.
+
+## Sửa gì
+- Cho kiểm TỪNG BƯỚC rồi mới chốt dòng cuối `VERDICT: YES` / `VERDICT: NO`, **400 token**.
+- Vẫn giữ nguyên: hai nhánh đều là chuỗi vàng (CLEAN vs CORRUPT một bước) -> không lộ nhãn qua văn phong.
+- Vẫn phân tầng theo năng lực giải của chính model (k=8).
+
+## NGƯỠNG HIỆU LỰC — khoá TRƯỚC (đây chính là thứ #24 THIẾU)
+- `degenerate_rate` = tỉ lệ của câu trả lời phổ biến nhất. Nếu **> .90** ở một tầng ->
+  tầng đó **VÔ HIỆU**, KHÔNG được đọc là "không phát hiện được".
+- `parse_fail_rate` > .20 -> toàn bộ lần chạy VÔ HIỆU.
+Hai ngưỡng này áp dụng cho MỌI thí nghiệm phán đoán nhị phân về sau. Đây là LUẬT mới của dự án.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số) — chỉ đọc các tầng HỢP LỆ
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phân biệt ở ZERO >= .40 và gần HIGH | **Kiểm lỗi LÀ kỹ năng tách rời.** Vai verifier có thật -> huấn luyện theo vai là đúng hướng. |
+| Phân biệt HIGH cao nhưng ZERO ≈ 0 | **Kiểm lỗi BỊ CHẶN bởi năng lực giải.** Không có vai để củng cố. Nhánh A_verify của H26 vô nghĩa. |
+| Phân biệt thấp ở mọi tầng HỢP LỆ | Model không kiểm được lỗi số học dù được suy luận. Bác hướng "vai kiểm". |
+| Vẫn suy biến >.90 dù đã cho 400 token | Không kết luận gì về năng lực. Ghi: nhiệm vụ phán nhị phân KHÔNG đo được ở 1.5B; phải đổi cách hỏi. |
+| 1.5B và 7B trái chiều | "Phụ thuộc năng lực", không kết luận chung. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi cho rằng khi được suy luận, model sẽ hết suy biến và phân biệt sẽ DƯƠNG RÕ ở tầng HIGH.
+Ở tầng ZERO tôi vẫn THẬT SỰ KHÔNG BIẾT — đó vẫn là câu hỏi trung tâm.
+Lưu ý trung thực: lỗi được TIÊM vào là lỗi SỐ HỌC MỘT BƯỚC, dễ hơn lỗi suy luận thật.
+Nếu ngay cả lỗi này cũng không phát hiện nổi thì kết luận rất mạnh; nhưng nếu phát hiện được,
+KHÔNG được suy rộng thành "biết kiểm lỗi nói chung".
