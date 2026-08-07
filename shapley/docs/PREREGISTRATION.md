@@ -763,3 +763,47 @@ khuyến nghị vẫn là "dùng model lớn hơn".
 Tôi đã lập luận RL là công cụ SAI ở đây vì đã có nhãn trực tiếp (grader) -> học có giám sát
 dùng tín hiệu đó tốt hơn. Reward rất THƯA. Tôi cho rằng khả năng cao rơi vào hàng 2 hoặc 3.
 Vẫn chạy vì người dùng yêu cầu và vì nó nhắm ĐÚNG khiếm khuyết đã đo.
+
+---
+
+# Đăng ký trước #23 — H24: "SỬA LỖI" CỦA VERIFIER CHỈ LÀ GIẢI LẠI, KHÔNG PHẢI KIỂM LỖI
+**Viết TRƯỚC khi chạy.** Rút ra từ vòng #43.
+
+## Vì sao hỏi câu này
+Nhánh giả dược X (verifier thấy lời giải của BÀI KHÁC) có fix_rate CAO NHẤT ở GSM8K 7B
+(.381 > blind .286 > informed .191). Context của X vô nghĩa nên "sửa" của nó KHÔNG THỂ là
+kiểm lỗi. Cộng với phát hiện cũ (verifier tái sử dụng 0% con số của Solver) và với H21a
+(ép giữ tiền tố của Solver làm verifier TỆ ĐI, 3 lần chạy độc lập), giả thuyết hợp lý là:
+**vai "verifier" không kiểm gì cả — nó chỉ là một LẦN LẤY MẪU THỨ HAI được đặt tên khác.**
+Nếu đúng, toàn bộ khung "verification" của dự án phải phát biểu lại, và khuyến nghị thực tế
+là thay verifier bằng lấy mẫu nhiều lần + bỏ phiếu (rẻ hơn, đã biết là mạnh).
+
+## Thiết kế — CÙNG MỘT bộ lời giải của Solver, 4 nhánh, mỗi nhánh ĐÚNG 1 lần sinh thêm
+- **V_inf**  : "Check the proposed solution..." + TOÀN BỘ lời giải   (đối chứng trên)
+- **V_bli**  : "Check the proposed solution..." + CHỈ đáp án          (nhánh mạnh nhất ở #2)
+- **S_anc**  : "Solve step by step. A previous attempt answered <A>." — CÓ mỏ neo, KHÔNG có khung kiểm
+- **S_pln**  : "Solve step by step."  (temp 0.7, hạt giống khác)      — KHÔNG neo, KHÔNG khung kiểm
+Chi phí bằng nhau (1 lần sinh). So sánh trên CÙNG phân hoạch đúng/sai của Solver.
+
+## Chỉ số chính
+`fixes` (Solver sai -> nhánh đúng) và `breaks` (Solver đúng -> nhánh sai), theo từng nhánh.
+Phụ: `changed_answer`, và tỉ lệ nhánh nhắc lại con số của Solver (đo mỏ neo có hiệu lực).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| S_pln ≈ V_bli ở CẢ fixes VÀ breaks (chênh trong sàn nhiễu) ở >=3/4 ô | **H24 XÁC NHẬN.** Khung "kiểm lỗi" không đóng góp gì ngoài một mẫu thứ hai. Phải phát biểu lại toàn bộ ngôn ngữ "verifier" của dự án và khuyến nghị bỏ phiếu thay vì verify. |
+| V_bli sửa NHIỀU HƠN S_pln, p<.05, >=3/4 ô | **H24 BỊ BÁC.** Khung kiểm lỗi làm việc thật. Giữ nguyên ngôn ngữ verifier. |
+| fixes bằng nhau NHƯNG V_bli phá ÍT HƠN S_pln, p<.05 | H24 BÁC MỘT PHẦN. Khung kiểm không tăng PHÁT HIỆN mà tăng TÍNH CHỌN LỌC. Phải phát biểu hẹp đúng như vậy. |
+| S_anc ≈ V_bli nhưng cả hai khác S_pln | Thứ có tác dụng là MỎ NEO ĐÁP ÁN, không phải khung kiểm. Ngôn ngữ "verify" vẫn phải bỏ. |
+| Kết quả trái chiều giữa các ô | KHÔNG kết luận chung. Ghi "phụ thuộc ô", không được chọn ô đẹp để kể. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi cho rằng H24 nhiều khả năng XÁC NHẬN (hàng 1) hoặc rơi hàng 4. Ba mảnh bằng chứng độc lập
+đã chỉ cùng hướng: reuse 0%, H21a bị bác 3 lần, X-giả dược sửa nhiều nhất. Nếu đúng thì đây là
+phát hiện LỚN NHẤT của dự án và đồng thời là lời tự bác bỏ mạnh nhất — phần lớn công sức trước
+đây được tiêu vào việc tinh chỉnh một vai mà có thể chưa bao giờ làm đúng việc nó được đặt tên.
+Tôi ghi rõ điều này TRƯỚC khi có số để không thể diễn giải lại sau.
+
+## Bắt buộc
+Lưu >=50 trace thô mỗi nhánh (`traces.json`) — mọi phát hiện cơ chế của dự án đều đến từ đọc trace.
