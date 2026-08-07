@@ -985,3 +985,41 @@ nhiệm vụ DỄ HƠN sinh; (c) headroom đã ĐO chứ không suy đoán. Tôi
 vài điểm nhưng KHÔNG chạm oracle.
 CẢNH BÁO tự đặt: nếu H25b cho thấy 1.5B không phân biệt nổi chuỗi vàng SẠCH và chuỗi BỊ TIÊM LỖI,
 thì AUC ở đây nhiều khả năng thấp -> phải đọc theo hàng 4, KHÔNG được kể thành "cần thêm dữ liệu".
+
+---
+
+# Đăng ký trước #28 — H25c: LÀM ĐÔNG TẦNG "KHÔNG GIẢI NỔI" BẰNG MATH
+**Viết TRƯỚC khi chạy.** dt2_g7 cho hàng 1 nhưng tầng quyết định chỉ có **9 cặp**.
+
+## Vấn đề CHÍNH XÁC cần sửa
+7B giải GSM8K .867 -> tầng ZERO rỗng do THIẾT KẾ. Phân biệt .444 ở n=9 có khoảng tin cậy
+gần như chắc chắn chứa 0. Không được kết luận từ đó.
+=> Chạy lại trên **MATH-500** ở 7B (solver đã đo .625) và **MATH ở 1.5B** (solver .405),
+   nơi tầng ZERO sẽ đông hơn nhiều lần.
+=> Cỡ mẫu MỤC TIÊU: >= 40 cặp ở tầng ZERO. Nếu không đạt, ghi rõ là KHÔNG ĐỦ LỰC.
+
+## Khác biệt kỹ thuật với dt2
+MATH không có chú thích `<<a op b=c>>` như GSM8K -> phải tiêm lỗi bằng cách khác:
+lấy chuỗi lời giải VÀNG của MATH, tìm biểu thức số học `a op b = c` bằng regex thường,
+đổi `c` thành `c'`. Nếu không tìm được biểu thức nào thì BỎ bài đó (ghi số bài bị bỏ).
+**Kiểm tra hiệu lực BẮT BUỘC**: báo `pct_problems_corruptible`. Nếu < .50 thì phép đo
+VÔ HIỆU vì mẫu còn lại đã bị chọn lọc thiên lệch (chỉ giữ bài nhiều số học).
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên từ #26, thêm một điều kiện)
+- `degenerate_rate` > .90 ở một tầng -> tầng đó VÔ HIỆU
+- `parse_fail_rate` > .20 -> cả lần chạy VÔ HIỆU
+- **n_pairs < 40 ở tầng ZERO -> tầng ZERO KHÔNG ĐƯỢC DÙNG ĐỂ KẾT LUẬN** (chỉ báo cáo, ghi "thiếu lực")
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| ZERO n>=40 và phân biệt >= .40 ở 7B | **XÁC NHẬN: kiểm lỗi TÁCH RỜI khỏi giải ở 7B.** Đây là phát hiện dương mạnh nhất của dự án. Vai verifier có thật; huấn luyện phân biệt là hướng đúng. |
+| ZERO n>=40 và phân biệt ≈ 0 ở 7B, trong khi HIGH cao | **BÁC: kiểm lỗi BỊ CHẶN bởi năng lực giải.** dt2_g7 chỉ là ảo ảnh của n=9. Phải rút lại cách đọc lạc quan ở vòng #48. |
+| 7B phân biệt tốt mọi tầng, 1.5B vẫn suy biến | "Phụ thuộc NĂNG LỰC" — có ngưỡng năng lực cho việc kiểm. Không được suy rộng xuống model nhỏ. |
+| Cả hai model suy biến trên MATH | Nhiệm vụ tiêm-lỗi không đo được trên MATH. Kết quả GSM8K đứng một mình, phải nói rõ chỉ có 1 miền. |
+| `pct_problems_corruptible` < .50 | Lần chạy VÔ HIỆU. Thiết kế lại cách tiêm lỗi. |
+
+## Prior TRUNG THỰC (ghi trước)
+Sau dt2_g7 tôi NGHIÊNG về hàng 1 (phân biệt sống sót ở tầng ZERO đông hơn). Nhưng tôi đã sai
+nhiều lần trong dự án này khi ngoại suy từ mẫu nhỏ, và n=9 chính là mẫu nhỏ.
+Tôi ghi rõ: nếu ra hàng 2, tôi PHẢI rút lại cách đọc ở vòng #48 và nói thẳng là đã mừng sớm.
