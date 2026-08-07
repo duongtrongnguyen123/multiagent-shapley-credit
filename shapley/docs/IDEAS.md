@@ -1389,3 +1389,63 @@ QUYẾT ĐỊNH: KHÔNG đốt thêm tài nguyên vào GRPO lúc này. Chuyển 
 GHI CHÚ TRUNG THỰC: prior tôi ghi trước ở pre-reg #22 là "khả năng cao rơi hàng 2 hoặc 3"
   (RL không giúp). Việc dừng lại lúc này KHÔNG được tính là bằng chứng ủng hộ prior đó —
   H23 vẫn là CHƯA KIỂM, không phải bị bác.
+
+## [Loop] VÒNG #43 — H1 KHÔNG KẾT LUẬN CHUNG; H2 BỊ BÁC Ở 7B (kết quả cũ PHẦN LỚN LÀ NHIỄU PROMPT)
+Bảy kernel của đăng ký trước #2 đã xong: bl_g15 / bl_g7 / bl_m15 / bl_m7 / agf_15 / agf_7 / sw_m7.
+
+### H1 — "verifier bị bịt mắt bắt lỗi tốt hơn". Chỉ số chính = `fixes` (CÙNG bộ lời giải)
+| ô | S | fixes I | fixes B | B>I? | add I | add B |
+|---|---|---|---|---|---|---|
+| GSM8K 1.5B | .632 | 20 | **42** | CÓ (2.1×) | +.056 | +.076 |
+| GSM8K 7B   | .916 |  4 |  **6** | có (yếu)  | −.008 | +.000 |
+| MATH 1.5B  | .405 | 13 | **19** | CÓ        | +.050 | +.050 |
+| MATH 7B    | .625 | **17** | 9 | **NGƯỢC** | +.065 | +.005 |
+=> Rơi vào HÀNG 4 của bảng đã khoá: "chỉ 1 task có, 1 task không -> KHÔNG kết luận chung,
+   ghi là PHỤ THUỘC, cần thêm dữ liệu". H1 KHÔNG được phát biểu như khẳng định.
+
+ĐO ĐƯỢC (GSM8K 1.5B, kiểm định 2 tỉ lệ): bịt mắt sửa .457 vs .217 (z=3.44, p<.001)
+  NHƯNG cũng phá .146 vs .038 (z=3.31, p<.001). Sửa nhiều hơn ĐI KÈM phá nhiều hơn
+  theo tỉ lệ gần như y hệt -> giá trị gia tăng RÒNG gần như không đổi (+.076 vs +.056,
+  dưới sàn nhiễu ~5 điểm). "Bịt mắt" KHÔNG phải bữa trưa miễn phí.
+
+### Nhánh P (thấy suy luận, XOÁ đáp án) — tách cơ chế, đã khoá trước
+fix/break: g15 .163/.006 | g7 .143/.022 | m15 .109/.148 | m7 .200/.024
+P GIỐNG I ở cả 4 ô, KHÔNG giống B.
+=> Theo cam kết đã khoá: **thủ phạm là PHẦN SUY LUẬN, không phải đáp án**. Xoá mỗi con số
+   cuối KHÔNG khôi phục được tính hoài nghi; chính lập luận trôi chảy mới thuyết phục verifier.
+   (P ở GSM8K 1.5B có break_rate .006 — THẤP NHẤT mọi nhánh — đáng chú ý cho luật định tuyến.)
+
+### Nhánh X (giả dược: thấy lời giải BÀI KHÁC) — CẢNH BÁO cho chính H1
+fix_rate: g15 .315 | **g7 .381** | m15 .193 | m7 .200
+Ở GSM8K 7B, X có fix_rate CAO NHẤT trong cả 4 nhánh (.381 > B .286 > I .191).
+Context của X là VÔ NGHĨA -> "sửa" của nó không thể là kiểm lỗi thật, chỉ có thể là GIẢI LẠI.
+=> Một phần hiệu ứng "bịt mắt bắt lỗi tốt hơn" KHÔNG phải do hoài nghi mà do
+   context bị phá vỡ khiến model bỏ qua lời giải và tự giải lại. Khớp với phát hiện cũ
+   (verifier tái sử dụng 0% số của Solver). ĐÂY LÀ GIẢ THUYẾT, chưa tách được — xem H3.
+
+### H2 — bộ tổng hợp LLM khi ĐƯỢC ĐỐI XỬ CÔNG BẰNG (cùng CoT, cùng 1024 token)
+| ô | maj@8 | agg_fair | vs_maj | phá/cứu đa số |
+|---|---|---|---|---|
+| 1.5B | .533 | .467 | −.067 | 15 / 7 |
+| 7B   | .717 | .725 | **+.008** | **3 / 4** |
+(agg_full_sol: 1.5B .358 −.175 (26/5) — thảm hoạ; 7B .733 **+.017** (7/9))
+SỐ CŨ (không công bằng) ở 7B: đè lên **26** đa số đúng, cứu **0**.
+SỐ MỚI (công bằng)   ở 7B: đè **3**, cứu **4**.
+=> Rơi vào HÀNG 2 của bảng đã khoá: "khoảng cách thu hẹp rõ -> kết quả cũ PHẦN LỚN do
+   NHIỄU PROMPT, phải sửa lại phát biểu". Ở 7B thậm chí chạm HÀNG 3 (aggregator >= bỏ phiếu)
+   -> **H2 BỊ BÁC ở 7B**. Ở 1.5B vẫn âm (−.067) nhưng kiểm định dấu 15/7 cho p≈.13,
+   KHÔNG đạt p<.05, và độ lớn nằm quanh sàn nhiễu.
+### RÚT LẠI CÔNG KHAI
+Phát biểu cũ của dự án — "aggregator LLM là SAI LOẠI, phải thay bằng thống kê" — được xây
+trên một so sánh KHÔNG CÔNG BẰNG (aggregator không có chỉ dẫn CoT, chỉ 384 token so với
+1024). Khi sửa lại cho công bằng, hiệu ứng gần như biến mất ở 7B. TÔI RÚT LẠI phát biểu đó.
+Phát biểu thay thế (HẸP HƠN): ở model YẾU (1.5B), tổng hợp bằng LLM có xu hướng kém bỏ phiếu,
+đặc biệt khi phải đọc TOÀN BỘ lời giải (−.175); ở 7B không còn khác biệt đo được.
+
+### sw_m7 — bắt Solver TRÌNH BÀY, và Verifier có cần thấy phần trình bày không?
+A_bare .6467 | B_work_shown .6067 | C_work_hidden .6067  (B và C DÙNG CHUNG lời giải)
+verifier: B .660 (11 sửa/3 phá) vs C .6667 (12 sửa/3 phá) — chênh .007, KHÔNG có gì.
+median_sol_len 861 -> 26 ký tự mà kết quả KHÔNG đổi.
+=> XÁC NHẬN lại: bắt Solver trình bày làm Solver TỆ ĐI (−4.0 điểm).
+=> Và ở MATH 7B, giấu phần trình bày khỏi Verifier KHÔNG đổi gì -> khớp với ô MATH 7B của H1
+   (nhánh ngược chiều). Hai phép đo ĐỘC LẬP cùng nói: ở MATH 7B, H1 không đúng.
