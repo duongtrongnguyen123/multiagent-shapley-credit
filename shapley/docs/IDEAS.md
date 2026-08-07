@@ -1213,3 +1213,29 @@ Nay:  đúng khi model mạnh ĐÃ BÃO HOÀ trên task (GSM8K .910 -> mất 10 
       Khi model mạnh chỉ ở GIỮA DẢI (MATH .593) thì bất đối xứng NGANG BẰNG mà rẻ hơn 21.6%.
 => Phát biểu đúng: giá trị của bất đối xứng phụ thuộc vào việc model MẠNH đang ở đâu trên
    dải độ khó — y hệt quy luật đã tìm ra cho verifier.
+
+## [Loop] VÒNG #32 — HAI CÂU HỎI CỦA NGƯỜI DÙNG, CẢ HAI ĐỀU ĐÚNG THEO SỐ ĐO
+### (1) "Verifier có làm đúng việc không? Lẽ ra nó chỉ cần SỬA và ĐI TIẾP từ đường của Solver"
+ĐO TỈ LỆ VERIFIER TÁI SỬ DỤNG SỐ CỦA SOLVER (bỏ các số vốn có trong đề):
+              toàn bộ   khi ĐỒNG Ý   khi SỬA   khi PHÁ
+  GSM8K        .17         .20        **0.00**  **0.00**
+  MATH         .83        1.00          .33       .29
+=> MỖI KHI CAN THIỆP, VERIFIER VỨT BỎ TOÀN BỘ CHUỖI CỦA SOLVER VÀ GIẢI LẠI TỪ ĐẦU.
+   Nó chỉ tái sử dụng khi ĐỒNG Ý (tức là đang đọc lướt và gật đầu).
+=> GIẢI THÍCH TRỌN VẸN con số 56%: nếu can thiệp = tự giải lại, thì độ chính xác can thiệp
+   phải xấp xỉ ĐỘ CHÍNH XÁC TỰ GIẢI của model (1.5B giải GSM8K ~.63), CHỨ KHÔNG PHẢI độ chính xác
+   của việc KIỂM (đáng lẽ dễ hơn nhiều).
+=> "VERIFIER KHÔNG PHẢI LÀ BỘ KIỂM TRA TỒI — NÓ LÀ MỘT SOLVER THỨ HAI ĐỘI LỐT BỘ KIỂM TRA."
+   Cũng giải thích luôn vì sao verifier 7B giúp nhiều (98%): thực chất ta đang mua một
+   SOLVER TỐT HƠN cho lượt thứ hai, không phải một bộ kiểm tra tốt hơn.
+
+### (2) "Planner có làm việc thật không, hay nó GIẢI XONG RỒI? Prompt 'đừng tính đáp án' chỉ ép nó GIẤU"
+ĐO ĐƯỢC: Planner sinh 6 SỐ MỚI ở 100% số lượt (0% lượt không tính toán) nhưng chỉ 3.3% có \boxed;
+  đáp án ngầm vẫn trích được ở 32-45% số kế hoạch.
+=> Ủng hộ mạnh giả thuyết: chỉ dẫn KHÔNG ngăn nó tính, chỉ khiến nó KHÔNG NÓI RA.
+
+### ĐÃ ĐĂNG KÝ TRƯỚC + PHÓNG (pre-reg #20)
+  H21a: verifier VÁ LỖI — GIỮ TIỀN TỐ CỦA SOLVER BẰNG CODE (ghép chuỗi), model chỉ viết phần TIẾP.
+        Khác lần trước (struct/V_ST) ở chỗ không phụ thuộc model có tuân lệnh hay không.
+  H21b: 3 kiểu Planner (giấu / tự do / yêu cầu tính) -> đo acc đáp án NGẦM và acc Solver phía sau.
+  Kernel: pa_g15, pa_m15 (5 fold x 80).
