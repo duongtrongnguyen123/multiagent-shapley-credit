@@ -1791,3 +1791,40 @@ mang ít tín hiệu hơn, và bộ chấm giành lại vai trò. Cần ô thứ
 AUC .9506 cao một phần vì mất cân bằng lớp (chỉ 25.9% dương). Không dùng AUC để khoe;
 chỉ dùng làm NGƯỠNG HIỆU LỰC như đã khoá (>.55). Kết luận chỉ dựa trên `wsum − maj`.
 Train/test là hai NỬA RỜI NHAU của MATH-500 (200/200) -> không rò rỉ.
+
+## [Loop] VÒNG #53 — H29 (đường cong năng lực): **CẢ BA MODEL VÔ HIỆU** vì vượt ngưỡng parse_fail
+### Số liệu thô (MATH-500, bf16, RTX 6000 Pro sm_120, pct_corruptible .97)
+| model | solve | **parse_fail** | HIGH | MID | ZERO |
+|---|---|---|---|---|---|
+| 7B  | .487 | **.232** | +.337 (n=86) | +.074 (n=28) | +.173 (n=32) |
+| 14B | .489 | **.219** | +.472 (n=89) | +.333 (n=21) | +.130 (n=39) |
+| 32B | .504 | **.224** | +.529 (n=91) | +.360 (n=25) | +.236 (n=34) |
+
+### PHÁN QUYẾT: VÔ HIỆU. Ngưỡng khoá ở pre-reg #32 là `parse_fail_rate` <= .20.
+Cả ba đều .219–.232 -> `VALID_parse=false` cho CẢ BA. **Không được kết luận gì từ lần chạy này.**
+
+### VÌ SAO PHẢI NÓI RÕ ĐIỀU NÀY
+Nhìn cột HIGH: **+.337 -> +.472 -> +.529**. Đơn điệu tăng theo cỡ model, ĐÚNG Y HỆT hàng 1 của
+bảng đã khoá ("phân biệt tăng đơn điệu 7B→14B→32B -> XÁC NHẬN đường cong năng lực") và đúng y hệt
+prior tôi ghi trước. Đây chính xác là kịch bản dễ tự lừa nhất: **kết quả đẹp, đúng như mong đợi,
+nhưng phép đo đã hỏng.** Ngưỡng được khoá TRƯỚC khi nhìn số nên tôi không có quyền chọn lại.
+=> Con số +.337/+.472/+.529 KHÔNG được đưa vào RESULTS.md, README, hay bất kỳ phát biểu nào.
+   H29 là **CHƯA KIỂM**, không phải đã xác nhận.
+
+### NGUYÊN NHÂN — đã chẩn đoán bằng trace, không phải đoán
+75/300 trace của 14B KHÔNG có dòng `VERDICT:`. Đọc đuôi: tất cả đều bị **CẮT GIỮA CHỪNG** trong
+LaTeX (`\sum_{n = 2}^\infty \frac{1}{n^3}.` ... hết token). `max_new_tokens=512` KHÔNG ĐỦ cho
+model viết hết phần kiểm rồi mới tới dòng phán quyết trên miền MATH.
+NGUY HIỂM HƠN: cắt cụt KHÔNG ngẫu nhiên theo tầng — bài khó -> lời giải dài -> dễ bị cắt hơn.
+Nên mẫu sống sót bị THIÊN LỆCH theo đúng biến đang nghiên cứu. Đây chính là lý do ngưỡng tồn tại.
+
+### KHIẾM KHUYẾT KHÁC CỦA LẦN CHẠY NÀY (ghi để sửa)
+1. **Tầng ZERO vẫn thiếu lực**: n=32/39/34, đều < ngưỡng 40 đã khoá ở #28. Dù parse có đạt thì
+   tầng quyết định vẫn không kết luận được. Phải tăng N (200 -> 400+).
+2. **Dùng GPU rất lãng phí**: BS=12 bê nguyên từ thời T4. Pha phát hiện chạy `k=1` nên chỉ
+   **12 chuỗi đồng thời** trên card 102 GB; ước tính ~70–75% card để không suốt 57 phút.
+   Kernel cũng KHÔNG ghi `max_memory_allocated()` -> không đo được, chỉ suy ra từ cỡ model.
+   Đây đúng là lỗi tôi đã tự viết thành LUẬT ở vòng #51 (phải tính lại ngân sách khi đổi phần cứng)
+   rồi lặp lại theo chiều ngược lại.
+3. 7B bf16 (+.337 HIGH, MATH) vs 7B 4-bit (+.651 HIGH, GSM8K): KHÔNG so sánh được vì khác miền.
+   Muốn tách biến lượng tử hoá thì phải chạy 7B bf16 và 7B 4-bit trên CÙNG miền.
