@@ -18,3 +18,7 @@ output/
 __pycache__/
 *.pyc
 .DS_Store
+
+# thư mục tạm để upload Kaggle dataset (dữ liệu tái sinh được)
+ds_pairs/
+ds_adapter/

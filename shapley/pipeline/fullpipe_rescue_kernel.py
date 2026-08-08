@@ -21,16 +21,24 @@
 # sinh (plan, solver-một-mình, solver, verifier, aggregator), đáp án trích ra từng lượt, độ dài
 # từng lượt, và nhãn phân loại sẵn (error_origin, V_transition, A_transition, plan_leaked_wrong,
 # solver_copied_plan). Aggregate chỉ đáng tin khi còn kiểm lại được text phía sau nó.
-import os, re, csv, json, glob, statistics, torch
+import os, re, sys, csv, json, glob, statistics, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-TASK = "__TASK__"
-N    = __N__
-NF   = __NF__
-BS   = __BS__
+TASK  = "__TASK__"
+N     = __N__
+NF    = __NF__
+BS    = __BS__
+BIG   = __BIG__      # True -> dùng Qwen2.5-7B (sharded, nạp 4-bit cho vừa T4)
 
 FOLD = N // NF
-_c = glob.glob("/kaggle/input/**/model.safetensors", recursive=True)
+if BIG:
+    # 7B là checkpoint sharded -> tìm index.json; nạp 4-bit nf4 để vừa 16GB
+    _c = glob.glob("/kaggle/input/**/model.safetensors.index.json", recursive=True)
+else:
+    _c = glob.glob("/kaggle/input/**/model.safetensors", recursive=True)
+if not _c:
+    raise FileNotFoundError(f"khong thay weights (BIG={BIG}) :: "
+                            + str(glob.glob('/kaggle/input/**', recursive=True)[:30]))
 MODEL = os.path.dirname(sorted(_c, key=len)[0])
 FNAME = "main_test.csv" if TASK == "gsm8k" else "math_500_test.csv"
 CSV = sorted(glob.glob(f"/kaggle/input/**/{FNAME}", recursive=True), key=len)[0]
@@ -39,9 +47,22 @@ print(f"TASK={TASK} {NF} fold x {FOLD} bai", flush=True)
 
 tok = AutoTokenizer.from_pretrained(MODEL); tok.padding_side = "left"
 if tok.pad_token is None: tok.pad_token = tok.eos_token
-model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16,
-                                             device_map="cuda").eval()
-print("model loaded", flush=True)
+if BIG:
+    # pattern đã chạy được trên Kaggle dù enable_internet=False (improve_kernel_math.py:19)
+    import subprocess
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U",
+                    "bitsandbytes>=0.46.1"], check=False)
+    from transformers import BitsAndBytesConfig
+    _b = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                            bnb_4bit_compute_dtype=torch.float16,
+                            bnb_4bit_use_double_quant=True)
+    model = AutoModelForCausalLM.from_pretrained(MODEL, quantization_config=_b,
+                                                 device_map="auto").eval()
+    print("model loaded (7B 4-bit nf4)", flush=True)
+else:
+    model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16,
+                                                 device_map="cuda").eval()
+    print("model loaded (1.5B fp16)", flush=True)
 
 def gen(sysm, usrs, mx):
     outs = []
