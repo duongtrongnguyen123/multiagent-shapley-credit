@@ -1293,3 +1293,15 @@ Tôi đoán rơi vào hàng 1 hoặc hàng 2 — tức bỏ phiếu có trọng 
 và phần còn lại để giành là RẤT NHỎ. Nếu vậy, kết luận thực tiễn của dự án là:
 **"lấy 8 mẫu, đếm phiếu có trọng số, và DỪNG LẠI — phần còn lại không đáng theo đuổi ở quy mô này."**
 Đó sẽ là một kết luận KHIÊM TỐN nhưng là kết luận VỮNG NHẤT mà dữ liệu cho phép.
+
+## GHI CHÚ THỰC THI cho #30 (H25d) — `dt5_m7` / `dt5_m15`, viết TRƯỚC khi có số
+Chạy lại thí nghiệm tiêm-lỗi trên MATH sau khi sửa **lỗi regex thoát dư tầng** (vòng #54)
+đã khiến `dt4_m7` cho `pct_corruptible = 0.0` và bị tuyên VÔ HIỆU.
+Kernel nay có **tự kiểm regex ngay đầu** (`assert` số khớp >= 4 trên chuỗi mẫu) -> chết trong
+vài giây nếu regex hỏng, thay vì sau 1 giờ.
+Hai ô: **7B 4-bit** (`dt5_m7`) và **1.5B fp16** (`dt5_m15`), N=400, CÙNG dữ liệu, CÙNG cách tiêm.
+Bảng diễn giải của #30 và mọi ngưỡng hiệu lực (#26/#28) GIỮ NGUYÊN, không sửa một chữ.
+
+Lý do thêm ô 1.5B: `dt2_g15` cho 1.5B suy biến .99 trên GSM8K (VÔ HIỆU). Chạy 1.5B trên MATH
+cùng lần này để biết suy biến là do NĂNG LỰC hay do MIỀN — hai khả năng chưa tách được.
+Nếu 1.5B lại suy biến >.90 trên MATH thì đó là NĂNG LỰC; nếu không thì trước đây là do miền.
