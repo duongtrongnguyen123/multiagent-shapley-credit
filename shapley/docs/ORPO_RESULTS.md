@@ -1,121 +1,111 @@
-# ORPO cho Aggregator — kết quả: thắng in-domain nhưng không đạt chuẩn, không chuyển sang task khác
+# ORPO cho Aggregator — kết quả cuối, sau khi sửa lỗi train/eval mismatch
 
-Giai đoạn 2 của vòng ORPO. Tiêu chí đã khoá trước trong `ORPO_AGGREGATOR.md`.
+Giai đoạn 2 vòng ORPO. Tiêu chí khoá trước trong `ORPO_AGGREGATOR.md`.
 
-Adapter LoRA (r=16) train trên **428 cặp preference từ MATH train**, eval 5 fold × 30 trên
-MATH-500 test (**in-domain**) và GSM8K test (**cross-task** — adapter chưa từng thấy GSM8K).
+Adapter LoRA (r=16) train trên **428 cặp preference từ MATH train**, prompt có **2 ứng viên**.
+Eval 5 fold × 30 trên MATH-500 test (in-domain) và GSM8K test (cross-task).
 
-## MATH — in-domain
+> **Đính chính:** vòng eval đầu tiên đưa cho adapter **3 ứng viên** trong khi nó train trên 2 —
+> train/eval mismatch. Tài liệu này thay thế toàn bộ số của vòng đó. Nhánh `agg3_orpo_ood` giữ
+> lại đúng cấu hình sai làm đối chứng, và kết quả của nó **bác bỏ** giả thuyết ban đầu của tôi
+> về nguyên nhân (xem mục 3).
 
-| nhánh | acc | Δ vs base | fold cùng dấu |
-|---|---|---|---|
-| S (Solver một mình) | .4133 | −0.053 | 5/5 |
-| agg3_base | .4667 | — | — |
-| **agg3_orpo** | **.4933** | **+0.027** | 3/5 |
-| **agg3_orpo + fallback** | **.5000** | **+0.033** | 4/5 |
-| vote3 | .4733 | +0.007 | 2/5 |
-| *oracle (3 ứng viên)* | *.6200* | | |
+## Kết quả
 
-**Mốc `vote5` = .507.**
-
-## GSM8K — cross-task
+### MATH — in-domain (adapter train trên MATH)
 
 | nhánh | acc | Δ vs base | fold |
 |---|---|---|---|
-| S | .6533 | −0.073 | 4/5 |
-| agg3_base | .7267 | — | — |
-| **agg3_orpo** | **.7267** | **±0.000** | 0/5 |
-| agg3_orpo + fallback | .7333 | +0.007 | 1/5 |
-| vote3 | .7000 | −0.027 | 3/5 |
-| *oracle* | *.8067* | | |
+| S (Solver một mình) | .4133 | −0.033 | 3/5 |
+| **agg2_base** | **.4467** | — | — |
+| **agg2_orpo** (khớp train) | **.4667** | **+0.020** | 3/5 |
+| **agg2_orpo + fallback** | **.4800** | **+0.033** | 3/5 |
+| vote2 | .4133 | −0.033 | 3/5 |
+| *agg3_orpo_ood* (cấu hình sai) | *.4933* | *+0.047* | *4/5* |
+| *vote3* | *.4733* | *+0.027* | *3/5* |
+| *oracle (K=2)* | *.553* | | |
 
-## Đọc theo tiêu chí đã khoá
+### GSM8K — cross-task (adapter chưa từng thấy GSM8K)
 
-| kết quả | kết luận bắt buộc (khoá trước) |
-|---|---|
-| > vote5 (.507) **và** 5/5 fold | kết quả dương thật |
-| > vote3 nhưng ≤ .507 | **thắng cùng ngân sách, thua bỏ phiếu 5 mẫu → kết quả một phần** |
-| .467 < x ≤ vote3 | thất bại thực dụng |
-| ≤ .467 | không dịch chuyển được hành vi |
+| nhánh | acc | Δ vs base | fold |
+|---|---|---|---|
+| S | .6533 | −0.047 | 4/5 |
+| **agg2_base** | **.7000** | — | — |
+| **agg2_orpo** | **.6733** | **−0.027** | 3/5 |
+| agg2_orpo + fallback | .6733 | −0.027 | 3/5 |
+| vote2 | .6533 | −0.047 | 4/5 |
+| *agg3_orpo_ood* | *.7267* | *+0.027* | *3/5* |
+| *oracle (K=2)* | *.753* | | |
 
-**MATH rơi vào hàng 2.** `agg3_orpo_fb` = .5000, vượt `vote3` (.4733) và vượt `agg3_base`
-(.4667), nhưng **không đạt** mốc `vote5` = .507, và chỉ 4/5 fold cùng dấu.
+## 1. Đọc theo tiêu chí đã khoá
 
-Phát biểu trung thực: **ORPO cải thiện Aggregator ở cùng ngân sách 3 mẫu, nhưng vẫn không bằng
-việc chỉ cần lấy 5 mẫu rồi bỏ phiếu — vốn miễn phí và không cần train gì.**
+**MATH: rơi hàng 2** — `agg2_orpo_fb` = .4800 vượt `agg2_base` (.4467) và vượt `vote2` (.4133),
+nhưng **không đạt** mốc `vote5` = .507. Chỉ 3/5 fold, hiệu ứng +3.3 điểm **dưới sàn nhiễu**.
 
-Hiệu ứng +3.3 điểm cũng **dưới sàn nhiễu ~5 điểm**, nên chặt chẽ mà nói đây là *"chưa đo được
-cải thiện đáng tin"*, không phải *"có cải thiện nhỏ"*.
+**GSM8K: rơi hàng 4** — `agg2_orpo` = .6733 **thấp hơn** base .7000. Adapter **làm hại** khi
+chuyển sang task khác.
 
-**GSM8K rơi vào hàng 4** — accuracy y hệt base (.7267 = .7267, 0/5 fold).
+Phát biểu trung thực: **ORPO cải thiện nhẹ in-domain nhưng dưới ngưỡng đo được, và làm hại khi
+đổi task.**
 
-## Chỉ số khoá trước: `copies_last`
-
-Đây là lý do phải khoá chỉ số trước khi chạy (bài học H23, xem `ORPO_VS_H23.md`).
+## 2. Chỉ số khoá trước: `copies_last`
 
 | | base | ORPO |
 |---|---|---|
-| **MATH** `copies_last` | .627 | **.567** ↓ |
-| **MATH** `novel` (đáp án ngoài đầu vào) | — | **.307** |
-| **GSM8K** `copies_last` | .793 | **.833** ↑ |
-| **GSM8K** `novel` | — | .033 |
+| **MATH** | .560 | **.540** ↓ nhẹ |
+| **GSM8K** | .713 | **.813** ↑ **ngược hướng** |
 
-Trên MATH, recency bias **giảm** (.627 → .567) — đúng hướng mong muốn. Nhưng `novel` tăng vọt
-lên **.307**: gần một phần ba số câu, Aggregator xuất ra đáp án **không có trong bất kỳ ứng viên
-nào**.
+Trên GSM8K, adapter **tăng** recency bias — chép ứng viên cuối nhiều hơn base. Đây là bằng chứng
+độc lập cho việc nó không chuyển được: nó không chỉ mất tác dụng mà còn khuếch đại đúng lỗi
+đáng lẽ phải sửa.
 
-Đối chiếu với đo đạc trước (`ROLE_SPECIALIZATION.md`): Aggregator gốc sinh đáp án ngoài đầu vào
-ở 12% số câu MATH và **0 ca nào đúng**. Nếu tỉ lệ đúng vẫn gần 0 thì phần lớn +3.3 điểm **không**
-đến từ việc chọn tốt hơn.
+## 3. Giả thuyết mismatch của tôi BỊ BÁC
 
-## Adapter có thật sự hoạt động không? — có, và rất khác nhau giữa hai task
+Ở vòng trước tôi viết rằng `novel` = .307 (đáp án ngoài đầu vào) là do train/eval mismatch —
+adapter rơi ngoài phân bố nên thoái hoá về "tự giải lại". Nhánh đối chứng bác bỏ điều đó:
 
-| | output giống hệt từng ký tự | đáp án trùng nhau |
+| | `agg2_orpo` (khớp train) | `agg3_orpo_ood` (mismatch) |
 |---|---|---|
-| **MATH** | **3/150 (2%)** | 78/150 (52%) |
-| **GSM8K** | **127/150 (85%)** | 139/150 (93%) |
+| **MATH** `novel` | **.327** | .307 |
+| **GSM8K** `novel` | **.087** | .033 |
 
-**Trên MATH adapter đổi gần như toàn bộ output** (98% khác). **Trên GSM8K nó gần như không làm
-gì** (85% giống hệt từng ký tự).
+**Cấu hình khớp train cho `novel` CAO HƠN, không thấp hơn.** Mismatch không phải nguyên nhân.
 
-Ví dụ trên MATH cho thấy nó đổi *kiểu hành vi*, không chỉ đổi lựa chọn:
+⇒ Diễn giải gốc **đúng**: adapter thật sự học **tự giải lại** thay vì **chọn**. Nhiệm vụ là chọn
+giữa các ứng viên, nhưng cách dễ nhất để giảm loss là bỏ qua ứng viên và giải lại. Cùng loại
+thất bại với H23 (học im lặng vì im lặng miễn phí) — lối tắt mà hàm mục tiêu cho phép.
 
-```
-base: "The correct final answer is \(\boxed{(3, \frac{\pi}{2})}\)."
-orpo: "To convert the point \((0,3)\) from rectangular to polar coordinates, we use..."
-```
+Đáng chú ý hơn: `agg3_orpo_ood` **tốt hơn** `agg2_orpo` ở **cả hai** task (.4933 vs .4667;
+.7267 vs .6733). Adapter chạy tốt hơn ở cấu hình nó **chưa từng** train. Điều này chỉ hợp lý nếu
+thứ nó học được là **có hại**, và cấu hình lạ làm nó bớt áp dụng cái đã học.
 
-Base **chọn** một ứng viên; ORPO **tự giải lại**. Điều này giải thích `novel` = .307 — adapter
-học được cách "tự tính" chứ không phải "chọn khéo hơn". Đây là **lối tắt tầm thường** kiểu H23:
-mục tiêu là *chọn giữa các ứng viên*, nhưng cách tối ưu hàm mất mát lại là *bỏ qua ứng viên và
-giải lại*.
+## 4. Vì sao — trần vốn đã hẹp
 
-## Kết luận
+Oracle với K=2 chỉ **.553** (MATH) và **.753** (GSM8K), so với K=3 là .620/.807. Ít ứng viên thì
+ít cơ hội có cái đúng để chọn.
 
-1. **ORPO không đạt mốc đã khoá.** Trên MATH nó thắng cùng ngân sách (+3.3 điểm so với base)
-   nhưng thua `vote5`, và hiệu ứng dưới sàn nhiễu.
-2. **Không chuyển sang task khác.** GSM8K: 0/5 fold, output 85% giống hệt base. Adapter train
-   trên MATH chỉ tác động trên MATH.
-3. **Cơ chế không phải cái ta muốn dạy.** Nó không học chọn đúng hơn — nó học **tự giải lại**
-   (`novel` .307, output đổi 98%). Đó là lối tắt của hàm mất mát, không phải giải pháp cho bài
-   toán selection.
-4. **Bỏ phiếu cơ học vẫn thắng.** `vote5` = .507 > `agg3_orpo_fb` = .500, và không cần train,
-   không cần dữ liệu, không cần GPU.
+Kết hợp với `DIFFICULTY_STRATA.md`: với K=2, tỉ lệ câu "cả hai đều sai" hoặc "cả hai đều đúng"
+còn cao hơn K=5, nên phần câu mà việc chọn có ý nghĩa còn nhỏ hơn nữa. **Giảm K để vừa bộ nhớ
+đã thu hẹp chính bài toán cần giải.**
 
-Khớp với kết luận lớn hơn của dự án: mọi can thiệp đều thua một baseline đơn giản hơn hoặc một
-model to hơn.
+## 5. Kết luận
 
-## Vì sao có thể như vậy — và giới hạn
+1. **ORPO không đạt mốc.** In-domain +3.3 điểm (dưới sàn nhiễu, 3/5 fold), cross-task **−2.7
+   điểm**.
+2. **Không chuyển sang task khác** — và còn khuếch đại recency bias (`copies_last` .713 → .813).
+3. **Cơ chế không phải cái ta muốn dạy** — xác nhận bằng đối chứng, không phải suy đoán.
+4. **Bỏ phiếu vẫn thắng**: `vote5` = .507 > mọi nhánh ORPO. Không cần train, không cần dữ liệu.
 
-- **428 cặp là ít.** Đã ghi rủi ro này trước khi train. Nhưng thất bại **không phải** kiểu "không
-  học được gì" — nó học rất mạnh (output đổi 98%), chỉ là học sai thứ.
-- **Trần vốn đã thấp.** Trong 172 ca base chọn sai ở tập train, chỉ **76%** là chọn nhầm ứng viên
-  có sẵn; 24% là tự bịa đáp án — ORPO không nhắm được phần đó.
-- **Oracle chỉ .620** trên eval này (3 ứng viên), thấp hơn .673 của vòng aggk (5 ứng viên). Với
-  3 mẫu thì trần vốn đã hẹp.
-- n=150 mỗi task, sàn nhiễu ~5 điểm. Mọi Δ ở đây đều nhỏ hơn thế trừ khoảng cách S↔base.
+## 6. Giới hạn
 
-## Điều đáng làm tiếp nếu quay lại hướng này
+- 428 cặp là ít, đã ghi rủi ro trước khi train. Nhưng thất bại **không phải** "không học được"
+  — loss giảm .452 → .287, eval_loss .310 → .265, và hành vi đổi rõ rệt.
+- n=150 mỗi task, sàn nhiễu ~5 điểm. Mọi Δ đều nhỏ hơn thế.
+- K=2 làm trần oracle hẹp lại (.553 MATH). Một vòng công bằng hơn cần GPU lớn hơn để giữ K=3
+  mà không cắt prompt.
 
-Phạt trực tiếp hành vi "tự giải lại": thêm ràng buộc để `chosen` phải là **một trong các ứng
-viên** thay vì văn bản tự do. Cách hiện tại vô tình cho phép model thoát khỏi bài toán selection.
+## 7. Nếu quay lại hướng này
+
+Ràng buộc `chosen` phải **là một trong các ứng viên** thay vì văn bản tự do — hiện tại hàm mục
+tiêu vô tình cho phép model thoát khỏi bài toán selection. Đây là bản vá trực tiếp cho cơ chế đã
+xác nhận ở mục 3.
