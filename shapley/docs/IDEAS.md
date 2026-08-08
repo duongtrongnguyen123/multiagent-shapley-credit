@@ -1691,3 +1691,55 @@ LaTeX, hiếm khi viết phép tính tường minh. Mẫu còn lại bị CHỌN
 => Theo hàng cuối của bảng #28: "pct < .50 -> lần chạy VÔ HIỆU, thiết kế lại cách tiêm lỗi."
 => `dt3_m7` đang chạy DÙNG CÙNG MÃ TIÊM LỖI nên chắc chắn cũng vô hiệu -> thay bằng bản sửa.
 LẦN THỨ BA ngưỡng hiệu lực khoá trước cứu tôi khỏi đọc nhầm một phép đo hỏng.
+
+## [Loop] VÒNG #50 — H24 CHỐT (hàng 3); **H28 XÁC NHẬN — LẦN ĐẦU TIÊN VƯỢT ĐƯỢC maj@8**
+### rs_m7 (MATH 7B) — ô quyết định 4/4 của H24
+solver .615 | V_inf **+.055** (13 sửa/2 phá) | V_bli +.040 (11/3) | S_anc +.025 (10/5) | S_pln +.015 (13/10)
+Ô này V_inf TỐT NHẤT và S_anc KÉM hơn — **ngược hẳn** ô GSM8K 1.5B.
+
+### H24 — BẢNG ĐẦY ĐỦ 4/4 Ô VÀ HÀNG ĐƯỢC KÍCH HOẠT
+| ô | V_inf | V_bli | S_anc | S_pln | **sửa** V_bli:S_pln | **phá** V_bli:S_pln |
+|---|---|---|---|---|---|---|
+| GSM8K 1.5B | +.060 | +.076 | +.080 | −.012 | 41 : 37 | **22 : 40** |
+| MATH 1.5B | +.050 | +.055 | +.035 | +.025 | 20 : 23 | **9 : 18** |
+| GSM8K 7B | +.004 | +.004 | +.008 | +.000 | 7 : 7 | 6 : 7 |
+| MATH 7B | +.055 | +.040 | +.025 | +.015 | 11 : 13 | **3 : 10** |
+SỬA: gần như BẰNG NHAU ở cả 4 ô. PHÁ: V_bli ÍT HƠN S_pln ở **4/4 ô**
+(kiểm định 2 tỉ lệ: g15 z=2.57 p=.010 · m7 z=2.00 p=.046 · m15 z=1.90 p=.058 · g7 bão hoà ns).
+=> **RƠI VÀO HÀNG 3 của bảng đã khoá**: "sửa ngang nhau nhưng V_bli phá ít hơn -> H24 BÁC MỘT PHẦN.
+   Khung kiểm KHÔNG tăng PHÁT HIỆN mà tăng **TÍNH CHỌN LỌC**."
+=> Hàng 4 (mỏ neo làm hết việc) KHÔNG đạt: `S_anc ≈ V_bli` chỉ ở 2/4 ô, dưới ngưỡng >=3/4.
+**TỰ SỬA:** ở vòng #47 và #49 tôi đã viết "hướng về hàng 4". Ô thứ 4 lật lại điều đó. Tôi đã
+nghiêng kết luận khi mới có 3/4 ô, dù chính bảng khoá yêu cầu 4 ô. Ghi lại để không lặp.
+PHÁT BIỂU ĐÚNG: nói "hãy kiểm tra" KHÔNG giúp bắt thêm lỗi — nó giúp **BỚT PHÁ đáp án đang đúng**.
+Giá trị của vai verifier là SỰ THẬN TRỌNG, không phải khả năng phát hiện.
+
+### wv_g15 (H28, GSM8K 1.5B) — **XÁC NHẬN, HÀNG 1**
+AUC .8792 (hợp lệ). CÙNG 8 mẫu, CÙNG bộ chấm, chỉ đổi CÁCH TỔNG HỢP:
+| fold | maj@8 | rerank | **wvote_sum** | wvote_mean | oracle | wsum−maj |
+|---|---|---|---|---|---|---|
+| 0 | .700 | .683 | **.717** | .600 | .883 | +.017 |
+| 1 | .767 | .717 | **.783** | .667 | .883 | +.017 |
+| 2 | .683 | .683 | **.717** | .600 | .883 | +.033 |
+| 3 | .733 | .683 | **.817** | .650 | .867 | **+.083** |
+| 4 | .650 | .583 | .650 | .550 | .850 | +.000 |
+trung bình: maj@8 **.7067** | rerank .6700 | **wvote_sum .7367** | wvote_mean .6133 | oracle .8733
+`wsum − maj` = **+.030**, **4/5 fold dương, 1 hoà, 0 âm** -> **HÀNG 1: H28 XÁC NHẬN.**
+Lấy được **20.5%** khoảng trống maj->oracle.
+
+### VÌ SAO — ba nhánh tách bạch đúng cơ chế
+`wvote_mean` (CHỈ điểm, bỏ số phiếu) = .613, **kém maj@8 tới −9.3, 0/5 fold** ->
+ĐIỂM SỐ MỘT MÌNH TỆ HƠN ĐẾM PHIẾU MỘT MÌNH.
+`rerank` (argmax, chọn 1 mẫu) = .670, cũng kém maj@8.
+`wvote_sum` (= cỡ nhóm × điểm trung bình) = .737, **hơn cả hai**.
+=> ĐỒNG THUẬN mang phần LỚN tín hiệu; điểm số chỉ là TINH CHỈNH thêm lên trên.
+   Giả thuyết đặt ở vòng #49 ("argmax vứt bỏ thông tin đồng thuận") ĐƯỢC XÁC NHẬN.
+
+### Ý NGHĨA: LẦN ĐẦU TIÊN CÓ CƠ CHẾ VƯỢT ĐƯỢC ĐẾM PHIẾU
+Trước đó GRPO, verifier vá lỗi, verifier bịt mắt, rerank AUC .883 — **không cái nào** vượt maj@8.
+`wvote_sum` là cơ chế ĐẦU TIÊN làm được. Độ lớn +3.0 điểm nằm DƯỚI sàn nhiễu không ghép cặp (~5),
+NHƯNG đây là so sánh CẶP tuyệt đối (y hệt 8 mẫu, chỉ khác phép tổng hợp) nên nhạy hơn nhiều;
+dấu nhất quán 4 dương / 1 hoà / 0 âm. Cần TÁI LẬP ở ô khác trước khi phát biểu mạnh -> H28b.
+
+### dt4_m7 LỖI: OOM trên T4 (14.56 GiB), đòi 3.22 GiB khi SDPA attention
+Không phải lỗi khoa học. 7B 4-bit + BS=8 + lời giải MATH dài -> vượt VRAM. Sửa: BS 8 -> 3.
