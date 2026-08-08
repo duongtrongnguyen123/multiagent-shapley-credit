@@ -1828,3 +1828,37 @@ Nên mẫu sống sót bị THIÊN LỆCH theo đúng biến đang nghiên cứu
    rồi lặp lại theo chiều ngược lại.
 3. 7B bf16 (+.337 HIGH, MATH) vs 7B 4-bit (+.651 HIGH, GSM8K): KHÔNG so sánh được vì khác miền.
    Muốn tách biến lượng tử hoá thì phải chạy 7B bf16 và 7B 4-bit trên CÙNG miền.
+
+## [Loop] VÒNG #54 — dt4_m7 VÔ HIỆU vì LỖI REGEX CỦA TÔI, KHÔNG phải vì phương pháp hỏng
+### Số liệu
+`pct_problems_corruptible` = **0.0** (0/400 bài tiêm được) -> `VALID_corruptible=false`, cả ba tầng
+không có cặp nào. parse_fail=.0 (không chạy tới đó). Phân tầng: HIGH 91 / MID 87 / ZERO **222**
+(solve .291 — tầng ZERO cuối cùng cũng ĐÔNG, đúng như thiết kế #28 mong muốn).
+
+### CHẨN ĐOÁN — đã kiểm chứng, không phỏng đoán
+detect4: `ANYNUM=re.compile(r"(?<![\\w.])(\\d+(?:\\.\\d+)?)(?![\\w.])")`
+capcurve: `ANY   =re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])")`
+Chạy thử trên một chuỗi MATH thật: detect4 tìm được **[]**, capcurve tìm được **7 số**.
+Trong chuỗi RAW, `\\w` là "dấu gạch chéo ngược rồi chữ w", KHÔNG phải ký tự chữ.
+Nguyên nhân gốc: tôi tạo detect4 bằng `s.replace(...)` LỒNG trong heredoc -> phải thoát 4 tầng,
+và tôi thoát dư một tầng.
+
+### VÌ SAO **KHÔNG** ĐƯỢC ÁP HÀNG CUỐI CỦA BẢNG #30
+Bảng khoá có hàng: "`pct_corruptible` < .50 lần nữa -> BỎ HẲN hướng tiêm-lỗi trên MATH".
+Hàng đó giả định một PHÉP ĐO HỢP LỆ cho thấy phương pháp không tiêm nổi. Ở đây regex khớp
+**không gì cả** — đó là KHIẾM KHUYẾT MÃ, không phải phép đo. Áp hàng này sẽ là kết luận SAI.
+BẰNG CHỨNG ĐỐI CHỨNG: kernel `capcurve` chạy CÙNG cách tiêm lỗi trên CÙNG MATH-500 đạt
+`pct_corruptible` = **.97**. Phương pháp tiêm lỗi trên MATH **HOẠT ĐỘNG TỐT**; chỉ bản detect4 hỏng.
+=> H25d (tiêm lỗi trên MATH) là CHƯA KIỂM. Không được ghi là đã bác.
+
+### ĐIỀU DUY NHẤT ĐÁNG GIỮ TỪ LẦN CHẠY NÀY
+Ở 7B 4-bit trên MATH, `solve_rate` = .291 -> phân tầng ZERO có **222 bài**, vượt xa ngưỡng 40.
+Xác nhận quyết định ở #28 là đúng: MATH (không phải GSM8K) mới là miền đo được câu hỏi
+"phát hiện lỗi ở bài KHÔNG giải nổi". Chỉ cần regex đúng là đo được.
+
+### LUẬT MỚI (lần thứ ba mã sinh-bằng-chuỗi gây lỗi câm)
+Trước đây: `rows`/`len(rows)` NameError, `_sp` NameError — đều do vá kernel bằng thay chuỗi.
+Nay thêm: regex bị thoát dư tầng, chạy hết 400 bài mới lộ.
+**LUẬT: mọi kernel có regex trích/tiêm dữ liệu PHẢI có tự kiểm 3 dòng ngay đầu kernel —
+chạy regex trên một chuỗi mẫu và `assert` kết quả khác rỗng — để chết NGAY thay vì chết sau 1 giờ.**
+Và: KHÔNG viết regex qua nhiều tầng thay-chuỗi; viết thẳng vào file kernel.
