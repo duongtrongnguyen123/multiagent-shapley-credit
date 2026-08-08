@@ -3,11 +3,13 @@
 import os, re, csv, json, glob, random, subprocess, sys, statistics as st
 # SUA LOI MOI TRUONG: anh Kaggle co torchao 0.10.0 nhung peft doi >0.16.0
 subprocess.run([sys.executable,"-m","pip","install","-q","-U","torchao>=0.16.0"],check=False)
+if __QUANT__: subprocess.run([sys.executable,"-m","pip","install","-q","-U","bitsandbytes>=0.46.1"],check=False)
 import torch, torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 
-NTR=__NTR__; NTE=__NTE__; BS=__BS__; K=8; NF=5; EPOCH=1; LR=1e-4; MB=4
+NTR=__NTR__; NTE=__NTE__; BS=__BS__; QUANT=__QUANT__; MB=__MB__
+K=8; NF=5; EPOCH=1; LR=1e-4
 _c=glob.glob("/kaggle/input/**/model.safetensors",recursive=True) or \
    glob.glob("/kaggle/input/**/model.safetensors.index.json",recursive=True)
 MODEL=os.path.dirname(sorted(_c,key=len)[0])
@@ -17,7 +19,13 @@ TRROWS=list(csv.DictReader(open(_tr[0])))[:NTR]
 TEROWS=list(csv.DictReader(open(_te[0])))[:NTE]
 tok=AutoTokenizer.from_pretrained(MODEL); tok.padding_side="left"
 if tok.pad_token is None: tok.pad_token=tok.eos_token
-model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="cuda")
+if QUANT:
+    from transformers import BitsAndBytesConfig
+    _b=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)
+    model=AutoModelForCausalLM.from_pretrained(MODEL,quantization_config=_b,device_map="auto")
+else:
+    model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="cuda")
 print(f"MODEL={MODEL} train={len(TRROWS)} test={len(TEROWS)}",flush=True)
 NUM=re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 def pred(t):
@@ -43,6 +51,7 @@ def gen(sysm,usrs,mx=400,temp=0.0,k=1):
         e=tok(ps,return_tensors="pt",padding=True).to("cuda")
         o=model.generate(**e,max_new_tokens=mx,do_sample=(temp>0),temperature=max(temp,1e-5),
                          top_p=0.95,num_return_sequences=k,pad_token_id=tok.pad_token_id)
+        torch.cuda.empty_cache()
         L=e["input_ids"].shape[1]
         outs+=[tok.decode(o[j,L:],skip_special_tokens=True).strip() for j in range(o.shape[0])]
         del e,o
@@ -56,6 +65,8 @@ DATA=[(TQ[i],samp[i*K+j],ok(pred(samp[i*K+j]),TG[i])) for i in range(len(TQ)) fo
 pos=sum(1 for d in DATA if d[2])
 print(f"cap={len(DATA)} dung={pos} ({pos/len(DATA):.3f})",flush=True)
 
+if QUANT: model=prepare_model_for_kbit_training(model)
+model.gradient_checkpointing_enable(); model.enable_input_require_grads()
 model=get_peft_model(model,LoraConfig(r=16,lora_alpha=32,lora_dropout=0.05,
       target_modules=["q_proj","k_proj","v_proj","o_proj"],task_type="CAUSAL_LM"))
 model.print_trainable_parameters()
@@ -68,7 +79,7 @@ for ep in range(EPOCH):
     tot=0.0; n=0
     for i in range(0,len(DATA),MB):
         b=DATA[i:i+MB]
-        e=tok([jprompt(q,s) for q,s,_ in b],return_tensors="pt",padding=True,truncation=True,max_length=1024).to("cuda")
+        e=tok([jprompt(q,s) for q,s,_ in b],return_tensors="pt",padding=True,truncation=True,max_length=768).to("cuda")
         out=model(**e)
         lg=out.logits[:,-1,:]                       # token ke tiep = phan quyet
         tgt=torch.tensor([YES if y else NO for _,_,y in b],device="cuda")
@@ -88,7 +99,7 @@ def score(qs,sols):
     out=[]
     for i in range(0,len(qs),BS):
         e=tok([jprompt(q,s) for q,s in zip(qs[i:i+BS],sols[i:i+BS])],
-              return_tensors="pt",padding=True,truncation=True,max_length=1024).to("cuda")
+              return_tensors="pt",padding=True,truncation=True,max_length=768).to("cuda")
         lg=model(**e).logits[:,-1,:]
         out+=F.log_softmax(lg[:,[NO,YES]],dim=-1)[:,1].float().tolist()
         del e,lg

@@ -1743,3 +1743,14 @@ dấu nhất quán 4 dương / 1 hoà / 0 âm. Cần TÁI LẬP ở ô khác tr�
 
 ### dt4_m7 LỖI: OOM trên T4 (14.56 GiB), đòi 3.22 GiB khi SDPA attention
 Không phải lỗi khoa học. 7B 4-bit + BS=8 + lời giải MATH dài -> vượt VRAM. Sửa: BS 8 -> 3.
+
+## [Loop] VÒNG #51 — H28b hai ô đều OOM (lỗi CỠ, không phải khoa học); đã sửa và phóng lại
+`wv_g7` : **lỗi thiết kế của tôi** — tôi bê nguyên kernel viết cho 1.5B sang 7B mà QUÊN nhánh
+  lượng tử hoá. 7B fp16 ≈ 15 GB, T4 chỉ có 14.56 GB -> chắc chắn OOM ngay khi nạp model.
+`wv_m15`: 1.5B nhưng `BS=16` × `k=8` = **128 chuỗi sinh cùng lúc** trên lời giải MATH dài -> OOM.
+SỬA: thêm nhánh 4-bit nf4 + `prepare_model_for_kbit_training` + gradient checkpointing;
+  hạ BS (m15: 16->4 ; g7: 6->2), MB (4->2 / ->1), max_length 1024->768, `empty_cache` sau mỗi lô sinh.
+GHI NHẬN: hai lần OOM liên tiếp đều do TÔI không tính lại ngân sách bộ nhớ khi đổi cỡ model
+  hoặc đổi tập dữ liệu. Thành LUẬT: **mỗi lần đổi model hoặc đổi tập, phải tính lại
+  (số chuỗi đồng thời × độ dài) và nhánh lượng tử hoá TRƯỚC khi phóng.**
+Không có kết luận khoa học nào từ vòng này — H28b vẫn CHƯA KIỂM.
