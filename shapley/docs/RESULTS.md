@@ -306,6 +306,11 @@ Lỗi số học TIÊM SẴN vào chuỗi vàng (cả hai nhánh cùng văn phon
 ⚠️ Tầng "model KHÔNG giải nổi" ở GSM8K 7B chỉ có **9 cặp** -> câu hỏi "kiểm có tách rời khỏi
    giải không" **CHƯA trả lời được**. Đang chạy lại trên MATH (tầng đó đông hơn).
 
+### ⚠️ 7.5 **TẠM ĐÌNH CHỈ** — số dưới đây đo trên bể mẫu BỊ HỎNG (xem vòng #59–#60)
+Mẫu đánh giá sinh khi LoRA Yes/No còn BẬT -> Solver bị bộ chấm làm hỏng (`greedy1` tụt 13 điểm
+giữa hai lần chạy chỉ khác lượng huấn luyện). H27/H28/H28b/H31 **không được trích dẫn** cho tới khi
+bản sửa (đăng ký trước #36, ngưỡng `adapter_leak <= .05`) chạy xong.
+
 ### 7.5 NGHỊCH LÝ: bộ chấm AUC .883 VẪN KHÔNG thắng đếm phiếu
 Verifier PHÂN BIỆT huấn luyện trên 3200 nhãn TỰ ĐỘNG (grader, không gán tay):
 **AUC .883** | greedy .533 | **maj@8 .703** | **rerank@8 .687** | oracle@8 .843

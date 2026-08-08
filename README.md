@@ -44,6 +44,24 @@ chính bảng Shapley ban đầu:
 > không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
 > đó chính là cơ chế của kết quả +14.0đ.
 
+## ⚠️ TẠM ĐÌNH CHỈ — nhánh "tổng hợp" đang được đo lại (vòng #59–#60)
+
+Rà soát ngày 2026-08-08 phát hiện **lỗi rò rỉ adapter** trong 6/6 kernel có huấn luyện:
+mẫu ĐÁNH GIÁ được sinh khi LoRA `Yes/No` vẫn đang BẬT, nên **Solver bị chính bộ chấm làm hỏng**.
+Bằng chứng: cùng ô, cùng dữ liệu, chỉ khác lượng huấn luyện (800 vs 1600 bước) ->
+`greedy1` .5167 vs **.3867**, `maj@8` .7067 vs **.5467**, và chênh lệch báo cáo +.030 vs **+.110**.
+
+Do đó **H27 (rerank), H28/H28b (bỏ phiếu có trọng số), H31 (oracle_solid)** đang **TẠM ĐÌNH CHỈ** —
+không phải đã bác, cũng không phải đã xác nhận. Mọi con số của bốn giả thuyết đó **không được trích dẫn**
+cho tới khi bản đã sửa (`disable_adapter` khi sinh lời giải, ngưỡng `adapter_leak <= .05`,
+đăng ký trước #36) chạy xong.
+
+So sánh CẶP (`wsum` vs `maj` trên CÙNG 8 mẫu) vẫn hợp lệ về nội tại nên **HƯỚNG** nhiều khả năng
+còn đúng; nhưng **ĐỘ LỚN không chuyển được sang thực tế**, vì khi triển khai thật Solver là model GỐC.
+Phần còn lại của README (H1, H2, H24, H25, H29, H30, GRPO) **KHÔNG** dùng adapter nên không bị ảnh hưởng.
+
+---
+
 ## Cập nhật vòng #43–#49 (mới nhất)
 
 **Hai phát biểu nữa đã bị rút lại, và có một phát hiện DƯƠNG.**
