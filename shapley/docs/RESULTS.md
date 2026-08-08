@@ -312,7 +312,11 @@ Verifier PHÂN BIỆT huấn luyện trên 3200 nhãn TỰ ĐỘNG (grader, khô
 => rerank − maj = **−.017** (2/5 fold dương) -> HÀNG 2: **chấm điểm không thêm gì so với đếm phiếu**.
 GIẢ THUYẾT: `argmax` chọn MỘT mẫu và vứt bỏ thông tin ĐỒNG THUẬN mà đếm phiếu đang dùng.
 Đang kiểm bằng **bỏ phiếu có trọng số** (pre-reg #29).
-**Khoảng trống maj@8 -> oracle@8 = +14.0 điểm vẫn CHƯA ai lấy được.**
+**⚠️ ĐÍNH CHÍNH (H30, đăng ký trước #33):** con số "+14.0 điểm khoảng trống" này **BỊ THỔI PHỒNG**.
+`oracle@k` tính là thành công cả bài chỉ có **1/k** mẫu đúng (trên GSM8K, đáp án số nguyên -> phần lớn
+là TRÙNG SỐ). Dùng `oracle_solid@8` (đòi >=2/k mẫu đúng): GSM8K khoảng trống thật **+.060** (34% của
++.175), MATH **+.005** (7% của +.075, 2/5 fold ÂM -> không khác 0).
+Khoảng trống thật nhỏ hơn ~3× (GSM8K) và ~14× (MATH).
 
 ### 7.6 RL TRÊN VERIFIER: HỌC CÁCH IM LẶNG (H23)
 GRPO thưởng theo độ chính xác can thiệp: precision .70–.90 -> **1.00 cả 5 fold** (22 sửa/**0 phá**)

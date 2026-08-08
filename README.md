@@ -56,10 +56,25 @@ chính bảng Shapley ban đầu:
 | **7B phát hiện được lỗi số học tiêm sẵn; 1.5B thì không** | ✅ **DƯƠNG** — 1.5B suy biến `.99` (luôn trả lời "NO", VÔ HIỆU); 7B phân biệt **+.651** (n=166). Ngưỡng NĂNG LỰC, đo trên nhiệm vụ kiểm THUẦN TUÝ. |
 | Verifier PHÂN BIỆT (chấm điểm, 3200 nhãn tự động) | **AUC .883** nhưng `rerank@8` **.687** < `maj@8` **.703**. Bộ chấm giỏi mà dùng `argmax` vẫn thua ĐẾM PHIẾU. |
 
-> ### ⇒ ĐẾM PHIẾU VẪN CHƯA BỊ ĐÁNH BẠI
-> Sau GRPO, verifier vá lỗi, verifier bịt mắt, và bộ chấm AUC .883 — **không cơ chế nào vượt
-> `maj@8`**. Khoảng trống `maj@8 → oracle@8` = **+14.0 điểm** vẫn còn nguyên: đáp án đúng ĐÃ NẰM
-> trong 8 mẫu, chưa cơ chế nào chọn ra được nó tốt hơn đếm phiếu.
+> ### ⇒ ĐẾM PHIẾU RẤT KHÓ BỊ ĐÁNH BẠI — và khoảng trống nhỏ hơn chúng tôi từng công bố
+> Sau GRPO, verifier vá lỗi, verifier bịt mắt, và bộ chấm AUC .883 dùng theo kiểu `argmax` —
+> **không cái nào vượt `maj@8`**. Chỉ **bỏ phiếu CÓ TRỌNG SỐ** (`cỡ nhóm × điểm`) vượt được,
+> +2.0 đến +5.0 điểm, và độ lớn tỉ lệ với khoảng trống còn lại.
+>
+> **⚠️ ĐÍNH CHÍNH (đo ở H30, đăng ký trước #33).** Các bản README trước viết "còn **+14.0 điểm**
+> khoảng trống `maj@8 → oracle@8` chưa ai lấy được". Con số đó **BỊ THỔI PHỒNG**.
+> `oracle@k` tính là THÀNH CÔNG cả những bài mà **chỉ 1 trong k mẫu** đúng — trên GSM8K đáp án là
+> số nguyên nên phần lớn nhiều khả năng là TRÙNG SỐ chứ không phải lập luận đúng.
+> Thay bằng `oracle_solid@k` (đòi **>=2/k** mẫu cùng ra đáp án đúng):
+>
+> | ô | `oracle@8 − maj@8` | **`oracle_solid@8 − maj@8`** | còn lại |
+> |---|---|---|---|
+> | GSM8K 1.5B | +.175 | **+.060** | 34% |
+> | MATH 1.5B | +.075 | **+.005** (2/5 fold ÂM) | 7% |
+>
+> Khoảng trống THẬT nhỏ hơn ~**3×** (GSM8K) và ~**14×** (MATH); ở MATH nó **không khác 0**.
+> Hệ quả: bỏ phiếu có trọng số lấy được phần LỚN HƠN NHIỀU của khoảng trống thật so với
+> những gì chúng tôi từng nghĩ — nhưng phần còn lại để giành cũng ÍT hơn nhiều.
 
 **RL trên verifier học cách IM LẶNG:** GRPO thưởng theo độ chính xác can thiệp đẩy precision lên
 **1.00 ở cả 5 fold (0 lần phá)** — nhưng `V_gain` **GIẢM** (+.068→+.044, 0/5 fold tốt hơn) vì số
