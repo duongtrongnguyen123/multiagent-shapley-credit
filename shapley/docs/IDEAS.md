@@ -2069,3 +2069,34 @@ khi sinh lời giải. Khi port sang kernel Kaggle tôi bỏ tham số đó đi 
 việc port/vá kernel bằng thay-chuỗi làm mất một chi tiết đúng (trước đó: `rows`, `_sp`, regex thoát dư).
 **LUẬT: khi port một script sang kernel, phải liệt kê TỪNG cờ hành vi (adapter on/off, dtype,
 padding side, truncation) và đối chiếu một-một, không chỉ chép phần thân.**
+
+## [Loop] VÒNG #60 — RÀ SOÁT TOÀN BỘ: **6/6 kernel có huấn luyện đều bị RÒ RỈ ADAPTER**
+Quét mọi kernel có `get_peft_model`, kiểm hai điều: có gọi `disable_adapter` không, và
+pha sinh mẫu ĐÁNH GIÁ có nằm SAU `opt.step()` không.
+
+| kernel | `disable_adapter` | eval sau train | tình trạng | giả thuyết bị ảnh hưởng |
+|---|---|---|---|---|
+| disc_g15 | **0** | có | **NHIỄM** | **H27** (rerank@8 thua maj@8) |
+| wv_g15 | **0** | có | **NHIỄM** | **H28** (bỏ phiếu có trọng số) |
+| wv_m15 | **0** | có | **NHIỄM** | **H28b** (tái lập MATH) |
+| wv_g7 | **0** | có | **NHIỄM** | **H28b** (tái lập 7B) |
+| ws_g15 | **0** | có | **NHIỄM** | **H31** (oracle_solid + wsum) |
+| ws_m15 | **0** | có | **NHIỄM** | **H31** |
+| wf_g15 / wf_m15 | 2 | có | **SẠCH** (bản đã sửa, đang chạy) | H28c |
+
+### PHẠM VI THIỆT HẠI — nói thẳng
+**Toàn bộ nhánh "tổng hợp" của dự án — H27, H28, H28b, H31 — đo trên bể mẫu do solver BỊ HỎNG
+sinh ra.** Đây cũng chính là nhánh chứa KẾT QUẢ DƯƠNG DUY NHẤT của dự án.
+Cụ thể mỗi kết luận bị ảnh hưởng thế nào:
+1. **H27** ("bộ chấm AUC .883 nhưng rerank .687 < maj .703"): cả rerank lẫn maj đều tính trên
+   mẫu hỏng. AUC cũng có thể bị THỔI PHỒNG vì phân biệt lời giải TỆ thì dễ hơn.
+2. **H28/H28b** ("wsum > maj, +2 đến +5 điểm"): so sánh CẶP nên HƯỚNG nhiều khả năng còn đúng,
+   nhưng ĐỘ LỚN không chuyển được sang thực tế.
+3. **H31** ("wsum lấy 127% khoảng trống thật"): tử số và mẫu số đều tính trên mẫu hỏng -> con số vô nghĩa.
+   (Lập luận TOÁN HỌC rằng `oracle_solid` có thể < `maj@8` thì KHÔNG phụ thuộc chất lượng mẫu -> VẪN ĐỨNG.)
+
+### TRẠNG THÁI ĐƯỢC PHÉP DÙNG NGAY BÂY GIỜ
+H27, H28, H28b, H31 -> **TẠM ĐÌNH CHỈ**, không phải đã bác, không phải đã xác nhận.
+`wf_g15`/`wf_m15` (pre-reg #36) sẽ quyết định. Ngưỡng `adapter_leak <= .05` đã khoá để bắt
+đúng lỗi này nếu nó còn sót đường rò rỉ khác.
+**Không được trích dẫn bất kỳ con số nào của bốn giả thuyết trên cho tới khi có kết quả sạch.**
