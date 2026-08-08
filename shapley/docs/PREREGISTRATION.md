@@ -1161,3 +1161,45 @@ Tôi đoán phân biệt TĂNG từ 7B lên 14B rồi BÃO HOÀ ở 32B (hàng 2
 (tức lượng tử hoá KHÔNG phải thủ phạm) — nhưng đây là điều tôi ÍT CHẮC NHẤT và chính là lý do
 phải có mốc 7B bf16 trong cùng lần chạy.
 Ghi rõ: prior gần nhất của tôi (H27 rerank sẽ thắng) đã SAI, nên không nên tin prior này quá.
+
+---
+
+# Đăng ký trước #33 — H30: KHOẢNG TRỐNG maj→oracle CÓ THẬT KHÔNG, HAY CHỈ LÀ HIỆN VẬT CỦA k=8?
+**Viết TRƯỚC khi chạy.** Chuẩn bị sẵn cho khe GPU tiếp theo trên RTX 6000 Pro.
+
+## Sự việc đã đo và ĐIỀU CHƯA AI KIỂM
+`oracle@8 − maj@8` = **+14.0 điểm** (GSM8K 1.5B) và **+10.5** (MATH 1.5B).
+Đây là khoảng trống LỚN NHẤT và DUY NHẤT đã đo được của dự án, và toàn bộ hướng "tổng hợp"
+(H27 rerank, H28 bỏ phiếu có trọng số) đang nhắm vào nó.
+NHƯNG `oracle@k` là một mốc **LẠC QUAN CÓ HỆ THỐNG**: nó tính là ĐÚNG khi CHỈ CẦN 1 trong k mẫu
+đúng — kể cả khi mẫu đó đúng do MAY MẮN (đoán trúng số) chứ không do lập luận đúng.
+Khi k tăng, `oracle@k` tăng đơn điệu theo định nghĩa, còn `maj@k` thì bão hoà.
+=> **Khoảng trống có thể PHÌNH RA thuần tuý vì k, mà không hề có thêm tín hiệu nào để khai thác.**
+Nếu vậy thì "còn 14 điểm chưa lấy được" là một phát biểu SAI LỆCH mà chính tôi đã viết vào
+RESULTS.md và README. Phải kiểm.
+
+## Thiết kế — k = 2, 4, 8, 16, 32, 64 trên CÙNG bộ mẫu
+Sinh 64 mẫu/bài (temp .8), rồi tính TẤT CẢ chỉ số trên TIỀN TỐ k đầu tiên (k=2..64) -> so sánh
+hoàn toàn ghép cặp, không cần sinh lại. (T4 không làm nổi 64 chuỗi đồng thời; RTX 6000 Pro thì được.)
+Mỗi k báo: `greedy1` · `maj@k` · `oracle@k` · `wvote_sum@k` · **`oracle_solid@k`**
+**`oracle_solid@k`** = chỉ tính đúng nếu **>=2 trong k mẫu** cùng cho đáp án đúng
+  -> loại phần lớn các cú "đúng do may mắn một lần". Đây là mốc trần TRUNG THỰC HƠN.
+
+## Chỉ số chính
+`oracle@k − maj@k` theo k, và `oracle_solid@k − maj@k` theo k.
+Phụ: `wvote_sum@k − maj@k` có tăng theo k không (bộ chấm có tận dụng được nhiều mẫu hơn không).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `oracle_solid@8 − maj@8` gần bằng `oracle@8 − maj@8` | Khoảng trống LÀ THẬT, không phải may mắn. Phát biểu "+14 điểm chưa lấy được" ĐỨNG VỮNG. |
+| `oracle_solid@8 − maj@8` NHỎ HƠN NHIỀU (vd < một nửa) | **Khoảng trống bị THỔI PHỒNG bởi các mẫu đúng-do-may.** Tôi PHẢI sửa lại RESULTS.md và README, và hạ mục tiêu của hướng tổng hợp xuống con số thật. |
+| `oracle@k − maj@k` phình đều theo k trong khi `oracle_solid` phẳng | Khẳng định mạnh: `oracle@k` là mốc RÁC ở k lớn. Dự án phải bỏ hẳn `oracle@k`, dùng `oracle_solid@k`. |
+| `wvote_sum@k − maj@k` TĂNG theo k | Bỏ phiếu có trọng số càng nhiều mẫu càng lợi -> khuyến nghị thực tiễn: tăng k. |
+| `wvote_sum@k − maj@k` phẳng hoặc giảm theo k | Lợi thế của bỏ phiếu có trọng số KHÔNG mở rộng được; chỉ hữu ích ở k nhỏ. Phải nói rõ. |
+| `maj@k` bão hoà sớm (k>=16 không tăng) | Ghi nhận: k=8 đã gần hết giá trị của đếm phiếu; tăng k không phải hướng đi. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán `oracle_solid` sẽ THẤP HƠN RÕ so với `oracle`, tức khoảng trống thật NHỎ HƠN con số
++14.0 tôi đã công bố. Nếu đúng thì đây là lần tự sửa thứ ba của dự án, và lần này là sửa một
+con số tôi đã ĐƯA VÀO README như điểm nhấn. Tôi ghi trước để không thể lờ đi.
