@@ -1754,3 +1754,40 @@ GHI NHẬN: hai lần OOM liên tiếp đều do TÔI không tính lại ngân s
   hoặc đổi tập dữ liệu. Thành LUẬT: **mỗi lần đổi model hoặc đổi tập, phải tính lại
   (số chuỗi đồng thời × độ dài) và nhánh lượng tử hoá TRƯỚC khi phóng.**
 Không có kết luận khoa học nào từ vòng này — H28b vẫn CHƯA KIỂM.
+
+## [Loop] VÒNG #52 — H28b TÁI LẬP ở MATH 1.5B: **5/5 fold, +5.0 điểm, lấy 46.7% khoảng trống**
+### wv_m15 (MATH 1.5B, train/test tách đôi MATH-500, 1600 cặp nhãn tự động)
+AUC = **.9506** (hợp lệ) | tỉ lệ nhãn dương .259 (mất cân bằng, đúng vì solver chỉ ~.20)
+| fold | maj@8 | rerank | **wvote_sum** | wvote_mean | oracle | wsum−maj |
+|---|---|---|---|---|---|---|
+| 0 | .200 | .225 | **.250** | .125 | .300 | +.050 |
+| 1 | .325 | .350 | **.375** | .350 | .425 | +.050 |
+| 2 | .125 | .175 | **.175** | .175 | .250 | +.050 |
+| 3 | .375 | .325 | **.400** | .250 | .450 | +.025 |
+| 4 | .300 | .350 | **.375** | .325 | .425 | +.075 |
+greedy .195 | maj@8 **.265** | rerank .285 | **wvote_sum .315** | wvote_mean .245 | oracle .370
+`wsum − maj` = **+.050**, **5/5 fold DƯƠNG**, khoảng [+.025,+.075] (kiểm định dấu một phía p=.031)
+`wsum_pct_gap` = **.467** — lấy được **46.7%** khoảng trống maj->oracle (ở GSM8K 1.5B chỉ 20.5%).
+
+### ĐỐI CHIẾU HAI Ô ĐÃ CÓ (ô thứ ba wv_g7 đang chạy)
+| ô | maj@8 | wvote_sum | chênh | fold dương | % khoảng trống lấy được |
+|---|---|---|---|---|---|
+| GSM8K 1.5B | .707 | .737 | **+.030** | 4/5 (1 hoà, 0 âm) | 20.5% |
+| **MATH 1.5B** | .265 | **.315** | **+.050** | **5/5** | **46.7%** |
+Hiệu ứng MẠNH HƠN ở ô KHÓ HƠN — khớp với prior đã ghi trước ở #31
+("MATH 1.5B còn nhiều khoảng trống nên dễ tái lập hơn").
+**CHƯA CHỐT**: bảng khoá yêu cầu CẢ HAI ô mới. `wv_g7` (GSM8K 7B, bão hoà) chưa có kết quả.
+Nếu wv_g7 KHÔNG tái lập thì rơi hàng 4 ("phụ thuộc dải độ khó"), và phát biểu PHẢI kèm điều kiện
+— KHÔNG được rút gọn thành "bỏ phiếu có trọng số luôn tốt hơn".
+
+### CƠ CHẾ LẶP LẠI LẦN THỨ HAI
+`wvote_mean` (chỉ điểm, bỏ số phiếu) = .245 < maj@8 .265 -> ĐIỂM MỘT MÌNH vẫn thua ĐẾM PHIẾU.
+`wvote_sum` (= cỡ nhóm × điểm) = .315 -> hơn cả hai.
+Khác GSM8K một chi tiết: ở MATH `rerank` (.285) CŨNG hơn maj@8, còn ở GSM8K nó thua.
+GIẢ THUYẾT (chưa kiểm): khi solver rất yếu (.195), đa số phiếu thường SAI nên đồng thuận
+mang ít tín hiệu hơn, và bộ chấm giành lại vai trò. Cần ô thứ ba để nói chắc.
+
+### GHI CHÚ TÍNH HỢP LỆ
+AUC .9506 cao một phần vì mất cân bằng lớp (chỉ 25.9% dương). Không dùng AUC để khoe;
+chỉ dùng làm NGƯỠNG HIỆU LỰC như đã khoá (>.55). Kết luận chỉ dựa trên `wsum − maj`.
+Train/test là hai NỬA RỜI NHAU của MATH-500 (200/200) -> không rò rỉ.
