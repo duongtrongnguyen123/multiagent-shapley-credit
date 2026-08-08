@@ -312,7 +312,11 @@ Verifier PHÂN BIỆT huấn luyện trên 3200 nhãn TỰ ĐỘNG (grader, khô
 => rerank − maj = **−.017** (2/5 fold dương) -> HÀNG 2: **chấm điểm không thêm gì so với đếm phiếu**.
 GIẢ THUYẾT: `argmax` chọn MỘT mẫu và vứt bỏ thông tin ĐỒNG THUẬN mà đếm phiếu đang dùng.
 Đang kiểm bằng **bỏ phiếu có trọng số** (pre-reg #29).
-**⚠️ ĐÍNH CHÍNH (H30, đăng ký trước #33):** con số "+14.0 điểm khoảng trống" này **BỊ THỔI PHỒNG**.
+**⚠️ ĐÍNH CHÍNH HAI CHIỀU (H30 #33, rồi H31 #35 sửa lại chính nó):** con số "+14.0 điểm" BỊ THỔI PHỒNG,
+NHƯNG bản sửa đầu tiên lại QUÁ BI QUAN. `oracle@k` phóng đại (tính bài chỉ 1/k mẫu đúng);
+`oracle_solid@k` hạ thấp (trên MATH nó .285, **thấp hơn cả maj@8 .295** -> không phải trần hợp lệ).
+Trần thật nằm trong **[`oracle_solid`, `oracle`]**. Bằng chứng cứng: bỏ phiếu có trọng số đạt
+maj@8 **+11.0 điểm (5/5 fold, GSM8K 1.5B)** nên trần thật ít nhất là mức đó. Chi tiết cũ:
 `oracle@k` tính là thành công cả bài chỉ có **1/k** mẫu đúng (trên GSM8K, đáp án số nguyên -> phần lớn
 là TRÙNG SỐ). Dùng `oracle_solid@8` (đòi >=2/k mẫu đúng): GSM8K khoảng trống thật **+.060** (34% của
 +.175), MATH **+.005** (7% của +.075, 2/5 fold ÂM -> không khác 0).
