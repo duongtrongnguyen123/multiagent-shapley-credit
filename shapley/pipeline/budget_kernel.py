@@ -89,7 +89,7 @@ def gen(sysm,us,mx,temp,arm):
 SOLVE=f"Solve step by step. {TAIL}"
 PLAN ="Give a concise numbered plan for solving this problem."
 VERIFY=f"Check the proposed solution step by step; if wrong, correct it. {TAIL}"
-ANCH =f"Solve step by step. A previous attempt answered: {{A}}. {TAIL}"
+ANCH =f"Solve step by step. A previous attempt answered: @@A@@. {TAIL}"
 
 folds=[]
 FOLD=len(qs)//NF
@@ -121,9 +121,9 @@ for fi in range(NF):
     a_svv=[pred(x) for x in v2]
     # --- 3 luot: S -> neo -> neo (KHONG co chu "kiem") ---
     s3=gen(SOLVE,Q,512,0.0,"SS_anc"); a3=[pred(x) for x in s3]
-    r1=gen(SOLVE,[ANCH.format(A=a)+f"\n\n{q}" for q,a in zip(Q,a3)],512,0.0,"SS_anc")
+    r1=gen(SOLVE,[ANCH.replace("@@A@@",str(a))+f"\n\n{q}" for q,a in zip(Q,a3)],512,0.0,"SS_anc")
     b3=[pred(x) for x in r1]
-    r2=gen(SOLVE,[ANCH.format(A=a)+f"\n\n{q}" for q,a in zip(Q,b3)],512,0.0,"SS_anc")
+    r2=gen(SOLVE,[ANCH.replace("@@A@@",str(a))+f"\n\n{q}" for q,a in zip(Q,b3)],512,0.0,"SS_anc")
     a_anc=[pred(x) for x in r2]
     r={"fold":fi,"n":len(Q),"greedy1":acc(g1),"maj3":acc(a_mj),"PSV":acc(a_psv),
        "SVV":acc(a_svv),"SS_anc":acc(a_anc),

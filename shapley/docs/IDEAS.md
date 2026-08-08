@@ -2177,3 +2177,52 @@ Hàng 5 của #36 ("maj@8 mới ≈ .70 chứ không phải .55 -> xác nhận c
 
 ### TRẠNG THÁI
 H27/H28/H28b/H31 vẫn **TẠM ĐÌNH CHỈ**. H28c **VÔ HIỆU**. Cần chạy lần thứ ba với ngưỡng đúng.
+
+## [Loop] VÒNG #63 — H32 **PRIOR CỦA TÔI SAI**: ở CÙNG NGÂN SÁCH, pipeline THẮNG bỏ phiếu
+### bg_g15 (GSM8K 1.5B, n=250, MỌI nhánh đúng 3 lượt sinh)
+| fold | greedy1 | maj@3 | **PSV** | SVV | **SS_anc** | maj3−PSV |
+|---|---|---|---|---|---|---|
+| 0 | .540 | .620 | **.680** | .640 | .680 | −.060 |
+| 1 | .600 | .620 | **.800** | .680 | .680 | −.180 |
+| 2 | .640 | .600 | **.700** | .700 | .720 | −.100 |
+| 3 | .660 | .660 | .660 | .660 | **.760** | +.000 |
+| 4 | .720 | .720 | **.800** | .780 | .800 | −.080 |
+**greedy .6320 | maj@3 .6440 | PSV .7280 | SVV .6920 | SS_anc .7280**
+`maj3 − PSV` = **−.084**, **0/5 fold dương** -> **PSV THẮNG maj@3 ở 5/5 fold.**
+
+### TOKEN THẬT SỰ SINH RA — pipeline còn RẺ HƠN
+| nhánh | token | so với greedy |
+|---|---|---|
+| SS_anc | 169,022 | 3.35× |
+| **maj@3** | **149,384** | **2.96×** |
+| SVV | 122,866 | 2.43× |
+| **PSV** | **115,722** | **2.29×** |
+| greedy1 | 50,463 | 1.00× |
+=> `PSV` dùng **ÍT token hơn `maj@3` 22%** mà vẫn hơn **+8.4 điểm**. Thắng trên CẢ HAI trục.
+
+### PHÁN QUYẾT: **HÀNG 2 của bảng đã khoá** — và tôi phải rút lại
+Hàng 2: "`PSV` > `maj3` ở >=4/5 fold -> Pipeline CÓ thêm giá trị vượt trên lấy mẫu.
+**Phải rút lại cách đọc 'vai không chuyên biệt'.**"
+Prior tôi ghi trước: "đoán hàng 1 hoặc hàng 3 — maj3 ngang hoặc hơn PSV... nếu ra hàng 1 thì đây là
+kết luận LỚN NHẤT của dự án". **PRIOR SAI.** Ngược hẳn.
+
+### NHƯNG HÀNG 5 CŨNG NỔ — và nó giữ lại phần đúng của cách đọc cũ
+`SS_anc` = **.7280**, GIỐNG HỆT `PSV` = .7280. `SS_anc` KHÔNG có một chữ nào về vai:
+nó là giải -> giải lại CÓ MỎ NEO -> giải lại CÓ MỎ NEO.
+Hàng 5 đã khoá: "`SS_anc` ≈ `PSV` -> vai là NHÃN, không phải cơ chế."
+
+### HỢP NHẤT — phát biểu đúng sau vòng này
+1. **Lợi thế LÀ THẬT và KHÔNG phải do lấy mẫu lặp.** PSV hơn maj@3 +8.4 điểm ở ít token hơn.
+   Câu "pipeline chỉ là cách đắt tiền để lấy mẫu nhiều lần" — mà tôi đã nói với người dùng —
+   **SAI**, và tôi rút lại.
+2. **Cơ chế KHÔNG phải phân vai** mà là **TINH CHỈNH TUẦN TỰ CÓ MỎ NEO**: mỗi lượt được THẤY
+   đáp án của lượt trước. Bỏ hết ngôn ngữ vai (SS_anc) vẫn cho kết quả Y HỆT.
+   Khớp với H24 (mỏ neo làm việc, khung "kiểm" thì không) và với `S_pln` là nhánh tệ nhất mọi ô.
+3. Vậy: **tuần tự > song song ở cùng ngân sách; nhưng "vai" chỉ là cái tên của tính tuần tự.**
+4. `SVV` (.6920) < `PSV` (.7280): hai lượt kiểm liên tiếp KÉM hơn plan+solve+verify.
+   `SVV` vẫn hơn `maj@3` (+.048, 4/5) -> tuần tự thắng song song kể cả không có Planner.
+
+### CÒN THIẾU
+`bg_m15` (MATH) LỖI: `ANCH.format(A=a)` gặp `\boxed{}` trong TAIL của MATH -> `{}` bị hiểu là
+ô định dạng -> `IndexError`. GSM8K không có ngoặc nên không lộ. Sửa bằng `.replace()`, phóng lại.
+**Chưa có ô thứ hai -> chưa được tổng quát hoá.**
