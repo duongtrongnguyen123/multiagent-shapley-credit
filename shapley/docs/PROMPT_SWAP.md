@@ -79,9 +79,43 @@ chỉ khác mức độ (PLAN ở pos2 vẫn viết 278 ký tự, ít bị ức 
 ⇒ **Cả prompt lẫn vị trí đều tác động, và chúng cộng dồn.** Vị trí quyết định *bị ức chế bao
 nhiêu*; prompt quyết định *viết cái gì*.
 
+## MATH — cùng hướng ở hành vi, nhưng accuracy KHÔNG khớp GSM8K
+
+| | pos1 | pos2 | pos3 | acc |
+|---|---|---|---|---|
+| `normal` | PLAN 1265 | SOLVE **196** | VERIFY 1139 | **.4600** |
+| `swap` | VERIFY 1282 | **PLAN 298** | SOLVE 1077 | **.5133** |
+| `solo` | SOLVE 1332 | SOLVE **256** | SOLVE 1104 | **.4400** |
+
+**Hiệu ứng vị trí tái lập**: pos2 ngắn nhất ở cả ba sắp xếp (196 / 298 / 256 so với 1077–1332).
+Xác nhận đây không phải đặc thù GSM8K.
+
+**Nhưng hiệu ứng prompt yếu hơn nhiều.** Trên GSM8K, pos2 đổi 18 → 278 ký tự (15 lần) khi đổi
+prompt. Trên MATH chỉ 196 → 298 (1.5 lần). Bài khó buộc mọi vai phải viết dài, nên prompt ít
+chỗ để ức chế.
+
+**Và accuracy đảo thứ tự:**
+
+| | GSM8K | MATH |
+|---|---|---|
+| `normal` | .6600 | .4600 |
+| `swap` | .6600 | **.5133** |
+| `solo` | **.6733** | .4400 |
+
+Trên MATH, `swap` (vai xáo trộn) **cao nhất** (+5.3đ so với `normal`); trên GSM8K thì `solo`
+(không vai) cao nhất. **Hai task cho hai thứ hạng khác nhau** — đây là lần đảo dấu thứ bảy của
+dự án.
+
+Cách đọc thận trọng: cả hai chênh lệch đều **quanh hoặc dưới sàn nhiễu** (1.3đ trên GSM8K, 5.3đ
+trên MATH sát ngưỡng). Kết luận chung cho cả hai task vẫn là **thứ tự vai không quyết định
+accuracy** — nếu nó quyết định thì `normal` phải thắng ở cả hai, mà nó không thắng ở đâu cả.
+
+Riêng việc `swap` thắng trên MATH đáng ghi nhận nhưng chưa đủ để kết luận: nó chỉ vượt sàn nhiễu
+sát nút, một lần đo, n=150.
+
 ## Giới hạn
 
-- Mới GSM8K 1.5B, n=150. Bản MATH đang chạy.
+- GSM8K và MATH, n=150 mỗi task.
 - Δ accuracy giữa ba nhánh (≤1.3 điểm) **dưới sàn nhiễu ~5 điểm** — kết luận đúng là *"không đo
   được khác biệt"*, không phải *"solo chắc chắn tốt hơn"*. Điều đó vẫn đủ để bác bỏ *"sắp xếp
   vai đúng thì tốt hơn"*.
