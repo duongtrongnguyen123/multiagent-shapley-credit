@@ -44,6 +44,29 @@ chính bảng Shapley ban đầu:
 > không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
 > đó chính là cơ chế của kết quả +14.0đ.
 
+## Cập nhật vòng #43–#49 (mới nhất)
+
+**Hai phát biểu nữa đã bị rút lại, và có một phát hiện DƯƠNG.**
+
+| Nội dung | Trạng thái |
+|---|---|
+| "Aggregator LLM là SAI LOẠI, phải thay bằng thống kê" | **RÚT LẠI** — so sánh cũ KHÔNG công bằng (aggregator thiếu chỉ dẫn CoT, 384 vs 1024 token). Chạy lại công bằng ở 7B: đè đa số đúng **26→3**, cứu **0→4**, `vs_maj` **+.008**. Ở 7B **không còn khác biệt đo được**. |
+| "Verifier bịt mắt bắt lỗi tốt hơn" (H1) | **KHÔNG KẾT LUẬN CHUNG** — đúng ở 3/4 ô, NGƯỢC ở MATH 7B. Nơi nó sửa nhiều hơn (.457 vs .217, p<.001) thì cũng phá nhiều hơn đúng tỉ lệ (.146 vs .038, p<.001) → giá trị RÒNG không đổi. |
+| Khung "hãy kiểm tra" có mang thông tin không? | **KHÔNG** (3/4 ô). Nhánh `S_anc` — chỉ nói *"lần trước trả lời X"*, không có một chữ nào về kiểm tra — ngang hoặc hơn verifier bịt mắt. Bỏ mỏ neo đi (`S_pln`) thì thành nhánh **tệ nhất ở mọi ô**. Thứ có tác dụng là **MỎ NEO ĐÁP ÁN**, không phải vai "verifier". |
+| **7B phát hiện được lỗi số học tiêm sẵn; 1.5B thì không** | ✅ **DƯƠNG** — 1.5B suy biến `.99` (luôn trả lời "NO", VÔ HIỆU); 7B phân biệt **+.651** (n=166). Ngưỡng NĂNG LỰC, đo trên nhiệm vụ kiểm THUẦN TUÝ. |
+| Verifier PHÂN BIỆT (chấm điểm, 3200 nhãn tự động) | **AUC .883** nhưng `rerank@8` **.687** < `maj@8` **.703**. Bộ chấm giỏi mà dùng `argmax` vẫn thua ĐẾM PHIẾU. |
+
+> ### ⇒ ĐẾM PHIẾU VẪN CHƯA BỊ ĐÁNH BẠI
+> Sau GRPO, verifier vá lỗi, verifier bịt mắt, và bộ chấm AUC .883 — **không cơ chế nào vượt
+> `maj@8`**. Khoảng trống `maj@8 → oracle@8` = **+14.0 điểm** vẫn còn nguyên: đáp án đúng ĐÃ NẰM
+> trong 8 mẫu, chưa cơ chế nào chọn ra được nó tốt hơn đếm phiếu.
+
+**RL trên verifier học cách IM LẶNG:** GRPO thưởng theo độ chính xác can thiệp đẩy precision lên
+**1.00 ở cả 5 fold (0 lần phá)** — nhưng `V_gain` **GIẢM** (+.068→+.044, 0/5 fold tốt hơn) vì số
+lần can thiệp tụt **20.2→8.4/100**. Nó đạt precision hoàn hảo bằng cách **nói ít đi một nửa**.
+Lỗi ở HÀM THƯỞNG (im lặng được 0 điểm = miễn phí), không ở thuật toán. Chỉ số "số lần can thiệp"
+được khoá TRƯỚC mới làm lộ ra điều này.
+
 ## Phát biểu đã bị RÚT LẠI
 
 Các bản README trước tuyên bố "hiệu ứng ĐỔI DẤU" giữa GSM8K và MATH, dựa trên phép đo **một lần
