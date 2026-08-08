@@ -2029,3 +2029,43 @@ NHƯNG suy biến **.991 / .985 / 1.000** -> cả ba tầng **VÔ HIỆU**.
    **KẾT LUẬN: NĂNG LỰC.** 1.5B không đưa ra được phán đoán nhị phân đúng/sai ở BẤT KỲ miền nào
    bằng cách hỏi này. Không phải hiện vật của GSM8K.
 Bộ máy thí nghiệm giờ đã ĐÚNG (tiêm lỗi .9775, parse .003, ZERO n=231) — cái hỏng là MODEL, không phải phép đo.
+
+## [Loop] VÒNG #59 — **LỖI NGHIÊM TRỌNG: mẫu đánh giá được sinh bởi model ĐÃ BỊ LoRA Yes/No làm hỏng**
+### Phát hiện bằng cách đối chiếu hai lần chạy CÙNG Ô, CÙNG DỮ LIỆU
+| run | NTR/NTE | MB | số bước tối ưu | greedy1 | maj@8 | wsum−maj |
+|---|---|---|---|---|---|---|
+| wv_g15 | 400/300 | 4 | 800 | **.5167** | **.7067** | +.030 |
+| ws_g15 | 400/300 | **2** | **1600** | **.3867** | **.5467** | **+.110** |
+Cùng 300 bài, cùng nhiệt độ .8, hàm `gen()` giống hệt nhau về mặt chức năng.
+`greedy1` (một mẫu, KHÔNG dính bộ chấm) tụt **13 điểm**. Quá lớn để là nhiễu lấy mẫu
+(sd ≈ .029 với n=300 -> chênh này là ~4.5 sd).
+
+### NGUYÊN NHÂN — đã xác minh trong mã, không phải phỏng đoán
+`disable_adapter` xuất hiện **0 lần** trong CẢ BA kernel (wv_g15 / ws_g15 / ws_m15).
+Thứ tự trong kernel: `get_peft_model` (dòng 9) -> huấn luyện `opt.step()` (dòng 89)
+-> **`mj=gen(S_SYS,qs,...)` sinh mẫu ĐÁNH GIÁ (dòng 113)**.
+=> Mẫu đánh giá được sinh **VỚI LoRA đang bật** — mà LoRA đó vừa được huấn luyện để xuất
+   đúng hai token `Yes`/`No`. Nó phá năng lực GIẢI của chính model.
+=> `ws_g15` chạy **1600 bước** (MB=2) so với `wv_g15` **800 bước** (MB=4) -> hỏng NẶNG GẤP ĐÔI
+   -> baseline thấp hơn -> `wsum − maj` trông TO HƠN.
+
+### HẬU QUẢ — nói thẳng, không giảm nhẹ
+1. **Con số +11.0 điểm (GSM8K 1.5B, 5/5 fold) mà tôi vừa gọi là "hiệu ứng lớn nhất dự án từng đo"
+   là BỊ NHIỄM.** Nó được đo trên bể mẫu do một solver ĐÃ HỎNG sinh ra.
+2. So sánh CẶP `wsum` vs `maj` trên CÙNG bể mẫu vẫn HỢP LỆ về mặt nội tại — cả hai tổng hợp
+   cùng 8 mẫu đó. Nên **HƯỚNG** (bỏ phiếu có trọng số > đếm phiếu) nhiều khả năng vẫn đúng.
+3. Nhưng **ĐỘ LỚN KHÔNG chuyển được sang thực tế**: trong triển khai thật, Solver là model GỐC,
+   chỉ bộ chấm mới là model đã tinh chỉnh. Mẫu kém chất lượng -> nhiều bất đồng -> bộ chấm có
+   nhiều đất diễn hơn. Nhiều khả năng +11.0 là PHÓNG ĐẠI.
+4. Mọi chênh lệch độ lớn giữa các lần chạy (+.030 vs +.110 ở GSM8K; +.050 vs +.010 ở MATH)
+   giờ có lời giải thích TẦM THƯỜNG: lượng huấn luyện khác nhau, không phải khoa học.
+5. Kéo theo: `oracle_solid`/`oracle` trong ws_* cũng tính trên bể mẫu hỏng -> tỉ lệ "127%" ở
+   vòng #58 KHÔNG đáng tin. Kết luận định tính của #58 (`oracle_solid` có thể thấp hơn `maj@8`,
+   nên nó KHÔNG phải trần hợp lệ) VẪN ĐỨNG vì đó là lập luận toán học, không phụ thuộc chất lượng mẫu.
+
+### GỐC RỄ: tôi đã CÓ mã đúng rồi và làm mất nó khi chuyển sang Kaggle
+Bản `disc_verifier.py` viết cho máy remote CÓ tham số `adapter=False` và dùng `model.disable_adapter()`
+khi sinh lời giải. Khi port sang kernel Kaggle tôi bỏ tham số đó đi cho gọn. Đây là lần thứ TƯ
+việc port/vá kernel bằng thay-chuỗi làm mất một chi tiết đúng (trước đó: `rows`, `_sp`, regex thoát dư).
+**LUẬT: khi port một script sang kernel, phải liệt kê TỪNG cờ hành vi (adapter on/off, dtype,
+padding side, truncation) và đối chiếu một-một, không chỉ chép phần thân.**
