@@ -79,14 +79,57 @@ thất bại với H23 (học im lặng vì im lặng miễn phí) — lối t�
 .7267 vs .6733). Adapter chạy tốt hơn ở cấu hình nó **chưa từng** train. Điều này chỉ hợp lý nếu
 thứ nó học được là **có hại**, và cấu hình lạ làm nó bớt áp dụng cái đã học.
 
-## 4. Vì sao — trần vốn đã hẹp
+## 4. Lỗi thiết kế: ở K=2, baseline đối chứng KHÔNG TỒN TẠI
 
-Oracle với K=2 chỉ **.553** (MATH) và **.753** (GSM8K), so với K=3 là .620/.807. Ít ứng viên thì
-ít cơ hội có cái đúng để chọn.
+| | `S` (Solver một mình) | `vote2` |
+|---|---|---|
+| MATH | .4133 | **.4133** |
+| GSM8K | .6533 | **.6533** |
 
-Kết hợp với `DIFFICULTY_STRATA.md`: với K=2, tỉ lệ câu "cả hai đều sai" hoặc "cả hai đều đúng"
-còn cao hơn K=5, nên phần câu mà việc chọn có ý nghĩa còn nhỏ hơn nữa. **Giảm K để vừa bộ nhớ
-đã thu hẹp chính bài toán cần giải.**
+Bằng nhau **chính xác**, và đó không phải trùng hợp: **bỏ phiếu với 2 ứng viên là vô nghĩa về
+mặt toán học.** Hai phiếu thì hoặc trùng nhau, hoặc hòa 1–1; khi hòa, `majority()` lấy ứng viên
+đầu tiên — chính là `c0`, tức Solver greedy. Nên `vote2` **luôn** bằng `S`.
+
+Đây cũng chính là khiếm khuyết đã ghi ở `AGGREGATOR_EXPLAINED.md` (prompt bảo *"decide by
+majority"* nhưng chỉ có 2 ứng viên) — tôi đã ghi nhận nó ở đó mà **không nối lại** khi chọn K=2
+cho vòng này.
+
+**Hệ quả:** vòng ORPO này so adapter với một baseline đã thoái hóa. Mốc "bỏ phiếu cùng ngân
+sách" mà tôi đặt ra trong tiêu chí khoá trước **không tồn tại ở K=2**.
+
+### Thêm đúng một ứng viên là đủ để bỏ phiếu bắt đầu hoạt động
+
+| | vote2 → vote3 | fold cùng dấu |
+|---|---|---|
+| MATH | .4133 → **.4733** (+6.0đ) | 3/5 |
+| GSM8K | .6533 → **.7000** (+4.7đ) | **5/5** ✅ |
+
+GSM8K đạt **5/5 fold** — một trong số ít hiệu ứng đạt chuẩn của cả dự án. Từ 2 lên 3 mẫu là
+ngưỡng mà **đa số thật** trở nên khả thi.
+
+### Xếp hạng đầy đủ
+
+| MATH | acc | | GSM8K | acc |
+|---|---|---|---|---|
+| agg3_orpo_ood | .4933 | | agg3_orpo_ood | .7267 |
+| agg2_orpo_fb | .4800 | | agg2_base | .7000 |
+| **vote3** | **.4733** | | **vote3** | **.7000** |
+| agg2_orpo | .4667 | | agg2_orpo | .6733 |
+| agg2_base | .4467 | | S = vote2 | .6533 |
+| S = vote2 | .4133 | | | |
+
+Trên **GSM8K**, `vote3` ngang bằng `agg2_base` — bỏ phiếu 3 mẫu bằng đúng LLM aggregator, mà
+không cần model đọc gì. Trên **MATH**, `vote3` thắng `agg2_base` và ngang `agg2_orpo`.
+
+### Trần cũng hẹp lại
+
+Oracle với K=2 chỉ **.553** (MATH) và **.753** (GSM8K), so với K=3 là **.620/.807**. Kết hợp với
+`DIFFICULTY_STRATA.md`: ở K=2 tỉ lệ câu "cả hai đều sai" hoặc "cả hai đều đúng" còn cao hơn K=5,
+nên phần câu mà việc chọn có ý nghĩa còn nhỏ hơn nữa.
+
+⇒ **Giảm K để vừa bộ nhớ đã làm ba việc cùng lúc: thu hẹp bài toán, hạ trần, và phá hủy baseline
+đối chứng.** Đây là cái giá của quyết định kỹ thuật ở mục "OOM", và lẽ ra phải cân nhắc trước khi
+chọn K=2 chứ không phải sau khi có kết quả.
 
 ## 5. Kết luận
 
@@ -95,6 +138,9 @@ còn cao hơn K=5, nên phần câu mà việc chọn có ý nghĩa còn nhỏ h
 2. **Không chuyển sang task khác** — và còn khuếch đại recency bias (`copies_last` .713 → .813).
 3. **Cơ chế không phải cái ta muốn dạy** — xác nhận bằng đối chứng, không phải suy đoán.
 4. **Bỏ phiếu vẫn thắng**: `vote5` = .507 > mọi nhánh ORPO. Không cần train, không cần dữ liệu.
+5. **Nhưng so sánh này không cân** (mục 4): ở K=2 baseline bỏ phiếu thoái hóa thành Solver, nên
+   adapter được so với một mốc yếu hơn dự định. Thêm đúng **một** ứng viên (`vote3`) đã đủ để
+   bỏ phiếu ngang hoặc thắng mọi nhánh ORPO ở cả hai task — mà không train gì.
 
 ## 6. Giới hạn
 
