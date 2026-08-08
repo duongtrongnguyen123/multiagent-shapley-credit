@@ -1242,3 +1242,19 @@ Lần chạy trước cho HIGH = **+.337 / +.472 / +.529** — đơn điệu tă
 Tôi đã TUYÊN VÔ HIỆU nó. Nếu lần này ra kết quả TƯƠNG TỰ, đó **KHÔNG phải** sự xác nhận của lần trước
 — lần trước không tồn tại về mặt bằng chứng. Ghi ở đây để không ai (kể cả tôi) kể lại thành
 "đã thấy trước rồi, giờ chỉ xác nhận".
+
+## SỬA ĐỔI cho Đăng ký trước #33 (H30) — ghi TRƯỚC khi có số, sau khi đã phóng
+`ks_g15` (GSM8K 1.5B) và `ks_m15` (MATH 1.5B) đã phóng trên **T4**, KHÔNG phải RTX 6000 Pro
+(người dùng yêu cầu tạm dừng dùng RTX). Vì T4 không sinh nổi 64 chuỗi đồng thời:
+**k tối đa 64 -> 16**, dãy quét `KS = [2,4,8,16]` thay vì `[2,4,8,16,32,64]`.
+
+**Câu hỏi CHÍNH của #33 KHÔNG đổi và vẫn trả lời được đầy đủ**: ba hàng đầu của bảng đã khoá
+đều so sánh tại **k=8** (`oracle_solid@8 − maj@8` với `oracle@8 − maj@8`). k=8 vẫn nằm trong dãy.
+Thứ MẤT ĐI là hai hàng nói về xu hướng theo k lớn:
+  - "`oracle@k − maj@k` phình đều theo k trong khi `oracle_solid` phẳng"
+  - "`maj@k` bão hoà sớm (k>=16 không tăng)"
+Hai hàng đó chỉ đọc được trên dãy tới k=16 -> **kết luận về chúng phải ghi là YẾU/CHƯA ĐỦ**,
+và phải chạy lại tới k=64 khi được phép dùng RTX 6000 Pro.
+
+Ghi rõ: đây là THU HẸP PHẠM VI do ràng buộc phần cứng, **không phải nới ngưỡng, không phải đổi
+tiêu chí phán quyết**. Bảng diễn giải của #33 giữ NGUYÊN VẸN cho mọi hàng tại k=8.
