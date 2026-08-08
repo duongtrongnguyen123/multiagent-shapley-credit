@@ -2100,3 +2100,46 @@ H27, H28, H28b, H31 -> **TẠM ĐÌNH CHỈ**, không phải đã bác, không p
 `wf_g15`/`wf_m15` (pre-reg #36) sẽ quyết định. Ngưỡng `adapter_leak <= .05` đã khoá để bắt
 đúng lỗi này nếu nó còn sót đường rò rỉ khác.
 **Không được trích dẫn bất kỳ con số nào của bốn giả thuyết trên cho tới khi có kết quả sạch.**
+
+## [Loop] VÒNG #61 — RÀ SOÁT BỘ CHẤM: có bỏ sót đáp án đúng không?
+### Phương pháp
+Không suy luận suông: chạy chính hàm chấm của dự án trên (a) bộ ca tổng hợp, (b) **trace THẬT**
+(959 dự đoán MATH, 960 dự đoán GSM8K), rồi đối chiếu với `sympy.simplify` qua `parse_latex`.
+
+### CẢNH BÁO PHƯƠNG PHÁP — lần đầu ra 0% là SAI
+Lần chạy đầu báo "0 bỏ sót". Kiểm lại thì `parse_latex` **fail 5/5** vì thiếu gói `antlr4`
+-> mọi so sánh sympy đều trả False -> "0%" là vô nghĩa. Đã cài `antlr4-python3-runtime==4.11`,
+xác minh parser hoạt động 5/5, rồi chạy lại. **Đây là lần thứ NĂM một phép kiểm báo thành công
+mà chưa hề kiểm.** (trước: `head` exit 0, quét token, push bị từ chối, regex thoát dư).
+
+### GSM8K — bộ chấm CHẮC CHẮN
+- 960/960 dự đoán trích được số (`pred=None` 0.00%).
+- Ca tổng hợp: 12/13 đúng. Ca duy nhất trượt: đáp án **viết bằng chữ** ("seventy-two")
+  — không thấy xuất hiện trong trace thật.
+- Xử lý đúng: dấu phẩy hàng nghìn (`1,200`), `$18.00`, số âm, `=` ở bước trung gian,
+  chữ đuôi ("72 clips (out of 100)" vẫn ra 72), `**72**`.
+=> **Không có bằng chứng bỏ sót trên GSM8K.**
+
+### MATH — có bỏ sót, nhưng NHỎ: **~0.6%**
+Thô: 12/959 = 1.25% bị grader chấm SAI mà sympy nói ĐÚNG. Kiểm TAY từng ca:
+| ca | số lần | phán quyết |
+|---|---|---|
+| `\sqrt{117}` vs `3\sqrt{13}` | 4 | **BỎ SÓT THẬT** (√117 = √(9·13) = 3√13) |
+| `\binom{5}{4}\times\binom{10}{8}` vs `225` | 1 | **BỎ SÓT THẬT** (dạng chưa rút gọn) |
+| `\frac{2187}{5625}` vs `\frac{243}{625}` | 1 | **BỎ SÓT THẬT** (chia cả hai cho 9) |
+| `1` vs `1,-2` | 1 | sympy SAI — gold có HAI nghiệm, model chỉ cho một -> grader ĐÚNG |
+| `52` vs `52_8` | 3 | sympy SAI — gold là 52 **hệ cơ số 8** (=42) -> grader ĐÚNG |
+| chưa kiểm tay | 2 | chưa rõ |
+=> **BỎ SÓT THẬT ≈ 6/959 = 0.63%**; sympy tự nó báo nhầm 4/959 = 0.42%.
+   (Bài học kèm: dùng sympy làm "chân lý" cũng có sai số — nó không hiểu cơ số 8 hay đa nghiệm.)
+
+### ẢNH HƯỞNG TỚI KẾT LUẬN CỦA DỰ ÁN — ĐÁNH GIÁ TRUNG THỰC
+1. **Độ chính xác TUYỆT ĐỐI trên MATH bị HẠ THẤP ~0.6 điểm.** Nhỏ so với sàn nhiễu ~5 điểm.
+2. **Các phép SO SÁNH gần như không bị ảnh hưởng**: cùng một bộ chấm áp cho MỌI nhánh
+   (V_inf/V_bli/S_anc/S_pln, maj/wsum/oracle), nên sai lệch là ĐỘ DỊCH CHUNG, triệt tiêu khi lấy hiệu.
+   `V_gain`, `wsum − maj`, `discrimination` KHÔNG bị bóp méo đáng kể.
+3. Chỗ CÓ THỂ bị lệch: `oracle@k` (một mẫu đúng bị chấm sai -> oracle bị hạ), và `fixes/breaks`.
+   Với 0.63% thì mức lệch dưới 1 điểm — vẫn dưới sàn nhiễu.
+4. **KHÔNG có bằng chứng bộ chấm THIÊN VỊ một nhánh nào.** Mọi nhánh dùng chung `pred()`+`ok()`.
+=> Kết luận: bộ chấm KHÔNG phải nguồn sai lệch cho bất kỳ phát biểu nào của dự án.
+   Nhưng nên nâng cấp cho MATH (thêm rút gọn căn/phân số) nếu về sau cần con số tuyệt đối chính xác.
