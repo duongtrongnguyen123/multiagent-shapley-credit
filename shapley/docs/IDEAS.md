@@ -1862,3 +1862,35 @@ Nay thêm: regex bị thoát dư tầng, chạy hết 400 bài mới lộ.
 **LUẬT: mọi kernel có regex trích/tiêm dữ liệu PHẢI có tự kiểm 3 dòng ngay đầu kernel —
 chạy regex trên một chuỗi mẫu và `assert` kết quả khác rỗng — để chết NGAY thay vì chết sau 1 giờ.**
 Và: KHÔNG viết regex qua nhiều tầng thay-chuỗi; viết thẳng vào file kernel.
+
+## [Loop] VÒNG #55 — KIỂM SƠ BỘ H30 TRÊN TRACE ĐÃ CÓ: khoảng trống maj→oracle CÓ DẤU HIỆU BỊ THỔI PHỒNG
+Không có tài khoản trống, không dùng RTX theo yêu cầu. Nhưng `oracle_solid` là HÀM TẤT ĐỊNH của
+dữ liệu ĐÃ NẰM TRÊN ĐĨA -> tính được ngay, không tốn GPU, không thêm bậc tự do nào.
+
+### Số liệu (mỗi nguồn 25 bài × 8 mẫu — CỠ MẪU NHỎ, đọc dè dặt)
+| nguồn | bài | oracle@8 (>=1 đúng) | oracle_solid@8 (>=2) | >=3 đúng | **CHỈ 1 mẫu đúng** |
+|---|---|---|---|---|---|
+| disc_g15 (GSM8K 1.5B) | 25 | .800 | .680 | .520 | **.120** |
+| wv_g15 (GSM8K 1.5B) | 25 | .760 | .600 | .520 | **.160** |
+| wv_m15 (MATH 1.5B) | 25 | .320 | .280 | .200 | **.040** |
+
+### Ý NGHĨA — VÀ MỘT PHÉP TÍNH ƯỚC LƯỢNG PHẢI ĐỌC CẨN THẬN
+Ở GSM8K 1.5B, **12–16 điểm** của `oracle@8` đến từ những bài mà ĐÚNG **MỘT** trong 8 mẫu đúng.
+Trên bộ đầy đủ 300 bài tôi đã đo `maj@8` = .703 và `oracle@8` = .843 (khoảng trống **+14.0**).
+Nếu tỉ lệ "chỉ-1-mẫu-đúng" ~.14 giữ nguyên ở quy mô đầy đủ thì
+`oracle_solid@8` ≈ .843 − .14 ≈ **.70 ≈ maj@8 (.703)** -> **khoảng trống thật ≈ 0**.
+=> ĐÂY LÀ ƯỚC LƯỢNG BẰNG PHÉP TRỪ, **KHÔNG PHẢI PHÉP ĐO**: trace chỉ lưu cờ đúng/sai và
+   `sol` bị cắt 500 ký tự, nên KHÔNG tính được `maj@8` trên chính 25 bài đó. Phải chạy H30 thật.
+
+### MỘT DẤU HIỆU NỘI TẠI ỦNG HỘ CÁCH ĐỌC "MAY MẮN"
+GSM8K (đáp án là SỐ NGUYÊN, dễ trúng ngẫu nhiên): chênh **.12–.16**
+MATH (đáp án là BIỂU THỨC LaTeX, gần như không thể trúng ngẫu nhiên): chênh chỉ **.040**
+Đúng chiều dự đoán nếu phần lớn "chỉ-1-đúng" ở GSM8K là TRÙNG SỐ chứ không phải lập luận đúng.
+
+### GIỚI HẠN PHẢI GHI KÈM (không được bỏ)
+1. n=25 mỗi nguồn — rất nhỏ. `oracle@8` trên các tập con này (.800/.760) đã lệch so với .843
+   của bộ đầy đủ, tức nhiễu lấy mẫu đáng kể.
+2. `oracle_solid` KHÔNG phải bộ lọc may mắn hoàn hảo: model CÓ THỂ giải đúng thật sự đúng 1/8 lần
+   bằng lập luận đúng mà không tái lập được. Nên phần chênh là CẬN TRÊN của "may mắn".
+3. **CHƯA sửa RESULTS.md/README.** Con số +14.0 vẫn đứng cho tới khi H30 (#33) chạy thật.
+   Ghi nhận này chỉ LÀM TĂNG mức ưu tiên của H30, không thay thế nó.
