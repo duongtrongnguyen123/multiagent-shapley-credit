@@ -1894,3 +1894,47 @@ MATH (đáp án là BIỂU THỨC LaTeX, gần như không thể trúng ngẫu n
    bằng lập luận đúng mà không tái lập được. Nên phần chênh là CẬN TRÊN của "may mắn".
 3. **CHƯA sửa RESULTS.md/README.** Con số +14.0 vẫn đứng cho tới khi H30 (#33) chạy thật.
    Ghi nhận này chỉ LÀM TĂNG mức ưu tiên của H30, không thay thế nó.
+
+## [Loop] VÒNG #56 — H28b CHỐT: **TÁI LẬP MỘT PHẦN** (hàng 2/hàng 4), độ lớn bị chặn bởi khoảng trống sẵn có
+### wv_g7 (GSM8K 7B) — ô thứ 3, ô quyết định
+AUC .9002 (hợp lệ) | 2000 cặp, tỉ lệ dương **.9125** (7B giải GSM8K rất tốt -> nhãn mất cân bằng nặng)
+| fold | maj@8 | rerank | **wvote_sum** | wvote_mean | oracle | wsum−maj |
+|---|---|---|---|---|---|---|
+| 0 | .800 | .875 | **.850** | .775 | .925 | +.050 |
+| 1 | .975 | .900 | .975 | .850 | .975 | +.000 |
+| 2 | .875 | .900 | **.900** | .850 | .925 | +.025 |
+| 3 | .925 | .900 | .925 | .775 | .950 | +.000 |
+| 4 | .875 | .925 | **.900** | .850 | .950 | +.025 |
+greedy .810 | maj@8 **.890** | rerank .900 | **wvote_sum .910** | wvote_mean .820 | oracle .945
+`wsum − maj` = **+.020**, **3/5 fold dương, 2 hoà, 0 âm** — KHÔNG đạt ngưỡng >=4/5 đã khoá.
+
+### PHÁN QUYẾT THEO BẢNG ĐÃ KHOÁ (#31)
+Bảng yêu cầu `wvote_sum > maj8` ở **>=4/5 fold ở CẢ HAI ô mới**. wv_m15 đạt (5/5); wv_g7 chỉ 3/5.
+=> **HÀNG 2: "chỉ 1/2 ô tái lập -> PHỤ THUỘC Ô, KHÔNG được phát biểu tổng quát."**
+Đồng thời khớp đúng **HÀNG 4** đã khoá sẵn: "ô bão hoà (GSM8K 7B) không có hiệu ứng nhưng ô khó
+(MATH 1.5B) có -> phát biểu KÈM ĐIỀU KIỆN: chỉ có ích khi maj@8 còn khoảng trống."
+
+### ĐỘ LỚN BÁM SÁT KHOẢNG TRỐNG CÒN LẠI — ba ô, ba mức
+| ô | maj@8 | oracle@8 | khoảng trống | wsum−maj | % khoảng trống lấy được | fold dương |
+|---|---|---|---|---|---|---|
+| MATH 1.5B | .265 | .370 | **.105** | **+.050** | 47.7% | 5/5 |
+| GSM8K 1.5B | .703 | .843 | **.140** | +.030 | 20.5% | 4/5 (1 hoà) |
+| GSM8K 7B | .890 | .945 | **.055** | +.020 | 24.7% | 3/5 (2 hoà) |
+=> Lấy được 20–48% khoảng trống ở MỌI ô. Ô nào còn ÍT khoảng trống thì hiệu ứng tuyệt đối nhỏ.
+=> **KHÔNG có fold nào ÂM trong cả 15 fold của 3 ô.** Hướng nhất quán; chỉ ĐỘ LỚN là phụ thuộc ô.
+
+### CƠ CHẾ XÁC NHẬN LẦN THỨ BA
+`wvote_mean` (chỉ điểm, bỏ số phiếu): **0/5 fold dương ở CẢ BA ô** (−.093 / −.020 / −.070).
+Điểm số MỘT MÌNH luôn thua đếm phiếu. Chỉ `cỡ nhóm × điểm` mới thắng. Ba lần lặp lại độc lập.
+
+### PHÁT BIỂU ĐƯỢC PHÉP DÙNG (hẹp, kèm điều kiện)
+"Dùng bộ chấm để CÂN TRỌNG SỐ phiếu (không phải để chọn một mẫu) cho lợi ích nhất quán về HƯỚNG
+trên 3 ô, độ lớn +2.0 đến +5.0 điểm, tỉ lệ thuận với khoảng trống maj->oracle còn lại.
+Ở ô đã bão hoà thì lợi ích nhỏ và không đạt ngưỡng tái lập đã đăng ký."
+KHÔNG được rút gọn thành "bỏ phiếu có trọng số luôn tốt hơn".
+
+### CẢNH BÁO NỐI VỚI H30 (bắt buộc đọc kèm)
+Toàn bộ cách tính "% khoảng trống lấy được" ở trên dựa vào `oracle@8`. Kiểm sơ bộ ở vòng #55 cho
+thấy 12–16 điểm của `oracle@8` trên GSM8K là "chỉ 1/8 mẫu đúng" — có thể phần lớn là TRÙNG SỐ.
+Nếu H30 xác nhận, MẪU SỐ của mọi tỉ lệ trên đều SAI và phải tính lại theo `oracle_solid`.
+Khi đó "lấy được 20–48%" có thể thành một con số CAO HƠN NHIỀU (vì khoảng trống thật nhỏ hơn).
