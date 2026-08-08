@@ -1121,3 +1121,124 @@ Tôi đoán MATH 1.5B TÁI LẬP (còn nhiều khoảng trống: maj@8 .533 vs o
 GSM8K 7B KHÔNG (đã bão hoà, maj@8 chỉ hơn greedy +.01, gần như không còn gì để cân).
 Nếu đúng vậy thì rơi hàng 4, và phát biểu phải KÈM ĐIỀU KIỆN về dải độ khó — KHÔNG được
 nói gọn thành "bỏ phiếu có trọng số luôn tốt hơn".
+
+---
+
+# Đăng ký trước #32 — H29: ĐƯỜNG CONG NĂNG LỰC CỦA VIỆC KIỂM LỖI (1.5B → 32B)
+**Viết TRƯỚC khi chạy.** Chạy trên RTX 6000 Pro (102 GB) — T4 KHÔNG chạy nổi 32B bf16 (59 GB).
+
+## Vì sao đây là thí nghiệm đáng chạy nhất trên GPU lớn
+Phát biểu trung tâm, lặp lại nhiều lần nhất của dự án là "bộ máy chỉ hoạt động khi MODEL ĐI KIỂM
+đủ mạnh". Hiện nó dựa trên ĐÚNG HAI ĐIỂM: 1.5B (suy biến .99, VÔ HIỆU) và 7B (phân biệt +.651).
+Hai điểm thì vẽ được đường qua bất cứ đâu. Thêm 14B và 32B biến nó thành ĐƯỜNG CONG THẬT.
+Đồng thời điểm 7B cũ đo ở **4-bit** — bản thân lượng tử hoá là một biến gây nhiễu CHƯA loại trừ
+cho hiện tượng suy biến. Lần này chạy **bf16 toàn bộ**, cùng dữ liệu, cùng prompt.
+
+## Thiết kế
+Nhiệm vụ: PHÁT HIỆN LỖI SỐ HỌC TIÊM SẴN (như dt2/dt4), trên **MATH-500** (GSM8K bão hoà ở >=7B
+nên tầng ZERO rỗng — đã ghi nhận ở vòng #47/#48).
+Model: **7B bf16** (mốc sạch, loại bỏ 4-bit) · **14B bf16** · **32B bf16** — cùng kernel, tuần tự.
+Phân tầng theo năng lực giải của CHÍNH model đó (k=8). Chỉ số: phân biệt = phát hiện − báo động giả.
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên luật đã lập ở #26/#28/#30)
+`degenerate_rate` > .90 -> tầng VÔ HIỆU · `parse_fail_rate` > .20 -> cả model VÔ HIỆU
+· `pct_problems_corruptible` < .50 -> cả lần chạy VÔ HIỆU
+· `n_pairs` < 40 ở tầng ZERO -> tầng đó chỉ báo cáo, KHÔNG kết luận
+· **BẮT BUỘC** báo GPU thật (`sm_120` hay không) để chắc chắn không tụt về P100.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phân biệt TĂNG đơn điệu 7B → 14B → 32B | **XÁC NHẬN đường cong năng lực.** Phát biểu trung tâm của dự án có cơ sở định lượng, không còn là suy diễn từ 2 điểm. |
+| Phân biệt BÃO HOÀ từ 14B (14B ≈ 32B) | Có NGƯỠNG, không phải thang liên tục. Khuyến nghị thực tiễn đổi hẳn: "đủ 14B là đủ", không cần model lớn hơn. |
+| 7B bf16 KHÁC RÕ 7B 4-bit (đã đo +.651) | **Lượng tử hoá là biến gây nhiễu.** Mọi kết luận 4-bit trước đây của dự án phải gắn cảnh báo, kể cả dt2_g7. |
+| Phân biệt KHÔNG tăng theo cỡ (phẳng hoặc lộn xộn) | **BÁC đường cong năng lực.** Kích thước model KHÔNG phải biến giải thích; phải tìm biến khác (dữ liệu huấn luyện, RLHF, họ model). Đây sẽ là đòn mạnh vào phát biểu trung tâm — phải nói thẳng. |
+| Tầng ZERO đủ n>=40 và phân biệt >= .40 ở 14B/32B | Kiểm lỗi TÁCH RỜI khỏi giải, xác nhận ở năng lực cao + miền thứ hai. Cộng dt2_g7 thành bằng chứng hai miền. |
+| Model lớn cũng suy biến (>.90) | Suy biến KHÔNG phải vấn đề năng lực mà là vấn đề ĐỊNH DẠNG CÂU HỎI. Phải thiết kế lại cách hỏi, không đổ cho model nhỏ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán phân biệt TĂNG từ 7B lên 14B rồi BÃO HOÀ ở 32B (hàng 2). Tôi cũng đoán 7B bf16 ≈ 7B 4-bit
+(tức lượng tử hoá KHÔNG phải thủ phạm) — nhưng đây là điều tôi ÍT CHẮC NHẤT và chính là lý do
+phải có mốc 7B bf16 trong cùng lần chạy.
+Ghi rõ: prior gần nhất của tôi (H27 rerank sẽ thắng) đã SAI, nên không nên tin prior này quá.
+
+---
+
+# Đăng ký trước #33 — H30: KHOẢNG TRỐNG maj→oracle CÓ THẬT KHÔNG, HAY CHỈ LÀ HIỆN VẬT CỦA k=8?
+**Viết TRƯỚC khi chạy.** Chuẩn bị sẵn cho khe GPU tiếp theo trên RTX 6000 Pro.
+
+## Sự việc đã đo và ĐIỀU CHƯA AI KIỂM
+`oracle@8 − maj@8` = **+14.0 điểm** (GSM8K 1.5B) và **+10.5** (MATH 1.5B).
+Đây là khoảng trống LỚN NHẤT và DUY NHẤT đã đo được của dự án, và toàn bộ hướng "tổng hợp"
+(H27 rerank, H28 bỏ phiếu có trọng số) đang nhắm vào nó.
+NHƯNG `oracle@k` là một mốc **LẠC QUAN CÓ HỆ THỐNG**: nó tính là ĐÚNG khi CHỈ CẦN 1 trong k mẫu
+đúng — kể cả khi mẫu đó đúng do MAY MẮN (đoán trúng số) chứ không do lập luận đúng.
+Khi k tăng, `oracle@k` tăng đơn điệu theo định nghĩa, còn `maj@k` thì bão hoà.
+=> **Khoảng trống có thể PHÌNH RA thuần tuý vì k, mà không hề có thêm tín hiệu nào để khai thác.**
+Nếu vậy thì "còn 14 điểm chưa lấy được" là một phát biểu SAI LỆCH mà chính tôi đã viết vào
+RESULTS.md và README. Phải kiểm.
+
+## Thiết kế — k = 2, 4, 8, 16, 32, 64 trên CÙNG bộ mẫu
+Sinh 64 mẫu/bài (temp .8), rồi tính TẤT CẢ chỉ số trên TIỀN TỐ k đầu tiên (k=2..64) -> so sánh
+hoàn toàn ghép cặp, không cần sinh lại. (T4 không làm nổi 64 chuỗi đồng thời; RTX 6000 Pro thì được.)
+Mỗi k báo: `greedy1` · `maj@k` · `oracle@k` · `wvote_sum@k` · **`oracle_solid@k`**
+**`oracle_solid@k`** = chỉ tính đúng nếu **>=2 trong k mẫu** cùng cho đáp án đúng
+  -> loại phần lớn các cú "đúng do may mắn một lần". Đây là mốc trần TRUNG THỰC HƠN.
+
+## Chỉ số chính
+`oracle@k − maj@k` theo k, và `oracle_solid@k − maj@k` theo k.
+Phụ: `wvote_sum@k − maj@k` có tăng theo k không (bộ chấm có tận dụng được nhiều mẫu hơn không).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `oracle_solid@8 − maj@8` gần bằng `oracle@8 − maj@8` | Khoảng trống LÀ THẬT, không phải may mắn. Phát biểu "+14 điểm chưa lấy được" ĐỨNG VỮNG. |
+| `oracle_solid@8 − maj@8` NHỎ HƠN NHIỀU (vd < một nửa) | **Khoảng trống bị THỔI PHỒNG bởi các mẫu đúng-do-may.** Tôi PHẢI sửa lại RESULTS.md và README, và hạ mục tiêu của hướng tổng hợp xuống con số thật. |
+| `oracle@k − maj@k` phình đều theo k trong khi `oracle_solid` phẳng | Khẳng định mạnh: `oracle@k` là mốc RÁC ở k lớn. Dự án phải bỏ hẳn `oracle@k`, dùng `oracle_solid@k`. |
+| `wvote_sum@k − maj@k` TĂNG theo k | Bỏ phiếu có trọng số càng nhiều mẫu càng lợi -> khuyến nghị thực tiễn: tăng k. |
+| `wvote_sum@k − maj@k` phẳng hoặc giảm theo k | Lợi thế của bỏ phiếu có trọng số KHÔNG mở rộng được; chỉ hữu ích ở k nhỏ. Phải nói rõ. |
+| `maj@k` bão hoà sớm (k>=16 không tăng) | Ghi nhận: k=8 đã gần hết giá trị của đếm phiếu; tăng k không phải hướng đi. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán `oracle_solid` sẽ THẤP HƠN RÕ so với `oracle`, tức khoảng trống thật NHỎ HƠN con số
++14.0 tôi đã công bố. Nếu đúng thì đây là lần tự sửa thứ ba của dự án, và lần này là sửa một
+con số tôi đã ĐƯA VÀO README như điểm nhấn. Tôi ghi trước để không thể lờ đi.
+
+---
+
+# Đăng ký trước #34 — H29b: CHẠY LẠI ĐƯỜNG CONG NĂNG LỰC, SỬA CẮT CỤT + THIẾU LỰC + LÃNG PHÍ GPU
+**Viết TRƯỚC khi chạy.** H29 vô hiệu vì `parse_fail` .22–.23 > ngưỡng .20 đã khoá.
+**CHƯA PHÓNG** — đang chờ người dùng cho phép dùng lại RTX 6000 Pro.
+
+## Ba khiếm khuyết phải sửa (đã chẩn đoán, không phải phỏng đoán)
+1. **CẮT CỤT** — 75/300 trace hết token giữa LaTeX trước khi tới dòng `VERDICT:`.
+   Sửa: `max_new_tokens` 512 -> **1024**, VÀ ép ngắn phần lập luận
+   ("Work through it in at most 120 words, then the final line must be exactly VERDICT: YES/NO"),
+   VÀ thêm **lượt hỏi lại**: nếu lượt 1 không có `VERDICT:`, hỏi lượt 2 CHỈ để lấy phán quyết
+   (đưa lại phần lập luận đã sinh). Báo `pct_needed_retry`.
+2. **THIẾU LỰC ở tầng ZERO** — n=32/39/34 < 40. Sửa: N 200 -> **400** (dùng cả MATH-500).
+3. **LÃNG PHÍ GPU** — BS=12 là di sản T4. Sửa: BS theo cỡ model
+   (7B: 96 · 14B: 64 · 32B: 32) và **tách batch pha phát hiện khỏi pha lấy mẫu** (pha phát hiện k=1
+   nên phải dùng batch LỚN). Kernel BẮT BUỘC in `torch.cuda.max_memory_allocated()` sau mỗi pha.
+
+## Ngưỡng hiệu lực — GIỮ NGUYÊN, không nới
+`parse_fail` <= .20 (SAU khi đã hỏi lại) · `degenerate_rate` <= .90 · `pct_corruptible` >= .50
+· tầng ZERO cần n >= 40 mới được dùng để kết luận · `assert sm_120`.
+**KHÔNG được nới ngưỡng để cứu kết quả.** Nếu vẫn > .20 thì nhiệm vụ này KHÔNG đo được trên MATH
+bằng cách hỏi hiện tại, và phải đổi thiết kế chứ không đổi ngưỡng.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số) — giữ nguyên bảng của #32
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phân biệt tăng đơn điệu 7B→14B→32B, tất cả HỢP LỆ | XÁC NHẬN đường cong năng lực. |
+| Bão hoà từ 14B | Có NGƯỠNG, không phải thang liên tục -> "đủ 14B là đủ". |
+| Không tăng theo cỡ | BÁC đường cong năng lực; cỡ model không phải biến giải thích. |
+| Tầng ZERO n>=40 và phân biệt >= .40 | Kiểm lỗi TÁCH RỜI khỏi giải ở năng lực cao. |
+| Tầng ZERO n>=40 nhưng phân biệt ≈ 0 trong khi HIGH cao | Kiểm lỗi BỊ CHẶN bởi năng lực giải. Phải rút lại cách đọc lạc quan ở vòng #48. |
+| `parse_fail` vẫn > .20 | VÔ HIỆU lần hai -> BỎ thiết kế hỏi-phán-quyết trên MATH, chuyển sang cách đo khác. |
+
+## GHI CHÚ TRUNG THỰC (bắt buộc đọc kèm)
+Lần chạy trước cho HIGH = **+.337 / +.472 / +.529** — đơn điệu tăng, đúng hàng 1, đúng prior của tôi.
+Tôi đã TUYÊN VÔ HIỆU nó. Nếu lần này ra kết quả TƯƠNG TỰ, đó **KHÔNG phải** sự xác nhận của lần trước
+— lần trước không tồn tại về mặt bằng chứng. Ghi ở đây để không ai (kể cả tôi) kể lại thành
+"đã thấy trước rồi, giờ chỉ xác nhận".

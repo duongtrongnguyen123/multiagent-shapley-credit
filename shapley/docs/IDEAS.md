@@ -1754,3 +1754,143 @@ GHI NHẬN: hai lần OOM liên tiếp đều do TÔI không tính lại ngân s
   hoặc đổi tập dữ liệu. Thành LUẬT: **mỗi lần đổi model hoặc đổi tập, phải tính lại
   (số chuỗi đồng thời × độ dài) và nhánh lượng tử hoá TRƯỚC khi phóng.**
 Không có kết luận khoa học nào từ vòng này — H28b vẫn CHƯA KIỂM.
+
+## [Loop] VÒNG #52 — H28b TÁI LẬP ở MATH 1.5B: **5/5 fold, +5.0 điểm, lấy 46.7% khoảng trống**
+### wv_m15 (MATH 1.5B, train/test tách đôi MATH-500, 1600 cặp nhãn tự động)
+AUC = **.9506** (hợp lệ) | tỉ lệ nhãn dương .259 (mất cân bằng, đúng vì solver chỉ ~.20)
+| fold | maj@8 | rerank | **wvote_sum** | wvote_mean | oracle | wsum−maj |
+|---|---|---|---|---|---|---|
+| 0 | .200 | .225 | **.250** | .125 | .300 | +.050 |
+| 1 | .325 | .350 | **.375** | .350 | .425 | +.050 |
+| 2 | .125 | .175 | **.175** | .175 | .250 | +.050 |
+| 3 | .375 | .325 | **.400** | .250 | .450 | +.025 |
+| 4 | .300 | .350 | **.375** | .325 | .425 | +.075 |
+greedy .195 | maj@8 **.265** | rerank .285 | **wvote_sum .315** | wvote_mean .245 | oracle .370
+`wsum − maj` = **+.050**, **5/5 fold DƯƠNG**, khoảng [+.025,+.075] (kiểm định dấu một phía p=.031)
+`wsum_pct_gap` = **.467** — lấy được **46.7%** khoảng trống maj->oracle (ở GSM8K 1.5B chỉ 20.5%).
+
+### ĐỐI CHIẾU HAI Ô ĐÃ CÓ (ô thứ ba wv_g7 đang chạy)
+| ô | maj@8 | wvote_sum | chênh | fold dương | % khoảng trống lấy được |
+|---|---|---|---|---|---|
+| GSM8K 1.5B | .707 | .737 | **+.030** | 4/5 (1 hoà, 0 âm) | 20.5% |
+| **MATH 1.5B** | .265 | **.315** | **+.050** | **5/5** | **46.7%** |
+Hiệu ứng MẠNH HƠN ở ô KHÓ HƠN — khớp với prior đã ghi trước ở #31
+("MATH 1.5B còn nhiều khoảng trống nên dễ tái lập hơn").
+**CHƯA CHỐT**: bảng khoá yêu cầu CẢ HAI ô mới. `wv_g7` (GSM8K 7B, bão hoà) chưa có kết quả.
+Nếu wv_g7 KHÔNG tái lập thì rơi hàng 4 ("phụ thuộc dải độ khó"), và phát biểu PHẢI kèm điều kiện
+— KHÔNG được rút gọn thành "bỏ phiếu có trọng số luôn tốt hơn".
+
+### CƠ CHẾ LẶP LẠI LẦN THỨ HAI
+`wvote_mean` (chỉ điểm, bỏ số phiếu) = .245 < maj@8 .265 -> ĐIỂM MỘT MÌNH vẫn thua ĐẾM PHIẾU.
+`wvote_sum` (= cỡ nhóm × điểm) = .315 -> hơn cả hai.
+Khác GSM8K một chi tiết: ở MATH `rerank` (.285) CŨNG hơn maj@8, còn ở GSM8K nó thua.
+GIẢ THUYẾT (chưa kiểm): khi solver rất yếu (.195), đa số phiếu thường SAI nên đồng thuận
+mang ít tín hiệu hơn, và bộ chấm giành lại vai trò. Cần ô thứ ba để nói chắc.
+
+### GHI CHÚ TÍNH HỢP LỆ
+AUC .9506 cao một phần vì mất cân bằng lớp (chỉ 25.9% dương). Không dùng AUC để khoe;
+chỉ dùng làm NGƯỠNG HIỆU LỰC như đã khoá (>.55). Kết luận chỉ dựa trên `wsum − maj`.
+Train/test là hai NỬA RỜI NHAU của MATH-500 (200/200) -> không rò rỉ.
+
+## [Loop] VÒNG #53 — H29 (đường cong năng lực): **CẢ BA MODEL VÔ HIỆU** vì vượt ngưỡng parse_fail
+### Số liệu thô (MATH-500, bf16, RTX 6000 Pro sm_120, pct_corruptible .97)
+| model | solve | **parse_fail** | HIGH | MID | ZERO |
+|---|---|---|---|---|---|
+| 7B  | .487 | **.232** | +.337 (n=86) | +.074 (n=28) | +.173 (n=32) |
+| 14B | .489 | **.219** | +.472 (n=89) | +.333 (n=21) | +.130 (n=39) |
+| 32B | .504 | **.224** | +.529 (n=91) | +.360 (n=25) | +.236 (n=34) |
+
+### PHÁN QUYẾT: VÔ HIỆU. Ngưỡng khoá ở pre-reg #32 là `parse_fail_rate` <= .20.
+Cả ba đều .219–.232 -> `VALID_parse=false` cho CẢ BA. **Không được kết luận gì từ lần chạy này.**
+
+### VÌ SAO PHẢI NÓI RÕ ĐIỀU NÀY
+Nhìn cột HIGH: **+.337 -> +.472 -> +.529**. Đơn điệu tăng theo cỡ model, ĐÚNG Y HỆT hàng 1 của
+bảng đã khoá ("phân biệt tăng đơn điệu 7B→14B→32B -> XÁC NHẬN đường cong năng lực") và đúng y hệt
+prior tôi ghi trước. Đây chính xác là kịch bản dễ tự lừa nhất: **kết quả đẹp, đúng như mong đợi,
+nhưng phép đo đã hỏng.** Ngưỡng được khoá TRƯỚC khi nhìn số nên tôi không có quyền chọn lại.
+=> Con số +.337/+.472/+.529 KHÔNG được đưa vào RESULTS.md, README, hay bất kỳ phát biểu nào.
+   H29 là **CHƯA KIỂM**, không phải đã xác nhận.
+
+### NGUYÊN NHÂN — đã chẩn đoán bằng trace, không phải đoán
+75/300 trace của 14B KHÔNG có dòng `VERDICT:`. Đọc đuôi: tất cả đều bị **CẮT GIỮA CHỪNG** trong
+LaTeX (`\sum_{n = 2}^\infty \frac{1}{n^3}.` ... hết token). `max_new_tokens=512` KHÔNG ĐỦ cho
+model viết hết phần kiểm rồi mới tới dòng phán quyết trên miền MATH.
+NGUY HIỂM HƠN: cắt cụt KHÔNG ngẫu nhiên theo tầng — bài khó -> lời giải dài -> dễ bị cắt hơn.
+Nên mẫu sống sót bị THIÊN LỆCH theo đúng biến đang nghiên cứu. Đây chính là lý do ngưỡng tồn tại.
+
+### KHIẾM KHUYẾT KHÁC CỦA LẦN CHẠY NÀY (ghi để sửa)
+1. **Tầng ZERO vẫn thiếu lực**: n=32/39/34, đều < ngưỡng 40 đã khoá ở #28. Dù parse có đạt thì
+   tầng quyết định vẫn không kết luận được. Phải tăng N (200 -> 400+).
+2. **Dùng GPU rất lãng phí**: BS=12 bê nguyên từ thời T4. Pha phát hiện chạy `k=1` nên chỉ
+   **12 chuỗi đồng thời** trên card 102 GB; ước tính ~70–75% card để không suốt 57 phút.
+   Kernel cũng KHÔNG ghi `max_memory_allocated()` -> không đo được, chỉ suy ra từ cỡ model.
+   Đây đúng là lỗi tôi đã tự viết thành LUẬT ở vòng #51 (phải tính lại ngân sách khi đổi phần cứng)
+   rồi lặp lại theo chiều ngược lại.
+3. 7B bf16 (+.337 HIGH, MATH) vs 7B 4-bit (+.651 HIGH, GSM8K): KHÔNG so sánh được vì khác miền.
+   Muốn tách biến lượng tử hoá thì phải chạy 7B bf16 và 7B 4-bit trên CÙNG miền.
+
+## [Loop] VÒNG #54 — dt4_m7 VÔ HIỆU vì LỖI REGEX CỦA TÔI, KHÔNG phải vì phương pháp hỏng
+### Số liệu
+`pct_problems_corruptible` = **0.0** (0/400 bài tiêm được) -> `VALID_corruptible=false`, cả ba tầng
+không có cặp nào. parse_fail=.0 (không chạy tới đó). Phân tầng: HIGH 91 / MID 87 / ZERO **222**
+(solve .291 — tầng ZERO cuối cùng cũng ĐÔNG, đúng như thiết kế #28 mong muốn).
+
+### CHẨN ĐOÁN — đã kiểm chứng, không phỏng đoán
+detect4: `ANYNUM=re.compile(r"(?<![\\w.])(\\d+(?:\\.\\d+)?)(?![\\w.])")`
+capcurve: `ANY   =re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])")`
+Chạy thử trên một chuỗi MATH thật: detect4 tìm được **[]**, capcurve tìm được **7 số**.
+Trong chuỗi RAW, `\\w` là "dấu gạch chéo ngược rồi chữ w", KHÔNG phải ký tự chữ.
+Nguyên nhân gốc: tôi tạo detect4 bằng `s.replace(...)` LỒNG trong heredoc -> phải thoát 4 tầng,
+và tôi thoát dư một tầng.
+
+### VÌ SAO **KHÔNG** ĐƯỢC ÁP HÀNG CUỐI CỦA BẢNG #30
+Bảng khoá có hàng: "`pct_corruptible` < .50 lần nữa -> BỎ HẲN hướng tiêm-lỗi trên MATH".
+Hàng đó giả định một PHÉP ĐO HỢP LỆ cho thấy phương pháp không tiêm nổi. Ở đây regex khớp
+**không gì cả** — đó là KHIẾM KHUYẾT MÃ, không phải phép đo. Áp hàng này sẽ là kết luận SAI.
+BẰNG CHỨNG ĐỐI CHỨNG: kernel `capcurve` chạy CÙNG cách tiêm lỗi trên CÙNG MATH-500 đạt
+`pct_corruptible` = **.97**. Phương pháp tiêm lỗi trên MATH **HOẠT ĐỘNG TỐT**; chỉ bản detect4 hỏng.
+=> H25d (tiêm lỗi trên MATH) là CHƯA KIỂM. Không được ghi là đã bác.
+
+### ĐIỀU DUY NHẤT ĐÁNG GIỮ TỪ LẦN CHẠY NÀY
+Ở 7B 4-bit trên MATH, `solve_rate` = .291 -> phân tầng ZERO có **222 bài**, vượt xa ngưỡng 40.
+Xác nhận quyết định ở #28 là đúng: MATH (không phải GSM8K) mới là miền đo được câu hỏi
+"phát hiện lỗi ở bài KHÔNG giải nổi". Chỉ cần regex đúng là đo được.
+
+### LUẬT MỚI (lần thứ ba mã sinh-bằng-chuỗi gây lỗi câm)
+Trước đây: `rows`/`len(rows)` NameError, `_sp` NameError — đều do vá kernel bằng thay chuỗi.
+Nay thêm: regex bị thoát dư tầng, chạy hết 400 bài mới lộ.
+**LUẬT: mọi kernel có regex trích/tiêm dữ liệu PHẢI có tự kiểm 3 dòng ngay đầu kernel —
+chạy regex trên một chuỗi mẫu và `assert` kết quả khác rỗng — để chết NGAY thay vì chết sau 1 giờ.**
+Và: KHÔNG viết regex qua nhiều tầng thay-chuỗi; viết thẳng vào file kernel.
+
+## [Loop] VÒNG #55 — KIỂM SƠ BỘ H30 TRÊN TRACE ĐÃ CÓ: khoảng trống maj→oracle CÓ DẤU HIỆU BỊ THỔI PHỒNG
+Không có tài khoản trống, không dùng RTX theo yêu cầu. Nhưng `oracle_solid` là HÀM TẤT ĐỊNH của
+dữ liệu ĐÃ NẰM TRÊN ĐĨA -> tính được ngay, không tốn GPU, không thêm bậc tự do nào.
+
+### Số liệu (mỗi nguồn 25 bài × 8 mẫu — CỠ MẪU NHỎ, đọc dè dặt)
+| nguồn | bài | oracle@8 (>=1 đúng) | oracle_solid@8 (>=2) | >=3 đúng | **CHỈ 1 mẫu đúng** |
+|---|---|---|---|---|---|
+| disc_g15 (GSM8K 1.5B) | 25 | .800 | .680 | .520 | **.120** |
+| wv_g15 (GSM8K 1.5B) | 25 | .760 | .600 | .520 | **.160** |
+| wv_m15 (MATH 1.5B) | 25 | .320 | .280 | .200 | **.040** |
+
+### Ý NGHĨA — VÀ MỘT PHÉP TÍNH ƯỚC LƯỢNG PHẢI ĐỌC CẨN THẬN
+Ở GSM8K 1.5B, **12–16 điểm** của `oracle@8` đến từ những bài mà ĐÚNG **MỘT** trong 8 mẫu đúng.
+Trên bộ đầy đủ 300 bài tôi đã đo `maj@8` = .703 và `oracle@8` = .843 (khoảng trống **+14.0**).
+Nếu tỉ lệ "chỉ-1-mẫu-đúng" ~.14 giữ nguyên ở quy mô đầy đủ thì
+`oracle_solid@8` ≈ .843 − .14 ≈ **.70 ≈ maj@8 (.703)** -> **khoảng trống thật ≈ 0**.
+=> ĐÂY LÀ ƯỚC LƯỢNG BẰNG PHÉP TRỪ, **KHÔNG PHẢI PHÉP ĐO**: trace chỉ lưu cờ đúng/sai và
+   `sol` bị cắt 500 ký tự, nên KHÔNG tính được `maj@8` trên chính 25 bài đó. Phải chạy H30 thật.
+
+### MỘT DẤU HIỆU NỘI TẠI ỦNG HỘ CÁCH ĐỌC "MAY MẮN"
+GSM8K (đáp án là SỐ NGUYÊN, dễ trúng ngẫu nhiên): chênh **.12–.16**
+MATH (đáp án là BIỂU THỨC LaTeX, gần như không thể trúng ngẫu nhiên): chênh chỉ **.040**
+Đúng chiều dự đoán nếu phần lớn "chỉ-1-đúng" ở GSM8K là TRÙNG SỐ chứ không phải lập luận đúng.
+
+### GIỚI HẠN PHẢI GHI KÈM (không được bỏ)
+1. n=25 mỗi nguồn — rất nhỏ. `oracle@8` trên các tập con này (.800/.760) đã lệch so với .843
+   của bộ đầy đủ, tức nhiễu lấy mẫu đáng kể.
+2. `oracle_solid` KHÔNG phải bộ lọc may mắn hoàn hảo: model CÓ THỂ giải đúng thật sự đúng 1/8 lần
+   bằng lập luận đúng mà không tái lập được. Nên phần chênh là CẬN TRÊN của "may mắn".
+3. **CHƯA sửa RESULTS.md/README.** Con số +14.0 vẫn đứng cho tới khi H30 (#33) chạy thật.
+   Ghi nhận này chỉ LÀM TĂNG mức ưu tiên của H30, không thay thế nó.

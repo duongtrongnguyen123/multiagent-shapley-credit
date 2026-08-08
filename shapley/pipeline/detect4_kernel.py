@@ -83,7 +83,12 @@ print("phan tang:",{b:buck.count(b) for b in ["HIGH","MID","ZERO"]},flush=True)
 STEP=re.compile(r"<<([^=<>]+)=([^<>]+)>>")
 PLAIN=re.compile(r"(\d+(?:\.\d+)?)\s*([-+*/])\s*(\d+(?:\.\d+)?)\s*=\s*(\d+(?:\.\d+)?)")
 random.seed(0)
-ANYNUM=re.compile(r"(?<![\\w.])(\\d+(?:\\.\\d+)?)(?![\\w.])")
+ANYNUM=re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?![\w.])")
+# --- TU KIEM REGEX (luat vong #54): chet NGAY thay vi chay het 400 bai roi moi lo ---
+_t = r"We have $2 + 3 = 5$ then $5 \times 4 = 20$, so \boxed{20}."
+assert len(ANYNUM.findall(_t)) >= 4, f"REGEX TIEM LOI HONG: chi khop {ANYNUM.findall(_t)}"
+print("tu kiem regex: OK", ANYNUM.findall(_t)[:5], flush=True)
+
 def corrupt_any(chain):
     """MATH: doi MOT so bat ky trong THAN bai (tru \\boxed cuoi) -> mau thuan noi tai."""
     b=chain.rfind("\\boxed"); body=chain[:b] if b>0 else chain
