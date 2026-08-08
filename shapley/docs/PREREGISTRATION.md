@@ -1363,3 +1363,45 @@ Số thô của #36 (vô hiệu) là +.047 (GSM8K, 5/5) và +.035 (MATH, 2/5). T
 tương tự: **dương nhỏ ở GSM8K (~+3 đến +5 điểm), không khác 0 ở MATH.**
 Nếu đúng thì phát biểu cuối của dự án là: bỏ phiếu có trọng số giúp VÀI ĐIỂM ở GSM8K 1.5B,
 KHÔNG tổng quát sang MATH — khiêm tốn hơn nhiều so với "+11.0 điểm" tôi từng viết.
+
+---
+
+# Đăng ký trước #38 — H32: PIPELINE VAI TRÒ vs LẤY MẪU LẶP **Ở CÙNG NGÂN SÁCH**
+**Viết TRƯỚC khi chạy.** Đây là phép thử mà toàn bộ dự án đã THIẾU.
+
+## Lỗ hổng trong chính bằng chứng của tôi
+Mọi so sánh "pipeline > solver đơn" của dự án đều cho pipeline **NHIỀU LƯỢT SINH HƠN**:
+`P→S→V` dùng 3 lượt, `Solver` dùng 1 lượt. Nên "+5.6 điểm" có thể HOÀN TOÀN là do
+"sinh 3 lần thì tốt hơn sinh 1 lần", KHÔNG phải do phân vai.
+Bằng chứng gián tiếp đã có (Planner giải rồi giấu; Verifier tái sử dụng 0%; `S_anc` không có
+chữ "kiểm" nào vẫn ngang verifier; giả dược `X_cross` sửa nhiều nhất) đều nói vai KHÔNG chuyên biệt.
+Nhưng **chưa ai đo trực tiếp**: ở CÙNG số lượt sinh, pipeline có hơn bỏ phiếu không?
+
+## Thiết kế — MỌI nhánh đúng 3 LƯỢT SINH, cùng bài, cùng model, 5 fold
+- `greedy1` : 1 lượt (mốc dưới, để quy chiếu)
+- **`maj3`** : 3 mẫu độc lập (temp .8) -> đếm phiếu
+- **`PSV`**  : Planner -> Solver -> Verifier (đúng pipeline của dự án)
+- **`SVV`**  : Solver -> Verifier -> Verifier (2 lượt kiểm, không có Planner)
+- `SS_anc`  : Solver -> giải lại CÓ mỏ neo -> giải lại CÓ mỏ neo (không có chữ "kiểm" nào)
+**BẮT BUỘC đếm SỐ TOKEN SINH RA của từng nhánh** — ngân sách công bằng phải tính theo TOKEN,
+không chỉ theo số lượt. Báo `tokens_per_arm`.
+
+## Chỉ số chính
+`maj3 − PSV` theo từng fold. Phụ: `SVV − maj3`, `SS_anc − PSV`, và token của mỗi nhánh.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `maj3` >= `PSV` ở >=4/5 fold | **PIPELINE VAI TRÒ KHÔNG MANG LỢI ÍCH GÌ ngoài việc sinh nhiều lần.** Phải phát biểu thẳng trong README: lợi ích đã báo cáo của pipeline là lợi ích của LẤY MẪU LẶP. Kiến trúc phân vai KHÔNG đáng dùng ở quy mô này. |
+| `PSV` > `maj3` ở >=4/5 fold | Pipeline CÓ thêm giá trị vượt trên lấy mẫu. Vai có ý nghĩa. Phải rút lại cách đọc "vai không chuyên biệt". |
+| Bằng nhau trong sàn nhiễu | Lợi ích là của LẤY MẪU, vai chỉ là cách LẤY MẪU ĐA DẠNG tốn kém hơn. Khuyến nghị: dùng bỏ phiếu, rẻ và đơn giản hơn. |
+| `PSV` ngang `maj3` NHƯNG tốn NHIỀU TOKEN HƠN | Pipeline **TỆ HƠN** ở cùng chất lượng. Phải nói rõ là tệ hơn, không phải "ngang". |
+| `SS_anc` ≈ `PSV` | Xác nhận thêm: bỏ hết ngôn ngữ vai mà kết quả không đổi -> vai là NHÃN, không phải cơ chế. |
+| `SVV` > `PSV` | Planner có hại; nên bỏ Planner, dồn ngân sách cho lượt kiểm. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 1 hoặc hàng 3** — tức `maj3` ngang hoặc hơn `PSV`. Lý do: mọi bằng chứng cơ chế
+đã đo đều nói vai không chuyên biệt, và đếm phiếu chưa từng bị đánh bại một cách hợp lệ.
+Nếu ra hàng 1 thì đây là kết luận LỚN NHẤT và KHIÊM TỐN NHẤT của dự án: **kiến trúc đa tác tử
+phân vai, ở quy mô này, chỉ là một cách đắt tiền để lấy mẫu nhiều lần.**
+Tôi ghi trước rằng kết luận đó sẽ phủ định phần lớn công sức 60 vòng lặp của chính tôi.
