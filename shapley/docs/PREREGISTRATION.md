@@ -1121,3 +1121,43 @@ Tôi đoán MATH 1.5B TÁI LẬP (còn nhiều khoảng trống: maj@8 .533 vs o
 GSM8K 7B KHÔNG (đã bão hoà, maj@8 chỉ hơn greedy +.01, gần như không còn gì để cân).
 Nếu đúng vậy thì rơi hàng 4, và phát biểu phải KÈM ĐIỀU KIỆN về dải độ khó — KHÔNG được
 nói gọn thành "bỏ phiếu có trọng số luôn tốt hơn".
+
+---
+
+# Đăng ký trước #32 — H29: ĐƯỜNG CONG NĂNG LỰC CỦA VIỆC KIỂM LỖI (1.5B → 32B)
+**Viết TRƯỚC khi chạy.** Chạy trên RTX 6000 Pro (102 GB) — T4 KHÔNG chạy nổi 32B bf16 (59 GB).
+
+## Vì sao đây là thí nghiệm đáng chạy nhất trên GPU lớn
+Phát biểu trung tâm, lặp lại nhiều lần nhất của dự án là "bộ máy chỉ hoạt động khi MODEL ĐI KIỂM
+đủ mạnh". Hiện nó dựa trên ĐÚNG HAI ĐIỂM: 1.5B (suy biến .99, VÔ HIỆU) và 7B (phân biệt +.651).
+Hai điểm thì vẽ được đường qua bất cứ đâu. Thêm 14B và 32B biến nó thành ĐƯỜNG CONG THẬT.
+Đồng thời điểm 7B cũ đo ở **4-bit** — bản thân lượng tử hoá là một biến gây nhiễu CHƯA loại trừ
+cho hiện tượng suy biến. Lần này chạy **bf16 toàn bộ**, cùng dữ liệu, cùng prompt.
+
+## Thiết kế
+Nhiệm vụ: PHÁT HIỆN LỖI SỐ HỌC TIÊM SẴN (như dt2/dt4), trên **MATH-500** (GSM8K bão hoà ở >=7B
+nên tầng ZERO rỗng — đã ghi nhận ở vòng #47/#48).
+Model: **7B bf16** (mốc sạch, loại bỏ 4-bit) · **14B bf16** · **32B bf16** — cùng kernel, tuần tự.
+Phân tầng theo năng lực giải của CHÍNH model đó (k=8). Chỉ số: phân biệt = phát hiện − báo động giả.
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên luật đã lập ở #26/#28/#30)
+`degenerate_rate` > .90 -> tầng VÔ HIỆU · `parse_fail_rate` > .20 -> cả model VÔ HIỆU
+· `pct_problems_corruptible` < .50 -> cả lần chạy VÔ HIỆU
+· `n_pairs` < 40 ở tầng ZERO -> tầng đó chỉ báo cáo, KHÔNG kết luận
+· **BẮT BUỘC** báo GPU thật (`sm_120` hay không) để chắc chắn không tụt về P100.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phân biệt TĂNG đơn điệu 7B → 14B → 32B | **XÁC NHẬN đường cong năng lực.** Phát biểu trung tâm của dự án có cơ sở định lượng, không còn là suy diễn từ 2 điểm. |
+| Phân biệt BÃO HOÀ từ 14B (14B ≈ 32B) | Có NGƯỠNG, không phải thang liên tục. Khuyến nghị thực tiễn đổi hẳn: "đủ 14B là đủ", không cần model lớn hơn. |
+| 7B bf16 KHÁC RÕ 7B 4-bit (đã đo +.651) | **Lượng tử hoá là biến gây nhiễu.** Mọi kết luận 4-bit trước đây của dự án phải gắn cảnh báo, kể cả dt2_g7. |
+| Phân biệt KHÔNG tăng theo cỡ (phẳng hoặc lộn xộn) | **BÁC đường cong năng lực.** Kích thước model KHÔNG phải biến giải thích; phải tìm biến khác (dữ liệu huấn luyện, RLHF, họ model). Đây sẽ là đòn mạnh vào phát biểu trung tâm — phải nói thẳng. |
+| Tầng ZERO đủ n>=40 và phân biệt >= .40 ở 14B/32B | Kiểm lỗi TÁCH RỜI khỏi giải, xác nhận ở năng lực cao + miền thứ hai. Cộng dt2_g7 thành bằng chứng hai miền. |
+| Model lớn cũng suy biến (>.90) | Suy biến KHÔNG phải vấn đề năng lực mà là vấn đề ĐỊNH DẠNG CÂU HỎI. Phải thiết kế lại cách hỏi, không đổ cho model nhỏ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán phân biệt TĂNG từ 7B lên 14B rồi BÃO HOÀ ở 32B (hàng 2). Tôi cũng đoán 7B bf16 ≈ 7B 4-bit
+(tức lượng tử hoá KHÔNG phải thủ phạm) — nhưng đây là điều tôi ÍT CHẮC NHẤT và chính là lý do
+phải có mốc 7B bf16 trong cùng lần chạy.
+Ghi rõ: prior gần nhất của tôi (H27 rerank sẽ thắng) đã SAI, nên không nên tin prior này quá.
