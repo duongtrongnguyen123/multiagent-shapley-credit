@@ -1305,3 +1305,34 @@ Bảng diễn giải của #30 và mọi ngưỡng hiệu lực (#26/#28) GIỮ 
 Lý do thêm ô 1.5B: `dt2_g15` cho 1.5B suy biến .99 trên GSM8K (VÔ HIỆU). Chạy 1.5B trên MATH
 cùng lần này để biết suy biến là do NĂNG LỰC hay do MIỀN — hai khả năng chưa tách được.
 Nếu 1.5B lại suy biến >.90 trên MATH thì đó là NĂNG LỰC; nếu không thì trước đây là do miền.
+
+---
+
+# Đăng ký trước #36 — H28c: ĐO LẠI BỎ PHIẾU CÓ TRỌNG SỐ SAU KHI SỬA LỖI RÒ RỈ ADAPTER
+**Viết TRƯỚC khi chạy.** Mọi kết quả bỏ phiếu có trọng số trước đây đều BỊ NHIỄM (vòng #59).
+
+## Lỗi đã sửa
+Mẫu ĐÁNH GIÁ được sinh khi LoRA Yes/No vẫn BẬT -> solver bị chính bộ chấm làm hỏng.
+Bằng chứng: cùng ô, cùng dữ liệu, chỉ khác lượng huấn luyện (800 vs 1600 bước) ->
+`greedy1` .5167 vs .3867, `maj@8` .7067 vs .5467, và `wsum−maj` +.030 vs +.110.
+Sửa: `gen(..., adapter=False)` mặc định -> mọi lời giải sinh bằng **MODEL GỐC**;
+adapter CHỈ bật khi CHẤM ĐIỂM.
+
+## NGƯỠNG HIỆU LỰC MỚI (khoá trước) — bắt lại đúng lỗi này
+`adapter_leak` = `pre_acc` − `post_acc` (độ chính xác mẫu TRƯỚC vs SAU huấn luyện).
+Nếu **|leak| > .05** -> lần chạy **VÔ HIỆU**: adapter vẫn rò rỉ vào pha giải.
+Giữ nguyên: AUC > .55.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `wsum − maj` > 0, >=4/5 fold, leak <= .05 | Bỏ phiếu có trọng số ĐỨNG VỮNG sau khi sửa lỗi. Độ lớn MỚI là con số được phép công bố; con số +11.0 cũ phải bị RÚT. |
+| `wsum − maj` ≈ 0 sau khi sửa | **Hiệu ứng trước đây PHẦN LỚN là hiện vật của solver bị hỏng.** Phải RÚT LẠI H28/H28b/H31 và ghi rõ dự án KHÔNG có cơ chế nào vượt `maj@8`. |
+| `wsum − maj` > 0 nhưng NHỎ HƠN NHIỀU con số cũ | Hiệu ứng THẬT nhưng đã bị lỗi thổi phồng. Công bố con số mới, ghi rõ mức thổi phồng. |
+| leak > .05 dù đã sửa | VÔ HIỆU; còn đường rò rỉ khác chưa tìm ra. Phải tìm tiếp, KHÔNG được đọc số. |
+| `maj@8` mới ≈ .70 (khớp wv_g15) chứ không phải .55 | Xác nhận chẩn đoán: baseline thấp trước đây đúng là do adapter rò rỉ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán hiệu ứng VẪN DƯƠNG nhưng NHỎ HƠN NHIỀU +11.0 — có lẽ quanh +2 đến +4 điểm, tức gần
+với `wv_g15` (+.030) hơn là `ws_g15` (+.110), vì `wv_g15` huấn luyện ít hơn nên rò rỉ ít hơn.
+Nếu ra hàng 2 (≈0) thì dự án MẤT kết quả dương duy nhất của mình, và tôi phải nói thẳng điều đó.
