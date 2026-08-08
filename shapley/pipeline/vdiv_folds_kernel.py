@@ -193,8 +193,8 @@ for f in range(NF):
     # CƠ CHẾ: các ứng viên trong mỗi nhóm có sai GIỐNG NHAU không?
     def diversity(group):
         """tỉ lệ câu có >=2 đáp án khác nhau; và số đáp án phân biệt trung bình."""
-        distinct = [len({norm(pred(g[k][i])) for k in range(3)
-                         if norm(pred(g[k][i]))}) for i in range(n)]
+        distinct = [len({norm(pred(group[k][i])) for k in range(3)
+                         if norm(pred(group[k][i]))}) for i in range(n)]
         return (sum(1 for x in distinct if x > 1) / n, statistics.mean(distinct))
     for nm, grp in (("V", [v1, v2, v3]), ("S", [sol, s2, s3]), ("N", [n1, n2, n3])):
         dis, mean_d = diversity(grp)
