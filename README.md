@@ -61,20 +61,19 @@ chính bảng Shapley ban đầu:
 > **không cái nào vượt `maj@8`**. Chỉ **bỏ phiếu CÓ TRỌNG SỐ** (`cỡ nhóm × điểm`) vượt được,
 > +2.0 đến +5.0 điểm, và độ lớn tỉ lệ với khoảng trống còn lại.
 >
-> **⚠️ ĐÍNH CHÍNH (đo ở H30, đăng ký trước #33).** Các bản README trước viết "còn **+14.0 điểm**
-> khoảng trống `maj@8 → oracle@8` chưa ai lấy được". Con số đó **BỊ THỔI PHỒNG**.
-> `oracle@k` tính là THÀNH CÔNG cả những bài mà **chỉ 1 trong k mẫu** đúng — trên GSM8K đáp án là
-> số nguyên nên phần lớn nhiều khả năng là TRÙNG SỐ chứ không phải lập luận đúng.
-> Thay bằng `oracle_solid@k` (đòi **>=2/k** mẫu cùng ra đáp án đúng):
+> **⚠️ ĐÍNH CHÍNH HAI CHIỀU (H30 → đăng ký trước #33, rồi H31 → #35 SỬA LẠI CHÍNH NÓ).**
+> Các bản README trước viết "còn **+14.0 điểm** khoảng trống `maj@8 → oracle@8` chưa ai lấy được".
+> Chúng tôi đã đính chính con số đó bằng `oracle_solid` (đòi **>=2/k** mẫu đúng) — rồi **phải
+> đính chính chính bản đính chính đó**. Kết luận đúng: **KHÔNG có con số đơn nào là "khoảng trống thật".**
 >
-> | ô | `oracle@8 − maj@8` | **`oracle_solid@8 − maj@8`** | còn lại |
-> |---|---|---|---|
-> | GSM8K 1.5B | +.175 | **+.060** | 34% |
-> | MATH 1.5B | +.075 | **+.005** (2/5 fold ÂM) | 7% |
+> | chỉ số | lệch chiều nào | bằng chứng |
+> |---|---|---|
+> | `oracle@k` | **PHÓNG ĐẠI** — tính THÀNH CÔNG cả bài chỉ **1/k** mẫu đúng; GSM8K đáp án là số nguyên nên phần lớn là TRÙNG SỐ | H30: loại các bài đó thì khoảng trống chỉ còn 34% (GSM8K) / 7% (MATH) |
+> | `oracle_solid@k` | **HẠ THẤP** — loại cả những lần model giải đúng THẬT nhưng chỉ 1 lần. Khi 8 mẫu ra 8 đáp án khác nhau, `maj@8` vẫn có thể trúng bằng **1 phiếu**, còn `oracle_solid` tính là TRƯỢT | H31: trên MATH `oracle_solid` = .285 **THẤP HƠN `maj@8`** = .295 — một "trần" mà baseline vượt qua được thì không phải trần |
 >
-> Khoảng trống THẬT nhỏ hơn ~**3×** (GSM8K) và ~**14×** (MATH); ở MATH nó **không khác 0**.
-> Hệ quả: bỏ phiếu có trọng số lấy được phần LỚN HƠN NHIỀU của khoảng trống thật so với
-> những gì chúng tôi từng nghĩ — nhưng phần còn lại để giành cũng ÍT hơn nhiều.
+> **Trần thật nằm trong khoảng [`oracle_solid`, `oracle`].**
+> Bằng chứng cứng nhất: trên GSM8K 1.5B, **bỏ phiếu có trọng số đạt `maj@8` +11.0 điểm (5/5 fold)**
+> trên CÙNG bộ 8 mẫu — nên trần thật **ít nhất** là mức đó.
 
 **RL trên verifier học cách IM LẶNG:** GRPO thưởng theo độ chính xác can thiệp đẩy precision lên
 **1.00 ở cả 5 fold (0 lần phá)** — nhưng `V_gain` **GIẢM** (+.068→+.044, 0/5 fold tốt hơn) vì số
