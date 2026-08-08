@@ -1938,3 +1938,47 @@ Toàn bộ cách tính "% khoảng trống lấy được" ở trên dựa vào 
 thấy 12–16 điểm của `oracle@8` trên GSM8K là "chỉ 1/8 mẫu đúng" — có thể phần lớn là TRÙNG SỐ.
 Nếu H30 xác nhận, MẪU SỐ của mọi tỉ lệ trên đều SAI và phải tính lại theo `oracle_solid`.
 Khi đó "lấy được 20–48%" có thể thành một con số CAO HƠN NHIỀU (vì khoảng trống thật nhỏ hơn).
+
+## [Loop] VÒNG #57 — H30 CHỐT: **KHOẢNG TRỐNG maj→oracle BỊ THỔI PHỒNG**. Phải sửa RESULTS.md và README.
+### ks_g15 (GSM8K 1.5B, n=200) và ks_m15 (MATH 1.5B, n=200) — cùng bộ 16 mẫu, mọi k là tiền tố
+| | k | maj@k | oracle@k | **oracle_solid@k** | gap | **gap_solid** |
+|---|---|---|---|---|---|---|
+| GSM8K | 2 | .580 | .710 | .415 | +.130 | **−.165** |
+| GSM8K | 4 | .670 | .800 | .635 | +.130 | **−.035** |
+| **GSM8K** | **8** | **.740** | **.915** | **.800** | **+.175** | **+.060** |
+| GSM8K | 16 | .790 | .940 | .910 | +.150 | +.120 |
+| MATH | 2 | .320 | .420 | .250 | +.100 | −.070 |
+| MATH | 4 | .395 | .490 | .375 | +.095 | −.020 |
+| **MATH** | **8** | **.465** | **.540** | **.470** | **+.075** | **+.005** |
+| MATH | 16 | .500 | .615 | .535 | +.115 | +.035 |
+
+### PHÁN QUYẾT: **HÀNG 2 của bảng đã khoá (#33)**, nổ ở CẢ HAI ô
+"`oracle_solid@8 − maj@8` NHỎ HƠN NHIỀU (< một nửa) -> khoảng trống bị THỔI PHỒNG bởi các mẫu
+đúng-do-may. **Tôi PHẢI sửa lại RESULTS.md và README**, và hạ mục tiêu của hướng tổng hợp xuống
+con số thật."
+GSM8K: **.060 / .175 = 34%** sống sót · MATH: **.005 / .075 = 7%** sống sót. Cả hai < 50%.
+gap_solid theo fold — GSM8K [0, .075, .05, .10, .075] (4 dương, 1 hoà);
+MATH [.025, −.025, .05, −.025, 0] (**2 dương, 2 ÂM, 1 hoà — không khác 0**).
+
+### PHÁT BIỂU ĐÚNG THAY CHO PHÁT BIỂU CŨ
+CŨ (đã đưa vào README, SAI LỆCH): "còn +14.0 điểm khoảng trống maj→oracle chưa ai lấy được".
+MỚI (đo được): khoảng trống *maj→oracle* PHÓNG ĐẠI khoảng trống thật **~3× ở GSM8K** và
+**~14× ở MATH**. Ở MATH, khoảng trống thật **KHÔNG KHÁC 0** (2/5 fold âm).
+`oracle@k` tính là THÀNH CÔNG cả những bài mà chỉ 1/k mẫu đúng — trên GSM8K đáp án là số nguyên
+nên phần lớn nhiều khả năng là TRÙNG SỐ, không phải lập luận đúng.
+
+### PRIOR CỦA TÔI ĐÚNG LẦN NÀY — và nó chống lại chính tôi
+Pre-reg #33 tôi ghi: "Tôi đoán `oracle_solid` sẽ THẤP HƠN RÕ... nếu đúng thì đây là lần tự sửa
+thứ ba, và lần này là sửa một con số tôi đã ĐƯA VÀO README như điểm nhấn." Đúng như vậy.
+
+### HỆ QUẢ TÍCH CỰC CHO H28 (bỏ phiếu có trọng số) — nhưng phải đo lại tử số/mẫu số
+Nếu khoảng trống THẬT ở GSM8K 1.5B chỉ ~+6.0 điểm (không phải +14.0) thì `wvote_sum` (+3.0)
+lấy được **~50%** khoảng trống thật, không phải 20.5%. Bỏ phiếu có trọng số TỐT HƠN tôi tưởng.
+CẢNH BÁO: KHÔNG được ghép số giữa các lần chạy khác nhau — `ks_m15` có maj@8 .465 còn `wv_m15`
+có .265 (khác nửa dữ liệu MATH-500 và khác nhiệt độ lấy mẫu). Muốn tỉ lệ đúng thì phải đo
+`oracle_solid` NGAY TRONG cùng kernel với `wvote_sum`. Đó là việc tiếp theo.
+
+### HÀNG VỀ XU HƯỚNG THEO k: KHÔNG kết luận (đúng như sửa đổi đã ghi trước)
+`gap_solid` KHÔNG phẳng — nó TĂNG theo k (−.165 → +.120 ở GSM8K). Nhưng dãy chỉ tới k=16
+nên theo sửa đổi đã đăng ký, mọi kết luận về xu hướng k lớn là YẾU. Phải chạy k=64 khi được
+phép dùng RTX 6000 Pro.
