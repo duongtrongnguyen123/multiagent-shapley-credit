@@ -9,24 +9,26 @@ việc* thì thỉnh thoảng phải sinh ra thứ mới; một *trạm trung ch
 
 ## Bảng
 
-| chỉ số hành vi | GSM8K 1.5B | MATH 1.5B | **MATH 7B** |
-|---|---|---|---|
-| n | 150 | 150 | 100 |
-| **PLANNER** — *"Do NOT compute the final answer"* | | | |
-| kế hoạch chứa sẵn đáp án đúng | 6.7% | **33.3%** | **1.0%** |
-| kế hoạch có `\boxed{}` | 3.3% | **45.3%** | **0.0%** |
-| **SOLVER** — *"solve step by step"* | | | |
-| lượt không sinh số mới nào | **60.7%** | **62.0%** | **11.0%** |
-| độ dài lời giải (median) | **19** | 344 | **1247** |
-| … khi không có plan | 664 | 1384 | 1264 |
-| **VERIFIER** — *"check each step"* | | | |
-| tái sử dụng số của Solver | 67.7% | 77.2% | 87.0% |
-| … khi thật sự đổi đáp án | 42.5% | 70.1% | 69.2% |
-| tỉ lệ lượt có can thiệp | 32.7% | 38.0% | **14.0%** |
-| **AGGREGATOR** — *"decide by re-checking"* | | | |
-| lặp lại đáp án Verifier | 93.3% | 73.3% | **97.0%** |
-| **đáp án không có trong đầu vào** | 1.3% | 12.0% | 3.0% |
-| … trong đó **đúng** | **1 ca** | **1 ca** | **1 ca** |
+Lưới **2×2 đầy đủ** (task × năng lực):
+
+| chỉ số hành vi | GSM8K 1.5B | MATH 1.5B | **GSM8K 7B** | **MATH 7B** |
+|---|---|---|---|---|
+| n | 150 | 150 | 100 | 100 |
+| **PLANNER** — *"Do NOT compute the final answer"* | | | | |
+| kế hoạch chứa sẵn đáp án đúng | 14.0% | **34.7%** | **1.0%** | **4.0%** |
+| kế hoạch có `\boxed{}` | 3.3% | **45.3%** | **0.0%** | **0.0%** |
+| **SOLVER** — *"solve step by step"* | | | | |
+| lượt không sinh số mới nào | **60.7%** | **62.0%** | **1.0%** | **11.0%** |
+| độ dài lời giải (median) | **19** | 344 | **821** | **1247** |
+| … khi không có plan | 664 | 1384 | 754 | 1264 |
+| **VERIFIER** — *"check each step"* | | | | |
+| tái sử dụng số của Solver | 67.7% | 77.2% | 85.8% | 87.0% |
+| … khi thật sự đổi đáp án | 42.5% | 70.1% | 75.6% | 69.2% |
+| tỉ lệ lượt có can thiệp | 32.7% | 38.0% | **4.0%** | **14.0%** |
+| **AGGREGATOR** — *"decide by re-checking"* | | | | |
+| lặp lại đáp án Verifier | 93.3% | 73.3% | **100.0%** | **97.0%** |
+| **đáp án không có trong đầu vào** | 1.3% | 12.0% | **0.0%** | 3.0% |
+| … trong đó **đúng** | 1 ca | 1 ca | **0 ca** | 1 ca |
 
 ## Kết luận: chuyên biệt hóa là **có điều kiện**, không phải hoàn toàn danh nghĩa
 
@@ -47,17 +49,20 @@ là 19 vs 664 trên GSM8K, tức gấp **35 lần**.
 tính chất của kiến trúc multi-agent. Tuyên bố *"specialization is nominal"* **không đúng ở 7B**
 cho hai vai này.
 
-### KHÔNG phân hóa — Aggregator
+### KHÔNG phân hóa — Aggregator (xác nhận ở cả 4 ô)
 
-Đây là phần bất ngờ. Nâng lên 7B khiến Aggregator **tệ hơn về mặt tự chủ**:
+Đây là phần bất ngờ. Nâng lên 7B khiến Aggregator **tệ hơn về mặt tự chủ**, ở **cả hai task**:
 
-| | 1.5B | 7B |
-|---|---|---|
-| lặp lại đáp án Verifier | 73.3% | **97.0%** |
-| đáp án không có trong đầu vào | 12.0% | 3.0% |
+| | GSM8K 1.5B | GSM8K 7B | MATH 1.5B | MATH 7B |
+|---|---|---|---|---|
+| lặp lại đáp án Verifier | 93.3% | **100.0%** | 73.3% | **97.0%** |
+| đáp án không có trong đầu vào | 1.3% | **0.0%** | 12.0% | 3.0% |
 
-**Nó chép nhiều hơn, không ít hơn.** Và trên tổng **400 câu ở cả ba cấu hình**, nó sinh ra đáp
-án mới-và-đúng đúng **3 lần** — mỗi cấu hình 1 ca.
+**Nó chép nhiều hơn, không ít hơn.** Ở GSM8K 7B nó lặp lại Verifier ở **100%** số câu — không
+một lần nào đi chệch.
+
+Trên tổng **500 câu ở cả bốn ô**, Aggregator sinh ra đáp án mới-và-đúng đúng **3 lần**. Đây là
+kết luận **bền qua toàn bộ lưới** — hiếm trong dự án này, nơi phần lớn hiệu ứng đảo dấu.
 
 Diễn giải hợp lý: ở 7B, ứng viên đầu vào đã tốt hơn nên "đồng ý" là hành vi hợp lý. Nhưng dù lý
 do là gì, kết quả vẫn là **Aggregator không tính toán ở bất kỳ mức năng lực nào đã đo**. Đây là
@@ -69,21 +74,27 @@ kết luận **bền qua cả ba ô** — hiếm trong dự án này, nơi phầ
 (77% → 87%). Tức nó chuyển từ *"giải lại"* sang *"đọc rồi phần lớn đồng ý"*. Kèm theo là
 `V_gain` sụp về +0.010 [−.05, +.05], chỉ 2/5 fold dương.
 
-## Một kết quả phụ đáng chú ý: ở 7B, pipeline LÀM HẠI
+## Một kết quả phụ đáng chú ý: ở 7B, pipeline LÀM HẠI — trên CẢ HAI task
 
-| tầng | acc |
-|---|---|
-| **Solver một mình** | **.720** |
-| P→S | .670 |
-| P→S→V | .680 |
-| P→S→V→A | .690 |
+| tầng | MATH 7B | GSM8K 7B |
+|---|---|---|
+| **Solver một mình** | **.720** | **.910** |
+| P→S | .670 | .900 |
+| P→S→V | .680 | .890 |
+| P→S→V→A | .690 | .890 |
 
-**Solver 7B làm một mình tốt hơn cả pipeline đầy đủ 3 điểm.** Thêm Planner làm mất 5 điểm; V và
-A gỡ lại được 2. Khớp với kết luận của main rằng mọi cải thiện đều thua việc dùng model to hơn —
-ở đây còn mạnh hơn: **thua chính model đó chạy một mình.**
+**Solver 7B làm một mình tốt hơn cả pipeline đầy đủ** — hơn 3 điểm trên MATH, 2 điểm trên GSM8K.
+Trên GSM8K, mỗi tầng thêm vào đều làm giảm hoặc giữ nguyên: `V_gain` −0.010 (**0/5 fold** dương),
+`A_gain` 0.000 (**0/5**).
 
-Verifier 7B gỡ được **0/10** lỗi do plan gây ra và 2/23 lỗi Solver tự gây, ngược hẳn với 1.5B
-(62% và 8% trên MATH).
+Khớp với kết luận của main rằng mọi cải thiện đều thua việc dùng model to hơn — ở đây còn mạnh
+hơn: **thua chính model đó chạy một mình.**
+
+Verifier 7B gỡ được **0/4** lỗi do plan gây ra và **0/6** lỗi Solver tự gây trên GSM8K (MATH:
+0/10 và 2/23). Ngược hẳn 1.5B, nơi nó gỡ 62% lỗi do plan trên MATH và 71% trên GSM8K.
+
+⇒ Verifier **chỉ hữu ích khi Solver còn yếu**. Khi Solver đủ mạnh (.910 trên GSM8K), việc kiểm
+tra không còn gì để sửa mà vẫn giữ nguyên rủi ro phá.
 
 ## Phát biểu đúng
 
@@ -98,9 +109,10 @@ nơi nó **được kỳ vọng giúp**.
 
 ## Giới hạn
 
-- 7B chỉ n=100 (5 fold × 20), chạy 4-bit nf4. Các Δ accuracy đều dưới sàn nhiễu ~5 điểm nên
-  phần accuracy chỉ đọc được theo hướng, không theo độ lớn.
-- Chỉ số hành vi thì đáng tin hơn nhiều — chúng là thay đổi 3–45 lần (33.3%→1.0%,
-  62%→11%, 19→1247 ký tự), vượt xa mọi nhiễu đo đạc.
-- Chưa có GSM8K 7B để hoàn tất lưới 2×2. Script tự chạy khi có trace.
+- 7B chỉ n=100 mỗi ô (5 fold × 20), chạy 4-bit nf4. Các Δ accuracy đều dưới sàn nhiễu ~5 điểm
+  nên phần accuracy chỉ đọc được theo hướng, không theo độ lớn.
+- Chỉ số hành vi thì đáng tin hơn nhiều — chúng là thay đổi 3–60 lần (34.7%→4.0%, 62%→1%,
+  19→821 ký tự), vượt xa mọi nhiễu đo đạc.
+- GSM8K 7B gần bão hòa (Solver .910), nên một phần "pipeline làm hại" ở ô đó có thể chỉ là hết
+  headroom. MATH 7B (.720) thì không giải thích được bằng bão hòa.
 - Chỉ 1 họ model (Qwen2.5). Phân hóa có thể khác ở họ khác.
