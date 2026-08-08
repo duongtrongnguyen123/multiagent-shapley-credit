@@ -1982,3 +1982,50 @@ có .265 (khác nửa dữ liệu MATH-500 và khác nhiệt độ lấy mẫu).
 `gap_solid` KHÔNG phẳng — nó TĂNG theo k (−.165 → +.120 ở GSM8K). Nhưng dãy chỉ tới k=16
 nên theo sửa đổi đã đăng ký, mọi kết luận về xu hướng k lớn là YẾU. Phải chạy k=64 khi được
 phép dùng RTX 6000 Pro.
+
+## [Loop] VÒNG #58 — H31: bỏ phiếu có trọng số VƯỢT trần `oracle_solid` -> **TÔI PHẢI SỬA CHÍNH ĐÍNH CHÍNH CỦA MÌNH**
+### ws_g15 (GSM8K 1.5B, AUC .9113) — CÙNG kernel, CÙNG mẫu
+maj@8 **.5467** | wvote_sum **.6567** | oracle@8 .7600 | **oracle_solid@8 .6333**
+`wsum − maj` = **+.110** (5/5 fold dương) · `gap(oracle)` = +.213 · **`gap_solid` = +.0866**
+=> `wsum − maj` (+.110) **LỚN HƠN** `gap_solid` (+.0866) -> lấy được **127%** "khoảng trống thật".
+
+### ws_m15 (MATH 1.5B, AUC .959)
+maj@8 .2950 | wvote_sum .3050 | oracle@8 .3700 | **oracle_solid@8 .2850**
+`gap_solid` = **−.010 (ÂM)** — tức `oracle_solid` **THẤP HƠN CẢ maj@8**.
+`wsum − maj` = +.010 (2 dương / 2 âm / 1 hoà) -> KHÔNG khác 0 ở ô này.
+
+### PHÁN QUYẾT: **HÀNG 1 ở GSM8K** (tỉ lệ >= 50%), và **HÀNG 2 lộ ra ở CẢ HAI ô**
+Hàng 2 đã khoá: "`wvote_sum` vượt cả trần `solid` -> `oracle_solid` là trần **QUÁ CHẶT**,
+đã lọc mất cả những lần giải đúng THẬT. Phải nói rõ trần thật nằm GIỮA `oracle_solid` và `oracle`."
+
+### VÌ SAO `oracle_solid` CÓ THỂ THẤP HƠN `maj@8` — chứng minh, không phải phỏng đoán
+Khi cả 8 mẫu cho 8 đáp án KHÁC NHAU, `maj@8` vẫn phải chọn một, và nó CÓ THỂ trúng đáp án đúng
+dù đáp án đó chỉ có **1 phiếu**. `oracle_solid` (đòi >=2 mẫu đúng) tính bài đó là THẤT BẠI.
+=> `oracle_solid` KHÔNG phải trần hợp lệ: một "trần" mà baseline vượt qua được thì không phải trần.
+
+### TỰ SỬA LẦN THỨ TƯ — VÀ LẦN NÀY LÀ SỬA CHÍNH BẢN ĐÍNH CHÍNH
+Vòng #57 tôi đã sửa README: "khoảng trống thật chỉ +.060 (GSM8K) / +.005 (MATH)".
+Con số đó dùng `oracle_solid` làm trần. Nay đo được `oracle_solid` là **CẬN DƯỚI**, không phải trần.
+PHÁT BIỂU ĐÚNG (cả hai chiều):
+  · `oracle@k` **PHÓNG ĐẠI** (tính cả bài chỉ 1/k mẫu đúng do TRÙNG SỐ) — H30 vẫn đúng ở điểm này.
+  · `oracle_solid@k` **HẠ THẤP** (loại cả bài model giải đúng THẬT nhưng chỉ 1 lần, và có thể
+    tụt xuống dưới cả maj@8) — H31 đo được.
+  · **Trần thật nằm trong khoảng [`oracle_solid`, `oracle`].** Không con số đơn nào là "khoảng trống thật".
+  · Bằng chứng cứng: `wvote_sum` ĐẠT +.110 trên GSM8K, nên trần thật **ít nhất** là maj+.110.
+Bài học: khi tôi đính chính một chỉ số bằng một chỉ số khác, tôi phải kiểm chỉ số MỚI cũng
+nghiêm như chỉ số cũ. Tôi đã không làm vậy ở vòng #57 và đã công bố một con số quá bi quan.
+
+### GHI NHẬN TÍCH CỰC — con số ĐÁNG TIN NHẤT của dự án về hướng tổng hợp
+Ở GSM8K 1.5B, `wvote_sum` hơn `maj@8` **+11.0 điểm, 5/5 fold**, đo trên CÙNG bộ 8 mẫu
+(so sánh cặp tuyệt đối). Đây là hiệu ứng LỚN NHẤT và NHẤT QUÁN NHẤT dự án từng đo được cho
+một cơ chế tổng hợp. Ở MATH cùng lần chạy thì KHÔNG khác 0 -> vẫn PHỤ THUỘC Ô, đúng như #31 đã chốt.
+
+## dt5_m15 (H25d, MATH 1.5B) — TRẢ LỜI: **NĂNG LỰC**, không phải miền
+`pct_corruptible` = **.9775** (sửa regex đã ăn — trước là 0.0) · `parse_fail` = .0026 · ĐỦ LỰC mọi tầng
+(HIGH 56 / MID 102 / **ZERO 231** — lần đầu tiên tầng quyết định đủ mẫu)
+NHƯNG suy biến **.991 / .985 / 1.000** -> cả ba tầng **VÔ HIỆU**.
+=> 1.5B nói "NO" gần như 100% trên **CẢ** GSM8K (dt2_g15) **VÀ** MATH (dt5_m15).
+=> Ghi chú thực thi của #30 đã khoá trước: "nếu 1.5B lại suy biến >.90 trên MATH thì đó là NĂNG LỰC".
+   **KẾT LUẬN: NĂNG LỰC.** 1.5B không đưa ra được phán đoán nhị phân đúng/sai ở BẤT KỲ miền nào
+   bằng cách hỏi này. Không phải hiện vật của GSM8K.
+Bộ máy thí nghiệm giờ đã ĐÚNG (tiêm lỗi .9775, parse .003, ZERO n=231) — cái hỏng là MODEL, không phải phép đo.
