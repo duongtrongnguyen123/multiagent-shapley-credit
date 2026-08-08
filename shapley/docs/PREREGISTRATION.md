@@ -1203,3 +1203,42 @@ Phụ: `wvote_sum@k − maj@k` có tăng theo k không (bộ chấm có tận d�
 Tôi đoán `oracle_solid` sẽ THẤP HƠN RÕ so với `oracle`, tức khoảng trống thật NHỎ HƠN con số
 +14.0 tôi đã công bố. Nếu đúng thì đây là lần tự sửa thứ ba của dự án, và lần này là sửa một
 con số tôi đã ĐƯA VÀO README như điểm nhấn. Tôi ghi trước để không thể lờ đi.
+
+---
+
+# Đăng ký trước #34 — H29b: CHẠY LẠI ĐƯỜNG CONG NĂNG LỰC, SỬA CẮT CỤT + THIẾU LỰC + LÃNG PHÍ GPU
+**Viết TRƯỚC khi chạy.** H29 vô hiệu vì `parse_fail` .22–.23 > ngưỡng .20 đã khoá.
+**CHƯA PHÓNG** — đang chờ người dùng cho phép dùng lại RTX 6000 Pro.
+
+## Ba khiếm khuyết phải sửa (đã chẩn đoán, không phải phỏng đoán)
+1. **CẮT CỤT** — 75/300 trace hết token giữa LaTeX trước khi tới dòng `VERDICT:`.
+   Sửa: `max_new_tokens` 512 -> **1024**, VÀ ép ngắn phần lập luận
+   ("Work through it in at most 120 words, then the final line must be exactly VERDICT: YES/NO"),
+   VÀ thêm **lượt hỏi lại**: nếu lượt 1 không có `VERDICT:`, hỏi lượt 2 CHỈ để lấy phán quyết
+   (đưa lại phần lập luận đã sinh). Báo `pct_needed_retry`.
+2. **THIẾU LỰC ở tầng ZERO** — n=32/39/34 < 40. Sửa: N 200 -> **400** (dùng cả MATH-500).
+3. **LÃNG PHÍ GPU** — BS=12 là di sản T4. Sửa: BS theo cỡ model
+   (7B: 96 · 14B: 64 · 32B: 32) và **tách batch pha phát hiện khỏi pha lấy mẫu** (pha phát hiện k=1
+   nên phải dùng batch LỚN). Kernel BẮT BUỘC in `torch.cuda.max_memory_allocated()` sau mỗi pha.
+
+## Ngưỡng hiệu lực — GIỮ NGUYÊN, không nới
+`parse_fail` <= .20 (SAU khi đã hỏi lại) · `degenerate_rate` <= .90 · `pct_corruptible` >= .50
+· tầng ZERO cần n >= 40 mới được dùng để kết luận · `assert sm_120`.
+**KHÔNG được nới ngưỡng để cứu kết quả.** Nếu vẫn > .20 thì nhiệm vụ này KHÔNG đo được trên MATH
+bằng cách hỏi hiện tại, và phải đổi thiết kế chứ không đổi ngưỡng.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số) — giữ nguyên bảng của #32
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| Phân biệt tăng đơn điệu 7B→14B→32B, tất cả HỢP LỆ | XÁC NHẬN đường cong năng lực. |
+| Bão hoà từ 14B | Có NGƯỠNG, không phải thang liên tục -> "đủ 14B là đủ". |
+| Không tăng theo cỡ | BÁC đường cong năng lực; cỡ model không phải biến giải thích. |
+| Tầng ZERO n>=40 và phân biệt >= .40 | Kiểm lỗi TÁCH RỜI khỏi giải ở năng lực cao. |
+| Tầng ZERO n>=40 nhưng phân biệt ≈ 0 trong khi HIGH cao | Kiểm lỗi BỊ CHẶN bởi năng lực giải. Phải rút lại cách đọc lạc quan ở vòng #48. |
+| `parse_fail` vẫn > .20 | VÔ HIỆU lần hai -> BỎ thiết kế hỏi-phán-quyết trên MATH, chuyển sang cách đo khác. |
+
+## GHI CHÚ TRUNG THỰC (bắt buộc đọc kèm)
+Lần chạy trước cho HIGH = **+.337 / +.472 / +.529** — đơn điệu tăng, đúng hàng 1, đúng prior của tôi.
+Tôi đã TUYÊN VÔ HIỆU nó. Nếu lần này ra kết quả TƯƠNG TỰ, đó **KHÔNG phải** sự xác nhận của lần trước
+— lần trước không tồn tại về mặt bằng chứng. Ghi ở đây để không ai (kể cả tôi) kể lại thành
+"đã thấy trước rồi, giờ chỉ xác nhận".
