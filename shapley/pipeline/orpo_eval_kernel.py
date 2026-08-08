@@ -3,11 +3,17 @@
 # Thay đổi DUY NHẤT so với aggk: lượt Aggregator chạy qua LoRA adapter đã train. Solver vẫn là
 # model gốc, cùng seed sample, nên chênh lệch accuracy quy được về đúng một biến.
 #
+# SỐ ỨNG VIÊN PHẢI KHỚP LÚC TRAIN. Adapter train trên `pairs_k2.jsonl` — prompt có ĐÚNG 2
+# Candidate. Vòng eval đầu tiên đưa cho nó 3 ứng viên (train/eval mismatch), nên con số .500
+# ở vòng đó KHÔNG phải hiệu năng thật, và rất có thể chính mismatch gây ra `novel`=.307
+# (model rơi ngoài phân bố -> thoái hoá về "giải lại từ đầu" thay vì chọn).
+# Nhánh `agg3_orpo_ood` giữ lại đúng cấu hình sai đó làm ĐỐI CHỨNG: chênh lệch giữa agg2_orpo
+# và agg3_orpo_ood đo trực tiếp cái giá của mismatch.
+#
 # Mốc đã có (MATH 1.5B, docs/ORPO_AGGREGATOR.md + AGG_FORMAT_CHECK.md):
 #   S .413 | agg3 .467 | agg3+fallback .493 | vote5 .507 | oracle .673
-# Tiêu chí chốt TRƯỚC khi chạy: agg3-ORPO phải > vote5 (.507) và 5/5 fold cùng dấu mới tính là
-# kết quả dương thật. Kernel tính thêm `vote3` (bỏ phiếu trên ĐÚNG 3 ứng viên đó) vì vote5 dùng
-# 5 mẫu còn agg3 chỉ 3 — vote3 là so cùng ngân sách, vote5 là so thực dụng. Báo cáo cả hai.
+# `vote2` là so CÙNG NGÂN SÁCH với agg2 (2 mẫu); `vote3`/`vote5` là so THỰC DỤNG (rẻ nhất mà
+# tốt nhất hiện có). Báo cáo tất cả.
 #
 # Cũng đo lại `copies_last`: nếu accuracy không đổi mà chỉ số này giảm mạnh thì ORPO CÓ tác động
 # lên hành vi, chỉ là recency bias không phải nguyên nhân chính của lỗi — vẫn là thông tin.
@@ -143,7 +149,8 @@ def majority(answers):
     top = Counter(keys).most_common(1)[0][0]
     return next((a for a in answers if norm(a) == top), None)
 
-ARMS = ["S", "agg3_base", "agg3_orpo", "agg3_orpo_fb", "vote3"]
+ARMS = ["S", "agg2_base", "agg2_orpo", "agg2_orpo_fb", "vote2",
+        "agg3_orpo_ood", "vote3"]   # agg2_* khop train; agg3_* la doi chung OOD
 fold_stats, sample = [], []
 
 for f in range(NF):
@@ -157,24 +164,34 @@ for f in range(NF):
     c0 = gen(SOLVE_SYS, list(qs), 1024)
     c1 = gen(SOLVE_SYS, list(qs), 1024, do_sample=True, seed=2000)
     c2 = gen(SOLVE_SYS, list(qs), 1024, do_sample=True, seed=2001)
-    cands = [[c0[i], c1[i], c2[i]] for i in range(n)]
-    au = [agg_user(qs[i], cands[i]) for i in range(n)]
+    cands3 = [[c0[i], c1[i], c2[i]] for i in range(n)]
+    # K=2 là cấu hình KHỚP LÚC TRAIN (pairs_k2.jsonl có đúng 2 Candidate). Vòng eval trước
+    # dùng K=3 cho adapter train trên K=2 -> train/eval mismatch, và rất có thể chính nó gây
+    # ra `novel`=.307 (model rơi ngoài phân bố nên thoái hoá về "giải lại từ đầu").
+    cands2 = [[c0[i], c1[i]] for i in range(n)]
+    au2 = [agg_user(qs[i], cands2[i]) for i in range(n)]
+    au3 = [agg_user(qs[i], cands3[i]) for i in range(n)]
 
-    agg_b = gen(AGG_SYS, au, 1024, use_adapter=False)   # Aggregator gốc
-    agg_o = gen(AGG_SYS, au, 1024, use_adapter=True)    # Aggregator đã ORPO
-    vote3 = [majority([pred(c) for c in cands[i]]) for i in range(n)]
+    agg2_b = gen(AGG_SYS, au2, 1024, use_adapter=False)   # base, K=2 (khớp train)
+    agg2_o = gen(AGG_SYS, au2, 1024, use_adapter=True)    # ORPO, K=2 (khớp train)
+    agg3_o = gen(AGG_SYS, au3, 1024, use_adapter=True)    # ORPO, K=3 (đối chứng OOD)
+    vote2 = [majority([pred(c) for c in cands2[i]]) for i in range(n)]
+    vote3 = [majority([pred(c) for c in cands3[i]]) for i in range(n)]
 
-    # fallback miễn phí: không trích được \boxed -> lấy đáp án bỏ phiếu (AGG_FORMAT_CHECK.md)
+    # fallback miễn phí: không trích được đáp án -> lấy đáp án bỏ phiếu (AGG_FORMAT_CHECK.md)
     def fb(i):
         # GSM8K không dùng \boxed -> fallback khi không trích được đáp án nào
-        p = boxed(agg_o[i]) if TASK != "gsm8k" else pred(agg_o[i])
-        return p if p is not None else vote3[i]
+        p = boxed(agg2_o[i]) if TASK != "gsm8k" else pred(agg2_o[i])
+        return p if p is not None else vote2[i]
 
+    agg_b, agg_o, cands = agg2_b, agg2_o, cands2   # dùng cho phần lưu trace bên dưới
     ok = {
         "S":            [eq(pred(t), g) for t, g in zip(c0, gs)],
-        "agg3_base":    [eq(pred(t), g) for t, g in zip(agg_b, gs)],
-        "agg3_orpo":    [eq(pred(t), g) for t, g in zip(agg_o, gs)],
-        "agg3_orpo_fb": [eq(fb(i), gs[i]) for i in range(n)],
+        "agg2_base":    [eq(pred(t), g) for t, g in zip(agg2_b, gs)],
+        "agg2_orpo":    [eq(pred(t), g) for t, g in zip(agg2_o, gs)],
+        "agg2_orpo_fb": [eq(fb(i), gs[i]) for i in range(n)],
+        "vote2":        [eq(v, g) for v, g in zip(vote2, gs)],
+        "agg3_orpo_ood": [eq(pred(t), g) for t, g in zip(agg3_o, gs)],
         "vote3":        [eq(v, g) for v, g in zip(vote3, gs)],
     }
     d = {f"acc_{a}": sum(ok[a]) / n for a in ARMS}
@@ -185,16 +202,22 @@ for f in range(NF):
                                 and eq(pred(agg_o[i]), pred(cands[i][-1]))) / n
     d["orpo_novel"] = sum(1 for i in range(n) if pred(agg_o[i]) is not None
                           and not any(eq(pred(agg_o[i]), pred(c)) for c in cands[i])) / n
+    d["ood_novel"] = sum(1 for i in range(n) if pred(agg3_o[i]) is not None
+                         and not any(eq(pred(agg3_o[i]), pred(c)) for c in cands3[i])) / n
     d["oracle"] = sum(1 for i in range(n)
                       if any(eq(pred(c), gs[i]) for c in cands[i])) / n
+    d["oracle3"] = sum(1 for i in range(n)
+                       if any(eq(pred(c), gs[i]) for c in cands3[i])) / n
     fold_stats.append(d)
     print("  " + " | ".join(f"{a} {d[f'acc_{a}']:.3f}" for a in ARMS), flush=True)
     print(f"  copies_last base {d['base_copies_last']:.2f} -> orpo {d['orpo_copies_last']:.2f}"
-          f" | novel {d['orpo_novel']:.2f} | oracle {d['oracle']:.3f}", flush=True)
+          f" | novel K2 {d['orpo_novel']:.2f} / K3-OOD {d['ood_novel']:.2f}"
+          f" | oracle {d['oracle']:.3f}", flush=True)
 
     for i in range(n):
         sample.append({"fold": f + 1, "idx": f * FOLD + i, "q": qs[i], "gold": gs[i],
                        "candidates": cands[i], "agg_base": agg_b[i], "agg_orpo": agg_o[i],
+                       "agg3_orpo_ood": agg3_o[i],
                        "pred": {"S": pred(c0[i]), "agg_base": pred(agg_b[i]),
                                 "agg_orpo": pred(agg_o[i]), "vote3": vote3[i],
                                 "candidates": [pred(c) for c in cands[i]]},
@@ -213,7 +236,7 @@ def stats(xs):
             "max": round(max(xs), 4), "by_fold": [round(x, 4) for x in xs]}
 
 out = {"n_folds": NF, "fold_size": FOLD, "complete": True, "arms": {}}
-base = [d["acc_agg3_base"] for d in fold_stats]
+base = [d["acc_agg2_base"] for d in fold_stats]
 print("\n" + "=" * 76)
 print(f"{'nhanh':<16} {'mean':>7} {'min':>7} {'max':>7} | {'vs agg3_base':>13} {'fold':>6}")
 print("=" * 76)
@@ -227,7 +250,8 @@ for a in ARMS:
     print(f"{a:<16} {statistics.mean(accs):>7.3f} {min(accs):>7.3f} {max(accs):>7.3f} | "
           f"{statistics.mean(diffs):>+13.3f} {same:>4}/{NF}")
 
-for k in ("base_copies_last", "orpo_copies_last", "orpo_novel", "oracle"):
+for k in ("base_copies_last", "orpo_copies_last", "orpo_novel", "ood_novel",
+          "oracle", "oracle3"):
     out[k] = stats([d[k] for d in fold_stats])
     print(f"  {k:<20} {out[k]['mean']:.3f}")
 
