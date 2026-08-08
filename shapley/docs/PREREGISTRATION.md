@@ -1258,3 +1258,38 @@ và phải chạy lại tới k=64 khi được phép dùng RTX 6000 Pro.
 
 Ghi rõ: đây là THU HẸP PHẠM VI do ràng buộc phần cứng, **không phải nới ngưỡng, không phải đổi
 tiêu chí phán quyết**. Bảng diễn giải của #33 giữ NGUYÊN VẸN cho mọi hàng tại k=8.
+
+---
+
+# Đăng ký trước #35 — H31: ĐO `oracle_solid` VÀ `wvote_sum` TRONG **CÙNG MỘT** KERNEL
+**Viết TRƯỚC khi chạy.** Rút thẳng từ H30.
+
+## Vì sao cần
+H30 cho thấy khoảng trống thật (`oracle_solid − maj`) nhỏ hơn nhiều con số đã công bố.
+Nhưng H30 và H28 chạy ở HAI kernel KHÁC NHAU, khác nửa dữ liệu và khác nhiệt độ:
+`ks_m15` có maj@8 = .465 còn `wv_m15` có maj@8 = .265. **Không được ghép số giữa hai lần chạy.**
+Muốn biết bỏ phiếu có trọng số lấy được BAO NHIÊU PHẦN của khoảng trống THẬT thì phải đo
+CẢ HAI trên CÙNG bộ mẫu, CÙNG kernel.
+
+## Thiết kế
+Kernel `wvote` hiện có, THÊM `oracle_solid@8` (>=2/8 mẫu đúng) vào cùng vòng lặp fold.
+Báo thêm: `wsum_pct_gap_solid` = (`wvote_sum` − `maj8`) / (`oracle_solid` − `maj8`).
+Ô: GSM8K 1.5B và MATH 1.5B (hai ô đã có `wvote_sum` dương).
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên)
+AUC > .55 · nếu `oracle_solid − maj8` <= 0 ở một ô thì **KHÔNG được tính tỉ lệ phần trăm** cho ô đó
+(chia cho số âm/không là vô nghĩa) — phải báo "khoảng trống thật không khác 0".
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `wvote_sum − maj8` > 0 VÀ `oracle_solid − maj8` > 0, tỉ lệ >= 50% | **Bỏ phiếu có trọng số lấy được PHẦN LỚN khoảng trống thật.** Đây là phát biểu mạnh nhất mà dự án được phép đưa ra về hướng tổng hợp. |
+| `wvote_sum − maj8` > 0 nhưng `oracle_solid − maj8` ≈ 0 | Bỏ phiếu có trọng số **vượt cả trần "solid"** -> tức `oracle_solid` là trần QUÁ CHẶT (đã lọc mất cả những lần giải đúng thật). Phải nói rõ trần thật nằm giữa `oracle_solid` và `oracle`. |
+| Tỉ lệ < 20% | Còn nhiều khoảng trống thật chưa lấy được -> hướng tổng hợp vẫn đáng đầu tư. |
+| `wvote_sum − maj8` ≈ 0 ở lần chạy này | Không tái lập được H28 trong điều kiện mới -> phải hạ cấp H28 xuống "phụ thuộc lần chạy". |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán rơi vào hàng 1 hoặc hàng 2 — tức bỏ phiếu có trọng số đã lấy gần hết khoảng trống THẬT,
+và phần còn lại để giành là RẤT NHỎ. Nếu vậy, kết luận thực tiễn của dự án là:
+**"lấy 8 mẫu, đếm phiếu có trọng số, và DỪNG LẠI — phần còn lại không đáng theo đuổi ở quy mô này."**
+Đó sẽ là một kết luận KHIÊM TỐN nhưng là kết luận VỮNG NHẤT mà dữ liệu cho phép.
