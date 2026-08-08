@@ -1086,3 +1086,38 @@ Bắt buộc báo `pct_corrupt_changes_final_answer` để ước lượng phầ
 | ZERO vẫn n<40 | Ghi "thiếu lực", KHÔNG kết luận. |
 | Suy biến >.90 | Tầng đó VÔ HIỆU. |
 | pct_corruptible < .50 lần nữa | Bỏ hẳn hướng tiêm-lỗi trên MATH; ghi là KHÔNG ĐO ĐƯỢC bằng phương pháp này. |
+
+---
+
+# Đăng ký trước #31 — H28b: TÁI LẬP BỎ PHIẾU CÓ TRỌNG SỐ Ở Ô KHÁC
+**Viết TRƯỚC khi chạy.** H28 xác nhận ở GSM8K 1.5B (+3.0, 4/5 fold). Một ô KHÔNG đủ để phát biểu.
+
+## Vì sao phải tái lập trước khi công bố
+`wvote_sum` là cơ chế ĐẦU TIÊN của dự án vượt được `maj@8`. Chính vì thế nó là kết quả DỄ BỊ
+tự huyễn hoặc nhất. Độ lớn +3.0 dưới sàn nhiễu không ghép cặp; chỉ có tính chất CẶP và dấu
+nhất quán (4 dương/1 hoà/0 âm) đang chống đỡ. Dự án này đã có 11 giả thuyết bị bác — phần lớn
+là những kết quả "đẹp" ở MỘT ô rồi tan khi mở rộng lưới.
+
+## Thiết kế — y hệt H28, đổi ô
+- `wv_m15`: **MATH 1.5B** (solver ~.405 — dải khó hơn hẳn)
+- `wv_g7` : **GSM8K 7B** (solver ~.916 — gần bão hoà, maj@8 chỉ +.01)
+Mỗi ô: huấn luyện lại bộ chấm trên chính ô đó (nhãn tự động), rồi so
+`maj8` / `rerank8` / `wvote_sum` / `wvote_mean` / `oracle8` trên CÙNG bộ 8 mẫu, 5 fold.
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên)
+AUC > .55 mới đọc được kết quả tổng hợp. Báo AUC từng ô.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `wvote_sum` > `maj8` ở CẢ HAI ô mới, >=4/5 fold mỗi ô | **H28 TÁI LẬP.** Được phát biểu như KHUYẾN NGHỊ THỰC TIỄN: dùng bộ chấm để CÂN TRỌNG SỐ phiếu, không dùng để chọn một mẫu. Đây thành kết quả chính của dự án. |
+| Chỉ 1/2 ô tái lập | "Phụ thuộc ô". KHÔNG được phát biểu tổng quát. Phải nói rõ ô nào có, ô nào không, và ngờ rằng hiệu ứng phụ thuộc dải độ khó. |
+| Không ô nào tái lập | **H28 chỉ là ngẫu nhiên của một ô.** Phải RÚT LẠI cách đọc lạc quan ở vòng #50 và ghi rõ đã mừng sớm. |
+| Ở ô bão hoà (GSM8K 7B) không có hiệu ứng nhưng ô khó (MATH 1.5B) có | Khớp với luật dải độ khó đã đo. Phát biểu kèm điều kiện: chỉ có ích khi maj@8 còn khoảng trống. |
+| `wvote_mean` lại kém `wvote_sum` ở cả hai ô | Củng cố cơ chế: đồng thuận mang phần lớn tín hiệu. Ghi nhận như bằng chứng lặp lại. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán MATH 1.5B TÁI LẬP (còn nhiều khoảng trống: maj@8 .533 vs oracle .708) và
+GSM8K 7B KHÔNG (đã bão hoà, maj@8 chỉ hơn greedy +.01, gần như không còn gì để cân).
+Nếu đúng vậy thì rơi hàng 4, và phát biểu phải KÈM ĐIỀU KIỆN về dải độ khó — KHÔNG được
+nói gọn thành "bỏ phiếu có trọng số luôn tốt hơn".
