@@ -1336,3 +1336,30 @@ Giữ nguyên: AUC > .55.
 Tôi đoán hiệu ứng VẪN DƯƠNG nhưng NHỎ HƠN NHIỀU +11.0 — có lẽ quanh +2 đến +4 điểm, tức gần
 với `wv_g15` (+.030) hơn là `ws_g15` (+.110), vì `wv_g15` huấn luyện ít hơn nên rò rỉ ít hơn.
 Nếu ra hàng 2 (≈0) thì dự án MẤT kết quả dương duy nhất của mình, và tôi phải nói thẳng điều đó.
+
+---
+
+# Đăng ký trước #37 — H28d: NGƯỠNG RÒ RỈ ĐO ĐÚNG CÁCH
+**Viết TRƯỚC khi chạy.** #36 vô hiệu vì ngưỡng của chính nó so hai TẬP BÀI KHÁC NHAU.
+
+## Sửa ngưỡng
+Đo rò rỉ trên **CÙNG MỘT tập bài**: giữ lại 60 bài kiểm tra làm "mẫu dò".
+- `probe_pre`  : sinh 1 mẫu cho 60 bài đó **TRƯỚC** khi huấn luyện (model gốc)
+- `probe_post` : sinh 1 mẫu cho **ĐÚNG 60 bài đó** **SAU** khi huấn luyện, adapter TẮT
+- `adapter_leak` = `probe_pre − probe_post` (cùng bài, cùng nhiệt độ, cùng seed)
+Chênh còn lại chỉ có thể là nhiễu lấy mẫu hoặc rò rỉ thật, KHÔNG còn lẫn khác biệt train/test.
+Ngưỡng: **|leak| <= .05** -> hợp lệ. Báo kèm `probe_n=60` để biết sai số (~±.065 ở n=60, nên
+ngưỡng .05 là CHẶT; nếu |leak| <= .05 thì gần như chắc chắn không rò rỉ).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số) — giữ nguyên bảng #36, chỉ đổi cách đo leak
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| leak <= .05 VÀ `wsum − maj` > 0 ở >=4/5 fold | H28 ĐỨNG VỮNG sau sửa lỗi. Con số MỚI là con số duy nhất được công bố; +11.0 và +3.0 cũ bị RÚT. |
+| leak <= .05 VÀ `wsum − maj` ≈ 0 | **RÚT LẠI H28/H28b/H31.** Dự án KHÔNG có cơ chế nào vượt `maj@8`. Phải nói thẳng. |
+| leak > .05 lần nữa | Còn đường rò rỉ thứ ba chưa tìm ra. VÔ HIỆU; phải tìm bằng cách so từng bước, KHÔNG được đọc số. |
+
+## Prior TRUNG THỰC (ghi trước)
+Số thô của #36 (vô hiệu) là +.047 (GSM8K, 5/5) và +.035 (MATH, 2/5). Tôi đoán lần này ra
+tương tự: **dương nhỏ ở GSM8K (~+3 đến +5 điểm), không khác 0 ở MATH.**
+Nếu đúng thì phát biểu cuối của dự án là: bỏ phiếu có trọng số giúp VÀI ĐIỂM ở GSM8K 1.5B,
+KHÔNG tổng quát sang MATH — khiêm tốn hơn nhiều so với "+11.0 điểm" tôi từng viết.

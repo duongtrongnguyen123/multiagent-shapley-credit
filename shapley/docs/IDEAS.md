@@ -2143,3 +2143,37 @@ Thô: 12/959 = 1.25% bị grader chấm SAI mà sympy nói ĐÚNG. Kiểm TAY t�
 4. **KHÔNG có bằng chứng bộ chấm THIÊN VỊ một nhánh nào.** Mọi nhánh dùng chung `pred()`+`ok()`.
 => Kết luận: bộ chấm KHÔNG phải nguồn sai lệch cho bất kỳ phát biểu nào của dự án.
    Nhưng nên nâng cấp cho MATH (thêm rút gọn căn/phân số) nếu về sau cần con số tuyệt đối chính xác.
+
+## [Loop] VÒNG #62 — H28c **VÔ HIỆU** theo ngưỡng đã khoá, DÙ số trông đẹp. Và ngưỡng đó cũng hỏng.
+### Kết quả thô (KHÔNG được trích dẫn)
+| ô | pre_acc | post_acc | **adapter_leak** | VALID | greedy | maj@8 | wsum | wsum−maj |
+|---|---|---|---|---|---|---|---|---|
+| GSM8K 1.5B | .6144 | .5537 | **.0606** | **KHÔNG** | .5500 | .7233 | .7700 | +.0467 (5/5) |
+| MATH 1.5B | .2756 | .2156 | **.0600** | **KHÔNG** | .2150 | .3150 | .3500 | +.0350 (2/5) |
+
+### PHÁN QUYẾT: HÀNG 4 của #36 — "leak > .05 dù đã sửa -> **VÔ HIỆU**, không được đọc số."
+Ngưỡng .05 được khoá TRƯỚC. Cả hai ô đều .060 > .05. **Tuyên VÔ HIỆU.**
+Tôi ghi rõ điều khó chịu: lần này ngưỡng đang GIẾT một kết quả DƯƠNG (+.047, 5/5 fold) —
+tức là việc tuân thủ ngưỡng làm TÔI THIỆT. Đúng như khi tuyên vô hiệu H29 dù nó cho đường cong
+đơn điệu y hệt prior của tôi. Ngưỡng chỉ có giá trị nếu nó cắt cả hai chiều.
+
+### NHƯNG CHÍNH NGƯỠNG ĐÓ CŨNG HỎNG — phải nói ra, và KHÔNG dùng nó để cứu số
+`PRE_ACC` = tỉ lệ đúng của mẫu **tập HUẤN LUYỆN** (sinh trước khi có adapter)
+`POST_ACC` = tỉ lệ đúng của mẫu **tập KIỂM TRA** (sinh sau, adapter đã tắt)
+=> HAI TẬP BÀI KHÁC NHAU. Chênh .06 có thể chỉ là khác độ khó train/test, KHÔNG phải rò rỉ.
+**Ngưỡng tôi khoá không đo được thứ nó định đo.** Đây là lỗi thiết kế của tôi, phát hiện sau khi chạy.
+=> Cách xử lý ĐÚNG: **vẫn tuyên VÔ HIỆU** (không được sửa luật sau khi thấy số), rồi
+   **thiết kế lại ngưỡng cho đúng** và chạy lại. KHÔNG được lấy "ngưỡng hỏng" làm cớ giữ kết quả.
+
+### BẰNG CHỨNG ĐỘC LẬP RẰNG BẢN SỬA CÓ TÁC DỤNG (ghi nhận, chưa phải kết luận)
+| run | adapter khi sinh | greedy1 | maj@8 |
+|---|---|---|---|
+| wv_g15 (nhiễm, 800 bước) | BẬT | .5167 | .7067 |
+| ws_g15 (nhiễm, 1600 bước) | BẬT | **.3867** | **.5467** |
+| **wf_g15 (đã sửa)** | **TẮT** | **.5500** | **.7233** |
+`maj@8` quay về ~.72 và `greedy` lên .55 — cao hơn CẢ HAI lần nhiễm, đúng hướng bản sửa dự đoán.
+Hàng 5 của #36 ("maj@8 mới ≈ .70 chứ không phải .55 -> xác nhận chẩn đoán rò rỉ") ĐÃ NỔ.
+=> Chẩn đoán rò rỉ ở vòng #59 được XÁC NHẬN. Nhưng ĐỘ LỚN của `wsum−maj` vẫn CHƯA đo được hợp lệ.
+
+### TRẠNG THÁI
+H27/H28/H28b/H31 vẫn **TẠM ĐÌNH CHỈ**. H28c **VÔ HIỆU**. Cần chạy lần thứ ba với ngưỡng đúng.
