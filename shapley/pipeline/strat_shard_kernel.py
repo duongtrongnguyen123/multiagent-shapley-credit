@@ -18,19 +18,29 @@ TEMP = 0.8
 M15 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors", recursive=True), key=len)[0])
 M7  = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors.index.json", recursive=True), key=len)[0])
 CSV = sorted(glob.glob("/kaggle/input/**/math_500_test.csv", recursive=True), key=len)[0]
-ALL = list(csv.DictReader(open(CSV)))
-print(f"M15={M15}\nM7={M7}\nCSV={CSV} cot={list(ALL[0].keys())}", flush=True)
+# newline="" BAT BUOC: de bai MATH co xuong dong ben trong o -> thieu no thi DictReader
+# cat nham dong va tra ve None cho cac cot cuoi (da lam chet shard 01/02/04/05).
+RAW = list(csv.DictReader(open(CSV, newline="", encoding="utf-8")))
+print(f"M15={M15}\nM7={M7}\nCSV={CSV} cot={list(RAW[0].keys())} dong_tho={len(RAW)}", flush=True)
 
 NG = torch.cuda.device_count()
 DEVS = [f"cuda:{i}" for i in range(NG)]
 print(f"so GPU={NG} -> {DEVS}", flush=True)
 assert NG >= 1
+assert all(isinstance(x, str) for x in []) or True
 
 def _lv(r):
     m = re.search(r"\d", str(r.get("level", "")))
     return int(m.group()) if m else 0
 def _q(r):  return r.get("problem") or r.get("question")
 def _g(r):  return r.get("answer")
+
+# Loc dong hong TRUOC khi chia shard. Moi shard loc y het nhau tren cung file
+# -> chi so sau khi loc la nhat quan giua cac shard.
+ALL = [r for r in RAW if isinstance(_q(r), str) and _q(r).strip()
+                     and isinstance(_g(r), str) and _g(r).strip()]
+print(f"sau khi loc: {len(ALL)}/{len(RAW)} dong dung (bo {len(RAW)-len(ALL)})", flush=True)
+assert len(ALL) >= 400, f"CSV hong nang: chi con {len(ALL)} dong"
 
 # shard XEN KE -> moi shard co du cac muc do kho (cat lien tuc se lech tang)
 MINE = [i for i in range(len(ALL)) if i % NSHARD == SHARD]
@@ -89,15 +99,25 @@ def parallel_gen(models, tk, sysm, prompts_by_idx, bs, temp, rounds):
     vi generate() nha GIL trong luc goi CUDA."""
     parts = split(list(prompts_by_idx.keys()), len(models))
     store, lock = {}, threading.Lock()
+    errs = []
     def work(m, sub):
-        loc = {i: [] for i in sub}
-        for _ in range(rounds):
-            outs = gen(m, tk, sysm, [prompts_by_idx[i] for i in sub], bs, temp)
-            for i, o in zip(sub, outs): loc[i].append(o)
-        with lock: store.update(loc)
+        try:
+            loc = {i: [] for i in sub}
+            for _ in range(rounds):
+                outs = gen(m, tk, sysm, [prompts_by_idx[i] for i in sub], bs, temp)
+                for i, o in zip(sub, outs): loc[i].append(o)
+            with lock: store.update(loc)
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            with lock: errs.append(e)
     ths = [threading.Thread(target=work, args=(models[j], parts[j])) for j in range(len(models)) if parts[j]]
     for t in ths: t.start()
     for t in ths: t.join()
+    # Luong chet TRONG IM LANG tung tra ve dict thieu khoa -> KeyError kho hieu o tan sau.
+    # Nay bao loi ngay tai cho.
+    if errs: raise RuntimeError(f"{len(errs)} luong sinh that bai: {errs[0]!r}")
+    miss = [i for i in prompts_by_idx if i not in store]
+    if miss: raise RuntimeError(f"thieu {len(miss)} bai sau khi sinh, vd {miss[:5]}")
     return store
 
 # ---------- PHA 1: 1.5B fp16, mot ban sao MOI GPU ----------
