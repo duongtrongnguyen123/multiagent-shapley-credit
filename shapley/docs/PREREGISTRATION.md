@@ -1805,3 +1805,52 @@ Phân rã cơ chế và **đẳng thức tự kiểm** giống hệt #46:
 Đoán hàng 1, nhưng biên độ nhỏ: `gain`(KHÓ) ≈ −.02, `gain`(DỄ) ≈ −.10.
 Tức escalate vẫn THUA ở mọi tầng của GSM8K, chỉ bớt thua ở nhóm nhiều bước.
 Prior của tôi đã sai 2 lần liên tiếp trong chuỗi này (vòng #78, #79) — bảng khoá mới là thứ quyết định.
+
+# Đăng ký trước #48 — H42: ĐỊNH TUYẾN TRÊN **CODE** — TÍN HIỆU MIỄN PHÍ (ĐỒNG THUẬN) vs ORACLE THẬT (CHẠY TEST)
+**Viết TRƯỚC khi chạy.** Đưa kết quả định tuyến (#46) sang miền code, và kiểm phân biệt trung tâm của dự án.
+
+## Vì sao code là phép thử đúng
+Vòng #71 khoá một phân biệt: **bộ kiểm chỉ có giá trị khi là ORACLE VỀ TÍNH ĐÚNG**
+(test: pass = đúng, +6 đến +11 điểm), **không** có giá trị khi chỉ là một cách tính khác (PAL: −4.4 đến −7.5).
+Code là miền DUY NHẤT có oracle thật. Vậy: **tín hiệu đồng thuận MIỄN PHÍ có sánh được với oracle không?**
+
+## Dữ liệu — MBPP, tách rõ ràng KHÔNG rò rỉ
+974 bài, mỗi bài **đúng 3 assert**. Dùng tách chuẩn `task_id` 11–510 = **500 bài**.
+- `assert[0]`: **đưa vào prompt** (cần để biết tên hàm) và **dùng làm tín hiệu định tuyến**
+- `assert[1]`, `assert[2]`: **CHỈ dùng để chấm điểm**, không nhánh nào được nhìn thấy
+Đã kiểm: 498/500 tách được `lời_gọi == kỳ_vọng` bằng phân tích cú pháp AST.
+LƯU Ý PHƯƠNG PHÁP: `exec3` cũ (H35) sửa code dựa trên CHÍNH bộ test dùng để chấm.
+Hợp lệ theo cách nó được phát biểu (oracle công khai), nhưng **không so sánh được** với định tuyến
+triển khai được. Ở đây mọi nhánh chỉ thấy `assert[0]`.
+
+## Hai bộ định tuyến — khác nhau ĐÚNG một điều: có nhìn ĐÁP ÁN kỳ vọng hay không
+- **`route_consensus`**: sinh 3 bản 1.5B, chạy cả 3 trên **LỜI GỌI** của `assert[0]`, so sánh
+  đầu ra VỚI NHAU. Nhận nếu ≥2 bản cho **cùng một đầu ra KHÔNG PHẢI LỖI**. Không hề biết kỳ vọng.
+  **KHOÁ TRƯỚC: ba bản cùng CRASH thì KHÔNG tính là đồng thuận** (phải escalate).
+- **`route_oracle`**: sinh **1** bản 1.5B, chạy `assert[0]` ĐẦY ĐỦ (có kỳ vọng). Đạt thì nhận.
+  Rẻ hơn: 1 lượt sinh thay vì 3.
+Cả hai khi escalate đều gọi **7B tuần tự có mỏ neo** (giải lại + kiểm), giống H39/H40.
+
+## Chi phí (quy về FLOP 1.5B, 1 lượt 7B = 5.07)
+`route_consensus` = 3 + 2·5.07·pe_c · | `route_oracle` = 1 + 2·5.07·pe_o · | `big_maj3` = 15.20
+Nhánh đối chứng: `small_maj3`, `big_maj3`, `big_maj8`.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `pct_escalated` của MỖI bộ định tuyến ngoài .15–.85 ⇒ bộ đó SUY BIẾN, không đọc.
+- Tỉ lệ code **biên dịch được** < .50 ⇒ huỷ toàn bộ (như ngưỡng H8).
+- n mỗi fold ≥ 40 (5 fold × 100 = đạt).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `route_oracle` > `route_consensus` > `big_maj3` | Định tuyến CHUYỂN sang code, và **oracle thật hơn tín hiệu miễn phí**. Củng cố phân biệt #42: tín hiệu có thông tin ĐÚNG/SAI đáng giá hơn tín hiệu chỉ có ĐỒNG Ý/KHÔNG. |
+| \|`route_consensus` − `route_oracle`\| < .03 | **Tín hiệu MIỄN PHÍ ngang oracle.** Không cần chạy test để định tuyến — kết quả có giá trị triển khai cao, và làm YẾU phân biệt oracle-vs-đồng thuận. |
+| cả hai ≤ `big_maj3` | **Định tuyến KHÔNG chuyển sang code.** Thắng lợi ở MATH (#46) là đặc thù miền. Ghi rõ, không diễn giải lại. |
+| `route_oracle` > `big_maj3` nhưng `route_consensus` ≤ `big_maj3` | Định tuyến trên code **cần tín hiệu ĐÚNG/SAI thật**; các bản mẫu đồng ý với nhau là KHÔNG đủ. |
+| `pct_escalated` ngoài .15–.85 | SUY BIẾN, không kết luận về bộ đó. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1**, biên độ nhỏ giữa hai bộ định tuyến. Lý do: đầu ra trùng nhau trên MỘT input
+là bằng chứng yếu hơn hẳn so với biết đáp án đúng — nhưng 3 chương trình sai mà trùng đầu ra
+thì hiếm (đã loại trường hợp cùng crash).
+**Prior của tôi đã sai 3 lần liên tiếp (#78, #79, #80).** Bảng khoá mới là thứ quyết định.
