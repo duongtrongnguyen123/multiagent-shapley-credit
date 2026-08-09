@@ -1508,3 +1508,38 @@ Không chạy Lean lúc này vì: (a) **không có bộ dữ liệu miniF2F trê
 (b) không có toolchain Lean khi `enable_internet=false`; (c) Qwen2.5-1.5B/7B-Instruct gần như
 không sinh nổi Lean hợp lệ -> mọi tầng sẽ rỗng, đúng lỗi đã giết `dt2_g7` (tầng quyết định n=9).
 Nếu về sau có model chuyên (DeepSeek-Prover/Llemma) và bộ kiểm, H35 chính là khuôn mẫu để lặp lại.
+
+---
+
+# Đăng ký trước #41 — H36: TÁCH "TUẦN TỰ vs SONG SONG" KHỎI "GREEDY vs LẤY MẪU"
+**Viết TRƯỚC khi chạy.** Người dùng chỉ ra một NHIỄU LOẠN trong H32 mà tôi đã bỏ sót.
+
+## Nhiễu loạn đã bỏ sót
+Trong H32, prompt HỆ THỐNG của Solver là **GIỐNG HỆT** ở cả hai nhánh (`SOLVE`), phần user chỉ
+khác ở chỗ nhánh chuỗi được nối thêm kế hoạch. NHƯNG **NHIỆT ĐỘ KHÁC NHAU**:
+- `maj@3`: 3 mẫu ở **temp 0.8** (bắt buộc, nếu temp 0 thì 3 mẫu giống hệt nhau, không bỏ phiếu được)
+- `PSV`  : plan/solve/verify đều ở **temp 0.0 (greedy)**
+`greedy1` (temp 0) = **.632** còn `maj@3` (3 mẫu temp .8) = **.644** -> mỗi mẫu ngẫu nhiên
+YẾU HƠN HẲN một lần giải greedy. Nên `PSV` xuất phát từ một bước giải TỐT HƠN.
+=> **+8.4 điểm của `PSV` so với `maj@3` có thể một phần là "greedy hơn lấy mẫu",
+   KHÔNG phải "tuần tự hơn song song".**
+
+## Thiết kế đối chứng
+`maj3_g` = **1 mẫu greedy (temp 0) + 2 mẫu temp .8** -> bỏ phiếu, hoà thì lấy mẫu greedy.
+Cùng 3 lượt sinh, nhưng nhánh song song NAY CŨNG được hưởng một lần giải tất định.
+Chạy CÙNG kernel với `greedy1`, `maj@3` (thuần ngẫu nhiên), `PSV`, `SS_anc` -> so sánh CẶP.
+Ô: GSM8K 1.5B và MATH 1.5B.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `maj3_g` ≈ `PSV` (chênh trong sàn nhiễu) | **Lợi thế của H32 là do GIẢI MÃ GREEDY, không phải cấu trúc tuần tự.** Phải RÚT LẠI cách đọc ở vòng #63 và sửa README. |
+| `maj3_g` > `maj@3` nhưng vẫn KÉM `PSV` >=4/5 fold | Cả hai yếu tố cùng đóng góp. Phải báo phần do greedy (`maj3_g − maj@3`) TÁCH RIÊNG khỏi phần do tuần tự (`PSV − maj3_g`). |
+| `maj3_g` ≈ `maj@3` | Greedy KHÔNG phải nguồn lợi thế; kết luận tuần tự-thắng-song song của H32 ĐỨNG VỮNG. |
+| `maj3_g` > `PSV` | Đối chứng đúng còn THẮNG cả pipeline -> H32 bị bác hoàn toàn, phải rút lại. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán hàng 2: cả hai cùng đóng góp, phần do greedy chiếm khoảng **một phần ba đến một nửa**
+của +8.4. Tức là kết luận "tuần tự thắng song song" sẽ SỐNG SÓT nhưng **NHỎ ĐI ĐÁNG KỂ**.
+Ghi rõ: đây là nhiễu loạn do NGƯỜI DÙNG phát hiện, không phải tôi. Tôi đã công bố +8.4
+ở vòng #63 mà chưa kiểm nó.
