@@ -2453,3 +2453,46 @@ Ly do: Duc lam viec tren nhanh `duc` va gop bang PR. Vong lap cua toi day thang 
 nhip do cao da buoc Duc phai merge `origin/main` vao `duc` **5 lan**. Tach nhanh de anh ay
 khong bi ep merge lien tuc, va de review theo PR nhu binh thuong.
 Gop vao `main` bang PR khi mot manh viec da xong, khong gop tung commit le.
+
+## [Loop] VÒNG #70 — dt6_m7 HỢP LỆ VÀ ĐỦ LỰC LẦN ĐẦU: **HÀNG 3 — kiểm lỗi YẾU ở MỌI tầng trên MATH**
+### dt6_m7 (MATH 7B, bản sửa cắt cụt #34: 1024 token + giới hạn 120 từ + lượt hỏi lại)
+`parse_fail` = **0.000** (trước là .38!) · `pct_needed_retry` = .0013 · `pct_corruptible` = .9775
+**Lần ĐẦU TIÊN cả ba tầng vừa HỢP LỆ vừa ĐỦ LỰC** (ZERO **n=224**).
+| tầng | n | phát hiện | báo động giả | PHÂN BIỆT | suy biến | HỢP LỆ | ĐỦ LỰC |
+|---|---|---|---|---|---|---|---|
+| HIGH | 97 | .186 | .072 | **+.113** | .871 | CÓ | CÓ |
+| MID | 70 | .143 | .143 | **+.000** | .857 | CÓ | CÓ |
+| ZERO | 224 | .192 | .076 | **+.116** | .866 | CÓ | CÓ |
+
+=> **HÀNG 3 của bảng khoá (#26)**: "phân biệt THẤP ở mọi tầng HỢP LỆ -> model KHÔNG kiểm được
+   lỗi số học dù đã được suy luận. **Bác hướng 'vai kiểm'.**"
+=> Đáng chú ý: ZERO (+.116) ≈ HIGH (+.113) -> phát hiện **KHÔNG giảm** theo độ khó.
+   Nó YẾU ĐỀU. Tức KHÔNG phải "bị chặn bởi năng lực giải" (hàng 2) mà là **yếu toàn cục** trên MATH.
+
+### MÂU THUẪN VỚI dt2_g7 — VÀ ĐÓ LÀ PHÁT HIỆN
+`dt2_g7` (**GSM8K** 7B): phân biệt **+.651** ở HIGH.
+`dt6_m7` (**MATH** 7B): phân biệt **+.113** ở HIGH.
+Cùng cỡ model, cùng 4-bit, cùng cách tiêm lỗi, cùng prompt -> **khác 5.8 LẦN chỉ vì MIỀN.**
+=> Phát biểu "ngưỡng NĂNG LỰC cho việc kiểm" phải sửa thành **"phụ thuộc NĂNG LỰC *VÀ* MIỀN"**.
+   Kiểm số học trong chuỗi GSM8K (số nguyên, bước ngắn) thì 7B làm được;
+   kiểm trong chuỗi MATH (LaTeX, đại số, nhiều bước) thì KHÔNG.
+   Đây là lần thứ hai một kết luận "năng lực" hoá ra là "năng lực × miền" (lần trước: H1).
+
+## ev_he7 (HumanEval 7B, Kaggle 4-bit) — **TÁI LẬP LẦN THỨ BA của H35**
+greedy .7938 | maj@4 .7375 | **exec3 .9000** | llm3 .7438
+`exec3−llm3` = **+.156 (5/5)** · `exec3−maj@4` = **+.163 (5/5)** · `exec3−greedy` = **+.106**
+phá: **exec3 = 0.0 (0/5)** · llm3 = **3.2/fold (5/5)**
+### BA LẦN CHẠY ĐỘC LẬP, HAI CỠ MODEL, HAI PHẦN CỨNG
+| run | máy | exec3−llm3 | exec3−greedy | phá exec3 | phá llm3 |
+|---|---|---|---|---|---|
+| ev_he15 (1.5B, T4) | Kaggle | +.119 | +.063 | **0.0** | 2.8 |
+| R_c15b (1.5B, bf16) | 5090 | +.206 | +.081 | **0.0** | 4.6 |
+| R_c7b (7B, bf16) | 5090 | +.100 | +.081 | **0.0** | 2.6 |
+| **ev_he7 (7B, 4-bit)** | **Kaggle** | **+.156** | **+.106** | **0.0** | **3.2** |
+=> **exec3 KHÔNG phá một đáp án đúng nào trong 20/20 fold của BỐN lần chạy.**
+   `llm3` phá trong **20/20 fold**. Đây là kết quả bền vững nhất dự án có.
+
+## R_g7b (GSM8K 7B bf16) — lặp lại ô BÃO HOÀ
+greedy .924 | maj@3 .928 | maj3_g .932 | **PSV .912** | SVV .924
+`maj3−PSV` = **+.016 (3/5)** -> PSV THUA, lặp lại `bgL_g7` (+.036). Ô bão hoà đảo chiều: XÁC NHẬN.
+`maj3g−maj3` = +.004 (2/5) -> đối chứng nhiễu loạn ≈ 0 lần thứ **7**.
