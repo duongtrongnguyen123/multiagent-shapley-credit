@@ -1543,3 +1543,50 @@ Tôi đoán hàng 2: cả hai cùng đóng góp, phần do greedy chiếm khoả
 của +8.4. Tức là kết luận "tuần tự thắng song song" sẽ SỐNG SÓT nhưng **NHỎ ĐI ĐÁNG KỂ**.
 Ghi rõ: đây là nhiễu loạn do NGƯỜI DÙNG phát hiện, không phải tôi. Tôi đã công bố +8.4
 ở vòng #63 mà chưa kiểm nó.
+
+---
+
+# Đăng ký trước #42 — H8b: CHẠY LẠI H8 (verify bằng THỰC THI trên TOÁN) VỚI 7B
+**Viết TRƯỚC khi chạy.** H8 bị tuyên VÔ HIỆU ở 1.5B vì `exec_success_rate` = .42 < ngưỡng .50.
+
+## Vì sao chạy lại bây giờ
+7B viết code chạy được ở mức `exec_success_rate` = **1.000** trên HumanEval (đo ở R_c7b).
+H8 chạy ở 1.5B và chết vì model không viết nổi code chạy được. Câu hỏi mở: **7B có vượt .50
+trên MIỀN TOÁN không?** Nếu có, toán lần đầu có một BỘ KIỂM CHẠY ĐƯỢC.
+
+## PHÂN BIỆT THEN CHỐT — ghi trước để không đọc nhầm kết quả
+Trên CODE, bộ test là **ORACLE VỀ TÍNH ĐÚNG**: pass = đúng, không thể lừa.
+Trên TOÁN, chạy Python chỉ cho biết **CHƯƠNG TRÌNH CHẠY ĐƯỢC**, KHÔNG cho biết chương trình
+MÔ HÌNH HOÁ ĐÚNG bài toán. Một chương trình chạy trơn tru vẫn có thể tính sai thứ cần tính.
+=> Vì vậy `exec3` trên toán chỉ sửa được **LỖI SẬP**, không sửa được **LỖI MÔ HÌNH HOÁ**.
+=> DỰ ĐOÁN: lợi ích trên toán sẽ NHỎ HƠN NHIỀU so với +8.1 điểm đo được trên code.
+   Đây là điều làm cho code và toán KHÁC LOẠI, không chỉ khác độ khó.
+
+## Thiết kế (MATH-500, 7B bf16, 5 fold, đếm token)
+- `greedy1` — suy luận bằng văn bản (1 lượt)
+- `maj3` — 3 mẫu văn bản, bỏ phiếu (3 lượt)
+- **`pal1`** — viết CHƯƠNG TRÌNH PYTHON, chạy, lấy kết quả in ra (1 lượt)
+- **`pal3`** — `pal1` × 3, bỏ phiếu trên KẾT QUẢ ĐÃ CHẠY (3 lượt)
+- **`exec3`** — viết Python; nếu SẬP thì sửa theo stderr, tối đa 3 vòng (<=4 lượt)
+BẮT BUỘC báo: `exec_success_rate` (tỉ lệ code chạy không lỗi), `pct_no_output` (chạy nhưng
+không in ra số), và `n_breaks` cho từng nhánh.
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên ngưỡng đã khoá của H8)
+`exec_success_rate` < **.50** -> **VÔ HIỆU** như H8. Không được đọc là "thực thi thất bại trên toán";
+chỉ được đọc là "7B vẫn chưa viết nổi code chạy được cho toán".
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `exec_success_rate` >= .50 VÀ `pal3` > `maj3` >=4/5 fold | **Toán CÓ THỂ có bộ kiểm chạy được ở 7B.** H8 trước đây thất bại vì NĂNG LỰC MODEL, không phải vì miền. Mở lại hướng thực thi cho toán. |
+| `exec_success_rate` >= .50 nhưng `pal3` <= `maj3` | Code chạy được KHÔNG đủ — chạy được ≠ mô hình hoá đúng. Xác nhận phân biệt then chốt ở trên. Toán vẫn KHÔNG có bộ kiểm thật. |
+| `exec3` > `pal1` nhưng vẫn <= `maj3` | Sửa lỗi SẬP có tác dụng, nhưng không bù được lỗi MÔ HÌNH HOÁ. Ghi rõ hai loại lỗi này khác nhau. |
+| `exec_success_rate` < .50 | **VÔ HIỆU lần hai.** 7B cũng không viết nổi code cho toán -> ghi là giới hạn NĂNG LỰC ở quy mô này, và DỪNG hướng này. |
+| `exec3` ≈ `oracle@k` (như trên code) | Bộ kiểm lại là BỘ CHỌN hoàn hảo -> nhưng phải kiểm xem "chạy được" có thật sự lọc đúng/sai không (nghi ngờ mạnh). |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **`exec_success_rate` sẽ VƯỢT .50 ở 7B** (có lẽ .75–.95) nhưng **`pal3` KHÔNG hơn `maj3`**,
+vì chạy được không đảm bảo mô hình hoá đúng. Tức là rơi HÀNG 2.
+Nếu đúng thì kết luận là: **bộ kiểm chỉ có giá trị khi nó là ORACLE VỀ TÍNH ĐÚNG (như bộ test),
+không phải khi nó chỉ là MỘT CÁCH TÍNH KHÁC (như chạy Python cho toán).**
+Đó sẽ là phát biểu tổng quát và chặt chẽ hơn nhiều so với "code có bộ kiểm, toán thì không".
