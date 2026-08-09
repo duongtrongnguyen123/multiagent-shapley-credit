@@ -132,7 +132,7 @@ Phần còn lại của README (H1, H2, H24, H25, H29, H30, GRPO) **KHÔNG** dù
 
 ---
 
-## Cập nhật vòng #43–#49 (mới nhất)
+## Cập nhật vòng #43–#49
 
 **Hai phát biểu nữa đã bị rút lại, và có một phát hiện DƯƠNG.**
 
