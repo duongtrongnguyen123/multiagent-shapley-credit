@@ -2329,3 +2329,52 @@ Nếu để ý, tôi đã biết có 2 GPU từ nhiều vòng trước.
   còn ~7.6 GB/card, thừa chỗ cho KV cache).
 - Batch có thể tăng đáng kể; phải đo lại ngân sách bộ nhớ (LUẬT vòng #51).
 - Kết quả 7B đã có: giữ nguyên nhưng PHẢI ghi kèm "đo ở 4-bit"; muốn sạch thì chạy lại fp16.
+
+## [Loop] VÒNG #67 — **H35 XÁC NHẬN HÀNG 1: BỘ KIỂM ĐÚNG ĐẮN THẮNG TẤT CẢ** + 3 kết quả khác
+### D) ev_he15 (HumanEval 1.5B) — **KẾT QUẢ MẠNH NHẤT DỰ ÁN TỪNG CÓ**
+`exec_success_rate` = **1.00** (ngưỡng .50 ✓ HỢP LỆ)
+| nhánh | acc | so với |
+|---|---|---|
+| greedy1 (1 lượt) | .5375 | — |
+| **maj@4** (4 lượt) | **.4250** | **THẤP HƠN CẢ GREEDY** |
+| **llm3** (LLM tự kiểm, 4 lượt) | .4812 | cũng thấp hơn greedy |
+| **exec3** (sửa theo KẾT QUẢ CHẠY TEST, 4 lượt) | **.6000** | — |
+`exec3 − llm3` = **+.119, 5/5 fold** · `exec3 − maj@4` = **+.175, 5/5 fold**
+**PHÁ ĐÁP ÁN ĐÚNG: exec3 = 0.0 (0/5 fold) · llm3 = 2.8/fold (5/5 fold)**
+=> **HÀNG 1 của bảng khoá #40 NỔ**: "bộ kiểm ĐÚNG ĐẮN làm được thứ LLM-kiểm không làm nổi,
+   và thắng cả lấy mẫu ở cùng ngân sách."
+=> Cùng model, cùng 4 lượt sinh, **chỉ khác NGUỒN TÍN HIỆU KIỂM** -> chênh **11.9 điểm**.
+   Và bộ kiểm đúng đắn **KHÔNG PHÁ MỘT ĐÁP ÁN NÀO**, trong khi LLM-kiểm phá 2.8 bài/fold.
+=> Đây là câu trả lời cho câu hỏi "chứng minh định lý": không cần Lean — nguyên lý đã đo được.
+
+### PHÁT HIỆN PHỤ ĐÁNG CHÚ Ý: BỎ PHIẾU **CÓ HẠI** TRÊN CODE
+`maj@4` (.425) **THẤP HƠN** `greedy` (.5375) — 11 điểm. Trên toán bỏ phiếu luôn có lợi.
+GIẢ THUYẾT (chưa kiểm): đáp án toán là một con số, dễ trùng; còn code là chuỗi dài,
+hai lời giải đúng hiếm khi GIỐNG HỆT nhau -> "đa số" gần như luôn là hoà 1-1-1-1,
+và bỏ phiếu thoái hoá thành lấy mẫu ngẫu nhiên (tệ hơn greedy). Khớp với vòng #65.
+=> **Bỏ phiếu chỉ dùng được khi đáp án có dạng CHUẨN HOÁ ĐƯỢC.**
+
+### A) Cấu hình 2S/3S -> 1V (mỗi cấu hình một notebook, có đối chứng riêng)
+| ô | V nhỏ (0.5B) | V thường (1.5B) |
+|---|---|---|
+| GSM8K 2S→1V | **−.104** (1/5) | **+.036** (4/5) |
+| GSM8K 3S→1V | **−.120** (0/5) | — |
+| MATH 2S→1V | +.060 (4/5) | +.040 (2/5) |
+| MATH 3S→1V | −.035 (0/5) | — |
+=> Ở GSM8K, verifier **0.5B GÂY HẠI RÕ** (−10 đến −12 điểm) còn 1.5B thì có lợi (+3.6).
+   Củng cố NGƯỠNG NĂNG LỰC: model quá nhỏ làm verifier thì phá nhiều hơn sửa.
+=> Ở MATH thì lẫn lộn (0.5B +.060 nhưng 3S→1V −.035) -> KHÔNG kết luận, cần thêm dữ liệu.
+LƯU Ý: `maj3` nền khác nhau giữa các kernel (.668 vs .620 ở GSM8K) vì là các lần chạy RIÊNG —
+so sánh CHÉO giữa cấu hình là YẾU; chỉ so sánh TRONG mỗi kernel mới chắc.
+
+### B) b4_g15 (GSM8K 1.5B, ngân sách 4 lượt)
+maj@3 .664 | **maj@4 .700** | P3S .712 | PSV .728 | **PSVA .744** | SS_anc .728
+`P3S − maj@4` = **+.012 (2/5)** -> kế hoạch chung **KHÔNG** bù được đa dạng đã mất. Prior tôi ĐÚNG.
+`PSVA − PSV` = +.016 (3/5) -> Aggregator thêm rất ít, KHÔNG đạt ngưỡng 4/5. Prior tôi ĐÚNG.
+`maj@4 − maj@3` = +.036 (4/5) -> lượt sinh thứ 4 CÓ giúp đếm phiếu.
+
+### C) bg_m7 (MATH 7B, 4-bit) — ô thứ 3 của lưới H32
+greedy .500 | maj@3 .505 | **PSV .590** | SVV .550 | SS_anc .480
+`maj3 − PSV` = **−.085, 0/5 fold** -> **PSV THẮNG maj@3 ở MATH 7B.**
+### LƯỚI H32 hiện tại: GSM8K 1.5B ✓(+.084) · MATH 1.5B ~(+.030, 3/5) · **MATH 7B ✓(+.085)**
+· GSM8K 7B đang chạy (dấu hiệu sớm: PSV .90 < greedy .94 -> ô BÃO HOÀ đảo chiều)
