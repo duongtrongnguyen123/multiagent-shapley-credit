@@ -26,11 +26,18 @@ DEVS = [f"cuda:{i}" for i in range(NG)]
 print(f"so GPU={NG} -> {DEVS}", flush=True)
 assert NG >= 1
 
+def _ci(r, *keys):
+    """Case-insensitive column lookup — CSV headers vary (Question/question)."""
+    rl = {k.lower(): v for k, v in r.items()}
+    for k in keys:
+        v = rl.get(k.lower())
+        if v is not None: return v
+    return None
 def _lv(r):
-    m = re.search(r"\d", str(r.get("level", "")))
+    m = re.search(r"\d", str(_ci(r, "level")))
     return int(m.group()) if m else 0
-def _q(r):  return r.get("problem") or r.get("question")
-def _g(r):  return r.get("answer")
+def _q(r):  return _ci(r, "problem", "question")
+def _g(r):  return _ci(r, "answer")
 
 # shard XEN KE -> moi shard co du cac muc do kho (cat lien tuc se lech tang)
 MINE = [i for i in range(len(ALL)) if i % NSHARD == SHARD]
