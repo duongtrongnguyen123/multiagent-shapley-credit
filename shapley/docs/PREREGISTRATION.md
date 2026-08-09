@@ -1682,3 +1682,41 @@ Tôi đoán **hàng 1 nhưng biên độ NHỎ** (1–3 điểm tại cùng chi 
 rất mạnh ở hai đầu (1.000 vs .143) nhưng nhóm "không đồng thuận" cũng chính là nhóm mà MỌI
 cơ chế đều yếu — đổ thêm compute vào bài model không giải nổi có thể không cứu được.
 Nếu ra hàng 2 thì kết luận thực tiễn của dự án gọn lại còn: **"lấy k mẫu, đếm phiếu, dừng"**.
+
+---
+
+# Đăng ký trước #45 — H39: DÙNG ĐỒNG THUẬN ĐỂ QUYẾT ĐỊNH **KHI NÀO TRẢ TIỀN CHO MODEL LỚN**
+**Viết TRƯỚC khi chạy.** Kết hợp hai phát hiện đã đo của dự án.
+
+## Hai mảnh ghép đã có
+1. **Đồng thuận là tín hiệu đúng/sai gần như hoàn hảo và MIỄN PHÍ** (vòng #65):
+   8/8 đồng ý -> acc 1.000; 1/8 -> .143/.000.
+2. **Solver 1.5B + Verifier 7B** cho +14.0 điểm (H15) — nhưng ta CHƯA BAO GIỜ hỏi:
+   *có cần gọi 7B cho MỌI bài không, hay chỉ cho bài mà 1.5B tự mâu thuẫn?*
+=> Giả thuyết: **1.5B đủ cho phần lớn bài; chỉ escalate lên 7B khi 3 mẫu 1.5B KHÔNG đồng thuận.**
+
+## Thiết kế — chi phí tính bằng FLOP, không phải "số lượt"
+Quy đổi: 1 lượt 7B ≈ **4.67×** chi phí 1 lượt 1.5B (tỉ lệ tham số). Báo `cost_15B_equiv`.
+- `small_maj3` / `small_maj8` : chỉ 1.5B (đường cong rẻ)
+- `big_maj3` / `big_maj8`     : chỉ 7B (đường cong đắt)
+- **`escalate`**: 3 mẫu 1.5B -> nếu >=2 đồng ý thì NHẬN; nếu không -> 3 mẫu **7B** + bỏ phiếu
+- **`escalate_seq`**: như trên nhưng bài phân tán chạy **7B tuần tự có mỏ neo** (rẻ hơn 3 mẫu)
+BẮT BUỘC báo `pct_escalated` và `cost_15B_equiv` của từng nhánh.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`pct_escalated` ngoài khoảng .15–.85 -> SUY BIẾN, không đọc (như rtL_g7 đã bị).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `escalate` >= `big_maj3` NHƯNG `cost_15B_equiv` THẤP HƠN rõ | **XÁC NHẬN: chỉ cần trả tiền cho model lớn ở bài KHÔNG đồng thuận.** Đây là khuyến nghị triển khai trực tiếp, tiết kiệm thật. |
+| `escalate` < `big_maj3` ở cùng chi phí | Escalate không đủ — bài khó cần model lớn TỪ ĐẦU, không chỉ ở lượt sau. Ghi rõ. |
+| `escalate` ≈ `small_maj8` | Model lớn không thêm gì ở nhóm phân tán -> nhóm đó KHÓ với cả hai model. Củng cố "nút thắt là SINH". |
+| `escalate_seq` > `escalate` | Tuần tự lại thắng lấy mẫu, lần thứ hai ở bối cảnh khác. Củng cố H38. |
+| `pct_escalated` ngoài .15–.85 | SUY BIẾN, không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 1**: escalate đạt gần `big_maj3` với chi phí thấp hơn nhiều, vì ~60% bài
+1.5B đã đồng thuận và ở nhóm đó nó gần như luôn đúng (acc ~1.0 khi 8/8).
+NHƯNG tôi cũng đoán biên độ so với `big_maj8` sẽ ÂM — model lớn dùng toàn phần vẫn tốt hơn,
+chỉ là đắt hơn nhiều. Kết luận thực tiễn sẽ là về **hiệu quả chi phí**, không phải độ chính xác tuyệt đối.
