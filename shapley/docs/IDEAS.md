@@ -2849,3 +2849,47 @@ GSM8K có `big_maj3` = .936 tổng thể — vùng bão hoà THẬT, thứ MATH 
 Và phân rã trên cho một dự đoán SẮC: nếu `gain_on_esc` thật sự ~hằng số dương,
 thì `gain` ÂM của GSM8K **buộc phải** đến từ `opp_cost` LỚN (7B hơn hẳn 1.5B trên nhóm đồng thuận).
 Nếu đo ra `opp_cost` GSM8K nhỏ mà `gain_on_esc` âm -> quan sát "hằng số" ở trên cũng sai nốt.
+
+## [Loop] VÒNG #81 — **H42: ĐỊNH TUYẾN **KHÔNG** CHUYỂN SANG CODE. HÀNG 3 CỦA BẢNG KHOÁ #48.**
+### MBPP tách chuẩn 11–510, 498 bài, 20 shard Kaggle, 7B **nf4** (2 bản sao/thẻ), biên dịch được **.994**
+| nhánh | acc (assert giữ lại) | chi phí | esc% |
+|---|---|---|---|
+| small_1 (1 bản 1.5B) | .4217 | 1.00 | — |
+| small_maj3 | .4739 | 3.00 | — |
+| **big_greedy (1 lượt 7B)** | **.6365** | **5.07** | — |
+| big_maj3 | .6526 | 15.20 | — |
+| big_maj8 | .6627 | 40.53 | — |
+| route_consensus | .5643 | 6.74 | .369 |
+| route_oracle | .6004 | 6.27 | .520 |
+
+### PHÁN QUYẾT: **HÀNG 3 — "cả hai ≤ `big_maj3`"**
+Đúng câu chữ đã khoá: *"**Định tuyến KHÔNG chuyển sang code.** Thắng lợi ở MATH (#46) là đặc thù miền.
+Ghi rõ, không diễn giải lại."* Tôi đoán hàng 1. **PRIOR SAI LẦN THỨ TƯ LIÊN TIẾP** (#78,#79,#80,#81).
+Cả hai bộ định tuyến HỢP LỆ (esc% .369 và .520, trong .15–.85) — kết quả đọc được, không suy biến.
+
+### TỆ HƠN: ĐỊNH TUYẾN BỊ **ÁP ĐẢO HOÀN TOÀN** trên code
+`big_greedy` — **một lượt 7B duy nhất** — đạt **.6365** với chi phí **5.07**.
+Cả hai bộ định tuyến vừa **kém chính xác hơn** vừa **đắt hơn**. Không có đánh đổi nào để bào chữa.
+
+### PHÂN RÃ (mô tả, KHÔNG phải phép thử đã đăng ký) — hỏng ở ĐÂU
+| bộ định tuyến | opp_cost (trên NHẬN) | **gain_on_esc** (trên ESC) |
+|---|---|---|
+| consensus | +.0956 | **−.0761** |
+| **oracle** | **−.0167** | **−.1159** |
+**Tín hiệu định tuyến oracle gần như HOÀN HẢO**: `opp_cost` **ÂM** — trên nhóm giữ lại,
+model nhỏ (.8368) còn HƠN 7B (.8201). Nó phân loại đúng bài nào không cần model lớn.
+**Cái hỏng là HÀNH ĐỘNG SAU KHI ESCALATE**: lượt 7B TUẦN TỰ CÓ MỎ NEO đạt .3822,
+trong khi chỉ cần bỏ phiếu 7B×3 đã .4981 → **tuần tự làm TỆ ĐI 11.6 điểm**.
+
+### ĐIỀU NÀY ĐẢO CHIỀU KHẲNG ĐỊNH MẠNH NHẤT CỦA DỰ ÁN — nhưng KHỚP với H35
+Trên MATH `gain_on_esc` = **+.18 đều đặn**. Trên code = **−.08 đến −.12**.
+KHÔNG mâu thuẫn với H35: ở đó `exec3` (sửa theo **stderr của test thật**) thắng +6..+11,
+còn `llm3` (LLM tự nhận xét, KHÔNG chạy test) thì không. Lượt tuần tự của tôi CHÍNH LÀ loại `llm3`.
+=> Gộp lại: **"cho model xem lại đáp án trước của chính nó" giúp ở TOÁN, hại ở CODE.**
+   Ở code chỉ có ORACLE THẬT (chạy test) mới sửa được.
+
+### QUAN SÁT HẬU NGHIỆM — CHƯA ĐƯỢC TÍNH LÀ KẾT QUẢ
+Giữ nguyên tín hiệu oracle nhưng escalate bằng **7B maj@3** thay vì tuần tự:
+**acc .6606 · chi phí 8.91 · hơn `big_maj3` +.0080 · rẻ hơn 1.71×**.
+Tính từ CHÍNH dữ liệu vừa xem -> **không có giá trị chứng minh**. Phải đăng ký trước và
+kiểm trên **phần MBPP chưa hề đụng tới (task_id 511–974)**. Xem đăng ký trước #49.
