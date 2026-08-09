@@ -1637,3 +1637,48 @@ Tôi đoán **hàng 2**: `discrimination_injected` sẽ CAO (>.6, vì nhiệm v�
 lỗi thật là bài toán "hiểu bài". Hai thứ này không cùng một kỹ năng.
 Nếu đúng hàng 2 thì kết luận là: **nhãn rẻ không thay thế được nhãn đúng loại** — và cách duy
 nhất còn lại cho toán vẫn là bộ kiểm CƠ HỌC, thứ mà toán KHÔNG CÓ (đã đo ở H8b).
+
+---
+
+# Đăng ký trước #44 — H38: ĐỊNH TUYẾN THEO ĐỒNG THUẬN vs TIÊU ĐỀU, Ở CÙNG CHI PHÍ TRUNG BÌNH
+**Viết TRƯỚC khi chạy.** Rút thẳng từ số đã đo ở vòng #65.
+
+## Sự việc đã đo
+| đồng thuận (k=8) | GSM8K | MATH |
+|---|---|---|
+| 8/8 | **1.000** | **1.000** |
+| 1/8 (không có đa số) | **.143** | **.000** |
+Ở k=3, **50–58% số bài KHÔNG có đa số nào** -> `maj@3` thoái hoá thành "lấy mẫu đầu tiên".
+Mọi pipeline của dự án hiện TIÊU CHI PHÍ ĐỀU NHAU cho mọi bài: lãng phí ở bài đã đồng thuận
+(gần chắc đúng), thiếu ở bài phân tán (gần chắc sai).
+
+## Thiết kế — so trên ĐƯỜNG CONG chi phí, không so một điểm
+Đường cong TIÊU ĐỀU: `maj@3`, `maj@4`, `maj@6`, `maj@8` (mỗi bài dùng đúng k lượt).
+Nhánh ĐỊNH TUYẾN (chi phí THAY ĐỔI theo bài):
+- **`route_3_6`**: sinh 3; nếu **>=2 mẫu đồng ý** -> NHẬN, dừng. Nếu không -> sinh thêm 3, bỏ phiếu trên 6.
+- **`route_3_seq`**: sinh 3; nếu đồng thuận -> nhận; nếu không -> chạy **tuần tự có mỏ neo** 3 lượt.
+**BẮT BUỘC báo `mean_gens` và `mean_tokens` THỰC TẾ của từng nhánh** — định tuyến có chi phí
+biến thiên nên chỉ so được khi biết chi phí thật.
+
+## Chỉ số chính
+Nhánh định tuyến có nằm **TRÊN** đường cong tiêu đều tại ĐÚNG chi phí của nó không?
+Cụ thể: nội suy `maj@k` tại `k = mean_gens(route)` rồi so.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+Nếu tỉ lệ bài "không đồng thuận" < .15 hoặc > .85 thì định tuyến gần như không phân biệt được
+gì -> ghi rõ "định tuyến suy biến", không đọc là thành công/thất bại của ý tưởng.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `route` > `maj@k` nội suy tại cùng chi phí, >=4/5 fold | **XÁC NHẬN: định tuyến theo đồng thuận đáng dùng.** Khuyến nghị thực tiễn: đừng tiêu đều — đo đồng thuận trước, chỉ đổ thêm compute vào bài phân tán. Tín hiệu MIỄN PHÍ. |
+| `route` ≈ đường cong tiêu đều | Đồng thuận KHÔNG giúp phân bổ compute tốt hơn. Ghi rõ đã bác; tiêu đều là đủ. |
+| `route` < đường cong | Định tuyến GÂY HẠI — có thể vì bài "đồng thuận" cũng cần kiểm. Phải nói thẳng. |
+| `route_3_seq` > `route_3_6` | Ở bài KHÓ, tuần tự tốt hơn lấy thêm mẫu — khớp H32 và làm sắc thêm nó. |
+| `route_3_6` > `route_3_seq` | Ở bài khó, thêm mẫu tốt hơn tuần tự — MÂU THUẪN với H32, phải điều tra. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 1 nhưng biên độ NHỎ** (1–3 điểm tại cùng chi phí). Lý do: tín hiệu đồng thuận
+rất mạnh ở hai đầu (1.000 vs .143) nhưng nhóm "không đồng thuận" cũng chính là nhóm mà MỌI
+cơ chế đều yếu — đổ thêm compute vào bài model không giải nổi có thể không cứu được.
+Nếu ra hàng 2 thì kết luận thực tiễn của dự án gọn lại còn: **"lấy k mẫu, đếm phiếu, dừng"**.
