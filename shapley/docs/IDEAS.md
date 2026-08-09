@@ -2628,3 +2628,34 @@ Trên toán, `oracle` gần `maj` hơn nhiều -> bộ chọn dù hoàn hảo c�
 ### NĂNG LỰC QUYẾT ĐỊNH VIỆC HỌC ĐƯỢC HAY KHÔNG
 `injected`: 1.5B **+.032** vs 7B **+.573** — gấp **18 lần**. Loss 1.5B TĂNG (0.22->0.65),
 loss 7B GIẢM (8.56->0.18). Bắt lỗi số học tiêm sẵn cần năng lực mà 1.5B KHÔNG có.
+
+## [Loop] VÒNG #75 — H38 ô GSM8K 7B: **SUY BIẾN** (chỉ 2.8% bài không đồng thuận) + H37 hoàn tất
+### rtL_g7 (GSM8K 7B) — VÔ HIỆU theo ngưỡng đã khoá
+`pct_no_consensus` = **.028**, dưới ngưỡng hiệu lực **.15** khoá ở #44.
+Đường cong tiêu đều: maj@3 .9240 | maj@4 .9280 | maj@6 .9400 | maj@8 .9400
+Nhánh định tuyến: `route_3_6` .9360 @ 3.08 lượt (delta +.0117) · `route_3_seq` .9360 @ 3.06 lượt (+.0118)
+=> Delta DƯƠNG nhưng chỉ dựa trên **~7/250 bài** được định tuyến -> **KHÔNG ĐỌC ĐƯỢC**,
+   theo đúng hàng đã khoá: "ghi rõ suy biến, không đọc là thành công/thất bại của ý tưởng".
+=> NGUYÊN NHÂN có ý nghĩa: GSM8K 7B **BÃO HOÀ** (greedy .924 = maj@3 .924), model tự đồng ý
+   với chính nó gần như luôn luôn -> **không có gì để định tuyến**.
+   Khớp y hệt lưới H32: ô bão hoà là nơi MỌI cơ chế đều mất tác dụng.
+=> Ô kiểm được ý tưởng là 1.5B (50–58% bài không đồng thuận): `rt_g15`, `rt_m15`, `rtL_g15`.
+
+## H37 HOÀN TẤT — cả hai ô, cả hai HỢP LỆ, cùng HÀNG 4
+| | leak | A) tiêm | B) thật | AUC | `wvote−maj@8` |
+|---|---|---|---|---|---|
+| 1.5B (chạy lại sạch) | −.017 ✓ | **−.012** | +.195 | .528 | **−.008 (1/5)** |
+| 7B | +.050 ✓ | **+.573** | **+.693** | **.893** | **+.024 (2/5)** |
+=> **HÀNG 4 ở CẢ HAI ô: "đo được ≠ dùng được".**
+=> 1.5B: phân biệt lỗi tiêm **ÂM** — không học được gì. 7B: học rất tốt VÀ chuyển giao tốt hơn
+   cả trong phân phối (+.693 > +.573) — **chuyển giao KHÔNG phải vấn đề**.
+=> Nhưng AUC .893 chỉ mua được **+2.4 điểm, 2/5 fold**.
+
+### PHÁT BIỂU HỢP NHẤT (nối H27 + H35 + H8b + H37)
+**Giá trị của một bộ kiểm = khoảng cách `oracle@k − maj@k`, KHÔNG phải chất lượng bộ kiểm.**
+- Code: khoảng cách **+21.3 điểm**; bộ test (AUC hiệu dụng 1.0) lấy được **toàn bộ**.
+- Toán: khoảng cách nhỏ; bộ kiểm AUC .893 chỉ lấy được **+2.4**.
+Bộ kiểm chỉ CHỌN trong k ứng viên. Ở 50–58% bài không đồng thuận (độ chính xác ~.14/.00),
+**thường KHÔNG CÓ ứng viên đúng nào để chọn**.
+=> **NÚT THẮT LÀ SINH, KHÔNG PHẢI CHỌN.** Đây là lý do mọi cơ chế tổng hợp của dự án
+   (rerank, bỏ phiếu có trọng số, bộ chấm huấn luyện) đều chạm trần thấp trên toán.
