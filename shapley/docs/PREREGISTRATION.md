@@ -1405,3 +1405,21 @@ Tôi đoán **hàng 1 hoặc hàng 3** — tức `maj3` ngang hoặc hơn `PSV`.
 Nếu ra hàng 1 thì đây là kết luận LỚN NHẤT và KHIÊM TỐN NHẤT của dự án: **kiến trúc đa tác tử
 phân vai, ở quy mô này, chỉ là một cách đắt tiền để lấy mẫu nhiều lần.**
 Tôi ghi trước rằng kết luận đó sẽ phủ định phần lớn công sức 60 vòng lặp của chính tôi.
+
+## MỞ RỘNG #38 (H32) SANG ĐỦ LƯỚI 2×2 — ghi TRƯỚC khi có số
+`bg_g15` (GSM8K 1.5B) đã xong và cho HÀNG 2 (PSV > maj@3, 5/5 fold, ít token hơn).
+Nay chạy đủ ba ô còn lại: `bg_m15` (MATH 1.5B), `bg_m7` (MATH 7B), `bg_g7` (GSM8K 7B).
+Bảng diễn giải của #38 GIỮ NGUYÊN, áp cho TỪNG ô. Thêm quy tắc tổng hợp lưới:
+
+| Kết quả trên lưới | Kết luận BẮT BUỘC |
+|---|---|
+| `PSV > maj@3` ở **>=3/4 ô** | Tuần tự-có-mỏ-neo THẮNG song song ở cùng ngân sách — phát biểu được như KHUYẾN NGHỊ CHUNG. |
+| Chỉ 1–2/4 ô | PHỤ THUỘC Ô. `bg_g15` là ngoại lệ chứ không phải quy luật; KHÔNG được tổng quát. |
+| Không ô nào (ngoài g15) | Kết quả `bg_g15` là ngẫu nhiên của một ô. Phải rút lại vòng #63. |
+| `SS_anc ≈ PSV` ở >=3/4 ô | Xác nhận: vai là NHÃN, cơ chế là MỎ NEO. Đây là phát biểu cơ chế của dự án. |
+| Ô bão hoà (GSM8K 7B, solver .916) không có hiệu ứng | Khớp luật dải độ khó; KHÔNG tính là phản chứng, ghi kèm điều kiện. |
+
+**Prior TRUNG THỰC (ghi trước):** prior lần trước của tôi SAI (đoán maj@3 thắng, thực tế thua 5/5).
+Lần này tôi đoán: MATH 1.5B **CÓ** hiệu ứng (solver .405, còn nhiều chỗ để sửa),
+MATH 7B **CÓ** (dải .60-.67 là nơi verify sinh lợi), GSM8K 7B **KHÔNG** (bão hoà .916).
+Tức là 3/4 ô -> hàng 1. Nhưng tôi vừa sai một lần nên đặt ít trọng số vào prior này.
