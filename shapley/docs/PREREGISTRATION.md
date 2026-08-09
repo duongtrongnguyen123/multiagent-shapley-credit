@@ -1769,3 +1769,39 @@ Tôi đoán hàng 1. **Nhưng prior của tôi vừa sai hai lần liên tiếp 
 (a) tôi đoán `escalate_seq` sẽ THẤP HƠN `big_maj8` trên MATH — nó CAO HƠN 10.5 điểm;
 (b) tôi tuyên bố kết quả #78 là "khuyến nghị mạnh nhất dự án" — GSM8K lật ngược ngay vòng sau.
 Vì vậy prior này đáng được coi trọng **thấp**. Bảng trên mới là thứ quyết định.
+
+# Đăng ký trước #47 — H41: KIỂM GIẢ THUYẾT "TRẦN" NGAY TRONG MIỀN MÀ ESCALATE ĐÃ **THUA**
+**Viết TRƯỚC khi chạy.** Bài kiểm khắt khe hơn #46.
+
+## Vì sao đây là bài kiểm mạnh hơn
+#46 tách độ khó trên MATH — miền escalate đã THẮNG (+.140). Dễ ra kết quả thuận.
+#47 làm đúng thế trên **GSM8K**, miền escalate đã **THUA** (−.064, 0/5 fold, vòng #79).
+Nếu "trần" là nguyên nhân thật, thì NGAY TRONG GSM8K, nhóm bài nhiều bước (7B xa trần hơn)
+phải cho `gain` cao hơn nhóm ít bước. Đây là dự đoán có thể sai rõ ràng.
+
+## Độ khó cho GSM8K — GSM8K KHÔNG có trường `level`
+Dùng **số bước tính** = số chú thích `<<...>>` trong lời giải chuẩn. Khách quan, có sẵn, không do tôi gán.
+Phân bố đo được ở N=500: **DỄ (≤2 bước) 188 · GIỮA (3) 125 · KHÓ (≥4) 187** — đều ≥ 40.
+
+## Thiết kế
+Giao thức H39 y nguyên (3 mẫu 1.5B -> đồng thuận thì nhận, không thì 7B tuần tự có mỏ neo),
+chạy trên 500 bài GSM8K, **bf16** trên RTX 5090, tách theo 3 tầng trên.
+Phân rã cơ chế và **đẳng thức tự kiểm** giống hệt #46:
+  `escalate_seq − big_maj3` ≈ `p_kept`·(−`opp_cost`) + `p_esc`·`gain_on_esc`  (lệch > .01 ⇒ BUG)
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`pct_escalated` của tầng ngoài .15–.85 ⇒ tầng đó SUY BIẾN. n mỗi tầng ≥ 40. Lệch đẳng thức > .01 ⇒ huỷ.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `gain`(KHÓ) > `gain`(DỄ) ít nhất .03 **và** `opp_cost`(DỄ) > `opp_cost`(KHÓ) | **XÁC NHẬN MẠNH giả thuyết trần** — đúng cả trong miền escalate thua tổng thể. Trần là biến điều tiết, không phải khác biệt giữa hai tác vụ. |
+| \|`gain`(KHÓ) − `gain`(DỄ)\| < .03 | Trần **KHÔNG giải thích được trong nội bộ GSM8K**. Khác biệt MATH↔GSM8K là ở cấp TÁC VỤ, không phải cấp độ khó. Giả thuyết trần YẾU ĐI rõ. |
+| `gain`(KHÓ) < `gain`(DỄ) − .03 | **NGƯỢC HẲN. Giả thuyết trần CHẾT.** Ghi rõ, không diễn giải lại. |
+| `gain`(KHÓ) > 0 | Có quy tắc dùng được: escalate CHỈ cho bài ≥4 bước, bỏ qua bài ngắn. |
+| `opp_cost` không giảm theo độ khó | Hướng có thể đúng nhưng **cơ chế sai** — phải tìm biến khác. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán hàng 1, nhưng biên độ nhỏ: `gain`(KHÓ) ≈ −.02, `gain`(DỄ) ≈ −.10.
+Tức escalate vẫn THUA ở mọi tầng của GSM8K, chỉ bớt thua ở nhóm nhiều bước.
+Prior của tôi đã sai 2 lần liên tiếp trong chuỗi này (vòng #78, #79) — bảng khoá mới là thứ quyết định.
