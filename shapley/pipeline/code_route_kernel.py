@@ -13,7 +13,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
 K, MAXNEW, TEMP = 8, 512, 0.8
 KS = 3                      # so ban cua model nho
-BSS, BSB = 48, 32
+BSS, BSB = 32, 8   # 7B nf4: 2 ban sao/the -> logits tien xu ly [B,T,151936] la thu bung VRAM
 TIMEOUT = 8
 
 M15 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors", recursive=True), key=len)[0])
@@ -117,19 +117,35 @@ def mktok(p):
     if tk.pad_token is None: tk.pad_token = tk.eos_token
     return tk
 T15, T7 = mktok(M15), mktok(M7)
+def _gen_chunk(model, tk, sysm, ch, temp):
+    ps = [tk.apply_chat_template([{"role":"system","content":sysm},{"role":"user","content":u}],
+          tokenize=False, add_generation_prompt=True) for u in ch]
+    e = tk(ps, return_tensors="pt", padding=True).to(model.device)
+    with torch.no_grad():
+        o = model.generate(**e, max_new_tokens=MAXNEW, do_sample=(temp > 0),
+                           temperature=max(temp, 1e-5), top_p=0.95, pad_token_id=tk.pad_token_id)
+    L = e["input_ids"].shape[1]
+    r = [tk.decode(o[j, L:], skip_special_tokens=True).strip() for j in range(len(ch))]
+    del e, o
+    return r
 def gen(model, tk, sysm, usrs, bs, temp):
+    """Gap OOM thi CHIA DOI lo va thu lai, xuong toi 1. Mot lo dai bat thuong khong
+    duoc phep giet ca shard (da lam hong shard 00: logits tien xu ly doi 4.25 GiB)."""
     outs = []
     for i in range(0, len(usrs), bs):
         ch = usrs[i:i+bs]
-        ps = [tk.apply_chat_template([{"role":"system","content":sysm},{"role":"user","content":u}],
-              tokenize=False, add_generation_prompt=True) for u in ch]
-        e = tk(ps, return_tensors="pt", padding=True).to(model.device)
-        with torch.no_grad():
-            o = model.generate(**e, max_new_tokens=MAXNEW, do_sample=(temp > 0),
-                               temperature=max(temp, 1e-5), top_p=0.95, pad_token_id=tk.pad_token_id)
-        L = e["input_ids"].shape[1]
-        outs += [tk.decode(o[j, L:], skip_special_tokens=True).strip() for j in range(len(ch))]
-        del e, o
+        cur = len(ch)
+        while True:
+            try:
+                for j in range(0, len(ch), cur):
+                    outs += _gen_chunk(model, tk, sysm, ch[j:j+cur], temp)
+                break
+            except torch.OutOfMemoryError:
+                torch.cuda.empty_cache()
+                if cur == 1: raise
+                cur = max(1, cur // 2)
+                outs = outs[:i]     # bo phan da sinh cua lo nay, lam lai tu dau lo
+                print(f"  OOM -> giam lo xuong {cur}", flush=True)
     return outs
 def parallel_gen(models, tk, sysm, by_idx, bs, temp, rounds):
     keys = list(by_idx.keys())
