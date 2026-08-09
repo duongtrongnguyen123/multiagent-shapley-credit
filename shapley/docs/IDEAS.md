@@ -2808,3 +2808,44 @@ Khi 7B mới ở .505, dư địa lớn, và lượt tuần tự trên nhóm kh�
 "Trần quyết định" mới chỉ dựa trên **2 điểm dữ liệu** (2 tác vụ). Hai miền còn khác nhau ở
 độ dài bài, kiểu suy luận, chất lượng bộ chấm. **Chưa được coi là đã chứng minh.**
 Kiểm chứng ở đăng ký trước #46: đo TRONG CÙNG MỘT tác vụ, tách theo độ khó.
+
+## [Loop] VÒNG #80 — **H40: GIẢ THUYẾT "TRẦN" CỦA TÔI **SAI**. HÀNG 2 CỦA BẢNG KHOÁ #46.**
+### MATH-500 đầy đủ, 20 shard Kaggle song song, 7B fp16, đẳng thức tự kiểm HỢP LỆ ở mọi tầng
+| tầng | n | esc% | big_maj3 | escalate_seq | **gain** | opp_cost | gain_on_esc | ID |
+|---|---|---|---|---|---|---|---|---|
+| DỄ (lv1-2) | 133 | .271 | .7669 | .7895 | **+.0226** | +.0309 | +.1667 | OK |
+| GIỮA (lv3) | 105 | .610 | .6190 | .6762 | **+.0572** | +.1463 | +.1875 | OK |
+| KHÓ (lv4-5) | 262 | .782 | .2939 | .4351 | **+.1412** | −.0175 | +.1756 | OK |
+| TẤT CẢ | 500 | .610 | .4880 | .5800 | **+.0920** | +.0410 | +.1771 | OK |
+
+### PHÁN QUYẾT: **HÀNG 2 — "gain > 0 ở CẢ HAI tầng"**
+Đúng câu chữ đã khoá: *"Giả thuyết trần **SAI**. Chênh lệch MATH↔GSM8K do thứ khác.
+**Ghi rõ là CHƯA GIẢI THÍCH ĐƯỢC**."* Tôi đoán hàng 1 (`gain`(DỄ) ≤ 0). Đo được **+.0226 > 0**.
+**PRIOR CỦA TÔI SAI LẦN THỨ BA LIÊN TIẾP** (#78 dự đoán thấp hơn `big_maj8` — cao hơn;
+#79 tuyên bố "khuyến nghị mạnh nhất" — GSM8K lật ngược; nay #80).
+`opp_cost` cũng KHÔNG theo trần: +.0309 → **+.1463** → −.0175, không đơn điệu.
+
+### NHƯNG H39_m **TÁI LẬP** — hiệu ứng chính là THẬT
+| | n | máy | 7B | esc% | big_maj3 | escalate_seq | gain | rẻ hơn |
+|---|---|---|---|---|---|---|---|---|
+| H39_m | 200 | RTX 5090 | bf16 | .625 | .5050 | .6450 | +.1400 | 1.63× |
+| **H40** | **500** | **20×Kaggle** | **fp16** | .610 | .4880 | .5800 | **+.0920** | **1.66×** |
+Cùng dấu, cùng tỉ lệ chi phí, phần cứng độc lập, mẫu gấp 2.5×. **Thắng lợi trên MATH không phải may.**
+
+### PHÂN RÃ CHỈ RA MỘT ĐIỀU TÔI KHÔNG NGỜ — `gain_on_esc` GẦN NHƯ **HẰNG SỐ**
+`gain_on_esc` = **+.1667 / +.1875 / +.1756** qua ba tầng — hầu như không đổi theo độ khó.
+Cái thay đổi là **TẦN SUẤT escalate**: `pe` = .271 → .610 → .782.
+=> Tổng `gain` tăng theo độ khó **KHÔNG PHẢI** vì lượt tuần tự đáng giá hơn ở bài khó,
+   mà vì bài khó **kích hoạt escalate thường xuyên hơn**. Giá trị mỗi lần escalate là ~+.18 đều đặn.
+**ĐÂY LÀ QUAN SÁT HẬU NGHIỆM, CHƯA ĐƯỢC TÍNH LÀ KẾT QUẢ.** Phải đăng ký trước rồi mới được khẳng định.
+
+### HẠN CHẾ THIẾT KẾ CỦA CHÍNH TÔI — phép thử này KHÔNG chạm vùng bão hoà
+`big_maj3` cao nhất trong ba tầng chỉ **.7669** (tầng DỄ). Ngưỡng bão hoà ghi ở vòng #71 là **>.90**.
+Tức **không tầng nào của MATH đạt bão hoà** — phép so sánh quyết định (bão hoà vs chưa) **CHƯA HỀ ĐƯỢC LÀM**.
+Nêu ra như một sự thật đo được (`big_maj3` từng tầng), KHÔNG phải để cứu giả thuyết đã chết theo bảng khoá.
+
+### VÌ SAO H41 (ĐĂNG KÝ TRƯỚC #47) LÀ PHÉP THỬ QUYẾT ĐỊNH
+GSM8K có `big_maj3` = .936 tổng thể — vùng bão hoà THẬT, thứ MATH không có.
+Và phân rã trên cho một dự đoán SẮC: nếu `gain_on_esc` thật sự ~hằng số dương,
+thì `gain` ÂM của GSM8K **buộc phải** đến từ `opp_cost` LỚN (7B hơn hẳn 1.5B trên nhóm đồng thuận).
+Nếu đo ra `opp_cost` GSM8K nhỏ mà `gain_on_esc` âm -> quan sát "hằng số" ở trên cũng sai nốt.
