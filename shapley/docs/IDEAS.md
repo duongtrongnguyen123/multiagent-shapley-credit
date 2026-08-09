@@ -2253,3 +2253,44 @@ Số thô (KHÔNG được trích dẫn): HIGH +.257 · MID +.215 · **ZERO +.13
 => Bản sửa ĐÃ ĐƯỢC ĐẶC TẢ ở pre-reg #34 (1024 token + giới hạn 120 từ lập luận + **lượt hỏi lại**
    nếu thiếu VERDICT) nhưng tôi CHƯA TRIỂN KHAI vì lúc đó đang tạm dừng RTX. Lẽ ra phải áp
    cho MỌI kernel dt chứ không chỉ bản RTX. Đó là thiếu sót của tôi — đặc tả xong rồi để đấy.
+
+## [Loop] VÒNG #65 — **ĐỒNG THUẬN LÀ TÍN HIỆU MẠNH NHẤT DỰ ÁN TỪNG ĐO** (và nó MIỄN PHÍ)
+Câu hỏi: 3 mẫu song song có thật sự cho ĐA SỐ không, hay ra 3 đáp án khác nhau?
+Đo trực tiếp trên trace đã có (60 bài × 16 mẫu, temp .8) — không tốn GPU.
+
+### k=3: PHẦN LỚN KHÔNG CÓ ĐA SỐ
+| | 3/3 đồng ý | 2/3 đồng ý | **1/3 (BA đáp án KHÁC NHAU)** |
+|---|---|---|---|
+| GSM8K 1.5B | 25.0% bài, acc **.933** | 25.0%, acc **.867** | **50.0%**, acc **.300** |
+| MATH 1.5B | 21.7%, acc **1.000** | 20.0%, acc **.917** | **58.3%**, acc **.029** |
+
+=> **Một nửa (GSM8K) tới 58% (MATH) số bài KHÔNG có đa số nào cả.**
+   Ở những bài đó `maj@3` KHÔNG phải bỏ phiếu — nó là **hoà, và code lấy mẫu ĐẦU TIÊN**
+   (`max(cnt,key=cnt.get)` trả về khoá được chèn sớm nhất = mẫu 0). Tức là ≈ một mẫu đơn.
+=> Giải thích luôn vì sao `maj@3` (.644) ≈ `greedy` (.632) ở GSM8K: một nửa số bài nó thoái hoá
+   thành "lấy mẫu đầu tiên".
+
+### k=8: cùng hiện tượng, và ĐỘ CHÍNH XÁC BÁM CHẶT MỨC ĐỒNG THUẬN
+GSM8K: 8/8 → **1.000** · 6/8 → .917 · 2/8 → .727 · **1/8 → .143**
+MATH : 8/8 → **1.000** · 6/8 → **1.000** · 2/8 → **.000** · **1/8 → .000** (30% số bài!)
+
+### PHÁT HIỆN: MỨC ĐỒNG THUẬN LÀ BỘ PHÂN LOẠI ĐÚNG/SAI GẦN NHƯ HOÀN HẢO Ở HAI ĐẦU
+- Đồng thuận CAO (≥6/8): độ chính xác **.92–1.00**
+- Đồng thuận THẤP (1/8): độ chính xác **.143 (GSM8K) / .000 (MATH)**
+Đây là tín hiệu **MIỄN PHÍ** — chỉ cần đếm, không cần huấn luyện gì.
+So sánh: bộ chấm huấn luyện (H27) đạt AUC .88–.95 nhưng tốn dữ liệu, LoRA, và đã gây ra lỗi
+rò rỉ adapter làm hỏng 6 kernel. **Đếm phiếu trùng nhau cho tín hiệu tương đương mà không tốn gì.**
+
+### HỆ QUẢ THỰC TIỄN (khuyến nghị mạnh nhất dự án có thể đưa ra lúc này)
+**Dùng mức đồng thuận để ĐỊNH TUYẾN chi phí:**
+- k mẫu đồng thuận cao -> nhận đáp án, DỪNG. Gần như chắc đúng, không cần verifier.
+- k mẫu phân tán hoàn toàn -> đáp án gần như chắc SAI. Đây MỚI là chỗ đáng đổ thêm compute
+  (model lớn hơn, hoặc lượt tuần tự có mỏ neo).
+Hiện tại mọi pipeline của dự án tiêu compute ĐỀU NHAU cho mọi bài — lãng phí ở bài dễ,
+thiếu ở bài khó.
+
+### NỐI VỚI H32 (vì sao tuần tự thắng song song)
+Khi 3 mẫu ra 3 đáp án khác nhau (50–58% số bài), bỏ phiếu KHÔNG có gì để khai thác.
+Nhưng lượt tuần tự CÓ MỎ NEO vẫn dùng được đáp án trước để cải thiện.
+=> Đây là cơ chế giải thích vì sao `PSV`/`SVV` hơn `maj@3` ở cùng ngân sách.
+GIẢ THUYẾT (chưa kiểm): lợi thế của tuần tự tập trung HOÀN TOÀN ở nhóm "không có đa số".
