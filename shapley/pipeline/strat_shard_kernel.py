@@ -27,13 +27,21 @@ NG = torch.cuda.device_count()
 DEVS = [f"cuda:{i}" for i in range(NG)]
 print(f"so GPU={NG} -> {DEVS}", flush=True)
 assert NG >= 1
-assert all(isinstance(x, str) for x in []) or True
 
+# Ten cot KHONG on dinh giua cac ban dataset: ban Kaggle dung 'Question'/'Answer' (viet hoa),
+# ban HF dung 'problem'/'answer'. Tra cuu KHONG PHAN BIET HOA THUONG -> da lam chet ca 20 shard.
+def _col(r, *names):
+    low = {str(k).strip().lower(): v for k, v in r.items()}
+    for n in names:
+        v = low.get(n)
+        if isinstance(v, str) and v.strip(): return v
+    return None
 def _lv(r):
-    m = re.search(r"\d", str(r.get("level", "")))
+    m = re.search(r"\d", str(_col(r, "level") or ""))
     return int(m.group()) if m else 0
-def _q(r):  return r.get("problem") or r.get("question")
-def _g(r):  return r.get("answer")
+def _q(r):  return _col(r, "problem", "question")
+def _g(r):  return _col(r, "answer", "solution")
+def _qh(t): return hashlib.md5(" ".join(str(t).split()).encode("utf-8")).hexdigest()[:12]
 
 # Loc dong hong TRUOC khi chia shard. Moi shard loc y het nhau tren cung file
 # -> chi so sau khi loc la nhat quan giua cac shard.
@@ -182,7 +190,7 @@ out = {"tag": f"H40s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
 for i in MINE:
     out["items"].append({
         "qi": i, "level": LV[i], "gold": G[i],
-        "qhash": hashlib.md5(Q[i].encode("utf-8")).hexdigest()[:12],
+        "qhash": _qh(Q[i]),
         "small_pred": S_PRED[i],
         "big_pred": [pred(t) for t in B_TXT[i]],
         "seq_pred": SEQ.get(i),
