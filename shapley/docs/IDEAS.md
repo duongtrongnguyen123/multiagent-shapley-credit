@@ -2591,3 +2591,40 @@ từ 3 đến 9.6 điểm, trên 3/4 ô của lưới `task × cỡ model`, tái
 và dùng ít token hơn 22–38%. Ngoại lệ DUY NHẤT là khi solver đã bão hoà (>.90), lúc đó
 lượt thêm chỉ gây hại. Cơ chế là **MỎ NEO ĐÁP ÁN TRƯỚC**, không phải phân vai —
 nhánh không có ngôn ngữ vai nào đạt kết quả ngang hoặc hơn."
+
+## [Loop] VÒNG #74 — H37 ô 7B: **BỘ KIỂM HỌC RẤT TỐT (AUC .893) NHƯNG GẦN NHƯ VÔ DỤNG (+2.4 điểm)**
+### Số liệu (HỢP LỆ: `adapter_leak` = 0.05, đúng bằng ngưỡng; đo trên CÙNG 60 bài trước/sau)
+| | 1.5B | **7B** |
+|---|---|---|
+| A) TIÊM (trong phân phối) | +0.032 | **+0.573** |
+| B) THẬT (chuyển giao) | +0.219 (AUC .563) | **+0.693 (AUC .893)** |
+| `wvote − maj@8` | ≈0 (4 fold) | **+0.024, 2/5 fold** |
+| maj@8 / wvote | — | .504 / .528 |
+
+### PHÁN QUYẾT: **HÀNG 4 của bảng khoá (#43)**
+"`discrimination_real` > 0 nhưng `wvote` KHÔNG hơn `maj@8` (>=4/5) -> kiểm được nhưng KHÔNG
+chuyển thành độ chính xác. **ĐO ĐƯỢC ≠ DÙNG ĐƯỢC.**"
+`real` = +.693 vượt xa ngưỡng .40, nhưng `wvote` chỉ hơn `maj@8` ở **2/5 fold**, +2.4 điểm.
+
+### PRIOR CỦA TÔI SAI LẦN THỨ HAI — và sai cả hai chiều
+Tôi ghi trước: "`injected` CAO, `real` THẤP" (học hiện vật, không chuyển giao).
+Thực tế ở 7B: **CẢ HAI ĐỀU CAO, và `real` (+.693) CAO HƠN `injected` (+.573).**
+Chuyển giao KHÔNG phải vấn đề. Nút thắt nằm ở chỗ khác hoàn toàn.
+
+### NÚT THẮT THẬT: BỘ CHỌN KHÔNG THỂ VƯỢT `oracle@k`
+Bộ kiểm chỉ CHỌN trong k ứng viên. Nếu **không ứng viên nào đúng**, AUC .893 cũng vô ích.
+Khớp với vòng #65: bài "không đồng thuận" (50–58% số bài) có độ chính xác ~**.14 / .00** —
+tức là ở nhóm đó, thường KHÔNG CÓ đáp án đúng nào để chọn.
+=> Đây là lý do vì sao mọi cơ chế TỔNG HỢP của dự án đều chạm trần thấp:
+   **giới hạn không phải ở việc CHỌN, mà ở việc SINH.**
+
+### ĐỐI CHIẾU VỚI CODE — vì sao code khác hẳn
+Trên code, `exec3` = `oracle@4` **CHÍNH XÁC**, và `oracle@4` = .644/.881 — CAO hơn `maj@4` rất nhiều
+(bỏ lỡ 21.3 điểm). Nên ở đó bộ chọn hoàn hảo mua được 21 điểm.
+Trên toán, `oracle` gần `maj` hơn nhiều -> bộ chọn dù hoàn hảo cũng mua được ít.
+=> **Giá trị của bộ kiểm = khoảng cách `oracle@k − maj@k`, KHÔNG phải chất lượng bộ kiểm.**
+   AUC .893 trên toán mua +2.4 điểm; bộ test trên code (AUC hiệu dụng 1.0) mua +21 điểm.
+
+### NĂNG LỰC QUYẾT ĐỊNH VIỆC HỌC ĐƯỢC HAY KHÔNG
+`injected`: 1.5B **+.032** vs 7B **+.573** — gấp **18 lần**. Loss 1.5B TĂNG (0.22->0.65),
+loss 7B GIẢM (8.56->0.18). Bắt lỗi số học tiêm sẵn cần năng lực mà 1.5B KHÔNG có.
