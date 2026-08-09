@@ -1590,3 +1590,50 @@ vì chạy được không đảm bảo mô hình hoá đúng. Tức là rơi H�
 Nếu đúng thì kết luận là: **bộ kiểm chỉ có giá trị khi nó là ORACLE VỀ TÍNH ĐÚNG (như bộ test),
 không phải khi nó chỉ là MỘT CÁCH TÍNH KHÁC (như chạy Python cho toán).**
 Đó sẽ là phát biểu tổng quát và chặt chẽ hơn nhiều so với "code có bộ kiểm, toán thì không".
+
+---
+
+# Đăng ký trước #43 — H37: HUẤN LUYỆN BỘ KIỂM LỖI, VÀ NÓ CÓ CHUYỂN GIAO KHÔNG?
+**Viết TRƯỚC khi chạy.** Trả lời: "có nên align/finetune/reinforce cho việc KIỂM không?"
+
+## Vì sao đáng thử (bằng chứng đã có)
+Cùng model 1.5B, cùng nhiệm vụ phán đoán đúng/sai:
+- **PROMPT**: suy biến .99 (luôn nói "NO") -> VÔ HIỆU ở cả GSM8K lẫn MATH
+- **HUẤN LUYỆN** (H27, nhãn tự động từ grader): **AUC .88–.95**
+=> Năng lực phán đoán CÓ TỒN TẠI trong model, chỉ là **KHÔNG MOI RA ĐƯỢC BẰNG PROMPT**.
+Nhãn cho việc kiểm lỗi tiêm sẵn là MIỄN PHÍ và VÔ HẠN (chuỗi vàng = sạch; đổi 1 số = bẩn).
+
+## RỦI RO CHÍNH — phải thiết kế để đo, không được bỏ qua
+Lỗi TIÊM SẴN = đổi MỘT con số trong chuỗi hoàn hảo.
+Lỗi THẬT của model = sai cách tiếp cận, sai công thức, thiếu trường hợp.
+**Hai loại khác hẳn nhau.** Một bộ kiểm huấn luyện trên lỗi tiêm có thể giỏi bắt "số bị đổi"
+mà VÔ DỤNG với lỗi thật. Vì vậy thiết kế BẮT BUỘC là **huấn luyện trên TIÊM, đánh giá trên THẬT**.
+
+## Thiết kế
+- **Huấn luyện**: LoRA phân loại nhị phân trên MATH *train-half*, nhãn tiêm sẵn
+  (clean vs corrupt, cân bằng). ~3000 cặp. Solver KHÔNG dính adapter (bài học rò rỉ #59).
+- **Đánh giá A (trong phân phối)**: lỗi TIÊM trên test-half -> `discrimination_injected`
+- **Đánh giá B (CHUYỂN GIAO — chỉ số CHÍNH)**: lời giải THẬT do model sinh, nhãn đúng/sai
+  từ grader -> `discrimination_real`
+- **Đánh giá C (giá trị thực tiễn)**: dùng bộ kiểm để CÂN TRỌNG SỐ phiếu trên k=8 -> so `maj@8`
+- Mốc: bộ chấm H27 (huấn luyện trên lời giải THẬT) trên CÙNG tập test.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`adapter_leak` <= .05 (đo trên CÙNG 60 bài trước/sau, theo #37) · AUC > .55 mới đọc được ·
+`degenerate_rate` <= .90.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `discrimination_real` >= .40 VÀ wvote > maj@8 >=4/5 fold | **HUẤN LUYỆN BỘ KIỂM LÀ ĐÚNG HƯỚNG.** Toán có thể có bộ kiểm học được, xấp xỉ vai trò mà bộ test đóng cho code. Kết quả lớn. |
+| `discrimination_injected` cao NHƯNG `discrimination_real` ≈ 0 | **HỌC ĐƯỢC HIỆN VẬT, KHÔNG CHUYỂN GIAO.** Bộ kiểm chỉ bắt "số bị đổi". Phải nói thẳng và KHÔNG được báo cáo con số in-distribution như thành công. |
+| Cả hai đều ≈ 0 | Huấn luyện không moi được năng lực kiểm cho lỗi số học. Cộng với H23 (GRPO im lặng) -> **DỪNG hướng huấn luyện vai kiểm**. |
+| `discrimination_real` > 0 nhưng wvote KHÔNG hơn maj@8 | Kiểm được nhưng KHÔNG chuyển thành độ chính xác. Ghi rõ: đo được ≠ dùng được. |
+| Thua bộ chấm H27 (huấn luyện trên lời giải thật) | Nhãn TIÊM kém hơn nhãn THẬT. Khuyến nghị: dùng grader trên lời giải thật, đừng tiêm. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 2**: `discrimination_injected` sẽ CAO (>.6, vì nhiệm vụ dễ và nhãn sạch) nhưng
+`discrimination_real` sẽ THẤP (<.2). Lý do: lỗi tiêm là bài toán "tìm số không khớp",
+lỗi thật là bài toán "hiểu bài". Hai thứ này không cùng một kỹ năng.
+Nếu đúng hàng 2 thì kết luận là: **nhãn rẻ không thay thế được nhãn đúng loại** — và cách duy
+nhất còn lại cho toán vẫn là bộ kiểm CƠ HỌC, thứ mà toán KHÔNG CÓ (đã đo ở H8b).
