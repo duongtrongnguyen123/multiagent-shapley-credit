@@ -1457,3 +1457,54 @@ Nếu đếm phiếu hoạt động nhờ đa dạng, `P3S` sẽ **KÉM `maj@4`*
 - Tức là tôi đoán **cả hai cấu hình mới đều KHÔNG hơn** cấu hình 3 lượt tốt nhất.
 Ghi rõ: prior gần nhất của tôi về H32 đã SAI (đoán maj@3 thắng, thực tế thua 5/5),
 nên đặt ít trọng số vào prior này.
+
+---
+
+# Đăng ký trước #40 — H35: KIỂM BẰNG **BỘ KIỂM ĐÚNG ĐẮN** vs KIỂM BẰNG LLM, Ở CÙNG NGÂN SÁCH
+**Viết TRƯỚC khi chạy.** Đây là phát biểu tổng quát mà "chứng minh định lý" chỉ là một trường hợp.
+
+## Vì sao đây mới là thí nghiệm đáng chạy (thay vì Lean)
+Phát hiện âm trung tâm của dự án: "verifier" bằng LLM **không kiểm** — nó GIẢI LẠI
+(tái sử dụng 0% số của Solver; độ chính xác can thiệp = độ chính xác TỰ GIẢI).
+Đối chứng gần nhất đã đo: **verify bằng CHẠY TEST** trên HumanEval —
+.787 -> **.835** ở 7B, **0 phá** suốt 3 vòng; trong khi verify bằng LLM PHÁ đáp án đúng ở CẢ 4 ô.
+=> Giả thuyết tổng quát: **vai verifier chỉ hoạt động khi việc kiểm là ĐÚNG ĐẮN VỀ MẶT CƠ HỌC,
+   không phải khi nó là một lượt LLM nữa.** Chứng minh định lý hình thức là một hiện thân
+   (bộ kiểm Lean), thực thi test là một hiện thân khác — và cái thứ hai CHẠY ĐƯỢC ở quy mô này.
+
+## Khiếm khuyết của số cũ, phải sửa
+`.787→.835` đo **MỘT LẦN**, +4.8 điểm — **DƯỚI sàn nhiễu 5 điểm**, và **KHÔNG có đối chứng
+cùng ngân sách** (3 vòng sửa = 4 lượt sinh, so với 1 lượt của baseline). Đúng loại so sánh
+mà chính tôi đã bị chỉ ra là sai ở H32.
+
+## Thiết kế — HumanEval, 5 fold, MỌI nhánh 4 LƯỢT SINH
+- `greedy1` (1 lượt, quy chiếu)
+- **`maj@4`** — 4 mẫu, bỏ phiếu theo chuỗi code chuẩn hoá (đối chứng cùng ngân sách)
+- **`exec3`** — sinh 1 lần rồi **3 vòng sửa dựa trên KẾT QUẢ CHẠY TEST** (bộ kiểm đúng đắn)
+- **`llm3`**  — sinh 1 lần rồi **3 vòng sửa dựa trên NHẬN XÉT CỦA LLM** (không chạy test)
+`exec3` vs `llm3` là phép so sánh CHÍNH: **cùng số lượt, cùng model, chỉ khác NGUỒN TÍN HIỆU KIỂM.**
+Đếm token mọi nhánh. Báo `n_breaks` (bài đang đúng bị làm hỏng) cho từng nhánh.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`exec_success_rate` (tỉ lệ code chạy được, không lỗi cú pháp) phải **>= .50** — cùng ngưỡng đã
+dùng để tuyên H8 VÔ HIỆU. Nếu thấp hơn thì model không viết nổi code chạy được -> VÔ HIỆU.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `exec3` > `llm3` VÀ `exec3` > `maj@4`, >=4/5 fold | **XÁC NHẬN: bộ kiểm ĐÚNG ĐẮN làm được thứ LLM-kiểm không làm nổi**, và nó thắng cả lấy mẫu ở cùng ngân sách. Đây là phát biểu THỰC TIỄN mạnh nhất dự án: chỉ thêm verifier khi có bộ kiểm thật. |
+| `exec3` > `llm3` nhưng KHÔNG hơn `maj@4` | Bộ kiểm hơn LLM-kiểm, nhưng vẫn không đáng so với chỉ lấy mẫu thêm. Khuyến nghị: bỏ phiếu. |
+| `exec3` ≈ `llm3` | Nguồn tín hiệu kiểm KHÔNG quan trọng -> bác giả thuyết trung tâm của vòng này. Phải nói thẳng. |
+| `llm3` phá nhiều hơn `exec3` (n_breaks) | Củng cố cơ chế: LLM-kiểm gây hại, bộ kiểm thì không. Ngay cả khi độ chính xác ngang nhau. |
+| `exec_success_rate` < .50 | VÔ HIỆU (như H8). Không được đọc là "bộ kiểm thất bại". |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán `exec3` > `llm3` rõ rệt và `exec3` >= `maj@4` — tức hàng 1. Đây là hướng tôi tin nhất
+còn lại của dự án, vì nó là cơ chế DUY NHẤT đã đo được **0 phá** trong khi mọi LLM-verifier đều phá.
+Ghi kèm: prior H32 của tôi đã sai, nên đặt trọng số vừa phải.
+
+## VỀ CHỨNG MINH ĐỊNH LÝ (trả lời trực tiếp)
+Không chạy Lean lúc này vì: (a) **không có bộ dữ liệu miniF2F trên Kaggle** (đã tìm, không có);
+(b) không có toolchain Lean khi `enable_internet=false`; (c) Qwen2.5-1.5B/7B-Instruct gần như
+không sinh nổi Lean hợp lệ -> mọi tầng sẽ rỗng, đúng lỗi đã giết `dt2_g7` (tầng quyết định n=9).
+Nếu về sau có model chuyên (DeepSeek-Prover/Llemma) và bộ kiểm, H35 chính là khuôn mẫu để lặp lại.
