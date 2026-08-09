@@ -2724,3 +2724,46 @@ Kết quả hơn `maj@8` tới 10.5 điểm với chi phí chưa bằng một n�
 - Tín hiệu định tuyến MIỄN PHÍ (chỉ đếm phiếu trùng nhau), không huấn luyện, không rò rỉ adapter.
 - Vượt cả bỏ phiếu có trọng số (+6.0, cần LoRA + dữ liệu) VÀ rẻ hơn.
 - Ngoại lệ: ô BÃO HOÀ (solver >.90) — ở đó không có gì để định tuyến, đừng dùng.
+
+## [Loop] VÒNG #78 — **H39: ESCALATE THEO ĐỒNG THUẬN + TUẦN TỰ HƠN "LUÔN DÙNG 7B" 10.5 ĐIỂM VỚI CHI PHÍ 4.3× ÍT HƠN**
+### MATH, escalate 1.5B -> 7B, tỉ lệ escalate = **.625** (HỢP LỆ), chi phí quy về FLOP 1.5B (7B = 5.07×)
+| nhánh | acc | chi phí (1.5B-eq) |
+|---|---|---|
+| small_maj3 (chỉ 1.5B) | .3500 | 3.00 |
+| small_maj8 (chỉ 1.5B) | .4800 | 8.00 |
+| big_maj3 (chỉ 7B) | .5050 | 15.20 |
+| big_maj8 (chỉ 7B) | .5400 | 40.53 |
+| escalate (7B lấy mẫu) | .4950 | 12.50 |
+| **escalate_seq (7B TUẦN TỰ)** | **.6450** | **9.33** |
+
+| so sánh | chênh acc | chi phí |
+|---|---|---|
+| `escalate_seq` vs `big_maj3` | **+.1400** | **1.63× rẻ hơn** (5/5 fold) |
+| `escalate_seq` vs `big_maj8` | **+.1050** | **4.34× rẻ hơn** |
+| `escalate_seq` vs `small_maj8` | +.1650 | — |
+| `escalate` (lấy mẫu) vs `big_maj3` | −.0100 | 1.22× rẻ hơn |
+
+### PHÁN QUYẾT: **HÀNG 1 + HÀNG 4 của bảng khoá #45**
+Hàng 1: "`escalate` >= `big_maj3` nhưng chi phí thấp hơn rõ -> XÁC NHẬN: chỉ trả tiền cho model
+lớn ở bài KHÔNG đồng thuận." **Đạt (với biến thể tuần tự): +.14 acc, 1.63× rẻ hơn, 5/5 fold.**
+Hàng 4: "`escalate_seq` > `escalate` -> tuần tự lại thắng lấy mẫu." **Đạt rất mạnh: .645 vs .495 = +.150.**
+Bản LẤY MẪU của escalate (.495) còn THUA `big_maj3` (.505) -> **chỉ TUẦN TỰ mới có tác dụng.**
+
+### PRIOR CỦA TÔI SAI — lần này sai theo chiều TỐT
+Tôi ghi trước: "escalate sẽ gần `big_maj3` với chi phí thấp hơn, NHƯNG sẽ THẤP HƠN `big_maj8`;
+kết luận sẽ là về hiệu quả chi phí, không phải độ chính xác."
+Thực tế: `escalate_seq` = .645 **CAO HƠN** `big_maj8` = .540 **10.5 điểm**, và rẻ hơn **4.34 lần**.
+Không chỉ hiệu quả chi phí — mà **CHÍNH XÁC HƠN VÀ RẺ HƠN CÙNG LÚC**.
+
+### VÌ SAO — ba mảnh khớp nhau
+1. **Đồng thuận biết bài nào dễ** (vòng #65): 37.5% bài mà 1.5B tự đồng ý -> nó gần như luôn đúng,
+   dùng 7B ở đó là LÃNG PHÍ.
+2. **Tuần tự > song song** (H32, H38): ở bài khó, một lượt có MỎ NEO đáng giá hơn nhiều lượt độc lập.
+3. **Nút thắt là SINH, không phải CHỌN** (H37): `big_maj8` tiêu 40.5 đơn vị để lấy mẫu SONG SONG —
+   nhưng 8 mẫu song song của 7B vẫn không sinh ra đáp án đúng ở nhóm khó. Tuần tự thì có.
+
+### KHUYẾN NGHỊ TRIỂN KHAI (mạnh nhất dự án đưa ra được)
+**"Lấy 3 mẫu bằng model NHỎ. Nếu >=2 đồng ý -> nhận, dừng. Nếu không -> gọi model LỚN chạy
+TUẦN TỰ CÓ MỎ NEO (giải lại + kiểm), KHÔNG phải lấy nhiều mẫu."**
+Trên MATH: **.645 so với .540 của "luôn dùng 7B, 8 mẫu", với 1/4.3 chi phí.**
+Tín hiệu định tuyến MIỄN PHÍ. Không huấn luyện. Không rò rỉ adapter.
