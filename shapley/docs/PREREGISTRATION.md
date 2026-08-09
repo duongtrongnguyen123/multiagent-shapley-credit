@@ -1423,3 +1423,37 @@ Bảng diễn giải của #38 GIỮ NGUYÊN, áp cho TỪNG ô. Thêm quy tắc
 Lần này tôi đoán: MATH 1.5B **CÓ** hiệu ứng (solver .405, còn nhiều chỗ để sửa),
 MATH 7B **CÓ** (dải .60-.67 là nơi verify sinh lợi), GSM8K 7B **KHÔNG** (bão hoà .916).
 Tức là 3/4 ô -> hàng 1. Nhưng tôi vừa sai một lần nên đặt ít trọng số vào prior này.
+
+---
+
+# Đăng ký trước #39 — H33: `P→3S` và `P→S→V→A` Ở NGÂN SÁCH 4 LƯỢT
+**Viết TRƯỚC khi chạy.** Mở rộng H32 sang ngân sách 4 lượt, có ĐỐI CHỨNG CÙNG NGÂN SÁCH.
+
+## Hai cấu hình cần kiểm (người dùng đề xuất)
+- **`P3S`** : Planner 1 lượt -> **3 Solver CÙNG đọc kế hoạch đó** -> đếm phiếu giữa 3 lời giải. (4 lượt)
+- **`PSVA`**: Planner -> Solver -> Verifier -> Aggregator (đủ 4 vai). (4 lượt)
+**ĐỐI CHỨNG BẮT BUỘC: `maj@4`** (4 mẫu độc lập, đếm phiếu) — cùng 4 lượt sinh.
+Kèm lại `maj@3` và `PSV` (3 lượt) để biết lượt thứ 4 có mua được gì không.
+Đếm TOKEN mọi nhánh.
+
+## Câu hỏi cơ chế mà thiết kế này tách được
+`P3S` cho cả 3 mẫu ĐỌC CHUNG một kế hoạch -> **giảm ĐA DẠNG** giữa các mẫu.
+Nếu đếm phiếu hoạt động nhờ đa dạng, `P3S` sẽ **KÉM `maj@4`** dù có thêm thông tin kế hoạch.
+Đây là phép thử trực tiếp: **thông tin chung có bù được cho đa dạng bị mất không?**
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `P3S` > `maj@4` ở >=4/5 fold | Kế hoạch chung BÙ ĐƯỢC đa dạng đã mất. Điều kiện hoá tập trung có giá trị. |
+| `P3S` < `maj@4` ở >=4/5 fold | **Đa dạng quan trọng hơn thông tin chung.** Không nên ép nhiều solver theo cùng một kế hoạch. |
+| `PSVA` > `PSV` | Aggregator CÓ giá trị ở 1.5B — mâu thuẫn với đo cũ (agg_fair 1.5B −.067, agg_full_sol −.175); phải đối chiếu và giải thích. |
+| `PSVA` <= `PSV` | Lượt thứ 4 dành cho Aggregator là LÃNG PHÍ. Khuyến nghị: dừng ở Verifier. |
+| `maj@4` ≈ `maj@3` | Lượt sinh thứ 4 gần như vô ích cho đếm phiếu -> lợi ích cận biên của lấy mẫu bão hoà sớm. |
+| Nhánh tuần tự tốt nhất (4 lượt) <= nhánh tuần tự tốt nhất (3 lượt) | Thêm lượt KHÔNG mua thêm gì; ngân sách 3 lượt là đủ. Phát biểu được như khuyến nghị thực tiễn. |
+
+## Prior TRUNG THỰC (ghi trước)
+- `P3S` **KÉM** `maj@4`: kế hoạch chung làm 3 mẫu giống nhau, đếm phiếu mất tác dụng.
+- `PSVA` **≈ hoặc kém** `PSV`: Aggregator đã đo là trung tính (7B) tới có hại (1.5B).
+- Tức là tôi đoán **cả hai cấu hình mới đều KHÔNG hơn** cấu hình 3 lượt tốt nhất.
+Ghi rõ: prior gần nhất của tôi về H32 đã SAI (đoán maj@3 thắng, thực tế thua 5/5),
+nên đặt ít trọng số vào prior này.
