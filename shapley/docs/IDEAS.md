@@ -2556,3 +2556,38 @@ CHỜ ô 7B trước khi chốt — năng lực là lý do prompt thất bại, 
 => Supervisor của tôi kiểm VRAM **lúc KHỞI ĐỘNG** nhưng job huấn luyện **PHÌNH LÊN** sau đó.
 => SỬA: job `checker_local` (có huấn luyện) nay chạy **ĐỘC QUYỀN**, không cùng lúc với job khác.
    Job chỉ suy luận thì vẫn cho chạy song song (chúng không phình).
+
+## [Loop] VÒNG #73 — **LƯỚI H32 HOÀN TẤT VÀ TÁI LẬP ĐỘC LẬP**: 8 phép đo, 4 ô, 2 phần cứng
+| ô | phần cứng | greedy | maj@3 | PSV | `maj3−PSV` | fold |
+|---|---|---|---|---|---|---|
+| GSM8K 1.5B | T4 | .632 | .644 | **.728** | **−.084** | 0/5 |
+| GSM8K 1.5B | 5090 | .636 | .608 | **.704** | **−.096** | 1/5 |
+| MATH 1.5B | T4 | .330 | .350 | **.380** | −.030 | 2/5 |
+| MATH 1.5B | 5090 | .325 | .385 | **.440** | **−.055** | 0/5 |
+| MATH 7B | T4 4-bit | .500 | .505 | **.590** | **−.085** | 0/5 |
+| MATH 7B | 5090 bf16 | .480 | .520 | **.595** | **−.075** | 0/5 |
+| **GSM8K 7B** | T4 4-bit | .912 | **.916** | .904 | **+.012** | 3/5 |
+| **GSM8K 7B** | 5090 bf16 | .924 | **.932** | .896 | **+.036** | 4/5 |
+
+### KẾT LUẬN — mọi ô đo HAI LẦN, hai phần cứng, hai độ chính xác số học, CÙNG DẤU
+- **PSV thắng ở 3/4 ô**, tái lập ở cả hai lần chạy của mỗi ô.
+- **Chỉ thua ở ô BÃO HOÀ** (GSM8K 7B, greedy .912–.924) — và thua ở CẢ HAI lần chạy.
+  Đây là ĐIỀU KIỆN đã khoá trước, không phải phản chứng: solver gần trần thì lượt thêm
+  chỉ có thể PHÁ đáp án đang đúng.
+- Tái lập chéo T4-4bit vs 5090-bf16 -> **kết luận KHÔNG phụ thuộc lượng tử hoá hay phần cứng.**
+
+### VÀ NÓ RẺ HƠN
+Token ở GSM8K 7B: `PSV` **1.89×** greedy vs `maj@3` **3.04×** -> tuần tự dùng **ÍT HƠN 38% token**
+mà vẫn ngang/hơn. (Ở GSM8K 1.5B trước đó: 2.29× vs 2.96×, ít hơn 22%.)
+
+### CƠ CHẾ VẪN LÀ MỎ NEO, KHÔNG PHẢI VAI
+`SS_anc` (giải → neo → neo, KHÔNG một chữ nào về vai) = .924 ở GSM8K 7B, **cao hơn cả PSV .904**.
+`SSanc − PSV` = +.020. Cộng với các ô trước (SS_anc = PSV chính xác ở GSM8K 1.5B):
+**bỏ hết ngôn ngữ vai mà kết quả không đổi hoặc tốt hơn.**
+
+### PHÁT BIỂU ĐƯỢC PHÉP DÙNG
+"Ở CÙNG ngân sách sinh, **tinh chỉnh tuần tự có mỏ neo** hơn **lấy mẫu song song + bỏ phiếu**
+từ 3 đến 9.6 điểm, trên 3/4 ô của lưới `task × cỡ model`, tái lập độc lập trên hai phần cứng,
+và dùng ít token hơn 22–38%. Ngoại lệ DUY NHẤT là khi solver đã bão hoà (>.90), lúc đó
+lượt thêm chỉ gây hại. Cơ chế là **MỎ NEO ĐÁP ÁN TRƯỚC**, không phải phân vai —
+nhánh không có ngôn ngữ vai nào đạt kết quả ngang hoặc hơn."
