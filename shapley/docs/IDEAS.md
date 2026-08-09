@@ -2767,3 +2767,44 @@ Không chỉ hiệu quả chi phí — mà **CHÍNH XÁC HƠN VÀ RẺ HƠN CÙN
 TUẦN TỰ CÓ MỎ NEO (giải lại + kiểm), KHÔNG phải lấy nhiều mẫu."**
 Trên MATH: **.645 so với .540 của "luôn dùng 7B, 8 mẫu", với 1/4.3 chi phí.**
 Tín hiệu định tuyến MIỄN PHÍ. Không huấn luyện. Không rò rỉ adapter.
+
+## [Loop] VÒNG #79 — **H39_g: TRÊN GSM8K, ESCALATE **THUA**. HÀNG 2 CỦA BẢNG KHOÁ #45.**
+### GSM8K, escalate 1.5B -> 7B, tỉ lệ escalate = **.372** (HỢP LỆ)
+| nhánh | acc | chi phí (1.5B-eq) |
+|---|---|---|
+| small_maj3 | .6160 | 3.00 |
+| small_maj8 | .7400 | 8.00 |
+| big_maj3 | **.9360** | 15.20 |
+| big_maj8 | **.9480** | 40.53 |
+| escalate (lấy mẫu) | .8880 | 8.65 |
+| escalate_seq (tuần tự) | .8720 | 6.77 |
+
+| so sánh | chênh acc | chi phí | fold |
+|---|---|---|---|
+| `escalate_seq` vs `big_maj3` | **−.0640** | 2.25× rẻ hơn | **0/5** |
+| `escalate_seq` vs `big_maj8` | **−.0760** | 5.99× rẻ hơn | **0/5** |
+| tuần tự vs lấy mẫu | **−.0160** | — | ĐẢO CHIỀU so với MATH |
+
+### PHÁN QUYẾT: **HÀNG 2 của bảng khoá #45 — "escalate < big_maj3"**
+Đúng câu chữ đã khoá: *"Escalate không đủ — ghi rõ."* **GHI RÕ: trên GSM8K, escalate THUA
+`big_maj3` 6.4 điểm ở 0/5 fold.** Rẻ hơn 2.25× nhưng KHÔNG chính xác bằng.
+Và **hàng 4 ĐẢO CHIỀU**: tuần tự (.872) THẤP HƠN lấy mẫu (.888) — ngược hẳn MATH (+.150).
+
+### KẾT QUẢ #78 KHÔNG PHỔ QUÁT. Phải thu hẹp phạm vi.
+Vòng #78 tôi viết: *"khuyến nghị triển khai mạnh nhất dự án đưa ra được."* **Câu đó SAI vì
+thiếu điều kiện.** Nó đúng trên MATH, sai trên GSM8K. Ghi lại cho đúng:
+> escalate theo đồng thuận thắng **trên MATH**, thua **trên GSM8K**. Chưa biết cái gì quyết định.
+
+### ĐỐI CHIẾU HAI MIỀN — khác biệt lớn nhất là **TRẦN**
+| | acc `big_maj3` | dư địa còn lại | chênh `escalate_seq` |
+|---|---|---|---|
+| MATH | .5050 | .495 | **+.1400** |
+| GSM8K | .9360 | .064 | **−.0640** |
+Khi 7B đã ở .936, việc GIỮ 62.8% bài cho 1.5B nghĩa là **từ bỏ** phần 7B lẽ ra sửa được.
+Lỗi còn lại trong nhóm "đồng thuận" là KHÔNG THỂ cứu — ta không bao giờ gọi 7B ở đó.
+Khi 7B mới ở .505, dư địa lớn, và lượt tuần tự trên nhóm khó thu được nhiều hơn phần đánh mất.
+
+### ĐÂY LÀ **GIẢ THUYẾT**, KHÔNG PHẢI ĐO ĐƯỢC
+"Trần quyết định" mới chỉ dựa trên **2 điểm dữ liệu** (2 tác vụ). Hai miền còn khác nhau ở
+độ dài bài, kiểu suy luận, chất lượng bộ chấm. **Chưa được coi là đã chứng minh.**
+Kiểm chứng ở đăng ký trước #46: đo TRONG CÙNG MỘT tác vụ, tách theo độ khó.
