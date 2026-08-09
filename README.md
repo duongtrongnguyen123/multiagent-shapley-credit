@@ -44,6 +44,24 @@ chính bảng Shapley ban đầu:
 > không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
 > đó chính là cơ chế của kết quả +14.0đ.
 
+## ⚠️ TẠM ĐÌNH CHỈ — nhánh "tổng hợp" đang được đo lại (vòng #59–#60)
+
+Rà soát ngày 2026-08-08 phát hiện **lỗi rò rỉ adapter** trong 6/6 kernel có huấn luyện:
+mẫu ĐÁNH GIÁ được sinh khi LoRA `Yes/No` vẫn đang BẬT, nên **Solver bị chính bộ chấm làm hỏng**.
+Bằng chứng: cùng ô, cùng dữ liệu, chỉ khác lượng huấn luyện (800 vs 1600 bước) ->
+`greedy1` .5167 vs **.3867**, `maj@8` .7067 vs **.5467**, và chênh lệch báo cáo +.030 vs **+.110**.
+
+Do đó **H27 (rerank), H28/H28b (bỏ phiếu có trọng số), H31 (oracle_solid)** đang **TẠM ĐÌNH CHỈ** —
+không phải đã bác, cũng không phải đã xác nhận. Mọi con số của bốn giả thuyết đó **không được trích dẫn**
+cho tới khi bản đã sửa (`disable_adapter` khi sinh lời giải, ngưỡng `adapter_leak <= .05`,
+đăng ký trước #36) chạy xong.
+
+So sánh CẶP (`wsum` vs `maj` trên CÙNG 8 mẫu) vẫn hợp lệ về nội tại nên **HƯỚNG** nhiều khả năng
+còn đúng; nhưng **ĐỘ LỚN không chuyển được sang thực tế**, vì khi triển khai thật Solver là model GỐC.
+Phần còn lại của README (H1, H2, H24, H25, H29, H30, GRPO) **KHÔNG** dùng adapter nên không bị ảnh hưởng.
+
+---
+
 ## Cập nhật vòng #43–#49 (mới nhất)
 
 **Hai phát biểu nữa đã bị rút lại, và có một phát hiện DƯƠNG.**
@@ -56,10 +74,24 @@ chính bảng Shapley ban đầu:
 | **7B phát hiện được lỗi số học tiêm sẵn; 1.5B thì không** | ✅ **DƯƠNG** — 1.5B suy biến `.99` (luôn trả lời "NO", VÔ HIỆU); 7B phân biệt **+.651** (n=166). Ngưỡng NĂNG LỰC, đo trên nhiệm vụ kiểm THUẦN TUÝ. |
 | Verifier PHÂN BIỆT (chấm điểm, 3200 nhãn tự động) | **AUC .883** nhưng `rerank@8` **.687** < `maj@8` **.703**. Bộ chấm giỏi mà dùng `argmax` vẫn thua ĐẾM PHIẾU. |
 
-> ### ⇒ ĐẾM PHIẾU VẪN CHƯA BỊ ĐÁNH BẠI
-> Sau GRPO, verifier vá lỗi, verifier bịt mắt, và bộ chấm AUC .883 — **không cơ chế nào vượt
-> `maj@8`**. Khoảng trống `maj@8 → oracle@8` = **+14.0 điểm** vẫn còn nguyên: đáp án đúng ĐÃ NẰM
-> trong 8 mẫu, chưa cơ chế nào chọn ra được nó tốt hơn đếm phiếu.
+> ### ⇒ ĐẾM PHIẾU RẤT KHÓ BỊ ĐÁNH BẠI — và khoảng trống nhỏ hơn chúng tôi từng công bố
+> Sau GRPO, verifier vá lỗi, verifier bịt mắt, và bộ chấm AUC .883 dùng theo kiểu `argmax` —
+> **không cái nào vượt `maj@8`**. Chỉ **bỏ phiếu CÓ TRỌNG SỐ** (`cỡ nhóm × điểm`) vượt được,
+> +2.0 đến +5.0 điểm, và độ lớn tỉ lệ với khoảng trống còn lại.
+>
+> **⚠️ ĐÍNH CHÍNH HAI CHIỀU (H30 → đăng ký trước #33, rồi H31 → #35 SỬA LẠI CHÍNH NÓ).**
+> Các bản README trước viết "còn **+14.0 điểm** khoảng trống `maj@8 → oracle@8` chưa ai lấy được".
+> Chúng tôi đã đính chính con số đó bằng `oracle_solid` (đòi **>=2/k** mẫu đúng) — rồi **phải
+> đính chính chính bản đính chính đó**. Kết luận đúng: **KHÔNG có con số đơn nào là "khoảng trống thật".**
+>
+> | chỉ số | lệch chiều nào | bằng chứng |
+> |---|---|---|
+> | `oracle@k` | **PHÓNG ĐẠI** — tính THÀNH CÔNG cả bài chỉ **1/k** mẫu đúng; GSM8K đáp án là số nguyên nên phần lớn là TRÙNG SỐ | H30: loại các bài đó thì khoảng trống chỉ còn 34% (GSM8K) / 7% (MATH) |
+> | `oracle_solid@k` | **HẠ THẤP** — loại cả những lần model giải đúng THẬT nhưng chỉ 1 lần. Khi 8 mẫu ra 8 đáp án khác nhau, `maj@8` vẫn có thể trúng bằng **1 phiếu**, còn `oracle_solid` tính là TRƯỢT | H31: trên MATH `oracle_solid` = .285 **THẤP HƠN `maj@8`** = .295 — một "trần" mà baseline vượt qua được thì không phải trần |
+>
+> **Trần thật nằm trong khoảng [`oracle_solid`, `oracle`].**
+> Bằng chứng cứng nhất: trên GSM8K 1.5B, **bỏ phiếu có trọng số đạt `maj@8` +11.0 điểm (5/5 fold)**
+> trên CÙNG bộ 8 mẫu — nên trần thật **ít nhất** là mức đó.
 
 **RL trên verifier học cách IM LẶNG:** GRPO thưởng theo độ chính xác can thiệp đẩy precision lên
 **1.00 ở cả 5 fold (0 lần phá)** — nhưng `V_gain` **GIẢM** (+.068→+.044, 0/5 fold tốt hơn) vì số

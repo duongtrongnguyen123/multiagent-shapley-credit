@@ -1894,3 +1894,555 @@ MATH (đáp án là BIỂU THỨC LaTeX, gần như không thể trúng ngẫu n
    bằng lập luận đúng mà không tái lập được. Nên phần chênh là CẬN TRÊN của "may mắn".
 3. **CHƯA sửa RESULTS.md/README.** Con số +14.0 vẫn đứng cho tới khi H30 (#33) chạy thật.
    Ghi nhận này chỉ LÀM TĂNG mức ưu tiên của H30, không thay thế nó.
+
+## [Loop] VÒNG #56 — H28b CHỐT: **TÁI LẬP MỘT PHẦN** (hàng 2/hàng 4), độ lớn bị chặn bởi khoảng trống sẵn có
+### wv_g7 (GSM8K 7B) — ô thứ 3, ô quyết định
+AUC .9002 (hợp lệ) | 2000 cặp, tỉ lệ dương **.9125** (7B giải GSM8K rất tốt -> nhãn mất cân bằng nặng)
+| fold | maj@8 | rerank | **wvote_sum** | wvote_mean | oracle | wsum−maj |
+|---|---|---|---|---|---|---|
+| 0 | .800 | .875 | **.850** | .775 | .925 | +.050 |
+| 1 | .975 | .900 | .975 | .850 | .975 | +.000 |
+| 2 | .875 | .900 | **.900** | .850 | .925 | +.025 |
+| 3 | .925 | .900 | .925 | .775 | .950 | +.000 |
+| 4 | .875 | .925 | **.900** | .850 | .950 | +.025 |
+greedy .810 | maj@8 **.890** | rerank .900 | **wvote_sum .910** | wvote_mean .820 | oracle .945
+`wsum − maj` = **+.020**, **3/5 fold dương, 2 hoà, 0 âm** — KHÔNG đạt ngưỡng >=4/5 đã khoá.
+
+### PHÁN QUYẾT THEO BẢNG ĐÃ KHOÁ (#31)
+Bảng yêu cầu `wvote_sum > maj8` ở **>=4/5 fold ở CẢ HAI ô mới**. wv_m15 đạt (5/5); wv_g7 chỉ 3/5.
+=> **HÀNG 2: "chỉ 1/2 ô tái lập -> PHỤ THUỘC Ô, KHÔNG được phát biểu tổng quát."**
+Đồng thời khớp đúng **HÀNG 4** đã khoá sẵn: "ô bão hoà (GSM8K 7B) không có hiệu ứng nhưng ô khó
+(MATH 1.5B) có -> phát biểu KÈM ĐIỀU KIỆN: chỉ có ích khi maj@8 còn khoảng trống."
+
+### ĐỘ LỚN BÁM SÁT KHOẢNG TRỐNG CÒN LẠI — ba ô, ba mức
+| ô | maj@8 | oracle@8 | khoảng trống | wsum−maj | % khoảng trống lấy được | fold dương |
+|---|---|---|---|---|---|---|
+| MATH 1.5B | .265 | .370 | **.105** | **+.050** | 47.7% | 5/5 |
+| GSM8K 1.5B | .703 | .843 | **.140** | +.030 | 20.5% | 4/5 (1 hoà) |
+| GSM8K 7B | .890 | .945 | **.055** | +.020 | 24.7% | 3/5 (2 hoà) |
+=> Lấy được 20–48% khoảng trống ở MỌI ô. Ô nào còn ÍT khoảng trống thì hiệu ứng tuyệt đối nhỏ.
+=> **KHÔNG có fold nào ÂM trong cả 15 fold của 3 ô.** Hướng nhất quán; chỉ ĐỘ LỚN là phụ thuộc ô.
+
+### CƠ CHẾ XÁC NHẬN LẦN THỨ BA
+`wvote_mean` (chỉ điểm, bỏ số phiếu): **0/5 fold dương ở CẢ BA ô** (−.093 / −.020 / −.070).
+Điểm số MỘT MÌNH luôn thua đếm phiếu. Chỉ `cỡ nhóm × điểm` mới thắng. Ba lần lặp lại độc lập.
+
+### PHÁT BIỂU ĐƯỢC PHÉP DÙNG (hẹp, kèm điều kiện)
+"Dùng bộ chấm để CÂN TRỌNG SỐ phiếu (không phải để chọn một mẫu) cho lợi ích nhất quán về HƯỚNG
+trên 3 ô, độ lớn +2.0 đến +5.0 điểm, tỉ lệ thuận với khoảng trống maj->oracle còn lại.
+Ở ô đã bão hoà thì lợi ích nhỏ và không đạt ngưỡng tái lập đã đăng ký."
+KHÔNG được rút gọn thành "bỏ phiếu có trọng số luôn tốt hơn".
+
+### CẢNH BÁO NỐI VỚI H30 (bắt buộc đọc kèm)
+Toàn bộ cách tính "% khoảng trống lấy được" ở trên dựa vào `oracle@8`. Kiểm sơ bộ ở vòng #55 cho
+thấy 12–16 điểm của `oracle@8` trên GSM8K là "chỉ 1/8 mẫu đúng" — có thể phần lớn là TRÙNG SỐ.
+Nếu H30 xác nhận, MẪU SỐ của mọi tỉ lệ trên đều SAI và phải tính lại theo `oracle_solid`.
+Khi đó "lấy được 20–48%" có thể thành một con số CAO HƠN NHIỀU (vì khoảng trống thật nhỏ hơn).
+
+## [Loop] VÒNG #57 — H30 CHỐT: **KHOẢNG TRỐNG maj→oracle BỊ THỔI PHỒNG**. Phải sửa RESULTS.md và README.
+### ks_g15 (GSM8K 1.5B, n=200) và ks_m15 (MATH 1.5B, n=200) — cùng bộ 16 mẫu, mọi k là tiền tố
+| | k | maj@k | oracle@k | **oracle_solid@k** | gap | **gap_solid** |
+|---|---|---|---|---|---|---|
+| GSM8K | 2 | .580 | .710 | .415 | +.130 | **−.165** |
+| GSM8K | 4 | .670 | .800 | .635 | +.130 | **−.035** |
+| **GSM8K** | **8** | **.740** | **.915** | **.800** | **+.175** | **+.060** |
+| GSM8K | 16 | .790 | .940 | .910 | +.150 | +.120 |
+| MATH | 2 | .320 | .420 | .250 | +.100 | −.070 |
+| MATH | 4 | .395 | .490 | .375 | +.095 | −.020 |
+| **MATH** | **8** | **.465** | **.540** | **.470** | **+.075** | **+.005** |
+| MATH | 16 | .500 | .615 | .535 | +.115 | +.035 |
+
+### PHÁN QUYẾT: **HÀNG 2 của bảng đã khoá (#33)**, nổ ở CẢ HAI ô
+"`oracle_solid@8 − maj@8` NHỎ HƠN NHIỀU (< một nửa) -> khoảng trống bị THỔI PHỒNG bởi các mẫu
+đúng-do-may. **Tôi PHẢI sửa lại RESULTS.md và README**, và hạ mục tiêu của hướng tổng hợp xuống
+con số thật."
+GSM8K: **.060 / .175 = 34%** sống sót · MATH: **.005 / .075 = 7%** sống sót. Cả hai < 50%.
+gap_solid theo fold — GSM8K [0, .075, .05, .10, .075] (4 dương, 1 hoà);
+MATH [.025, −.025, .05, −.025, 0] (**2 dương, 2 ÂM, 1 hoà — không khác 0**).
+
+### PHÁT BIỂU ĐÚNG THAY CHO PHÁT BIỂU CŨ
+CŨ (đã đưa vào README, SAI LỆCH): "còn +14.0 điểm khoảng trống maj→oracle chưa ai lấy được".
+MỚI (đo được): khoảng trống *maj→oracle* PHÓNG ĐẠI khoảng trống thật **~3× ở GSM8K** và
+**~14× ở MATH**. Ở MATH, khoảng trống thật **KHÔNG KHÁC 0** (2/5 fold âm).
+`oracle@k` tính là THÀNH CÔNG cả những bài mà chỉ 1/k mẫu đúng — trên GSM8K đáp án là số nguyên
+nên phần lớn nhiều khả năng là TRÙNG SỐ, không phải lập luận đúng.
+
+### PRIOR CỦA TÔI ĐÚNG LẦN NÀY — và nó chống lại chính tôi
+Pre-reg #33 tôi ghi: "Tôi đoán `oracle_solid` sẽ THẤP HƠN RÕ... nếu đúng thì đây là lần tự sửa
+thứ ba, và lần này là sửa một con số tôi đã ĐƯA VÀO README như điểm nhấn." Đúng như vậy.
+
+### HỆ QUẢ TÍCH CỰC CHO H28 (bỏ phiếu có trọng số) — nhưng phải đo lại tử số/mẫu số
+Nếu khoảng trống THẬT ở GSM8K 1.5B chỉ ~+6.0 điểm (không phải +14.0) thì `wvote_sum` (+3.0)
+lấy được **~50%** khoảng trống thật, không phải 20.5%. Bỏ phiếu có trọng số TỐT HƠN tôi tưởng.
+CẢNH BÁO: KHÔNG được ghép số giữa các lần chạy khác nhau — `ks_m15` có maj@8 .465 còn `wv_m15`
+có .265 (khác nửa dữ liệu MATH-500 và khác nhiệt độ lấy mẫu). Muốn tỉ lệ đúng thì phải đo
+`oracle_solid` NGAY TRONG cùng kernel với `wvote_sum`. Đó là việc tiếp theo.
+
+### HÀNG VỀ XU HƯỚNG THEO k: KHÔNG kết luận (đúng như sửa đổi đã ghi trước)
+`gap_solid` KHÔNG phẳng — nó TĂNG theo k (−.165 → +.120 ở GSM8K). Nhưng dãy chỉ tới k=16
+nên theo sửa đổi đã đăng ký, mọi kết luận về xu hướng k lớn là YẾU. Phải chạy k=64 khi được
+phép dùng RTX 6000 Pro.
+
+## [Loop] VÒNG #58 — H31: bỏ phiếu có trọng số VƯỢT trần `oracle_solid` -> **TÔI PHẢI SỬA CHÍNH ĐÍNH CHÍNH CỦA MÌNH**
+### ws_g15 (GSM8K 1.5B, AUC .9113) — CÙNG kernel, CÙNG mẫu
+maj@8 **.5467** | wvote_sum **.6567** | oracle@8 .7600 | **oracle_solid@8 .6333**
+`wsum − maj` = **+.110** (5/5 fold dương) · `gap(oracle)` = +.213 · **`gap_solid` = +.0866**
+=> `wsum − maj` (+.110) **LỚN HƠN** `gap_solid` (+.0866) -> lấy được **127%** "khoảng trống thật".
+
+### ws_m15 (MATH 1.5B, AUC .959)
+maj@8 .2950 | wvote_sum .3050 | oracle@8 .3700 | **oracle_solid@8 .2850**
+`gap_solid` = **−.010 (ÂM)** — tức `oracle_solid` **THẤP HƠN CẢ maj@8**.
+`wsum − maj` = +.010 (2 dương / 2 âm / 1 hoà) -> KHÔNG khác 0 ở ô này.
+
+### PHÁN QUYẾT: **HÀNG 1 ở GSM8K** (tỉ lệ >= 50%), và **HÀNG 2 lộ ra ở CẢ HAI ô**
+Hàng 2 đã khoá: "`wvote_sum` vượt cả trần `solid` -> `oracle_solid` là trần **QUÁ CHẶT**,
+đã lọc mất cả những lần giải đúng THẬT. Phải nói rõ trần thật nằm GIỮA `oracle_solid` và `oracle`."
+
+### VÌ SAO `oracle_solid` CÓ THỂ THẤP HƠN `maj@8` — chứng minh, không phải phỏng đoán
+Khi cả 8 mẫu cho 8 đáp án KHÁC NHAU, `maj@8` vẫn phải chọn một, và nó CÓ THỂ trúng đáp án đúng
+dù đáp án đó chỉ có **1 phiếu**. `oracle_solid` (đòi >=2 mẫu đúng) tính bài đó là THẤT BẠI.
+=> `oracle_solid` KHÔNG phải trần hợp lệ: một "trần" mà baseline vượt qua được thì không phải trần.
+
+### TỰ SỬA LẦN THỨ TƯ — VÀ LẦN NÀY LÀ SỬA CHÍNH BẢN ĐÍNH CHÍNH
+Vòng #57 tôi đã sửa README: "khoảng trống thật chỉ +.060 (GSM8K) / +.005 (MATH)".
+Con số đó dùng `oracle_solid` làm trần. Nay đo được `oracle_solid` là **CẬN DƯỚI**, không phải trần.
+PHÁT BIỂU ĐÚNG (cả hai chiều):
+  · `oracle@k` **PHÓNG ĐẠI** (tính cả bài chỉ 1/k mẫu đúng do TRÙNG SỐ) — H30 vẫn đúng ở điểm này.
+  · `oracle_solid@k` **HẠ THẤP** (loại cả bài model giải đúng THẬT nhưng chỉ 1 lần, và có thể
+    tụt xuống dưới cả maj@8) — H31 đo được.
+  · **Trần thật nằm trong khoảng [`oracle_solid`, `oracle`].** Không con số đơn nào là "khoảng trống thật".
+  · Bằng chứng cứng: `wvote_sum` ĐẠT +.110 trên GSM8K, nên trần thật **ít nhất** là maj+.110.
+Bài học: khi tôi đính chính một chỉ số bằng một chỉ số khác, tôi phải kiểm chỉ số MỚI cũng
+nghiêm như chỉ số cũ. Tôi đã không làm vậy ở vòng #57 và đã công bố một con số quá bi quan.
+
+### GHI NHẬN TÍCH CỰC — con số ĐÁNG TIN NHẤT của dự án về hướng tổng hợp
+Ở GSM8K 1.5B, `wvote_sum` hơn `maj@8` **+11.0 điểm, 5/5 fold**, đo trên CÙNG bộ 8 mẫu
+(so sánh cặp tuyệt đối). Đây là hiệu ứng LỚN NHẤT và NHẤT QUÁN NHẤT dự án từng đo được cho
+một cơ chế tổng hợp. Ở MATH cùng lần chạy thì KHÔNG khác 0 -> vẫn PHỤ THUỘC Ô, đúng như #31 đã chốt.
+
+## dt5_m15 (H25d, MATH 1.5B) — TRẢ LỜI: **NĂNG LỰC**, không phải miền
+`pct_corruptible` = **.9775** (sửa regex đã ăn — trước là 0.0) · `parse_fail` = .0026 · ĐỦ LỰC mọi tầng
+(HIGH 56 / MID 102 / **ZERO 231** — lần đầu tiên tầng quyết định đủ mẫu)
+NHƯNG suy biến **.991 / .985 / 1.000** -> cả ba tầng **VÔ HIỆU**.
+=> 1.5B nói "NO" gần như 100% trên **CẢ** GSM8K (dt2_g15) **VÀ** MATH (dt5_m15).
+=> Ghi chú thực thi của #30 đã khoá trước: "nếu 1.5B lại suy biến >.90 trên MATH thì đó là NĂNG LỰC".
+   **KẾT LUẬN: NĂNG LỰC.** 1.5B không đưa ra được phán đoán nhị phân đúng/sai ở BẤT KỲ miền nào
+   bằng cách hỏi này. Không phải hiện vật của GSM8K.
+Bộ máy thí nghiệm giờ đã ĐÚNG (tiêm lỗi .9775, parse .003, ZERO n=231) — cái hỏng là MODEL, không phải phép đo.
+
+## [Loop] VÒNG #59 — **LỖI NGHIÊM TRỌNG: mẫu đánh giá được sinh bởi model ĐÃ BỊ LoRA Yes/No làm hỏng**
+### Phát hiện bằng cách đối chiếu hai lần chạy CÙNG Ô, CÙNG DỮ LIỆU
+| run | NTR/NTE | MB | số bước tối ưu | greedy1 | maj@8 | wsum−maj |
+|---|---|---|---|---|---|---|
+| wv_g15 | 400/300 | 4 | 800 | **.5167** | **.7067** | +.030 |
+| ws_g15 | 400/300 | **2** | **1600** | **.3867** | **.5467** | **+.110** |
+Cùng 300 bài, cùng nhiệt độ .8, hàm `gen()` giống hệt nhau về mặt chức năng.
+`greedy1` (một mẫu, KHÔNG dính bộ chấm) tụt **13 điểm**. Quá lớn để là nhiễu lấy mẫu
+(sd ≈ .029 với n=300 -> chênh này là ~4.5 sd).
+
+### NGUYÊN NHÂN — đã xác minh trong mã, không phải phỏng đoán
+`disable_adapter` xuất hiện **0 lần** trong CẢ BA kernel (wv_g15 / ws_g15 / ws_m15).
+Thứ tự trong kernel: `get_peft_model` (dòng 9) -> huấn luyện `opt.step()` (dòng 89)
+-> **`mj=gen(S_SYS,qs,...)` sinh mẫu ĐÁNH GIÁ (dòng 113)**.
+=> Mẫu đánh giá được sinh **VỚI LoRA đang bật** — mà LoRA đó vừa được huấn luyện để xuất
+   đúng hai token `Yes`/`No`. Nó phá năng lực GIẢI của chính model.
+=> `ws_g15` chạy **1600 bước** (MB=2) so với `wv_g15` **800 bước** (MB=4) -> hỏng NẶNG GẤP ĐÔI
+   -> baseline thấp hơn -> `wsum − maj` trông TO HƠN.
+
+### HẬU QUẢ — nói thẳng, không giảm nhẹ
+1. **Con số +11.0 điểm (GSM8K 1.5B, 5/5 fold) mà tôi vừa gọi là "hiệu ứng lớn nhất dự án từng đo"
+   là BỊ NHIỄM.** Nó được đo trên bể mẫu do một solver ĐÃ HỎNG sinh ra.
+2. So sánh CẶP `wsum` vs `maj` trên CÙNG bể mẫu vẫn HỢP LỆ về mặt nội tại — cả hai tổng hợp
+   cùng 8 mẫu đó. Nên **HƯỚNG** (bỏ phiếu có trọng số > đếm phiếu) nhiều khả năng vẫn đúng.
+3. Nhưng **ĐỘ LỚN KHÔNG chuyển được sang thực tế**: trong triển khai thật, Solver là model GỐC,
+   chỉ bộ chấm mới là model đã tinh chỉnh. Mẫu kém chất lượng -> nhiều bất đồng -> bộ chấm có
+   nhiều đất diễn hơn. Nhiều khả năng +11.0 là PHÓNG ĐẠI.
+4. Mọi chênh lệch độ lớn giữa các lần chạy (+.030 vs +.110 ở GSM8K; +.050 vs +.010 ở MATH)
+   giờ có lời giải thích TẦM THƯỜNG: lượng huấn luyện khác nhau, không phải khoa học.
+5. Kéo theo: `oracle_solid`/`oracle` trong ws_* cũng tính trên bể mẫu hỏng -> tỉ lệ "127%" ở
+   vòng #58 KHÔNG đáng tin. Kết luận định tính của #58 (`oracle_solid` có thể thấp hơn `maj@8`,
+   nên nó KHÔNG phải trần hợp lệ) VẪN ĐỨNG vì đó là lập luận toán học, không phụ thuộc chất lượng mẫu.
+
+### GỐC RỄ: tôi đã CÓ mã đúng rồi và làm mất nó khi chuyển sang Kaggle
+Bản `disc_verifier.py` viết cho máy remote CÓ tham số `adapter=False` và dùng `model.disable_adapter()`
+khi sinh lời giải. Khi port sang kernel Kaggle tôi bỏ tham số đó đi cho gọn. Đây là lần thứ TƯ
+việc port/vá kernel bằng thay-chuỗi làm mất một chi tiết đúng (trước đó: `rows`, `_sp`, regex thoát dư).
+**LUẬT: khi port một script sang kernel, phải liệt kê TỪNG cờ hành vi (adapter on/off, dtype,
+padding side, truncation) và đối chiếu một-một, không chỉ chép phần thân.**
+
+## [Loop] VÒNG #60 — RÀ SOÁT TOÀN BỘ: **6/6 kernel có huấn luyện đều bị RÒ RỈ ADAPTER**
+Quét mọi kernel có `get_peft_model`, kiểm hai điều: có gọi `disable_adapter` không, và
+pha sinh mẫu ĐÁNH GIÁ có nằm SAU `opt.step()` không.
+
+| kernel | `disable_adapter` | eval sau train | tình trạng | giả thuyết bị ảnh hưởng |
+|---|---|---|---|---|
+| disc_g15 | **0** | có | **NHIỄM** | **H27** (rerank@8 thua maj@8) |
+| wv_g15 | **0** | có | **NHIỄM** | **H28** (bỏ phiếu có trọng số) |
+| wv_m15 | **0** | có | **NHIỄM** | **H28b** (tái lập MATH) |
+| wv_g7 | **0** | có | **NHIỄM** | **H28b** (tái lập 7B) |
+| ws_g15 | **0** | có | **NHIỄM** | **H31** (oracle_solid + wsum) |
+| ws_m15 | **0** | có | **NHIỄM** | **H31** |
+| wf_g15 / wf_m15 | 2 | có | **SẠCH** (bản đã sửa, đang chạy) | H28c |
+
+### PHẠM VI THIỆT HẠI — nói thẳng
+**Toàn bộ nhánh "tổng hợp" của dự án — H27, H28, H28b, H31 — đo trên bể mẫu do solver BỊ HỎNG
+sinh ra.** Đây cũng chính là nhánh chứa KẾT QUẢ DƯƠNG DUY NHẤT của dự án.
+Cụ thể mỗi kết luận bị ảnh hưởng thế nào:
+1. **H27** ("bộ chấm AUC .883 nhưng rerank .687 < maj .703"): cả rerank lẫn maj đều tính trên
+   mẫu hỏng. AUC cũng có thể bị THỔI PHỒNG vì phân biệt lời giải TỆ thì dễ hơn.
+2. **H28/H28b** ("wsum > maj, +2 đến +5 điểm"): so sánh CẶP nên HƯỚNG nhiều khả năng còn đúng,
+   nhưng ĐỘ LỚN không chuyển được sang thực tế.
+3. **H31** ("wsum lấy 127% khoảng trống thật"): tử số và mẫu số đều tính trên mẫu hỏng -> con số vô nghĩa.
+   (Lập luận TOÁN HỌC rằng `oracle_solid` có thể < `maj@8` thì KHÔNG phụ thuộc chất lượng mẫu -> VẪN ĐỨNG.)
+
+### TRẠNG THÁI ĐƯỢC PHÉP DÙNG NGAY BÂY GIỜ
+H27, H28, H28b, H31 -> **TẠM ĐÌNH CHỈ**, không phải đã bác, không phải đã xác nhận.
+`wf_g15`/`wf_m15` (pre-reg #36) sẽ quyết định. Ngưỡng `adapter_leak <= .05` đã khoá để bắt
+đúng lỗi này nếu nó còn sót đường rò rỉ khác.
+**Không được trích dẫn bất kỳ con số nào của bốn giả thuyết trên cho tới khi có kết quả sạch.**
+
+## [Loop] VÒNG #61 — RÀ SOÁT BỘ CHẤM: có bỏ sót đáp án đúng không?
+### Phương pháp
+Không suy luận suông: chạy chính hàm chấm của dự án trên (a) bộ ca tổng hợp, (b) **trace THẬT**
+(959 dự đoán MATH, 960 dự đoán GSM8K), rồi đối chiếu với `sympy.simplify` qua `parse_latex`.
+
+### CẢNH BÁO PHƯƠNG PHÁP — lần đầu ra 0% là SAI
+Lần chạy đầu báo "0 bỏ sót". Kiểm lại thì `parse_latex` **fail 5/5** vì thiếu gói `antlr4`
+-> mọi so sánh sympy đều trả False -> "0%" là vô nghĩa. Đã cài `antlr4-python3-runtime==4.11`,
+xác minh parser hoạt động 5/5, rồi chạy lại. **Đây là lần thứ NĂM một phép kiểm báo thành công
+mà chưa hề kiểm.** (trước: `head` exit 0, quét token, push bị từ chối, regex thoát dư).
+
+### GSM8K — bộ chấm CHẮC CHẮN
+- 960/960 dự đoán trích được số (`pred=None` 0.00%).
+- Ca tổng hợp: 12/13 đúng. Ca duy nhất trượt: đáp án **viết bằng chữ** ("seventy-two")
+  — không thấy xuất hiện trong trace thật.
+- Xử lý đúng: dấu phẩy hàng nghìn (`1,200`), `$18.00`, số âm, `=` ở bước trung gian,
+  chữ đuôi ("72 clips (out of 100)" vẫn ra 72), `**72**`.
+=> **Không có bằng chứng bỏ sót trên GSM8K.**
+
+### MATH — có bỏ sót, nhưng NHỎ: **~0.6%**
+Thô: 12/959 = 1.25% bị grader chấm SAI mà sympy nói ĐÚNG. Kiểm TAY từng ca:
+| ca | số lần | phán quyết |
+|---|---|---|
+| `\sqrt{117}` vs `3\sqrt{13}` | 4 | **BỎ SÓT THẬT** (√117 = √(9·13) = 3√13) |
+| `\binom{5}{4}\times\binom{10}{8}` vs `225` | 1 | **BỎ SÓT THẬT** (dạng chưa rút gọn) |
+| `\frac{2187}{5625}` vs `\frac{243}{625}` | 1 | **BỎ SÓT THẬT** (chia cả hai cho 9) |
+| `1` vs `1,-2` | 1 | sympy SAI — gold có HAI nghiệm, model chỉ cho một -> grader ĐÚNG |
+| `52` vs `52_8` | 3 | sympy SAI — gold là 52 **hệ cơ số 8** (=42) -> grader ĐÚNG |
+| chưa kiểm tay | 2 | chưa rõ |
+=> **BỎ SÓT THẬT ≈ 6/959 = 0.63%**; sympy tự nó báo nhầm 4/959 = 0.42%.
+   (Bài học kèm: dùng sympy làm "chân lý" cũng có sai số — nó không hiểu cơ số 8 hay đa nghiệm.)
+
+### ẢNH HƯỞNG TỚI KẾT LUẬN CỦA DỰ ÁN — ĐÁNH GIÁ TRUNG THỰC
+1. **Độ chính xác TUYỆT ĐỐI trên MATH bị HẠ THẤP ~0.6 điểm.** Nhỏ so với sàn nhiễu ~5 điểm.
+2. **Các phép SO SÁNH gần như không bị ảnh hưởng**: cùng một bộ chấm áp cho MỌI nhánh
+   (V_inf/V_bli/S_anc/S_pln, maj/wsum/oracle), nên sai lệch là ĐỘ DỊCH CHUNG, triệt tiêu khi lấy hiệu.
+   `V_gain`, `wsum − maj`, `discrimination` KHÔNG bị bóp méo đáng kể.
+3. Chỗ CÓ THỂ bị lệch: `oracle@k` (một mẫu đúng bị chấm sai -> oracle bị hạ), và `fixes/breaks`.
+   Với 0.63% thì mức lệch dưới 1 điểm — vẫn dưới sàn nhiễu.
+4. **KHÔNG có bằng chứng bộ chấm THIÊN VỊ một nhánh nào.** Mọi nhánh dùng chung `pred()`+`ok()`.
+=> Kết luận: bộ chấm KHÔNG phải nguồn sai lệch cho bất kỳ phát biểu nào của dự án.
+   Nhưng nên nâng cấp cho MATH (thêm rút gọn căn/phân số) nếu về sau cần con số tuyệt đối chính xác.
+
+## [Loop] VÒNG #62 — H28c **VÔ HIỆU** theo ngưỡng đã khoá, DÙ số trông đẹp. Và ngưỡng đó cũng hỏng.
+### Kết quả thô (KHÔNG được trích dẫn)
+| ô | pre_acc | post_acc | **adapter_leak** | VALID | greedy | maj@8 | wsum | wsum−maj |
+|---|---|---|---|---|---|---|---|---|
+| GSM8K 1.5B | .6144 | .5537 | **.0606** | **KHÔNG** | .5500 | .7233 | .7700 | +.0467 (5/5) |
+| MATH 1.5B | .2756 | .2156 | **.0600** | **KHÔNG** | .2150 | .3150 | .3500 | +.0350 (2/5) |
+
+### PHÁN QUYẾT: HÀNG 4 của #36 — "leak > .05 dù đã sửa -> **VÔ HIỆU**, không được đọc số."
+Ngưỡng .05 được khoá TRƯỚC. Cả hai ô đều .060 > .05. **Tuyên VÔ HIỆU.**
+Tôi ghi rõ điều khó chịu: lần này ngưỡng đang GIẾT một kết quả DƯƠNG (+.047, 5/5 fold) —
+tức là việc tuân thủ ngưỡng làm TÔI THIỆT. Đúng như khi tuyên vô hiệu H29 dù nó cho đường cong
+đơn điệu y hệt prior của tôi. Ngưỡng chỉ có giá trị nếu nó cắt cả hai chiều.
+
+### NHƯNG CHÍNH NGƯỠNG ĐÓ CŨNG HỎNG — phải nói ra, và KHÔNG dùng nó để cứu số
+`PRE_ACC` = tỉ lệ đúng của mẫu **tập HUẤN LUYỆN** (sinh trước khi có adapter)
+`POST_ACC` = tỉ lệ đúng của mẫu **tập KIỂM TRA** (sinh sau, adapter đã tắt)
+=> HAI TẬP BÀI KHÁC NHAU. Chênh .06 có thể chỉ là khác độ khó train/test, KHÔNG phải rò rỉ.
+**Ngưỡng tôi khoá không đo được thứ nó định đo.** Đây là lỗi thiết kế của tôi, phát hiện sau khi chạy.
+=> Cách xử lý ĐÚNG: **vẫn tuyên VÔ HIỆU** (không được sửa luật sau khi thấy số), rồi
+   **thiết kế lại ngưỡng cho đúng** và chạy lại. KHÔNG được lấy "ngưỡng hỏng" làm cớ giữ kết quả.
+
+### BẰNG CHỨNG ĐỘC LẬP RẰNG BẢN SỬA CÓ TÁC DỤNG (ghi nhận, chưa phải kết luận)
+| run | adapter khi sinh | greedy1 | maj@8 |
+|---|---|---|---|
+| wv_g15 (nhiễm, 800 bước) | BẬT | .5167 | .7067 |
+| ws_g15 (nhiễm, 1600 bước) | BẬT | **.3867** | **.5467** |
+| **wf_g15 (đã sửa)** | **TẮT** | **.5500** | **.7233** |
+`maj@8` quay về ~.72 và `greedy` lên .55 — cao hơn CẢ HAI lần nhiễm, đúng hướng bản sửa dự đoán.
+Hàng 5 của #36 ("maj@8 mới ≈ .70 chứ không phải .55 -> xác nhận chẩn đoán rò rỉ") ĐÃ NỔ.
+=> Chẩn đoán rò rỉ ở vòng #59 được XÁC NHẬN. Nhưng ĐỘ LỚN của `wsum−maj` vẫn CHƯA đo được hợp lệ.
+
+### TRẠNG THÁI
+H27/H28/H28b/H31 vẫn **TẠM ĐÌNH CHỈ**. H28c **VÔ HIỆU**. Cần chạy lần thứ ba với ngưỡng đúng.
+
+## [Loop] VÒNG #63 — H32 **PRIOR CỦA TÔI SAI**: ở CÙNG NGÂN SÁCH, pipeline THẮNG bỏ phiếu
+### bg_g15 (GSM8K 1.5B, n=250, MỌI nhánh đúng 3 lượt sinh)
+| fold | greedy1 | maj@3 | **PSV** | SVV | **SS_anc** | maj3−PSV |
+|---|---|---|---|---|---|---|
+| 0 | .540 | .620 | **.680** | .640 | .680 | −.060 |
+| 1 | .600 | .620 | **.800** | .680 | .680 | −.180 |
+| 2 | .640 | .600 | **.700** | .700 | .720 | −.100 |
+| 3 | .660 | .660 | .660 | .660 | **.760** | +.000 |
+| 4 | .720 | .720 | **.800** | .780 | .800 | −.080 |
+**greedy .6320 | maj@3 .6440 | PSV .7280 | SVV .6920 | SS_anc .7280**
+`maj3 − PSV` = **−.084**, **0/5 fold dương** -> **PSV THẮNG maj@3 ở 5/5 fold.**
+
+### TOKEN THẬT SỰ SINH RA — pipeline còn RẺ HƠN
+| nhánh | token | so với greedy |
+|---|---|---|
+| SS_anc | 169,022 | 3.35× |
+| **maj@3** | **149,384** | **2.96×** |
+| SVV | 122,866 | 2.43× |
+| **PSV** | **115,722** | **2.29×** |
+| greedy1 | 50,463 | 1.00× |
+=> `PSV` dùng **ÍT token hơn `maj@3` 22%** mà vẫn hơn **+8.4 điểm**. Thắng trên CẢ HAI trục.
+
+### PHÁN QUYẾT: **HÀNG 2 của bảng đã khoá** — và tôi phải rút lại
+Hàng 2: "`PSV` > `maj3` ở >=4/5 fold -> Pipeline CÓ thêm giá trị vượt trên lấy mẫu.
+**Phải rút lại cách đọc 'vai không chuyên biệt'.**"
+Prior tôi ghi trước: "đoán hàng 1 hoặc hàng 3 — maj3 ngang hoặc hơn PSV... nếu ra hàng 1 thì đây là
+kết luận LỚN NHẤT của dự án". **PRIOR SAI.** Ngược hẳn.
+
+### NHƯNG HÀNG 5 CŨNG NỔ — và nó giữ lại phần đúng của cách đọc cũ
+`SS_anc` = **.7280**, GIỐNG HỆT `PSV` = .7280. `SS_anc` KHÔNG có một chữ nào về vai:
+nó là giải -> giải lại CÓ MỎ NEO -> giải lại CÓ MỎ NEO.
+Hàng 5 đã khoá: "`SS_anc` ≈ `PSV` -> vai là NHÃN, không phải cơ chế."
+
+### HỢP NHẤT — phát biểu đúng sau vòng này
+1. **Lợi thế LÀ THẬT và KHÔNG phải do lấy mẫu lặp.** PSV hơn maj@3 +8.4 điểm ở ít token hơn.
+   Câu "pipeline chỉ là cách đắt tiền để lấy mẫu nhiều lần" — mà tôi đã nói với người dùng —
+   **SAI**, và tôi rút lại.
+2. **Cơ chế KHÔNG phải phân vai** mà là **TINH CHỈNH TUẦN TỰ CÓ MỎ NEO**: mỗi lượt được THẤY
+   đáp án của lượt trước. Bỏ hết ngôn ngữ vai (SS_anc) vẫn cho kết quả Y HỆT.
+   Khớp với H24 (mỏ neo làm việc, khung "kiểm" thì không) và với `S_pln` là nhánh tệ nhất mọi ô.
+3. Vậy: **tuần tự > song song ở cùng ngân sách; nhưng "vai" chỉ là cái tên của tính tuần tự.**
+4. `SVV` (.6920) < `PSV` (.7280): hai lượt kiểm liên tiếp KÉM hơn plan+solve+verify.
+   `SVV` vẫn hơn `maj@3` (+.048, 4/5) -> tuần tự thắng song song kể cả không có Planner.
+
+### CÒN THIẾU
+`bg_m15` (MATH) LỖI: `ANCH.format(A=a)` gặp `\boxed{}` trong TAIL của MATH -> `{}` bị hiểu là
+ô định dạng -> `IndexError`. GSM8K không có ngoặc nên không lộ. Sửa bằng `.replace()`, phóng lại.
+**Chưa có ô thứ hai -> chưa được tổng quát hoá.**
+
+## [Loop] VÒNG #64 — H32 ô MATH 1.5B: KHÔNG đạt ngưỡng; dt5_m7 **VÔ HIỆU** lần thứ BA vì cắt cụt
+### bg_m15 (MATH 1.5B, n=200) — ô thứ 2/4 của H32
+greedy .3300 | maj@3 .3500 | **PSV .3800** | **SVV .4150** | SS_anc .3600
+| chỉ số | giá trị | fold |
+|---|---|---|
+| `maj3 − PSV` | −.030 | **2/5 dương** -> PSV thắng 3/5, **KHÔNG đạt ngưỡng >=4/5** |
+| `SVV − maj3` | **+.065** | **4/5 dương** -> ĐẠT ngưỡng |
+| `SSanc − PSV` | −.020 | 3/5 |
+token: PSV **2.39×** (rẻ nhất), SVV 2.53×, SS_anc 3.01×, maj@3 3.07×
+=> Ô này KHÔNG lặp lại `bg_g15`: `PSV` hơn `maj@3` về trung bình (+3.0) nhưng chỉ 3/5 fold.
+=> NHƯNG **`SVV` (Solver→Verify→Verify) là nhánh TỐT NHẤT** (.4150) và ĐẠT ngưỡng so với maj@3.
+   Ở GSM8K 1.5B thì `PSV` tốt nhất; ở MATH 1.5B thì `SVV` tốt nhất — **cấu hình tối ưu PHỤ THUỘC Ô**.
+=> Điểm CHUNG của cả hai ô: **nhánh TUẦN TỰ tốt nhất luôn hơn `maj@3`, và luôn tốn ÍT token hơn.**
+   (g15: PSV +8.4 @ 2.29× vs maj3 2.96× · m15: SVV +6.5 @ 2.53× vs maj3 3.07×)
+CHƯA KẾT LUẬN LƯỚI — còn `bg_m7` và `bg_g7`.
+
+### dt5_m7 (MATH 7B) — **VÔ HIỆU: `parse_fail` = .3824 > ngưỡng .20**
+`pct_corruptible` .9775 ✓ · suy biến .815/.804/.899 (đều < .90) ✓ · **ZERO n=100 — LẦN ĐẦU ĐỦ LỰC** ✓
+NHƯNG `parse_fail_rate` = **.3824**, vượt xa ngưỡng .20 khoá ở #26 -> **cả lần chạy VÔ HIỆU**.
+Số thô (KHÔNG được trích dẫn): HIGH +.257 · MID +.215 · **ZERO +.139**.
+=> Đây là **LẦN THỨ BA** cùng một lỗi giết một thí nghiệm: model viết LaTeX dài trên MATH,
+   hết `max_new_tokens=512` TRƯỚC khi tới dòng `VERDICT:`. (Trước đó: H29 scaling-a/b .22–.23,
+   nay .38.) Cắt cụt lệch theo tầng (bài khó -> lời giải dài -> dễ bị cắt) nên mẫu sống sót thiên lệch.
+=> Bản sửa ĐÃ ĐƯỢC ĐẶC TẢ ở pre-reg #34 (1024 token + giới hạn 120 từ lập luận + **lượt hỏi lại**
+   nếu thiếu VERDICT) nhưng tôi CHƯA TRIỂN KHAI vì lúc đó đang tạm dừng RTX. Lẽ ra phải áp
+   cho MỌI kernel dt chứ không chỉ bản RTX. Đó là thiếu sót của tôi — đặc tả xong rồi để đấy.
+
+## [Loop] VÒNG #65 — **ĐỒNG THUẬN LÀ TÍN HIỆU MẠNH NHẤT DỰ ÁN TỪNG ĐO** (và nó MIỄN PHÍ)
+Câu hỏi: 3 mẫu song song có thật sự cho ĐA SỐ không, hay ra 3 đáp án khác nhau?
+Đo trực tiếp trên trace đã có (60 bài × 16 mẫu, temp .8) — không tốn GPU.
+
+### k=3: PHẦN LỚN KHÔNG CÓ ĐA SỐ
+| | 3/3 đồng ý | 2/3 đồng ý | **1/3 (BA đáp án KHÁC NHAU)** |
+|---|---|---|---|
+| GSM8K 1.5B | 25.0% bài, acc **.933** | 25.0%, acc **.867** | **50.0%**, acc **.300** |
+| MATH 1.5B | 21.7%, acc **1.000** | 20.0%, acc **.917** | **58.3%**, acc **.029** |
+
+=> **Một nửa (GSM8K) tới 58% (MATH) số bài KHÔNG có đa số nào cả.**
+   Ở những bài đó `maj@3` KHÔNG phải bỏ phiếu — nó là **hoà, và code lấy mẫu ĐẦU TIÊN**
+   (`max(cnt,key=cnt.get)` trả về khoá được chèn sớm nhất = mẫu 0). Tức là ≈ một mẫu đơn.
+=> Giải thích luôn vì sao `maj@3` (.644) ≈ `greedy` (.632) ở GSM8K: một nửa số bài nó thoái hoá
+   thành "lấy mẫu đầu tiên".
+
+### k=8: cùng hiện tượng, và ĐỘ CHÍNH XÁC BÁM CHẶT MỨC ĐỒNG THUẬN
+GSM8K: 8/8 → **1.000** · 6/8 → .917 · 2/8 → .727 · **1/8 → .143**
+MATH : 8/8 → **1.000** · 6/8 → **1.000** · 2/8 → **.000** · **1/8 → .000** (30% số bài!)
+
+### PHÁT HIỆN: MỨC ĐỒNG THUẬN LÀ BỘ PHÂN LOẠI ĐÚNG/SAI GẦN NHƯ HOÀN HẢO Ở HAI ĐẦU
+- Đồng thuận CAO (≥6/8): độ chính xác **.92–1.00**
+- Đồng thuận THẤP (1/8): độ chính xác **.143 (GSM8K) / .000 (MATH)**
+Đây là tín hiệu **MIỄN PHÍ** — chỉ cần đếm, không cần huấn luyện gì.
+So sánh: bộ chấm huấn luyện (H27) đạt AUC .88–.95 nhưng tốn dữ liệu, LoRA, và đã gây ra lỗi
+rò rỉ adapter làm hỏng 6 kernel. **Đếm phiếu trùng nhau cho tín hiệu tương đương mà không tốn gì.**
+
+### HỆ QUẢ THỰC TIỄN (khuyến nghị mạnh nhất dự án có thể đưa ra lúc này)
+**Dùng mức đồng thuận để ĐỊNH TUYẾN chi phí:**
+- k mẫu đồng thuận cao -> nhận đáp án, DỪNG. Gần như chắc đúng, không cần verifier.
+- k mẫu phân tán hoàn toàn -> đáp án gần như chắc SAI. Đây MỚI là chỗ đáng đổ thêm compute
+  (model lớn hơn, hoặc lượt tuần tự có mỏ neo).
+Hiện tại mọi pipeline của dự án tiêu compute ĐỀU NHAU cho mọi bài — lãng phí ở bài dễ,
+thiếu ở bài khó.
+
+### NỐI VỚI H32 (vì sao tuần tự thắng song song)
+Khi 3 mẫu ra 3 đáp án khác nhau (50–58% số bài), bỏ phiếu KHÔNG có gì để khai thác.
+Nhưng lượt tuần tự CÓ MỎ NEO vẫn dùng được đáp án trước để cải thiện.
+=> Đây là cơ chế giải thích vì sao `PSV`/`SVV` hơn `maj@3` ở cùng ngân sách.
+GIẢ THUYẾT (chưa kiểm): lợi thế của tuần tự tập trung HOÀN TOÀN ở nhóm "không có đa số".
+
+## [Loop] VÒNG #66 — **KAGGLE CHO 2× T4 (31.2 GB), TÔI CHỈ DÙNG 1 SUỐT CẢ DỰ ÁN**
+### Bằng chứng (kernel dò, chạy trong 1 phút)
+`torch.cuda.device_count()` = **2** · mỗi cái Tesla T4 15.6 GB sm_75 · **tổng 31.2 GB**
+— dù metadata gửi đi là `"machine_shape":"NvidiaTeslaT4"` (không có giá trị `T4x2` để yêu cầu).
+
+### THIỆT HẠI
+Mọi kernel fp16 dùng `device_map="cuda"` -> ghim hết vào **GPU 0**, **GPU 1 NGỒI KHÔNG**.
+| | đã dùng | thực có |
+|---|---|---|
+| VRAM | 15.6 GB | **31.2 GB** |
+| 7B | buộc phải **4-bit** | fp16 trải 2 card, **KHÔNG cần lượng tử hoá** |
+| batch | cỡ cho 15.6 GB | gấp đôi được |
+=> Nghiêm trọng nhất KHÔNG phải tốc độ mà là: **4-bit CHƯA BAO GIỜ CẦN THIẾT.**
+   `dt2_g7` (+.651), các ô 7B của H32, `dt6_m7`, `ev_he7` — tất cả chạy 4-bit để vừa một
+   giới hạn bộ nhớ KHÔNG TỒN TẠI. Lượng tử hoá là một nhiễu loạn CÓ THỂ TRÁNH ĐƯỢC
+   nằm dưới mọi kết quả 7B của dự án.
+
+### GỐC RỄ NIỀM TIN SAI
+Ghi chú cũ của tôi: "`machine_shape` chỉ nhận giá trị một-GPU, không có T4×2".
+Vế đó ĐÚNG — không YÊU CẦU được. Nhưng tôi suy ra sai rằng do đó chỉ ĐƯỢC một T4.
+Phát biểu đúng: **không gọi tên được T4×2, nhưng Kaggle vẫn cấp HAI T4.**
+
+### BẰNG CHỨNG ĐÃ NẰM TRƯỚC MẶT MÀ TÔI KHÔNG ĐỌC
+Lỗi OOM của `dt4_m7`: *"**GPU 1** has a total capacity of 14.56 GiB"*.
+Tôi đã đọc thông báo đó BỐN LẦN trong lúc sửa OOM và chưa từng để ý tới chỉ số **1**.
+Nếu để ý, tôi đã biết có 2 GPU từ nhiều vòng trước.
+**LUẬT: khi đọc lỗi OOM, PHẢI đọc cả chỉ số GPU, không chỉ dung lượng.**
+
+### SỬA (áp cho mọi kernel về sau)
+- fp16/bf16: `device_map="auto"` thay cho `device_map="cuda"` -> trải 2 card.
+- 7B trên Kaggle: **BỎ 4-bit**, dùng fp16 `device_map="auto"` (7B fp16 ≈ 15.2 GB, chia 2 card
+  còn ~7.6 GB/card, thừa chỗ cho KV cache).
+- Batch có thể tăng đáng kể; phải đo lại ngân sách bộ nhớ (LUẬT vòng #51).
+- Kết quả 7B đã có: giữ nguyên nhưng PHẢI ghi kèm "đo ở 4-bit"; muốn sạch thì chạy lại fp16.
+
+## [Loop] VÒNG #67 — **H35 XÁC NHẬN HÀNG 1: BỘ KIỂM ĐÚNG ĐẮN THẮNG TẤT CẢ** + 3 kết quả khác
+### D) ev_he15 (HumanEval 1.5B) — **KẾT QUẢ MẠNH NHẤT DỰ ÁN TỪNG CÓ**
+`exec_success_rate` = **1.00** (ngưỡng .50 ✓ HỢP LỆ)
+| nhánh | acc | so với |
+|---|---|---|
+| greedy1 (1 lượt) | .5375 | — |
+| **maj@4** (4 lượt) | **.4250** | **THẤP HƠN CẢ GREEDY** |
+| **llm3** (LLM tự kiểm, 4 lượt) | .4812 | cũng thấp hơn greedy |
+| **exec3** (sửa theo KẾT QUẢ CHẠY TEST, 4 lượt) | **.6000** | — |
+`exec3 − llm3` = **+.119, 5/5 fold** · `exec3 − maj@4` = **+.175, 5/5 fold**
+**PHÁ ĐÁP ÁN ĐÚNG: exec3 = 0.0 (0/5 fold) · llm3 = 2.8/fold (5/5 fold)**
+=> **HÀNG 1 của bảng khoá #40 NỔ**: "bộ kiểm ĐÚNG ĐẮN làm được thứ LLM-kiểm không làm nổi,
+   và thắng cả lấy mẫu ở cùng ngân sách."
+=> Cùng model, cùng 4 lượt sinh, **chỉ khác NGUỒN TÍN HIỆU KIỂM** -> chênh **11.9 điểm**.
+   Và bộ kiểm đúng đắn **KHÔNG PHÁ MỘT ĐÁP ÁN NÀO**, trong khi LLM-kiểm phá 2.8 bài/fold.
+=> Đây là câu trả lời cho câu hỏi "chứng minh định lý": không cần Lean — nguyên lý đã đo được.
+
+### PHÁT HIỆN PHỤ ĐÁNG CHÚ Ý: BỎ PHIẾU **CÓ HẠI** TRÊN CODE
+`maj@4` (.425) **THẤP HƠN** `greedy` (.5375) — 11 điểm. Trên toán bỏ phiếu luôn có lợi.
+GIẢ THUYẾT (chưa kiểm): đáp án toán là một con số, dễ trùng; còn code là chuỗi dài,
+hai lời giải đúng hiếm khi GIỐNG HỆT nhau -> "đa số" gần như luôn là hoà 1-1-1-1,
+và bỏ phiếu thoái hoá thành lấy mẫu ngẫu nhiên (tệ hơn greedy). Khớp với vòng #65.
+=> **Bỏ phiếu chỉ dùng được khi đáp án có dạng CHUẨN HOÁ ĐƯỢC.**
+
+### A) Cấu hình 2S/3S -> 1V (mỗi cấu hình một notebook, có đối chứng riêng)
+| ô | V nhỏ (0.5B) | V thường (1.5B) |
+|---|---|---|
+| GSM8K 2S→1V | **−.104** (1/5) | **+.036** (4/5) |
+| GSM8K 3S→1V | **−.120** (0/5) | — |
+| MATH 2S→1V | +.060 (4/5) | +.040 (2/5) |
+| MATH 3S→1V | −.035 (0/5) | — |
+=> Ở GSM8K, verifier **0.5B GÂY HẠI RÕ** (−10 đến −12 điểm) còn 1.5B thì có lợi (+3.6).
+   Củng cố NGƯỠNG NĂNG LỰC: model quá nhỏ làm verifier thì phá nhiều hơn sửa.
+=> Ở MATH thì lẫn lộn (0.5B +.060 nhưng 3S→1V −.035) -> KHÔNG kết luận, cần thêm dữ liệu.
+LƯU Ý: `maj3` nền khác nhau giữa các kernel (.668 vs .620 ở GSM8K) vì là các lần chạy RIÊNG —
+so sánh CHÉO giữa cấu hình là YẾU; chỉ so sánh TRONG mỗi kernel mới chắc.
+
+### B) b4_g15 (GSM8K 1.5B, ngân sách 4 lượt)
+maj@3 .664 | **maj@4 .700** | P3S .712 | PSV .728 | **PSVA .744** | SS_anc .728
+`P3S − maj@4` = **+.012 (2/5)** -> kế hoạch chung **KHÔNG** bù được đa dạng đã mất. Prior tôi ĐÚNG.
+`PSVA − PSV` = +.016 (3/5) -> Aggregator thêm rất ít, KHÔNG đạt ngưỡng 4/5. Prior tôi ĐÚNG.
+`maj@4 − maj@3` = +.036 (4/5) -> lượt sinh thứ 4 CÓ giúp đếm phiếu.
+
+### C) bg_m7 (MATH 7B, 4-bit) — ô thứ 3 của lưới H32
+greedy .500 | maj@3 .505 | **PSV .590** | SVV .550 | SS_anc .480
+`maj3 − PSV` = **−.085, 0/5 fold** -> **PSV THẮNG maj@3 ở MATH 7B.**
+### LƯỚI H32 hiện tại: GSM8K 1.5B ✓(+.084) · MATH 1.5B ~(+.030, 3/5) · **MATH 7B ✓(+.085)**
+· GSM8K 7B đang chạy (dấu hiệu sớm: PSV .90 < greedy .94 -> ô BÃO HOÀ đảo chiều)
+
+## [Loop] VÒNG #68 — H35 **TÁI LẬP ĐỘC LẬP** trên phần cứng khác, mạnh hơn lần đầu
+### R_c15b (HumanEval 1.5B, **bf16 trên RTX 5090**, bộ kiểm ĐÃ SỬA)
+`exec_success_rate` = **.994** (ngưỡng .50 ✓) · tự kiểm bộ kiểm: OK
+| nhánh | acc | phá đáp án đúng |
+|---|---|---|
+| greedy1 | .5625 | — |
+| **maj@4** | **.4313** | — (THẤP HƠN greedy 13 điểm) |
+| **llm3** | .4375 | **4.6 bài/fold** (5/5) |
+| **exec3** | **.6438** | **0.0** (0/5) |
+`exec3 − llm3` = **+.206 (5/5)** · `exec3 − maj@4` = **+.213 (5/5)**
+
+### ĐỐI CHIẾU HAI LẦN CHẠY ĐỘC LẬP — CÙNG KẾT LUẬN, KHÁC PHẦN CỨNG
+| | ev_he15 (Kaggle T4, fp16) | **R_c15b (RTX 5090, bf16)** |
+|---|---|---|
+| exec3 − llm3 | +.119 (5/5) | **+.206 (5/5)** |
+| exec3 − maj@4 | +.175 (5/5) | **+.213 (5/5)** |
+| phá bởi exec3 | **0.0** | **0.0** |
+| phá bởi llm3 | 2.8/fold | **4.6/fold** |
+| maj@4 so với greedy | −.113 | −.131 |
+=> **TÁI LẬP.** Hai lần chạy, hai máy, hai độ chính xác số học, cùng kết luận và cùng dấu.
+   Đây là kết quả DƯƠNG VỮNG NHẤT của dự án — và là kết quả DUY NHẤT tái lập được ở mức này.
+=> `exec3` **KHÔNG PHÁ MỘT ĐÁP ÁN ĐÚNG NÀO** trong 10 fold của cả hai lần chạy (0/10).
+   `llm3` phá trong **10/10 fold**. Khác biệt không nằm ở độ chính xác mà ở TÍNH AN TOÀN.
+
+### XÁC NHẬN LẠI: BỎ PHIẾU CÓ HẠI TRÊN CODE
+`maj@4` thấp hơn `greedy` ở CẢ HAI lần (−.113 và −.131). Không phải nhiễu.
+Cơ chế (khớp vòng #65): code là chuỗi dài, hai lời giải ĐÚNG hiếm khi giống hệt nhau
+-> "đa số" gần như luôn là hoà -> bỏ phiếu thoái hoá thành chọn ngẫu nhiên, tệ hơn greedy.
+
+### R_m7 (MATH 7B bf16) — xác nhận lại lưới H32 và ĐỐI CHỨNG NHIỄU LOẠN
+greedy .480 | maj@3 .515 | maj3_g .500 | **PSV .595** | SVV .525
+`maj3 − PSV` = **−.080, 0/5** -> PSV thắng, lặp lại `bgL_m7` (−.075).
+`maj3_g − maj3` = −.015 (1/5) -> **đối chứng #41 lại cho ~0**: greedy KHÔNG phải nguồn lợi thế.
+Đã đo ở 4 ô độc lập, luôn ≈ 0 -> **nhiễu loạn do người dùng chỉ ra đã bị LOẠI TRỪ dứt điểm.**
+
+## [Loop] VÒNG #69 — **exec3 = oracle@4 CHÍNH XÁC**: bộ kiểm là BỘ CHỌN HOÀN HẢO, không phải bộ sửa
+Người dùng hỏi: "4 solver có chứa đáp án đúng không?" -> tính trực tiếp từ trace (chạy test thật).
+| ô | **oracle@4** | maj@4 | **exec3** | khoảng trống voting BỎ LỠ |
+|---|---|---|---|---|
+| code 1.5B | **.6438** | .4313 | **.6438** | **21.3 điểm** |
+| code 7B | **.8812** | .7875 | **.8812** | 9.4 điểm |
+=> **exec3 KHỚP oracle@4 tới từng chữ số ở CẢ HAI ô.** Không phải trùng hợp:
+   exec3 sửa cho tới khi test PASS rồi dừng -> nó chính là "lấy mẫu cho tới khi đúng",
+   tức là ĐẠT TRẦN best-of-k theo định nghĩa.
+
+### DIỄN GIẢI LẠI H35 — chính xác hơn phát biểu cũ
+Trước đây tôi nói "bộ kiểm đúng đắn SỬA được lỗi". **Sai trọng tâm.**
+Bộ kiểm không sửa giỏi hơn — nó **CHỌN hoàn hảo**. Giá trị của nó = biến k mẫu thành best-of-k.
+`maj@4` chỉ lấy được 43.1% (1.5B) trong khi 64.4% khả dụng -> **bỏ lỡ 21.3 điểm**.
+`exec3` lấy 100% khoảng trống đó.
+
+### PHÂN BỐ giải thích VÌ SAO bỏ phiếu thất bại trên code
+| số mẫu đúng /4 | 1.5B | 7B |
+|---|---|---|
+| 0 | 57 (36%) | 19 (12%) |
+| **1** | **23 (14%)** | 9 |
+| 2 | 21 | 9 |
+| 3 | 21 | 12 |
+| 4 | 38 (24%) | 111 (69%) |
+**23 bài (14%) ở 1.5B chỉ có ĐÚNG MỘT mẫu đúng trong 4.** Bỏ phiếu gần như KHÔNG THỂ chọn ra
+(1 phiếu chọi 3). Bộ kiểm tìm ra HẾT. Cộng với các bài 2/4 (hoà) -> đó chính là 21.3 điểm.
+
+### NỐI VỚI H30 (khoảng trống maj->oracle trên TOÁN)
+Trên toán tôi từng tranh cãi `oracle@k` phóng đại vì tính cả "đúng do may một lần".
+Trên CODE thì KHÔNG có vấn đề đó: "đúng" = **chạy qua toàn bộ test**, không thể trúng ngẫu nhiên.
+=> `oracle@4` trên code là trần THẬT, và nó **lấy được** — exec3 đã lấy.
+=> Đây là lý do miền có BỘ KIỂM ĐÚNG ĐẮN khác hẳn miền chỉ có LLM đi kiểm.

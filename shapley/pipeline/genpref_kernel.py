@@ -54,7 +54,7 @@ print(f"SHARD {SHARD}/{N_SHARDS}: {len(rows)} bai (tu {len(files)} file train)",
 tok = AutoTokenizer.from_pretrained(MODEL); tok.padding_side = "left"
 if tok.pad_token is None: tok.pad_token = tok.eos_token
 model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16,
-                                             device_map="cuda").eval()
+                                             device_map="auto").eval()
 print("model loaded", flush=True)
 
 def gen(sysm, usrs, mx, do_sample=False, seed=None):

@@ -1242,3 +1242,304 @@ Lần chạy trước cho HIGH = **+.337 / +.472 / +.529** — đơn điệu tă
 Tôi đã TUYÊN VÔ HIỆU nó. Nếu lần này ra kết quả TƯƠNG TỰ, đó **KHÔNG phải** sự xác nhận của lần trước
 — lần trước không tồn tại về mặt bằng chứng. Ghi ở đây để không ai (kể cả tôi) kể lại thành
 "đã thấy trước rồi, giờ chỉ xác nhận".
+
+## SỬA ĐỔI cho Đăng ký trước #33 (H30) — ghi TRƯỚC khi có số, sau khi đã phóng
+`ks_g15` (GSM8K 1.5B) và `ks_m15` (MATH 1.5B) đã phóng trên **T4**, KHÔNG phải RTX 6000 Pro
+(người dùng yêu cầu tạm dừng dùng RTX). Vì T4 không sinh nổi 64 chuỗi đồng thời:
+**k tối đa 64 -> 16**, dãy quét `KS = [2,4,8,16]` thay vì `[2,4,8,16,32,64]`.
+
+**Câu hỏi CHÍNH của #33 KHÔNG đổi và vẫn trả lời được đầy đủ**: ba hàng đầu của bảng đã khoá
+đều so sánh tại **k=8** (`oracle_solid@8 − maj@8` với `oracle@8 − maj@8`). k=8 vẫn nằm trong dãy.
+Thứ MẤT ĐI là hai hàng nói về xu hướng theo k lớn:
+  - "`oracle@k − maj@k` phình đều theo k trong khi `oracle_solid` phẳng"
+  - "`maj@k` bão hoà sớm (k>=16 không tăng)"
+Hai hàng đó chỉ đọc được trên dãy tới k=16 -> **kết luận về chúng phải ghi là YẾU/CHƯA ĐỦ**,
+và phải chạy lại tới k=64 khi được phép dùng RTX 6000 Pro.
+
+Ghi rõ: đây là THU HẸP PHẠM VI do ràng buộc phần cứng, **không phải nới ngưỡng, không phải đổi
+tiêu chí phán quyết**. Bảng diễn giải của #33 giữ NGUYÊN VẸN cho mọi hàng tại k=8.
+
+---
+
+# Đăng ký trước #35 — H31: ĐO `oracle_solid` VÀ `wvote_sum` TRONG **CÙNG MỘT** KERNEL
+**Viết TRƯỚC khi chạy.** Rút thẳng từ H30.
+
+## Vì sao cần
+H30 cho thấy khoảng trống thật (`oracle_solid − maj`) nhỏ hơn nhiều con số đã công bố.
+Nhưng H30 và H28 chạy ở HAI kernel KHÁC NHAU, khác nửa dữ liệu và khác nhiệt độ:
+`ks_m15` có maj@8 = .465 còn `wv_m15` có maj@8 = .265. **Không được ghép số giữa hai lần chạy.**
+Muốn biết bỏ phiếu có trọng số lấy được BAO NHIÊU PHẦN của khoảng trống THẬT thì phải đo
+CẢ HAI trên CÙNG bộ mẫu, CÙNG kernel.
+
+## Thiết kế
+Kernel `wvote` hiện có, THÊM `oracle_solid@8` (>=2/8 mẫu đúng) vào cùng vòng lặp fold.
+Báo thêm: `wsum_pct_gap_solid` = (`wvote_sum` − `maj8`) / (`oracle_solid` − `maj8`).
+Ô: GSM8K 1.5B và MATH 1.5B (hai ô đã có `wvote_sum` dương).
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên)
+AUC > .55 · nếu `oracle_solid − maj8` <= 0 ở một ô thì **KHÔNG được tính tỉ lệ phần trăm** cho ô đó
+(chia cho số âm/không là vô nghĩa) — phải báo "khoảng trống thật không khác 0".
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `wvote_sum − maj8` > 0 VÀ `oracle_solid − maj8` > 0, tỉ lệ >= 50% | **Bỏ phiếu có trọng số lấy được PHẦN LỚN khoảng trống thật.** Đây là phát biểu mạnh nhất mà dự án được phép đưa ra về hướng tổng hợp. |
+| `wvote_sum − maj8` > 0 nhưng `oracle_solid − maj8` ≈ 0 | Bỏ phiếu có trọng số **vượt cả trần "solid"** -> tức `oracle_solid` là trần QUÁ CHẶT (đã lọc mất cả những lần giải đúng thật). Phải nói rõ trần thật nằm giữa `oracle_solid` và `oracle`. |
+| Tỉ lệ < 20% | Còn nhiều khoảng trống thật chưa lấy được -> hướng tổng hợp vẫn đáng đầu tư. |
+| `wvote_sum − maj8` ≈ 0 ở lần chạy này | Không tái lập được H28 trong điều kiện mới -> phải hạ cấp H28 xuống "phụ thuộc lần chạy". |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán rơi vào hàng 1 hoặc hàng 2 — tức bỏ phiếu có trọng số đã lấy gần hết khoảng trống THẬT,
+và phần còn lại để giành là RẤT NHỎ. Nếu vậy, kết luận thực tiễn của dự án là:
+**"lấy 8 mẫu, đếm phiếu có trọng số, và DỪNG LẠI — phần còn lại không đáng theo đuổi ở quy mô này."**
+Đó sẽ là một kết luận KHIÊM TỐN nhưng là kết luận VỮNG NHẤT mà dữ liệu cho phép.
+
+## GHI CHÚ THỰC THI cho #30 (H25d) — `dt5_m7` / `dt5_m15`, viết TRƯỚC khi có số
+Chạy lại thí nghiệm tiêm-lỗi trên MATH sau khi sửa **lỗi regex thoát dư tầng** (vòng #54)
+đã khiến `dt4_m7` cho `pct_corruptible = 0.0` và bị tuyên VÔ HIỆU.
+Kernel nay có **tự kiểm regex ngay đầu** (`assert` số khớp >= 4 trên chuỗi mẫu) -> chết trong
+vài giây nếu regex hỏng, thay vì sau 1 giờ.
+Hai ô: **7B 4-bit** (`dt5_m7`) và **1.5B fp16** (`dt5_m15`), N=400, CÙNG dữ liệu, CÙNG cách tiêm.
+Bảng diễn giải của #30 và mọi ngưỡng hiệu lực (#26/#28) GIỮ NGUYÊN, không sửa một chữ.
+
+Lý do thêm ô 1.5B: `dt2_g15` cho 1.5B suy biến .99 trên GSM8K (VÔ HIỆU). Chạy 1.5B trên MATH
+cùng lần này để biết suy biến là do NĂNG LỰC hay do MIỀN — hai khả năng chưa tách được.
+Nếu 1.5B lại suy biến >.90 trên MATH thì đó là NĂNG LỰC; nếu không thì trước đây là do miền.
+
+---
+
+# Đăng ký trước #36 — H28c: ĐO LẠI BỎ PHIẾU CÓ TRỌNG SỐ SAU KHI SỬA LỖI RÒ RỈ ADAPTER
+**Viết TRƯỚC khi chạy.** Mọi kết quả bỏ phiếu có trọng số trước đây đều BỊ NHIỄM (vòng #59).
+
+## Lỗi đã sửa
+Mẫu ĐÁNH GIÁ được sinh khi LoRA Yes/No vẫn BẬT -> solver bị chính bộ chấm làm hỏng.
+Bằng chứng: cùng ô, cùng dữ liệu, chỉ khác lượng huấn luyện (800 vs 1600 bước) ->
+`greedy1` .5167 vs .3867, `maj@8` .7067 vs .5467, và `wsum−maj` +.030 vs +.110.
+Sửa: `gen(..., adapter=False)` mặc định -> mọi lời giải sinh bằng **MODEL GỐC**;
+adapter CHỈ bật khi CHẤM ĐIỂM.
+
+## NGƯỠNG HIỆU LỰC MỚI (khoá trước) — bắt lại đúng lỗi này
+`adapter_leak` = `pre_acc` − `post_acc` (độ chính xác mẫu TRƯỚC vs SAU huấn luyện).
+Nếu **|leak| > .05** -> lần chạy **VÔ HIỆU**: adapter vẫn rò rỉ vào pha giải.
+Giữ nguyên: AUC > .55.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `wsum − maj` > 0, >=4/5 fold, leak <= .05 | Bỏ phiếu có trọng số ĐỨNG VỮNG sau khi sửa lỗi. Độ lớn MỚI là con số được phép công bố; con số +11.0 cũ phải bị RÚT. |
+| `wsum − maj` ≈ 0 sau khi sửa | **Hiệu ứng trước đây PHẦN LỚN là hiện vật của solver bị hỏng.** Phải RÚT LẠI H28/H28b/H31 và ghi rõ dự án KHÔNG có cơ chế nào vượt `maj@8`. |
+| `wsum − maj` > 0 nhưng NHỎ HƠN NHIỀU con số cũ | Hiệu ứng THẬT nhưng đã bị lỗi thổi phồng. Công bố con số mới, ghi rõ mức thổi phồng. |
+| leak > .05 dù đã sửa | VÔ HIỆU; còn đường rò rỉ khác chưa tìm ra. Phải tìm tiếp, KHÔNG được đọc số. |
+| `maj@8` mới ≈ .70 (khớp wv_g15) chứ không phải .55 | Xác nhận chẩn đoán: baseline thấp trước đây đúng là do adapter rò rỉ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán hiệu ứng VẪN DƯƠNG nhưng NHỎ HƠN NHIỀU +11.0 — có lẽ quanh +2 đến +4 điểm, tức gần
+với `wv_g15` (+.030) hơn là `ws_g15` (+.110), vì `wv_g15` huấn luyện ít hơn nên rò rỉ ít hơn.
+Nếu ra hàng 2 (≈0) thì dự án MẤT kết quả dương duy nhất của mình, và tôi phải nói thẳng điều đó.
+
+---
+
+# Đăng ký trước #37 — H28d: NGƯỠNG RÒ RỈ ĐO ĐÚNG CÁCH
+**Viết TRƯỚC khi chạy.** #36 vô hiệu vì ngưỡng của chính nó so hai TẬP BÀI KHÁC NHAU.
+
+## Sửa ngưỡng
+Đo rò rỉ trên **CÙNG MỘT tập bài**: giữ lại 60 bài kiểm tra làm "mẫu dò".
+- `probe_pre`  : sinh 1 mẫu cho 60 bài đó **TRƯỚC** khi huấn luyện (model gốc)
+- `probe_post` : sinh 1 mẫu cho **ĐÚNG 60 bài đó** **SAU** khi huấn luyện, adapter TẮT
+- `adapter_leak` = `probe_pre − probe_post` (cùng bài, cùng nhiệt độ, cùng seed)
+Chênh còn lại chỉ có thể là nhiễu lấy mẫu hoặc rò rỉ thật, KHÔNG còn lẫn khác biệt train/test.
+Ngưỡng: **|leak| <= .05** -> hợp lệ. Báo kèm `probe_n=60` để biết sai số (~±.065 ở n=60, nên
+ngưỡng .05 là CHẶT; nếu |leak| <= .05 thì gần như chắc chắn không rò rỉ).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số) — giữ nguyên bảng #36, chỉ đổi cách đo leak
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| leak <= .05 VÀ `wsum − maj` > 0 ở >=4/5 fold | H28 ĐỨNG VỮNG sau sửa lỗi. Con số MỚI là con số duy nhất được công bố; +11.0 và +3.0 cũ bị RÚT. |
+| leak <= .05 VÀ `wsum − maj` ≈ 0 | **RÚT LẠI H28/H28b/H31.** Dự án KHÔNG có cơ chế nào vượt `maj@8`. Phải nói thẳng. |
+| leak > .05 lần nữa | Còn đường rò rỉ thứ ba chưa tìm ra. VÔ HIỆU; phải tìm bằng cách so từng bước, KHÔNG được đọc số. |
+
+## Prior TRUNG THỰC (ghi trước)
+Số thô của #36 (vô hiệu) là +.047 (GSM8K, 5/5) và +.035 (MATH, 2/5). Tôi đoán lần này ra
+tương tự: **dương nhỏ ở GSM8K (~+3 đến +5 điểm), không khác 0 ở MATH.**
+Nếu đúng thì phát biểu cuối của dự án là: bỏ phiếu có trọng số giúp VÀI ĐIỂM ở GSM8K 1.5B,
+KHÔNG tổng quát sang MATH — khiêm tốn hơn nhiều so với "+11.0 điểm" tôi từng viết.
+
+---
+
+# Đăng ký trước #38 — H32: PIPELINE VAI TRÒ vs LẤY MẪU LẶP **Ở CÙNG NGÂN SÁCH**
+**Viết TRƯỚC khi chạy.** Đây là phép thử mà toàn bộ dự án đã THIẾU.
+
+## Lỗ hổng trong chính bằng chứng của tôi
+Mọi so sánh "pipeline > solver đơn" của dự án đều cho pipeline **NHIỀU LƯỢT SINH HƠN**:
+`P→S→V` dùng 3 lượt, `Solver` dùng 1 lượt. Nên "+5.6 điểm" có thể HOÀN TOÀN là do
+"sinh 3 lần thì tốt hơn sinh 1 lần", KHÔNG phải do phân vai.
+Bằng chứng gián tiếp đã có (Planner giải rồi giấu; Verifier tái sử dụng 0%; `S_anc` không có
+chữ "kiểm" nào vẫn ngang verifier; giả dược `X_cross` sửa nhiều nhất) đều nói vai KHÔNG chuyên biệt.
+Nhưng **chưa ai đo trực tiếp**: ở CÙNG số lượt sinh, pipeline có hơn bỏ phiếu không?
+
+## Thiết kế — MỌI nhánh đúng 3 LƯỢT SINH, cùng bài, cùng model, 5 fold
+- `greedy1` : 1 lượt (mốc dưới, để quy chiếu)
+- **`maj3`** : 3 mẫu độc lập (temp .8) -> đếm phiếu
+- **`PSV`**  : Planner -> Solver -> Verifier (đúng pipeline của dự án)
+- **`SVV`**  : Solver -> Verifier -> Verifier (2 lượt kiểm, không có Planner)
+- `SS_anc`  : Solver -> giải lại CÓ mỏ neo -> giải lại CÓ mỏ neo (không có chữ "kiểm" nào)
+**BẮT BUỘC đếm SỐ TOKEN SINH RA của từng nhánh** — ngân sách công bằng phải tính theo TOKEN,
+không chỉ theo số lượt. Báo `tokens_per_arm`.
+
+## Chỉ số chính
+`maj3 − PSV` theo từng fold. Phụ: `SVV − maj3`, `SS_anc − PSV`, và token của mỗi nhánh.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `maj3` >= `PSV` ở >=4/5 fold | **PIPELINE VAI TRÒ KHÔNG MANG LỢI ÍCH GÌ ngoài việc sinh nhiều lần.** Phải phát biểu thẳng trong README: lợi ích đã báo cáo của pipeline là lợi ích của LẤY MẪU LẶP. Kiến trúc phân vai KHÔNG đáng dùng ở quy mô này. |
+| `PSV` > `maj3` ở >=4/5 fold | Pipeline CÓ thêm giá trị vượt trên lấy mẫu. Vai có ý nghĩa. Phải rút lại cách đọc "vai không chuyên biệt". |
+| Bằng nhau trong sàn nhiễu | Lợi ích là của LẤY MẪU, vai chỉ là cách LẤY MẪU ĐA DẠNG tốn kém hơn. Khuyến nghị: dùng bỏ phiếu, rẻ và đơn giản hơn. |
+| `PSV` ngang `maj3` NHƯNG tốn NHIỀU TOKEN HƠN | Pipeline **TỆ HƠN** ở cùng chất lượng. Phải nói rõ là tệ hơn, không phải "ngang". |
+| `SS_anc` ≈ `PSV` | Xác nhận thêm: bỏ hết ngôn ngữ vai mà kết quả không đổi -> vai là NHÃN, không phải cơ chế. |
+| `SVV` > `PSV` | Planner có hại; nên bỏ Planner, dồn ngân sách cho lượt kiểm. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 1 hoặc hàng 3** — tức `maj3` ngang hoặc hơn `PSV`. Lý do: mọi bằng chứng cơ chế
+đã đo đều nói vai không chuyên biệt, và đếm phiếu chưa từng bị đánh bại một cách hợp lệ.
+Nếu ra hàng 1 thì đây là kết luận LỚN NHẤT và KHIÊM TỐN NHẤT của dự án: **kiến trúc đa tác tử
+phân vai, ở quy mô này, chỉ là một cách đắt tiền để lấy mẫu nhiều lần.**
+Tôi ghi trước rằng kết luận đó sẽ phủ định phần lớn công sức 60 vòng lặp của chính tôi.
+
+## MỞ RỘNG #38 (H32) SANG ĐỦ LƯỚI 2×2 — ghi TRƯỚC khi có số
+`bg_g15` (GSM8K 1.5B) đã xong và cho HÀNG 2 (PSV > maj@3, 5/5 fold, ít token hơn).
+Nay chạy đủ ba ô còn lại: `bg_m15` (MATH 1.5B), `bg_m7` (MATH 7B), `bg_g7` (GSM8K 7B).
+Bảng diễn giải của #38 GIỮ NGUYÊN, áp cho TỪNG ô. Thêm quy tắc tổng hợp lưới:
+
+| Kết quả trên lưới | Kết luận BẮT BUỘC |
+|---|---|
+| `PSV > maj@3` ở **>=3/4 ô** | Tuần tự-có-mỏ-neo THẮNG song song ở cùng ngân sách — phát biểu được như KHUYẾN NGHỊ CHUNG. |
+| Chỉ 1–2/4 ô | PHỤ THUỘC Ô. `bg_g15` là ngoại lệ chứ không phải quy luật; KHÔNG được tổng quát. |
+| Không ô nào (ngoài g15) | Kết quả `bg_g15` là ngẫu nhiên của một ô. Phải rút lại vòng #63. |
+| `SS_anc ≈ PSV` ở >=3/4 ô | Xác nhận: vai là NHÃN, cơ chế là MỎ NEO. Đây là phát biểu cơ chế của dự án. |
+| Ô bão hoà (GSM8K 7B, solver .916) không có hiệu ứng | Khớp luật dải độ khó; KHÔNG tính là phản chứng, ghi kèm điều kiện. |
+
+**Prior TRUNG THỰC (ghi trước):** prior lần trước của tôi SAI (đoán maj@3 thắng, thực tế thua 5/5).
+Lần này tôi đoán: MATH 1.5B **CÓ** hiệu ứng (solver .405, còn nhiều chỗ để sửa),
+MATH 7B **CÓ** (dải .60-.67 là nơi verify sinh lợi), GSM8K 7B **KHÔNG** (bão hoà .916).
+Tức là 3/4 ô -> hàng 1. Nhưng tôi vừa sai một lần nên đặt ít trọng số vào prior này.
+
+---
+
+# Đăng ký trước #39 — H33: `P→3S` và `P→S→V→A` Ở NGÂN SÁCH 4 LƯỢT
+**Viết TRƯỚC khi chạy.** Mở rộng H32 sang ngân sách 4 lượt, có ĐỐI CHỨNG CÙNG NGÂN SÁCH.
+
+## Hai cấu hình cần kiểm (người dùng đề xuất)
+- **`P3S`** : Planner 1 lượt -> **3 Solver CÙNG đọc kế hoạch đó** -> đếm phiếu giữa 3 lời giải. (4 lượt)
+- **`PSVA`**: Planner -> Solver -> Verifier -> Aggregator (đủ 4 vai). (4 lượt)
+**ĐỐI CHỨNG BẮT BUỘC: `maj@4`** (4 mẫu độc lập, đếm phiếu) — cùng 4 lượt sinh.
+Kèm lại `maj@3` và `PSV` (3 lượt) để biết lượt thứ 4 có mua được gì không.
+Đếm TOKEN mọi nhánh.
+
+## Câu hỏi cơ chế mà thiết kế này tách được
+`P3S` cho cả 3 mẫu ĐỌC CHUNG một kế hoạch -> **giảm ĐA DẠNG** giữa các mẫu.
+Nếu đếm phiếu hoạt động nhờ đa dạng, `P3S` sẽ **KÉM `maj@4`** dù có thêm thông tin kế hoạch.
+Đây là phép thử trực tiếp: **thông tin chung có bù được cho đa dạng bị mất không?**
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `P3S` > `maj@4` ở >=4/5 fold | Kế hoạch chung BÙ ĐƯỢC đa dạng đã mất. Điều kiện hoá tập trung có giá trị. |
+| `P3S` < `maj@4` ở >=4/5 fold | **Đa dạng quan trọng hơn thông tin chung.** Không nên ép nhiều solver theo cùng một kế hoạch. |
+| `PSVA` > `PSV` | Aggregator CÓ giá trị ở 1.5B — mâu thuẫn với đo cũ (agg_fair 1.5B −.067, agg_full_sol −.175); phải đối chiếu và giải thích. |
+| `PSVA` <= `PSV` | Lượt thứ 4 dành cho Aggregator là LÃNG PHÍ. Khuyến nghị: dừng ở Verifier. |
+| `maj@4` ≈ `maj@3` | Lượt sinh thứ 4 gần như vô ích cho đếm phiếu -> lợi ích cận biên của lấy mẫu bão hoà sớm. |
+| Nhánh tuần tự tốt nhất (4 lượt) <= nhánh tuần tự tốt nhất (3 lượt) | Thêm lượt KHÔNG mua thêm gì; ngân sách 3 lượt là đủ. Phát biểu được như khuyến nghị thực tiễn. |
+
+## Prior TRUNG THỰC (ghi trước)
+- `P3S` **KÉM** `maj@4`: kế hoạch chung làm 3 mẫu giống nhau, đếm phiếu mất tác dụng.
+- `PSVA` **≈ hoặc kém** `PSV`: Aggregator đã đo là trung tính (7B) tới có hại (1.5B).
+- Tức là tôi đoán **cả hai cấu hình mới đều KHÔNG hơn** cấu hình 3 lượt tốt nhất.
+Ghi rõ: prior gần nhất của tôi về H32 đã SAI (đoán maj@3 thắng, thực tế thua 5/5),
+nên đặt ít trọng số vào prior này.
+
+---
+
+# Đăng ký trước #40 — H35: KIỂM BẰNG **BỘ KIỂM ĐÚNG ĐẮN** vs KIỂM BẰNG LLM, Ở CÙNG NGÂN SÁCH
+**Viết TRƯỚC khi chạy.** Đây là phát biểu tổng quát mà "chứng minh định lý" chỉ là một trường hợp.
+
+## Vì sao đây mới là thí nghiệm đáng chạy (thay vì Lean)
+Phát hiện âm trung tâm của dự án: "verifier" bằng LLM **không kiểm** — nó GIẢI LẠI
+(tái sử dụng 0% số của Solver; độ chính xác can thiệp = độ chính xác TỰ GIẢI).
+Đối chứng gần nhất đã đo: **verify bằng CHẠY TEST** trên HumanEval —
+.787 -> **.835** ở 7B, **0 phá** suốt 3 vòng; trong khi verify bằng LLM PHÁ đáp án đúng ở CẢ 4 ô.
+=> Giả thuyết tổng quát: **vai verifier chỉ hoạt động khi việc kiểm là ĐÚNG ĐẮN VỀ MẶT CƠ HỌC,
+   không phải khi nó là một lượt LLM nữa.** Chứng minh định lý hình thức là một hiện thân
+   (bộ kiểm Lean), thực thi test là một hiện thân khác — và cái thứ hai CHẠY ĐƯỢC ở quy mô này.
+
+## Khiếm khuyết của số cũ, phải sửa
+`.787→.835` đo **MỘT LẦN**, +4.8 điểm — **DƯỚI sàn nhiễu 5 điểm**, và **KHÔNG có đối chứng
+cùng ngân sách** (3 vòng sửa = 4 lượt sinh, so với 1 lượt của baseline). Đúng loại so sánh
+mà chính tôi đã bị chỉ ra là sai ở H32.
+
+## Thiết kế — HumanEval, 5 fold, MỌI nhánh 4 LƯỢT SINH
+- `greedy1` (1 lượt, quy chiếu)
+- **`maj@4`** — 4 mẫu, bỏ phiếu theo chuỗi code chuẩn hoá (đối chứng cùng ngân sách)
+- **`exec3`** — sinh 1 lần rồi **3 vòng sửa dựa trên KẾT QUẢ CHẠY TEST** (bộ kiểm đúng đắn)
+- **`llm3`**  — sinh 1 lần rồi **3 vòng sửa dựa trên NHẬN XÉT CỦA LLM** (không chạy test)
+`exec3` vs `llm3` là phép so sánh CHÍNH: **cùng số lượt, cùng model, chỉ khác NGUỒN TÍN HIỆU KIỂM.**
+Đếm token mọi nhánh. Báo `n_breaks` (bài đang đúng bị làm hỏng) cho từng nhánh.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`exec_success_rate` (tỉ lệ code chạy được, không lỗi cú pháp) phải **>= .50** — cùng ngưỡng đã
+dùng để tuyên H8 VÔ HIỆU. Nếu thấp hơn thì model không viết nổi code chạy được -> VÔ HIỆU.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `exec3` > `llm3` VÀ `exec3` > `maj@4`, >=4/5 fold | **XÁC NHẬN: bộ kiểm ĐÚNG ĐẮN làm được thứ LLM-kiểm không làm nổi**, và nó thắng cả lấy mẫu ở cùng ngân sách. Đây là phát biểu THỰC TIỄN mạnh nhất dự án: chỉ thêm verifier khi có bộ kiểm thật. |
+| `exec3` > `llm3` nhưng KHÔNG hơn `maj@4` | Bộ kiểm hơn LLM-kiểm, nhưng vẫn không đáng so với chỉ lấy mẫu thêm. Khuyến nghị: bỏ phiếu. |
+| `exec3` ≈ `llm3` | Nguồn tín hiệu kiểm KHÔNG quan trọng -> bác giả thuyết trung tâm của vòng này. Phải nói thẳng. |
+| `llm3` phá nhiều hơn `exec3` (n_breaks) | Củng cố cơ chế: LLM-kiểm gây hại, bộ kiểm thì không. Ngay cả khi độ chính xác ngang nhau. |
+| `exec_success_rate` < .50 | VÔ HIỆU (như H8). Không được đọc là "bộ kiểm thất bại". |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán `exec3` > `llm3` rõ rệt và `exec3` >= `maj@4` — tức hàng 1. Đây là hướng tôi tin nhất
+còn lại của dự án, vì nó là cơ chế DUY NHẤT đã đo được **0 phá** trong khi mọi LLM-verifier đều phá.
+Ghi kèm: prior H32 của tôi đã sai, nên đặt trọng số vừa phải.
+
+## VỀ CHỨNG MINH ĐỊNH LÝ (trả lời trực tiếp)
+Không chạy Lean lúc này vì: (a) **không có bộ dữ liệu miniF2F trên Kaggle** (đã tìm, không có);
+(b) không có toolchain Lean khi `enable_internet=false`; (c) Qwen2.5-1.5B/7B-Instruct gần như
+không sinh nổi Lean hợp lệ -> mọi tầng sẽ rỗng, đúng lỗi đã giết `dt2_g7` (tầng quyết định n=9).
+Nếu về sau có model chuyên (DeepSeek-Prover/Llemma) và bộ kiểm, H35 chính là khuôn mẫu để lặp lại.
+
+---
+
+# Đăng ký trước #41 — H36: TÁCH "TUẦN TỰ vs SONG SONG" KHỎI "GREEDY vs LẤY MẪU"
+**Viết TRƯỚC khi chạy.** Người dùng chỉ ra một NHIỄU LOẠN trong H32 mà tôi đã bỏ sót.
+
+## Nhiễu loạn đã bỏ sót
+Trong H32, prompt HỆ THỐNG của Solver là **GIỐNG HỆT** ở cả hai nhánh (`SOLVE`), phần user chỉ
+khác ở chỗ nhánh chuỗi được nối thêm kế hoạch. NHƯNG **NHIỆT ĐỘ KHÁC NHAU**:
+- `maj@3`: 3 mẫu ở **temp 0.8** (bắt buộc, nếu temp 0 thì 3 mẫu giống hệt nhau, không bỏ phiếu được)
+- `PSV`  : plan/solve/verify đều ở **temp 0.0 (greedy)**
+`greedy1` (temp 0) = **.632** còn `maj@3` (3 mẫu temp .8) = **.644** -> mỗi mẫu ngẫu nhiên
+YẾU HƠN HẲN một lần giải greedy. Nên `PSV` xuất phát từ một bước giải TỐT HƠN.
+=> **+8.4 điểm của `PSV` so với `maj@3` có thể một phần là "greedy hơn lấy mẫu",
+   KHÔNG phải "tuần tự hơn song song".**
+
+## Thiết kế đối chứng
+`maj3_g` = **1 mẫu greedy (temp 0) + 2 mẫu temp .8** -> bỏ phiếu, hoà thì lấy mẫu greedy.
+Cùng 3 lượt sinh, nhưng nhánh song song NAY CŨNG được hưởng một lần giải tất định.
+Chạy CÙNG kernel với `greedy1`, `maj@3` (thuần ngẫu nhiên), `PSV`, `SS_anc` -> so sánh CẶP.
+Ô: GSM8K 1.5B và MATH 1.5B.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `maj3_g` ≈ `PSV` (chênh trong sàn nhiễu) | **Lợi thế của H32 là do GIẢI MÃ GREEDY, không phải cấu trúc tuần tự.** Phải RÚT LẠI cách đọc ở vòng #63 và sửa README. |
+| `maj3_g` > `maj@3` nhưng vẫn KÉM `PSV` >=4/5 fold | Cả hai yếu tố cùng đóng góp. Phải báo phần do greedy (`maj3_g − maj@3`) TÁCH RIÊNG khỏi phần do tuần tự (`PSV − maj3_g`). |
+| `maj3_g` ≈ `maj@3` | Greedy KHÔNG phải nguồn lợi thế; kết luận tuần tự-thắng-song song của H32 ĐỨNG VỮNG. |
+| `maj3_g` > `PSV` | Đối chứng đúng còn THẮNG cả pipeline -> H32 bị bác hoàn toàn, phải rút lại. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán hàng 2: cả hai cùng đóng góp, phần do greedy chiếm khoảng **một phần ba đến một nửa**
+của +8.4. Tức là kết luận "tuần tự thắng song song" sẽ SỐNG SÓT nhưng **NHỎ ĐI ĐÁNG KỂ**.
+Ghi rõ: đây là nhiễu loạn do NGƯỜI DÙNG phát hiện, không phải tôi. Tôi đã công bố +8.4
+ở vòng #63 mà chưa kiểm nó.

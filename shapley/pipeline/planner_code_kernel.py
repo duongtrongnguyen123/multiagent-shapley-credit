@@ -13,7 +13,7 @@ print(f"HumanEval n={len(ALL)} | {NF} fold x {FOLD}",flush=True)
 
 tok=AutoTokenizer.from_pretrained(MODEL); tok.padding_side="left"
 if tok.pad_token is None: tok.pad_token=tok.eos_token
-model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="cuda").eval()
+model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="auto").eval()
 print("model loaded",flush=True)
 
 def gen(sysm,usrs,mx=512):

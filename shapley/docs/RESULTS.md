@@ -306,13 +306,26 @@ Lỗi số học TIÊM SẴN vào chuỗi vàng (cả hai nhánh cùng văn phon
 ⚠️ Tầng "model KHÔNG giải nổi" ở GSM8K 7B chỉ có **9 cặp** -> câu hỏi "kiểm có tách rời khỏi
    giải không" **CHƯA trả lời được**. Đang chạy lại trên MATH (tầng đó đông hơn).
 
+### ⚠️ 7.5 **TẠM ĐÌNH CHỈ** — số dưới đây đo trên bể mẫu BỊ HỎNG (xem vòng #59–#60)
+Mẫu đánh giá sinh khi LoRA Yes/No còn BẬT -> Solver bị bộ chấm làm hỏng (`greedy1` tụt 13 điểm
+giữa hai lần chạy chỉ khác lượng huấn luyện). H27/H28/H28b/H31 **không được trích dẫn** cho tới khi
+bản sửa (đăng ký trước #36, ngưỡng `adapter_leak <= .05`) chạy xong.
+
 ### 7.5 NGHỊCH LÝ: bộ chấm AUC .883 VẪN KHÔNG thắng đếm phiếu
 Verifier PHÂN BIỆT huấn luyện trên 3200 nhãn TỰ ĐỘNG (grader, không gán tay):
 **AUC .883** | greedy .533 | **maj@8 .703** | **rerank@8 .687** | oracle@8 .843
 => rerank − maj = **−.017** (2/5 fold dương) -> HÀNG 2: **chấm điểm không thêm gì so với đếm phiếu**.
 GIẢ THUYẾT: `argmax` chọn MỘT mẫu và vứt bỏ thông tin ĐỒNG THUẬN mà đếm phiếu đang dùng.
 Đang kiểm bằng **bỏ phiếu có trọng số** (pre-reg #29).
-**Khoảng trống maj@8 -> oracle@8 = +14.0 điểm vẫn CHƯA ai lấy được.**
+**⚠️ ĐÍNH CHÍNH HAI CHIỀU (H30 #33, rồi H31 #35 sửa lại chính nó):** con số "+14.0 điểm" BỊ THỔI PHỒNG,
+NHƯNG bản sửa đầu tiên lại QUÁ BI QUAN. `oracle@k` phóng đại (tính bài chỉ 1/k mẫu đúng);
+`oracle_solid@k` hạ thấp (trên MATH nó .285, **thấp hơn cả maj@8 .295** -> không phải trần hợp lệ).
+Trần thật nằm trong **[`oracle_solid`, `oracle`]**. Bằng chứng cứng: bỏ phiếu có trọng số đạt
+maj@8 **+11.0 điểm (5/5 fold, GSM8K 1.5B)** nên trần thật ít nhất là mức đó. Chi tiết cũ:
+`oracle@k` tính là thành công cả bài chỉ có **1/k** mẫu đúng (trên GSM8K, đáp án số nguyên -> phần lớn
+là TRÙNG SỐ). Dùng `oracle_solid@8` (đòi >=2/k mẫu đúng): GSM8K khoảng trống thật **+.060** (34% của
++.175), MATH **+.005** (7% của +.075, 2/5 fold ÂM -> không khác 0).
+Khoảng trống thật nhỏ hơn ~3× (GSM8K) và ~14× (MATH).
 
 ### 7.6 RL TRÊN VERIFIER: HỌC CÁCH IM LẶNG (H23)
 GRPO thưởng theo độ chính xác can thiệp: precision .70–.90 -> **1.00 cả 5 fold** (22 sửa/**0 phá**)

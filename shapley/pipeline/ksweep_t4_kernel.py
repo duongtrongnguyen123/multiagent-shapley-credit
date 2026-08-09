@@ -3,13 +3,13 @@
 import os, re, csv, json, glob, statistics as st, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-TASK="__TASK__"; MODELV="__MODELV__"; N=__N__; BS=__BS__; KMAX=64; NF=5
-KS=[2,4,8,16,32,64]
+TASK="__TASK__"; MODELV="__MODELV__"; N=__N__; BS=__BS__; KMAX=__KMAX__; NF=5
+KS=__KS__
 cap=torch.cuda.get_device_capability(0); gpu=torch.cuda.get_device_name(0)
 print(f"GPU={gpu} sm={cap} vram={torch.cuda.get_device_properties(0).total_memory/1e9:.0f}GB",flush=True)
-assert cap[0]>=12, f"KHONG PHAI RTX 6000 Pro (sm={cap}) -> dung lai"
+assert cap[0]>=7, f"GPU qua cu (sm={cap})"   # ban T4: chi can sm_75
 
-c=[os.path.dirname(p) for p in glob.glob("/kaggle/input/**/config.json",recursive=True) if MODELV in p]
+c=[os.path.dirname(p) for p in glob.glob("/kaggle/input/**/config.json",recursive=True)]
 MP=sorted(c,key=len)[0]; print("MODEL",MP,flush=True)
 NUM=re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 def _bx(t):
@@ -59,7 +59,15 @@ else:
 
 tok=AutoTokenizer.from_pretrained(MP); tok.padding_side="left"
 if tok.pad_token is None: tok.pad_token=tok.eos_token
-model=AutoModelForCausalLM.from_pretrained(MP,dtype=torch.bfloat16,device_map="auto").eval()
+if __QUANT__:
+    import subprocess,sys
+    subprocess.run([sys.executable,"-m","pip","install","-q","-U","bitsandbytes>=0.46.1"],check=False)
+    from transformers import BitsAndBytesConfig
+    _b=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)
+    model=AutoModelForCausalLM.from_pretrained(MP,quantization_config=_b,device_map="auto").eval()
+else:
+    model=AutoModelForCausalLM.from_pretrained(MP,dtype=torch.float16,device_map="auto").eval()
 @torch.no_grad()
 def gen(us,mx=512,temp=0.8,k=1):
     out=[]
@@ -73,7 +81,7 @@ def gen(us,mx=512,temp=0.8,k=1):
         L=e["input_ids"].shape[1]
         out+=[tok.decode(o[j,L:],skip_special_tokens=True).strip() for j in range(o.shape[0])]
         del e,o; torch.cuda.empty_cache()
-        print(f"   ...{min(i+BS,len(us))}/{len(us)}",flush=True)
+        if i%(BS*10)==0: print(f"   ...{min(i+BS,len(us))}/{len(us)}",flush=True)
     return out
 
 print(f"== sinh {KMAX} mau/bai ==",flush=True)

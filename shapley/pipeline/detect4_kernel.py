@@ -23,7 +23,7 @@ if QUANT:
         bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)
     model=AutoModelForCausalLM.from_pretrained(MODEL,quantization_config=_b,device_map="auto").eval()
 else:
-    model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="cuda").eval()
+    model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="auto").eval()
 print("loaded",flush=True)
 
 def gen(sysm,usrs,mx=512,temp=0.0,k=1):
@@ -133,13 +133,22 @@ for i,ch in enumerate(gold_chain):
 pct_corr=round((len(pairs)//2)/max(len(rows),1),4)
 print(f"cap hop le: {len(pairs)//2} bai | pct_problems_corruptible={pct_corr}",flush=True)
 
-DET=("Check EACH computational step of the solution and verify the arithmetic. "
-     "Work through it, then end your reply with a final line of exactly "
-     "'VERDICT: YES' if any step contains a computational error, or 'VERDICT: NO' if all steps are correct.")
+DET=("Check the computational steps of the solution. Be brief: at most 120 words of reasoning. "
+     "Then your FINAL LINE must be exactly 'VERDICT: YES' if any step contains a computational "
+     "error, or exactly 'VERDICT: NO' if all steps are correct. The verdict line is mandatory.")
+RETRY=("You will be shown a problem, a solution, and an analysis. Reply with EXACTLY ONE LINE: "
+       "'VERDICT: YES' if the analysis indicates a computational error, else 'VERDICT: NO'.")
 usrs=[f"Problem: {qs[i]}\n\nSolution:\n{t}\n\nDoes this solution contain a computational error?"
       for (i,v,t) in pairs]
 print("== phat hien loi ==",flush=True)
-ans=gen(DET,usrs,400,0.0)
+ans=gen(DET,usrs,1024,0.0)
+# LUOT HOI LAI (#34): bai nao thieu dong VERDICT -> hoi rieng, chi lay phan quyet
+_need=[i for i,a in enumerate(ans) if not re.search(r"verdict\s*:\s*(yes|no)",(a or "").lower())]
+print(f"can hoi lai: {len(_need)}/{len(ans)}",flush=True)
+if _need:
+    _r=gen(RETRY,[f"{usrs[i][:1500]}\n\nAnalysis:\n{(ans[i] or '')[-800:]}" for i in _need],16,0.0)
+    for k,i in enumerate(_need): ans[i]=(ans[i] or "")+"\n"+_r[k]
+pct_retry=round(len(_need)/max(len(ans),1),4)
 def says_err(t):
     """Doc dong VERDICT cuoi. Tra None neu khong doc duoc -> tinh vao parse_fail."""
     m=re.findall(r"verdict\s*:\s*(yes|no)",(t or "").lower())
@@ -157,7 +166,7 @@ parse_fail=round(n_fail/max(len(pairs),1),4)
 print(f"parse_fail_rate={parse_fail}",flush=True)
 
 out={"task":TASK,"n":len(rows),"quant":QUANT,"k":K,"parse_fail_rate":parse_fail,
-     "pct_problems_corruptible":pct_corr,"VALID_corruptible":bool(pct_corr>=0.50),
+     "pct_problems_corruptible":pct_corr,"pct_needed_retry":pct_retry,"VALID_corruptible":bool(pct_corr>=0.50),
      "buckets":{b:buck.count(b) for b in ["HIGH","MID","ZERO"]},
      "mean_solve_rate":round(statistics.mean(solve_rate)/K,4),"tiers":{}}
 for b in ["HIGH","MID","ZERO"]:

@@ -62,7 +62,7 @@ tok.padding_side = "left"
 if tok.pad_token is None:
     tok.pad_token = tok.eos_token
 model = AutoModelForCausalLM.from_pretrained(
-    MODEL_DIR, torch_dtype=torch.float16, device_map="cuda").eval()
+    MODEL_DIR, torch_dtype=torch.float16, device_map="auto").eval()
 
 PLAN_SYS   = ("You are a math planning assistant. Read the problem and give a concise "
               "numbered plan of the steps needed. Do NOT compute the final answer.")
