@@ -1,0 +1,35 @@
+{
+  "n_questions": 300,
+  "source": "trace",
+  "baselines": {
+    "solver_only": {
+      "accuracy": 0.6733333333333333,
+      "cost": 1
+    },
+    "sv_always": {
+      "accuracy": 0.7066666666666667,
+      "cost": 2
+    },
+    "sva_always": {
+      "accuracy": 0.7233333333333334,
+      "cost": 3
+    }
+  },
+  "router": {
+    "accuracy": 0.72,
+    "avg_cost": 2.32,
+    "total_calls": 697,
+    "n_questions": 300,
+    "n_agree": 203,
+    "n_disagree": 97,
+    "agree_rate": 0.6767,
+    "strategy": "trace_consensus_sv"
+  },
+  "oracle": {
+    "accuracy": 0.79,
+    "avg_cost": 1.13,
+    "total_calls": 338,
+    "n_questions": 300,
+    "strategy": "trace_oracle"
+  }
+}
