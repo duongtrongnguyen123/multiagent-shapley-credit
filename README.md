@@ -63,11 +63,19 @@ Cùng model, cùng 4 lượt sinh, **chỉ khác NGUỒN TÍN HIỆU KIỂM** (c
 Bộ kiểm không "sửa giỏi hơn" — nó **CHỌN hoàn hảo**: biến k mẫu thành best-of-k.
 Bỏ phiếu chỉ lấy được 43.1% trong khi 64.4% khả dụng -> **bỏ lỡ 21.3 điểm**.
 
-### 2. ✅ "CHẠY ĐƯỢC" ≠ "MÔ HÌNH HOÁ ĐÚNG" — vì sao toán KHÔNG có bộ kiểm thật
-H8 từng bị tuyên VÔ HIỆU ở 1.5B (`exec_success_rate` .42 < ngưỡng .50). Chạy lại với 7B:
-`exec_success_rate` = **.875** (và .975 sau khi sửa lỗi sập) -> **rào cản cũ đã hết**.
-Nhưng `pal3` (viết+chạy Python) = **.475** so với `maj3` (suy luận văn bản) = **.540** —
-**KÉM 6.5 điểm, 1/5 fold**. Ở 1.5B: kém 7.5 điểm, **0/5 fold**.
+### 2. ✅ "CHẠY ĐƯỢC" ≠ "MÔ HÌNH HOÁ ĐÚNG" — PAL thua ở **5/5 phép đo, cả hai miền**
+H8 từng bị tuyên VÔ HIỆU ở 1.5B (`exec_success_rate` .42 < ngưỡng .50). Rào cản đó **đã hết**:
+
+| ô | exec_ok | greedy | maj@3 | **pal3** | pal3 − maj3 |
+|---|---|---|---|---|---|
+| GSM8K 7B | **.980** | .948 | .944 | .876 | **−.068 (0/5)** |
+| GSM8K 1.5B | .872 | .492 | .480 | .436 | **−.044 (1/5)** |
+| MATH 7B | .875 | .485 | .540 | .475 | **−.065 (1/5)** |
+| MATH 7B (n=250) | .852 | .480 | .508 | .452 | **−.056 (2/5)** |
+| MATH 1.5B | .760 | .325 | .370 | .295 | **−.075 (0/5)** |
+
+> **Chương trình CHẠY ĐƯỢC gần như luôn luôn (.98 ở GSM8K 7B). Chúng chỉ tính SAI THỨ CẦN TÍNH.**
+> Viết-và-chạy Python **LUÔN THUA** suy luận văn bản: −4.4 đến −7.5 điểm, 5/5 phép đo.
 
 > **Bộ kiểm chỉ có giá trị khi nó là ORACLE VỀ TÍNH ĐÚNG (bộ test), không phải khi nó chỉ là
 > MỘT CÁCH TÍNH KHÁC (chạy Python cho toán).** Một chương trình chạy trơn tru vẫn tính sai thứ cần tính.

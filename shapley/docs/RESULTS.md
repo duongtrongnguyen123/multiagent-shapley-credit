@@ -396,3 +396,17 @@ Chỉ cần đếm. So với bộ chấm huấn luyện (AUC .88–.95) tốn d�
 ### 8.6 ĐANG ĐÌNH CHỈ
 H27/H28/H28b/H31 (rerank, bỏ phiếu có trọng số, oracle_solid) — lỗi RÒ RỈ ADAPTER:
 mẫu đánh giá sinh khi LoRA Yes/No còn bật. Không trích dẫn tới khi bản sửa (#36/#37) chạy xong.
+
+### 8.2b H8b CHỐT — PAL thua ở 5/5 phép đo (bổ sung cho 8.2)
+Phép thử GSM8K THẬT (trước bị lỗi tham số `task` che mất — kernel hardcode MATH):
+| ô | exec_ok | greedy | maj@3 | pal3 | exec3 | pal3−maj3 | exec3−pal1 |
+|---|---|---|---|---|---|---|---|
+| GSM8K 7B | **.980** | .948 | .944 | .876 | — | **−.068 (0/5)** | — |
+| GSM8K 1.5B | .872 | .492 | .480 | .436 | — | **−.044 (1/5)** | — |
+| MATH 7B n200 | .875 | .485 | .540 | .475 | .475 | −.065 (1/5) | +.045 (5/5) |
+| MATH 7B n250 | .852 | .480 | .508 | .452 | .452 | −.056 (2/5) | +.048 (5/5) |
+| MATH 1.5B | .760 | .325 | .370 | .295 | .280 | −.075 (0/5) | +.030 (5/5) |
+**exec_success .98 ở GSM8K 7B** -> chương trình chạy được gần như luôn luôn; vẫn thua văn bản.
+Sửa lỗi SẬP giúp nhất quán (`exec3−pal1` dương **5/5 fold** ở cả ba ô MATH) mà vẫn không đủ.
+=> Xác lập phân biệt: **ORACLE VỀ TÍNH ĐÚNG** (bộ test) vs **MỘT CÁCH TÍNH KHÁC** (chạy Python cho toán).
+=> Lean là oracle -> chứng minh định lý thuộc nhóm CODE; kết quả âm này KHÔNG áp cho Lean.
