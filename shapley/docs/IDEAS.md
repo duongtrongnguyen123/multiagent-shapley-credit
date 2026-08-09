@@ -2446,3 +2446,10 @@ Trên toán tôi từng tranh cãi `oracle@k` phóng đại vì tính cả "đú
 Trên CODE thì KHÔNG có vấn đề đó: "đúng" = **chạy qua toàn bộ test**, không thể trúng ngẫu nhiên.
 => `oracle@4` trên code là trần THẬT, và nó **lấy được** — exec3 đã lấy.
 => Đây là lý do miền có BỘ KIỂM ĐÚNG ĐẮN khác hẳn miền chỉ có LLM đi kiểm.
+
+## [Quy uoc] VONG LAP TU DONG DAY LEN NHANH RIENG (tu 2026-08-09)
+Tu day, moi commit cua vong lap tu dong day len **`loop-autonomous`**, KHONG day thang vao `main`.
+Ly do: Duc lam viec tren nhanh `duc` va gop bang PR. Vong lap cua toi day thang vao `main` voi
+nhip do cao da buoc Duc phai merge `origin/main` vao `duc` **5 lan**. Tach nhanh de anh ay
+khong bi ep merge lien tuc, va de review theo PR nhu binh thuong.
+Gop vao `main` bang PR khi mot manh viec da xong, khong gop tung commit le.
