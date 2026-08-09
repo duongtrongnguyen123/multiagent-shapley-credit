@@ -1720,3 +1720,52 @@ Tôi đoán **hàng 1**: escalate đạt gần `big_maj3` với chi phí thấp 
 1.5B đã đồng thuận và ở nhóm đó nó gần như luôn đúng (acc ~1.0 khi 8/8).
 NHƯNG tôi cũng đoán biên độ so với `big_maj8` sẽ ÂM — model lớn dùng toàn phần vẫn tốt hơn,
 chỉ là đắt hơn nhiều. Kết luận thực tiễn sẽ là về **hiệu quả chi phí**, không phải độ chính xác tuyệt đối.
+
+# Đăng ký trước #46 — H40: **"TRẦN" CÓ THỰC SỰ QUYẾT ĐỊNH KHI NÀO ESCALATE THẮNG KHÔNG?**
+**Viết TRƯỚC khi chạy.** Kiểm chứng lời giải thích hậu nghiệm sinh ra ở vòng #79.
+
+## Vì sao phải chạy cái này
+Vòng #78: escalate theo đồng thuận **thắng** trên MATH (+.140 so `big_maj3`).
+Vòng #79: cùng giao thức, **thua** trên GSM8K (−.064, 0/5 fold).
+Tôi đã đề xuất lời giải thích: *"escalate thắng khi model lớn còn XA TRẦN"* — dựa trên
+**2 điểm dữ liệu**, và hai tác vụ còn khác nhau ở độ dài, kiểu suy luận, bộ chấm.
+**Đó là GIẢ THUYẾT hậu nghiệm. Chưa được tính là kết quả.** Đây là bài kiểm nó.
+
+## Thiết kế — tách độ khó TRONG CÙNG MỘT tác vụ
+MATH-500 có trường `level` 1–5. Chạy nguyên 500 bài, cùng giao thức H39, tách theo:
+- **DỄ** = level 1–2 (n=133) — nơi 7B gần trần
+- GIỮA = level 3 (n=105)
+- **KHÓ** = level 4–5 (n=262) — nơi 7B xa trần
+Cùng model, cùng prompt, cùng bộ chấm, cùng ngày. Chỉ độ khó thay đổi.
+Điều này loại trừ mọi khác biệt giữa-tác-vụ mà so sánh MATH-vs-GSM8K không loại được.
+
+## PHÂN RÃ CƠ CHẾ (phần chính) — không chỉ đo hướng, mà đo VÌ SAO
+Với mỗi tầng, tách tập bài thành NHẬN (đồng thuận, giữ cho 1.5B) và ESC (escalate):
+- `acc_small_on_kept` — ta DÙNG cái này trên tập NHẬN
+- `acc_big3_on_kept`  — 7B lẽ ra đạt được gì ở đó = **CÁI TA TỪ BỎ**
+- `opp_cost` = `acc_big3_on_kept` − `acc_small_on_kept`  (giá phải trả để tiết kiệm)
+- `gain_on_esc` = `acc_seq_on_esc` − `acc_big3_on_esc`   (cái ta THU được ở nhóm khó)
+- **Đẳng thức phải nghiệm đúng:**
+  `escalate_seq − big_maj3` ≈ `p_kept`·(−`opp_cost`) + `p_esc`·`gain_on_esc`
+  Sai số > .01 ⇒ **CÓ BUG, không đọc kết quả.** Đây là tự kiểm tra mã, khoá trước.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `pct_escalated` của một tầng ngoài .15–.85 ⇒ tầng đó SUY BIẾN, không đọc.
+- n mỗi tầng ≥ 40 (đã thoả: 133/105/262).
+- Đẳng thức phân rã lệch > .01 ⇒ huỷ toàn bộ, sửa mã, chạy lại.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `gain`(KHÓ) > 0 **và** `gain`(DỄ) ≤ 0, **và** `opp_cost`(DỄ) > `opp_cost`(KHÓ) | **XÁC NHẬN giả thuyết TRẦN.** Escalate là công cụ cho vùng model lớn CÒN SAI NHIỀU. Quy tắc triển khai có điều kiện đo được. |
+| `gain` > 0 ở **CẢ HAI** tầng | Giả thuyết trần **SAI**. Chênh lệch MATH↔GSM8K do thứ khác (độ dài? kiểu suy luận? bộ chấm?). Ghi rõ là CHƯA GIẢI THÍCH ĐƯỢC. |
+| `gain` ≤ 0 ở **CẢ HAI** tầng | **H39_m CHẾT** — thắng lợi +.140 trên MATH ở vòng #78 là giả tạo, không tái lập khi chạy đủ 500 bài. Phải rút lại vòng #78. |
+| `gain`(DỄ) > 0 và `gain`(KHÓ) ≤ 0 | Ngược hoàn toàn dự đoán. Escalate hợp cho bài DỄ. Ghi rõ, không xoay lời. |
+| hướng đúng nhưng `opp_cost` KHÔNG theo trần | Hướng đúng, **cơ chế sai**. Trần không phải nguyên nhân; phải tìm biến khác. |
+| đẳng thức lệch > .01 | BUG. Không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán hàng 1. **Nhưng prior của tôi vừa sai hai lần liên tiếp trong đúng chuỗi này**:
+(a) tôi đoán `escalate_seq` sẽ THẤP HƠN `big_maj8` trên MATH — nó CAO HƠN 10.5 điểm;
+(b) tôi tuyên bố kết quả #78 là "khuyến nghị mạnh nhất dự án" — GSM8K lật ngược ngay vòng sau.
+Vì vậy prior này đáng được coi trọng **thấp**. Bảng trên mới là thứ quyết định.
