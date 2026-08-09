@@ -133,9 +133,11 @@ for i,ch in enumerate(gold_chain):
 pct_corr=round((len(pairs)//2)/max(len(rows),1),4)
 print(f"cap hop le: {len(pairs)//2} bai | pct_problems_corruptible={pct_corr}",flush=True)
 
-DET=("Check EACH computational step of the solution and verify the arithmetic. "
-     "Work through it, then end your reply with a final line of exactly "
-     "'VERDICT: YES' if any step contains a computational error, or 'VERDICT: NO' if all steps are correct.")
+DET=("Check the computational steps of the solution. Be brief: at most 120 words of reasoning. "
+     "Then your FINAL LINE must be exactly 'VERDICT: YES' if any step contains a computational "
+     "error, or exactly 'VERDICT: NO' if all steps are correct. The verdict line is mandatory.")
+RETRY=("You will be shown a problem, a solution, and an analysis. Reply with EXACTLY ONE LINE: "
+       "'VERDICT: YES' if the analysis indicates a computational error, else 'VERDICT: NO'.")
 usrs=[f"Problem: {qs[i]}\n\nSolution:\n{t}\n\nDoes this solution contain a computational error?"
       for (i,v,t) in pairs]
 print("== phat hien loi ==",flush=True)
