@@ -20,7 +20,7 @@ t15=AutoTokenizer.from_pretrained(M15); t15.padding_side="left"
 if t15.pad_token is None: t15.pad_token=t15.eos_token
 t7=AutoTokenizer.from_pretrained(M7); t7.padding_side="left"
 if t7.pad_token is None: t7.pad_token=t7.eos_token
-small=AutoModelForCausalLM.from_pretrained(M15,torch_dtype=torch.float16,device_map="cuda").eval()
+small=AutoModelForCausalLM.from_pretrained(M15,torch_dtype=torch.float16,device_map="auto").eval()
 print("1.5B loaded",flush=True)
 _b=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_quant_type="nf4",
                       bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)

@@ -25,7 +25,7 @@ if QUANT:
         bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)
     model=AutoModelForCausalLM.from_pretrained(MODEL,quantization_config=_b,device_map="auto")
 else:
-    model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="cuda")
+    model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="auto")
 print(f"MODEL={MODEL} train={len(TRROWS)} test={len(TEROWS)}",flush=True)
 NUM=re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 def pred(t):

@@ -12,7 +12,7 @@ rows = list(csv.DictReader(open(CSV)))[:N]
 
 tok = AutoTokenizer.from_pretrained(MODEL); tok.padding_side = "left"
 if tok.pad_token is None: tok.pad_token = tok.eos_token
-model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16, device_map="cuda").eval()
+model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16, device_map="auto").eval()
 
 def gold(a):
     m = re.search(r"####\s*([-\d,\.]+)", a); return m.group(1).replace(",", "").strip() if m else None

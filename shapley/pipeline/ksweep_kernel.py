@@ -59,7 +59,7 @@ else:
 
 tok=AutoTokenizer.from_pretrained(MP); tok.padding_side="left"
 if tok.pad_token is None: tok.pad_token=tok.eos_token
-model=AutoModelForCausalLM.from_pretrained(MP,dtype=torch.bfloat16,device_map="cuda").eval()
+model=AutoModelForCausalLM.from_pretrained(MP,dtype=torch.bfloat16,device_map="auto").eval()
 @torch.no_grad()
 def gen(us,mx=512,temp=0.8,k=1):
     out=[]

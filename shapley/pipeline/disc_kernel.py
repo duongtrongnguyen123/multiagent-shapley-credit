@@ -17,7 +17,7 @@ TRROWS=list(csv.DictReader(open(_tr[0])))[:NTR]
 TEROWS=list(csv.DictReader(open(_te[0])))[:NTE]
 tok=AutoTokenizer.from_pretrained(MODEL); tok.padding_side="left"
 if tok.pad_token is None: tok.pad_token=tok.eos_token
-model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="cuda")
+model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="auto")
 print(f"MODEL={MODEL} train={len(TRROWS)} test={len(TEROWS)}",flush=True)
 NUM=re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 def pred(t):

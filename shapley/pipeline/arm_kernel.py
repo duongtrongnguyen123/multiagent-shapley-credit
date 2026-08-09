@@ -59,13 +59,13 @@ else:
 
 tokM=AutoTokenizer.from_pretrained(MAIN); tokM.padding_side="left"
 if tokM.pad_token is None: tokM.pad_token=tokM.eos_token
-mdlM=AutoModelForCausalLM.from_pretrained(MAIN,torch_dtype=torch.float16,device_map="cuda").eval()
+mdlM=AutoModelForCausalLM.from_pretrained(MAIN,torch_dtype=torch.float16,device_map="auto").eval()
 mdlS,tokS=None,None
 if SMALL_V:
     SM=find_model("0-5b") if glob.glob("/kaggle/input/**/*0-5b*/**",recursive=True) else find_model("0.5b")
     tokS=AutoTokenizer.from_pretrained(SM); tokS.padding_side="left"
     if tokS.pad_token is None: tokS.pad_token=tokS.eos_token
-    mdlS=AutoModelForCausalLM.from_pretrained(SM,torch_dtype=torch.float16,device_map="cuda").eval()
+    mdlS=AutoModelForCausalLM.from_pretrained(SM,torch_dtype=torch.float16,device_map="auto").eval()
     print("small V:",SM,flush=True)
 
 TOK={}

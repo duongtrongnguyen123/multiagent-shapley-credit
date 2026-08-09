@@ -2294,3 +2294,38 @@ Khi 3 mẫu ra 3 đáp án khác nhau (50–58% số bài), bỏ phiếu KHÔNG 
 Nhưng lượt tuần tự CÓ MỎ NEO vẫn dùng được đáp án trước để cải thiện.
 => Đây là cơ chế giải thích vì sao `PSV`/`SVV` hơn `maj@3` ở cùng ngân sách.
 GIẢ THUYẾT (chưa kiểm): lợi thế của tuần tự tập trung HOÀN TOÀN ở nhóm "không có đa số".
+
+## [Loop] VÒNG #66 — **KAGGLE CHO 2× T4 (31.2 GB), TÔI CHỈ DÙNG 1 SUỐT CẢ DỰ ÁN**
+### Bằng chứng (kernel dò, chạy trong 1 phút)
+`torch.cuda.device_count()` = **2** · mỗi cái Tesla T4 15.6 GB sm_75 · **tổng 31.2 GB**
+— dù metadata gửi đi là `"machine_shape":"NvidiaTeslaT4"` (không có giá trị `T4x2` để yêu cầu).
+
+### THIỆT HẠI
+Mọi kernel fp16 dùng `device_map="cuda"` -> ghim hết vào **GPU 0**, **GPU 1 NGỒI KHÔNG**.
+| | đã dùng | thực có |
+|---|---|---|
+| VRAM | 15.6 GB | **31.2 GB** |
+| 7B | buộc phải **4-bit** | fp16 trải 2 card, **KHÔNG cần lượng tử hoá** |
+| batch | cỡ cho 15.6 GB | gấp đôi được |
+=> Nghiêm trọng nhất KHÔNG phải tốc độ mà là: **4-bit CHƯA BAO GIỜ CẦN THIẾT.**
+   `dt2_g7` (+.651), các ô 7B của H32, `dt6_m7`, `ev_he7` — tất cả chạy 4-bit để vừa một
+   giới hạn bộ nhớ KHÔNG TỒN TẠI. Lượng tử hoá là một nhiễu loạn CÓ THỂ TRÁNH ĐƯỢC
+   nằm dưới mọi kết quả 7B của dự án.
+
+### GỐC RỄ NIỀM TIN SAI
+Ghi chú cũ của tôi: "`machine_shape` chỉ nhận giá trị một-GPU, không có T4×2".
+Vế đó ĐÚNG — không YÊU CẦU được. Nhưng tôi suy ra sai rằng do đó chỉ ĐƯỢC một T4.
+Phát biểu đúng: **không gọi tên được T4×2, nhưng Kaggle vẫn cấp HAI T4.**
+
+### BẰNG CHỨNG ĐÃ NẰM TRƯỚC MẶT MÀ TÔI KHÔNG ĐỌC
+Lỗi OOM của `dt4_m7`: *"**GPU 1** has a total capacity of 14.56 GiB"*.
+Tôi đã đọc thông báo đó BỐN LẦN trong lúc sửa OOM và chưa từng để ý tới chỉ số **1**.
+Nếu để ý, tôi đã biết có 2 GPU từ nhiều vòng trước.
+**LUẬT: khi đọc lỗi OOM, PHẢI đọc cả chỉ số GPU, không chỉ dung lượng.**
+
+### SỬA (áp cho mọi kernel về sau)
+- fp16/bf16: `device_map="auto"` thay cho `device_map="cuda"` -> trải 2 card.
+- 7B trên Kaggle: **BỎ 4-bit**, dùng fp16 `device_map="auto"` (7B fp16 ≈ 15.2 GB, chia 2 card
+  còn ~7.6 GB/card, thừa chỗ cho KV cache).
+- Batch có thể tăng đáng kể; phải đo lại ngân sách bộ nhớ (LUẬT vòng #51).
+- Kết quả 7B đã có: giữ nguyên nhưng PHẢI ghi kèm "đo ở 4-bit"; muốn sạch thì chạy lại fp16.

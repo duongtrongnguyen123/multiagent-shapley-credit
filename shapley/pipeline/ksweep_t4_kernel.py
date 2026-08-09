@@ -67,7 +67,7 @@ if __QUANT__:
         bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)
     model=AutoModelForCausalLM.from_pretrained(MP,quantization_config=_b,device_map="auto").eval()
 else:
-    model=AutoModelForCausalLM.from_pretrained(MP,dtype=torch.float16,device_map="cuda").eval()
+    model=AutoModelForCausalLM.from_pretrained(MP,dtype=torch.float16,device_map="auto").eval()
 @torch.no_grad()
 def gen(us,mx=512,temp=0.8,k=1):
     out=[]

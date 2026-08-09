@@ -22,7 +22,7 @@ if QUANT:
         bnb_4bit_compute_dtype=torch.float16,bnb_4bit_use_double_quant=True)
     model=AutoModelForCausalLM.from_pretrained(MODEL,quantization_config=_b,device_map="auto").eval()
 else:
-    model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="cuda").eval()
+    model=AutoModelForCausalLM.from_pretrained(MODEL,torch_dtype=torch.float16,device_map="auto").eval()
 print("loaded",flush=True)
 
 def gen(sysm,usrs,mx=512,temp=0.0,k=1):

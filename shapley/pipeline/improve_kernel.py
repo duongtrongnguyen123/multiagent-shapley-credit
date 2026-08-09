@@ -10,7 +10,7 @@ MODEL = os.path.dirname(find("/kaggle/input/**/model.safetensors"))
 rows = list(csv.DictReader(open(find("/kaggle/input/**/main_test.csv"))))[:N]
 tok = AutoTokenizer.from_pretrained(MODEL); tok.padding_side = "left"
 if tok.pad_token is None: tok.pad_token = tok.eos_token
-model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16, device_map="cuda").eval()
+model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16, device_map="auto").eval()
 
 def gen(sys, usr, mx=512):
     p = tok.apply_chat_template([{"role":"system","content":sys},{"role":"user","content":usr}],

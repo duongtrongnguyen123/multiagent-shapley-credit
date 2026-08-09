@@ -61,7 +61,7 @@ if BIG:
     print("model loaded (7B 4-bit nf4)", flush=True)
 else:
     model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16,
-                                                 device_map="cuda").eval()
+                                                 device_map="auto").eval()
     print("model loaded (1.5B fp16)", flush=True)
 
 def gen(sysm, usrs, mx):

@@ -30,7 +30,7 @@ if tok15.pad_token is None: tok15.pad_token = tok15.eos_token
 tok7 = AutoTokenizer.from_pretrained(M7); tok7.padding_side = "left"
 if tok7.pad_token is None: tok7.pad_token = tok7.eos_token
 
-small = AutoModelForCausalLM.from_pretrained(M15, torch_dtype=torch.float16, device_map="cuda").eval()
+small = AutoModelForCausalLM.from_pretrained(M15, torch_dtype=torch.float16, device_map="auto").eval()
 print("1.5B loaded", flush=True)
 _bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                           bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
