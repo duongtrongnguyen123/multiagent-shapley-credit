@@ -2693,3 +2693,34 @@ Lấy được **37%** khoảng trống `maj@8 -> oracle@8` (+.160).
 => Hai đường độc lập, biên độ gần bằng nhau. Nhưng (2) không cần dữ liệu, không cần LoRA,
    không có rủi ro rò rỉ -> **khuyến nghị thực tiễn ưu tiên (2)**.
 => Cả hai đều KHÔNG chạm trần `oracle` — nhất quán với "nút thắt là SINH, không phải CHỌN".
+
+## [Loop] VÒNG #77 — **rtL_m7: ĐỊNH TUYẾN + TUẦN TỰ HƠN `maj@8` 10.5 ĐIỂM VỚI CHI PHÍ ÍT HƠN 2.1 LẦN**
+### MATH 7B (không đồng thuận .405 — HỢP LỆ), 5/5 fold
+| fold | maj@3 | maj@8 | **route_3_seq** | chi phí | tiêu đều cùng chi phí | delta |
+|---|---|---|---|---|---|---|
+| 0 | .575 | .550 | **.725** | 3.80 | .5750 | **+.1500** |
+| 1 | .675 | .675 | **.750** | 3.45 | .6750 | +.0750 |
+| 2 | .375 | .450 | **.550** | 4.05 | .3519 | **+.1981** |
+| 3 | .375 | .475 | **.575** | 4.10 | .3775 | **+.1975** |
+| 4 | .575 | .575 | **.650** | 3.65 | .5750 | +.0750 |
+**route_3_seq = .6500 @ 3.81 lượt** vs **maj@8 = .5450 @ 8.00 lượt**
+=> **HƠN 10.5 ĐIỂM với chi phí ÍT HƠN 2.1 LẦN.** So với tiêu đều CÙNG chi phí: **+.1391, 5/5 fold.**
+=> `route_3_6` chỉ +.0273 -> **tuần tự hơn hẳn lấy thêm mẫu** (gấp 5 lần hiệu quả), rẻ hơn (3.81 vs 4.21).
+
+### LƯỚI H38 ĐẦY ĐỦ — 3 ô hợp lệ, 1 ô suy biến
+| ô | không đồng thuận | route_3_6 | **route_3_seq** | fold (seq) |
+|---|---|---|---|---|
+| GSM8K 1.5B | .368 | +.0495 | **+.0689** | 4/5 |
+| MATH 1.5B | .600 | +.0240 | **+.0610** | 5/5 |
+| **MATH 7B** | .405 | +.0273 | **+.1391** | **5/5** |
+| GSM8K 7B | .028 | — | — | SUY BIẾN (bão hoà) |
+=> `route_3_seq` THẮNG ở **3/3 ô hợp lệ**, và LUÔN hơn `route_3_6`.
+=> Hiệu ứng LỚN NHẤT ở ô mà H32 cũng cho PSV thắng đậm nhất (MATH 7B) — **nhất quán nội tại**:
+   đó là ô "giữa dải độ khó" (solver ~.50), đúng luật dải độ khó đã đo từ đầu dự án.
+
+### PHÁT BIỂU THỰC TIỄN MẠNH NHẤT DỰ ÁN CÓ
+**"Lấy 3 mẫu. Nếu >=2 đồng ý -> nhận, dừng. Nếu không -> chạy tuần tự có mỏ neo.
+Kết quả hơn `maj@8` tới 10.5 điểm với chi phí chưa bằng một nửa."**
+- Tín hiệu định tuyến MIỄN PHÍ (chỉ đếm phiếu trùng nhau), không huấn luyện, không rò rỉ adapter.
+- Vượt cả bỏ phiếu có trọng số (+6.0, cần LoRA + dữ liệu) VÀ rẻ hơn.
+- Ngoại lệ: ô BÃO HOÀ (solver >.90) — ở đó không có gì để định tuyến, đừng dùng.
