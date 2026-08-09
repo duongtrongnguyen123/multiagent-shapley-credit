@@ -2226,3 +2226,30 @@ Hàng 5 đã khoá: "`SS_anc` ≈ `PSV` -> vai là NHÃN, không phải cơ ch�
 `bg_m15` (MATH) LỖI: `ANCH.format(A=a)` gặp `\boxed{}` trong TAIL của MATH -> `{}` bị hiểu là
 ô định dạng -> `IndexError`. GSM8K không có ngoặc nên không lộ. Sửa bằng `.replace()`, phóng lại.
 **Chưa có ô thứ hai -> chưa được tổng quát hoá.**
+
+## [Loop] VÒNG #64 — H32 ô MATH 1.5B: KHÔNG đạt ngưỡng; dt5_m7 **VÔ HIỆU** lần thứ BA vì cắt cụt
+### bg_m15 (MATH 1.5B, n=200) — ô thứ 2/4 của H32
+greedy .3300 | maj@3 .3500 | **PSV .3800** | **SVV .4150** | SS_anc .3600
+| chỉ số | giá trị | fold |
+|---|---|---|
+| `maj3 − PSV` | −.030 | **2/5 dương** -> PSV thắng 3/5, **KHÔNG đạt ngưỡng >=4/5** |
+| `SVV − maj3` | **+.065** | **4/5 dương** -> ĐẠT ngưỡng |
+| `SSanc − PSV` | −.020 | 3/5 |
+token: PSV **2.39×** (rẻ nhất), SVV 2.53×, SS_anc 3.01×, maj@3 3.07×
+=> Ô này KHÔNG lặp lại `bg_g15`: `PSV` hơn `maj@3` về trung bình (+3.0) nhưng chỉ 3/5 fold.
+=> NHƯNG **`SVV` (Solver→Verify→Verify) là nhánh TỐT NHẤT** (.4150) và ĐẠT ngưỡng so với maj@3.
+   Ở GSM8K 1.5B thì `PSV` tốt nhất; ở MATH 1.5B thì `SVV` tốt nhất — **cấu hình tối ưu PHỤ THUỘC Ô**.
+=> Điểm CHUNG của cả hai ô: **nhánh TUẦN TỰ tốt nhất luôn hơn `maj@3`, và luôn tốn ÍT token hơn.**
+   (g15: PSV +8.4 @ 2.29× vs maj3 2.96× · m15: SVV +6.5 @ 2.53× vs maj3 3.07×)
+CHƯA KẾT LUẬN LƯỚI — còn `bg_m7` và `bg_g7`.
+
+### dt5_m7 (MATH 7B) — **VÔ HIỆU: `parse_fail` = .3824 > ngưỡng .20**
+`pct_corruptible` .9775 ✓ · suy biến .815/.804/.899 (đều < .90) ✓ · **ZERO n=100 — LẦN ĐẦU ĐỦ LỰC** ✓
+NHƯNG `parse_fail_rate` = **.3824**, vượt xa ngưỡng .20 khoá ở #26 -> **cả lần chạy VÔ HIỆU**.
+Số thô (KHÔNG được trích dẫn): HIGH +.257 · MID +.215 · **ZERO +.139**.
+=> Đây là **LẦN THỨ BA** cùng một lỗi giết một thí nghiệm: model viết LaTeX dài trên MATH,
+   hết `max_new_tokens=512` TRƯỚC khi tới dòng `VERDICT:`. (Trước đó: H29 scaling-a/b .22–.23,
+   nay .38.) Cắt cụt lệch theo tầng (bài khó -> lời giải dài -> dễ bị cắt) nên mẫu sống sót thiên lệch.
+=> Bản sửa ĐÃ ĐƯỢC ĐẶC TẢ ở pre-reg #34 (1024 token + giới hạn 120 từ lập luận + **lượt hỏi lại**
+   nếu thiếu VERDICT) nhưng tôi CHƯA TRIỂN KHAI vì lúc đó đang tạm dừng RTX. Lẽ ra phải áp
+   cho MỌI kernel dt chứ không chỉ bản RTX. Đó là thiếu sót của tôi — đặc tả xong rồi để đấy.

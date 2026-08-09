@@ -139,7 +139,14 @@ DET=("Check EACH computational step of the solution and verify the arithmetic. "
 usrs=[f"Problem: {qs[i]}\n\nSolution:\n{t}\n\nDoes this solution contain a computational error?"
       for (i,v,t) in pairs]
 print("== phat hien loi ==",flush=True)
-ans=gen(DET,usrs,400,0.0)
+ans=gen(DET,usrs,1024,0.0)
+# LUOT HOI LAI (#34): bai nao thieu dong VERDICT -> hoi rieng, chi lay phan quyet
+_need=[i for i,a in enumerate(ans) if not re.search(r"verdict\s*:\s*(yes|no)",(a or "").lower())]
+print(f"can hoi lai: {len(_need)}/{len(ans)}",flush=True)
+if _need:
+    _r=gen(RETRY,[f"{usrs[i][:1500]}\n\nAnalysis:\n{(ans[i] or '')[-800:]}" for i in _need],16,0.0)
+    for k,i in enumerate(_need): ans[i]=(ans[i] or "")+"\n"+_r[k]
+pct_retry=round(len(_need)/max(len(ans),1),4)
 def says_err(t):
     """Doc dong VERDICT cuoi. Tra None neu khong doc duoc -> tinh vao parse_fail."""
     m=re.findall(r"verdict\s*:\s*(yes|no)",(t or "").lower())
@@ -157,7 +164,7 @@ parse_fail=round(n_fail/max(len(pairs),1),4)
 print(f"parse_fail_rate={parse_fail}",flush=True)
 
 out={"task":TASK,"n":len(rows),"quant":QUANT,"k":K,"parse_fail_rate":parse_fail,
-     "pct_problems_corruptible":pct_corr,"VALID_corruptible":bool(pct_corr>=0.50),
+     "pct_problems_corruptible":pct_corr,"pct_needed_retry":pct_retry,"VALID_corruptible":bool(pct_corr>=0.50),
      "buckets":{b:buck.count(b) for b in ["HIGH","MID","ZERO"]},
      "mean_solve_rate":round(statistics.mean(solve_rate)/K,4),"tiers":{}}
 for b in ["HIGH","MID","ZERO"]:
