@@ -44,6 +44,76 @@ chính bảng Shapley ban đầu:
 > không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
 > đó chính là cơ chế của kết quả +14.0đ.
 
+## Kết quả mới nhất (vòng #59–#70) — bốn phát hiện đã tái lập
+
+### 1. ✅ BỘ KIỂM ĐÚNG ĐẮN thắng LLM-đi-kiểm — **4 lần chạy độc lập, 0 lần gây hại**
+Cùng model, cùng 4 lượt sinh, **chỉ khác NGUỒN TÍN HIỆU KIỂM** (chạy test thật vs LLM tự đọc lại):
+
+| lần chạy | máy | `exec3−llm3` | `exec3−greedy` | **phá đáp án đúng** |
+|---|---|---|---|---|
+| HumanEval 1.5B | Kaggle T4 | +.119 (5/5) | +.063 | **0.0** / llm3: 2.8 |
+| HumanEval 1.5B | RTX 5090 | +.206 (5/5) | +.081 | **0.0** / llm3: 4.6 |
+| HumanEval 7B | RTX 5090 | +.100 (4/5) | +.081 | **0.0** / llm3: 2.6 |
+| HumanEval 7B | Kaggle | +.156 (5/5) | +.106 | **0.0** / llm3: 3.2 |
+
+> **`exec3` KHÔNG phá một lời giải đúng nào trong 20/20 fold. `llm3` phá trong 20/20 fold.**
+> Khác biệt không chỉ ở độ chính xác — mà ở **TÍNH AN TOÀN**.
+
+**Cơ chế**: `exec3` đạt **CHÍNH XÁC** `oracle@4` ở cả hai cỡ model (.6438 và .8812 — khớp tới 4 chữ số).
+Bộ kiểm không "sửa giỏi hơn" — nó **CHỌN hoàn hảo**: biến k mẫu thành best-of-k.
+Bỏ phiếu chỉ lấy được 43.1% trong khi 64.4% khả dụng -> **bỏ lỡ 21.3 điểm**.
+
+### 2. ✅ "CHẠY ĐƯỢC" ≠ "MÔ HÌNH HOÁ ĐÚNG" — vì sao toán KHÔNG có bộ kiểm thật
+H8 từng bị tuyên VÔ HIỆU ở 1.5B (`exec_success_rate` .42 < ngưỡng .50). Chạy lại với 7B:
+`exec_success_rate` = **.875** (và .975 sau khi sửa lỗi sập) -> **rào cản cũ đã hết**.
+Nhưng `pal3` (viết+chạy Python) = **.475** so với `maj3` (suy luận văn bản) = **.540** —
+**KÉM 6.5 điểm, 1/5 fold**. Ở 1.5B: kém 7.5 điểm, **0/5 fold**.
+
+> **Bộ kiểm chỉ có giá trị khi nó là ORACLE VỀ TÍNH ĐÚNG (bộ test), không phải khi nó chỉ là
+> MỘT CÁCH TÍNH KHÁC (chạy Python cho toán).** Một chương trình chạy trơn tru vẫn tính sai thứ cần tính.
+
+*(Hệ quả cho chứng minh định lý hình thức: bộ kiểm Lean LÀ oracle -> thuộc nhóm CODE, không phải nhóm này.)*
+
+### 3. ✅ TUẦN TỰ thắng SONG SONG ở **CÙNG NGÂN SÁCH** — 3/4 ô, và rẻ hơn
+Mọi nhánh **đúng 3 lượt sinh**; đếm cả token thực sinh ra:
+
+| ô | greedy | maj@3 | **P→S→V** | `maj3−PSV` |
+|---|---|---|---|---|
+| GSM8K 1.5B | .632 | .664 | **.728** | −.084 (5/5) ✅ |
+| MATH 1.5B | .325 | .385 | **.440** | −.055 (0/5) ✅ |
+| MATH 7B | .480 | .515 | **.595** | −.080 (0/5) ✅ |
+| GSM8K 7B *(bão hoà .924)* | .924 | **.928** | .912 | +.016 (3/5) ❌ |
+
+`P→S→V` dùng **ít token hơn `maj@3` 22%** mà vẫn hơn 8.4 điểm. Ô duy nhất thua là ô **BÃO HOÀ**
+— đã khoá trước là ĐIỀU KIỆN, không phải phản chứng.
+**Nhưng cơ chế KHÔNG phải phân vai**: nhánh `S→neo→neo` (không một chữ nào về vai) đạt **.728**,
+GIỐNG HỆT `P→S→V`. Cái có tác dụng là **MỎ NEO**, không phải tên vai.
+
+**Nhiễu loạn đã loại trừ**: đối chứng `maj3_g` (bỏ phiếu CÓ một mẫu greedy) ≈ `maj@3` ở
+**7 ô độc lập** (−.025 đến +.016) -> lợi thế KHÔNG đến từ giải mã greedy.
+
+### 4. ✅ KIỂM LỖI phụ thuộc **NĂNG LỰC × MIỀN**, không chỉ năng lực
+Tiêm lỗi số học vào chuỗi vàng, phân tầng theo năng lực giải của chính model:
+
+| | 1.5B | 7B |
+|---|---|---|
+| GSM8K | suy biến .99 → **VÔ HIỆU** | phân biệt **+.651** |
+| MATH | suy biến .99 → **VÔ HIỆU** | phân biệt **+.113** (ZERO n=224, đủ lực) |
+
+Cùng model, cùng cách tiêm, cùng prompt — **khác 5.8 lần chỉ vì MIỀN**.
+7B kiểm được số học trong chuỗi GSM8K ngắn; KHÔNG kiểm được trong chuỗi LaTeX nhiều bước của MATH.
+
+### 5. 📊 ĐỒNG THUẬN là tín hiệu đúng/sai gần như hoàn hảo — và MIỄN PHÍ
+| số mẫu đồng ý (k=8) | GSM8K | MATH |
+|---|---|---|
+| 8/8 | **1.000** | **1.000** |
+| 6/8 | .917 | 1.000 |
+| 1/8 (không có đa số) | **.143** | **.000** |
+**50–58% số bài KHÔNG có đa số nào** ở k=3 -> `maj@3` thoái hoá thành "lấy mẫu đầu tiên".
+Chỉ cần ĐẾM, không cần huấn luyện gì.
+
+---
+
 ## ⚠️ TẠM ĐÌNH CHỈ — nhánh "tổng hợp" đang được đo lại (vòng #59–#60)
 
 Rà soát ngày 2026-08-08 phát hiện **lỗi rò rỉ adapter** trong 6/6 kernel có huấn luyện:
