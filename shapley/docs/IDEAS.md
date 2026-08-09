@@ -2413,3 +2413,36 @@ greedy .480 | maj@3 .515 | maj3_g .500 | **PSV .595** | SVV .525
 `maj3 − PSV` = **−.080, 0/5** -> PSV thắng, lặp lại `bgL_m7` (−.075).
 `maj3_g − maj3` = −.015 (1/5) -> **đối chứng #41 lại cho ~0**: greedy KHÔNG phải nguồn lợi thế.
 Đã đo ở 4 ô độc lập, luôn ≈ 0 -> **nhiễu loạn do người dùng chỉ ra đã bị LOẠI TRỪ dứt điểm.**
+
+## [Loop] VÒNG #69 — **exec3 = oracle@4 CHÍNH XÁC**: bộ kiểm là BỘ CHỌN HOÀN HẢO, không phải bộ sửa
+Người dùng hỏi: "4 solver có chứa đáp án đúng không?" -> tính trực tiếp từ trace (chạy test thật).
+| ô | **oracle@4** | maj@4 | **exec3** | khoảng trống voting BỎ LỠ |
+|---|---|---|---|---|
+| code 1.5B | **.6438** | .4313 | **.6438** | **21.3 điểm** |
+| code 7B | **.8812** | .7875 | **.8812** | 9.4 điểm |
+=> **exec3 KHỚP oracle@4 tới từng chữ số ở CẢ HAI ô.** Không phải trùng hợp:
+   exec3 sửa cho tới khi test PASS rồi dừng -> nó chính là "lấy mẫu cho tới khi đúng",
+   tức là ĐẠT TRẦN best-of-k theo định nghĩa.
+
+### DIỄN GIẢI LẠI H35 — chính xác hơn phát biểu cũ
+Trước đây tôi nói "bộ kiểm đúng đắn SỬA được lỗi". **Sai trọng tâm.**
+Bộ kiểm không sửa giỏi hơn — nó **CHỌN hoàn hảo**. Giá trị của nó = biến k mẫu thành best-of-k.
+`maj@4` chỉ lấy được 43.1% (1.5B) trong khi 64.4% khả dụng -> **bỏ lỡ 21.3 điểm**.
+`exec3` lấy 100% khoảng trống đó.
+
+### PHÂN BỐ giải thích VÌ SAO bỏ phiếu thất bại trên code
+| số mẫu đúng /4 | 1.5B | 7B |
+|---|---|---|
+| 0 | 57 (36%) | 19 (12%) |
+| **1** | **23 (14%)** | 9 |
+| 2 | 21 | 9 |
+| 3 | 21 | 12 |
+| 4 | 38 (24%) | 111 (69%) |
+**23 bài (14%) ở 1.5B chỉ có ĐÚNG MỘT mẫu đúng trong 4.** Bỏ phiếu gần như KHÔNG THỂ chọn ra
+(1 phiếu chọi 3). Bộ kiểm tìm ra HẾT. Cộng với các bài 2/4 (hoà) -> đó chính là 21.3 điểm.
+
+### NỐI VỚI H30 (khoảng trống maj->oracle trên TOÁN)
+Trên toán tôi từng tranh cãi `oracle@k` phóng đại vì tính cả "đúng do may một lần".
+Trên CODE thì KHÔNG có vấn đề đó: "đúng" = **chạy qua toàn bộ test**, không thể trúng ngẫu nhiên.
+=> `oracle@4` trên code là trần THẬT, và nó **lấy được** — exec3 đã lấy.
+=> Đây là lý do miền có BỘ KIỂM ĐÚNG ĐẮN khác hẳn miền chỉ có LLM đi kiểm.
