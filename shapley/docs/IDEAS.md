@@ -2496,3 +2496,37 @@ phá: **exec3 = 0.0 (0/5)** · llm3 = **3.2/fold (5/5)**
 greedy .924 | maj@3 .928 | maj3_g .932 | **PSV .912** | SVV .924
 `maj3−PSV` = **+.016 (3/5)** -> PSV THUA, lặp lại `bgL_g7` (+.036). Ô bão hoà đảo chiều: XÁC NHẬN.
 `maj3g−maj3` = +.004 (2/5) -> đối chứng nhiễu loạn ≈ 0 lần thứ **7**.
+
+## [Loop] VÒNG #71 — H8b CHỐT TRÊN **CẢ HAI MIỀN**: PAL thua ở MỌI ô, "chạy được ≠ mô hình hoá đúng"
+### H8b_G7real — phép thử GSM8K THẬT (trước đó bị lỗi tham số task che mất)
+`exec_success_rate` = **.980** — gần như MỌI chương trình đều CHẠY ĐƯỢC.
+greedy **.948** | maj@3 **.944** | **pal3 .876** -> `pal3−maj3` = **−.068, 0/5 fold**
+
+### BẢNG ĐẦY ĐỦ — PAL thua ở **5/5 phép đo**, hai miền, hai cỡ model
+| ô | exec_ok | greedy | maj@3 | pal3 | **pal3 − maj3** |
+|---|---|---|---|---|---|
+| GSM8K 7B | **.980** | .948 | .944 | .876 | **−.068 (0/5)** |
+| GSM8K 1.5B | .872 | .492 | .480 | .436 | **−.044 (1/5)** |
+| MATH 7B (n=200) | .875 | .485 | .540 | .475 | **−.065 (1/5)** |
+| MATH 7B (n=250) | .852 | .480 | .508 | .452 | **−.056 (2/5)** |
+| MATH 1.5B | .760 | .325 | .370 | .295 | **−.075 (0/5)** |
+
+=> **KẾT LUẬN CHỐT**: viết-và-chạy chương trình Python **LUÔN THUA** suy luận bằng văn bản,
+   ở CẢ HAI miền, CẢ HAI cỡ model, **5/5 phép đo**, biên độ −4.4 đến −7.5 điểm.
+=> Và điều này KHÔNG phải vì model không viết nổi code: `exec_success` = **.98 ở GSM8K 7B**.
+   **Chương trình CHẠY ĐƯỢC gần như luôn luôn. Chúng chỉ tính SAI THỨ CẦN TÍNH.**
+=> Đây là bằng chứng mạnh nhất cho phân biệt đã khoá ở #42:
+   **BỘ KIỂM chỉ có giá trị khi là ORACLE VỀ TÍNH ĐÚNG (bộ test: pass = đúng),
+   KHÔNG có giá trị khi chỉ là MỘT CÁCH TÍNH KHÁC (chạy Python cho toán).**
+   Code: `exec3` = `oracle@4` chính xác, +6 đến +11 điểm, 0 lần phá.
+   Toán/GSM8K: PAL = −4.4 đến −7.5 điểm dù chương trình chạy được .98.
+
+### GHI CHÚ CHO CHỨNG MINH ĐỊNH LÝ
+Bộ kiểm Lean LÀ oracle (chứng minh kiểm được hoặc không) -> thuộc nhóm CODE.
+Kết quả âm của PAL **KHÔNG** dự đoán thất bại cho Lean. Hai thứ khác loại.
+
+## R_g15b / R_g7b — lưới H32 tái lập lần nữa (có trace đầy đủ)
+GSM8K 1.5B: greedy .636 | maj@3 .608 | maj3_g .652 | **PSV .704** | **SVV .716** -> `maj3−PSV` = **−.096 (PSV thắng 4/5)**
+GSM8K 7B : greedy .924 | maj@3 .928 | maj3_g .932 | PSV .912 | SVV .924 -> `maj3−PSV` = **+.016 (PSV thua, ô BÃO HOÀ)**
+=> Lặp lại chính xác mẫu hình đã có: tuần tự thắng ở ô CHƯA bão hoà, thua ở ô ĐÃ bão hoà.
+=> `maj3_g − maj3` = +.044 và +.004 -> đối chứng nhiễu loạn vẫn ≈ 0 (ô thứ 8 và 9).
