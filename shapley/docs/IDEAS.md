@@ -2659,3 +2659,37 @@ Bộ kiểm chỉ CHỌN trong k ứng viên. Ở 50–58% bài không đồng t
 **thường KHÔNG CÓ ứng viên đúng nào để chọn**.
 => **NÚT THẮT LÀ SINH, KHÔNG PHẢI CHỌN.** Đây là lý do mọi cơ chế tổng hợp của dự án
    (rerank, bỏ phiếu có trọng số, bộ chấm huấn luyện) đều chạm trần thấp trên toán.
+
+## [Loop] VÒNG #76 — **HAI KẾT QUẢ LỚN**: H38 XÁC NHẬN (hàng 1) và H28d GỠ ĐÌNH CHỈ (leak = 0.0)
+### A) H38 — ĐỊNH TUYẾN THEO ĐỒNG THUẬN **THẮNG** TIÊU ĐỀU Ở CÙNG CHI PHÍ
+| ô | không đồng thuận | nhánh | acc | chi phí (lượt) | tiêu đều CÙNG chi phí | **delta** | fold |
+|---|---|---|---|---|---|---|---|
+| GSM8K 1.5B | .368 ✓ | route_3_6 | .7360 | 4.10 | .6865 | **+.0495** | 4/5 |
+| GSM8K 1.5B | .368 ✓ | **route_3_seq** | .7360 | **3.74** | .6671 | **+.0689** | 4/5 |
+| MATH 1.5B | .600 ✓ | route_3_6 | .4400 | 4.80 | .4160 | **+.0240** | 4/5 |
+| MATH 1.5B | .600 ✓ | **route_3_seq** | .4650 | **4.20** | .4040 | **+.0610** | **5/5** |
+(GSM8K 7B: không đồng thuận .028 -> **SUY BIẾN**, không đọc — ô bão hoà)
+
+=> **HÀNG 1 của bảng khoá #44**: "`route` > `maj@k` nội suy tại cùng chi phí, >=4/5 fold ->
+   XÁC NHẬN, định tuyến theo đồng thuận đáng dùng." **Đạt ở 4/4 phép đo hợp lệ.**
+=> **HÀNG 4 CŨNG NỔ**: `route_3_seq` > `route_3_6` ở **CẢ HAI ô** (+.069 vs +.050; +.061 vs +.024)
+   VÀ rẻ hơn (3.74 vs 4.10; 4.20 vs 4.80 lượt).
+   "Ở bài KHÓ, TUẦN TỰ tốt hơn LẤY THÊM MẪU" — khớp và làm sắc thêm H32.
+=> Tín hiệu đồng thuận **MIỄN PHÍ** (chỉ đếm), không cần huấn luyện, không có rủi ro rò rỉ adapter.
+
+### B) H28d — GỠ ĐÌNH CHỈ cho H28: bỏ phiếu có trọng số ĐỨNG VỮNG
+`probe_pre` = `probe_post` = **.55** trên CÙNG 60 bài -> **`adapter_leak` = 0.0**, VALID.
+(Ngưỡng cũ hỏng vì so tập TRAIN với tập TEST; nay so CÙNG bài trước/sau.)
+greedy .5267 | **maj@8 .7167** | rerank .7200 | **wvote_sum .7767** | oracle@8 .8767 | AUC .8555
+**`wsum − maj` = +.0600, [+.017,+.100], 5/5 fold** (f0 +.100, f1 +.017, f2 +.100, f3 +.067, f4 +.017)
+Lấy được **37%** khoảng trống `maj@8 -> oracle@8` (+.160).
+=> **H27/H28/H28b/H31 KHÔNG còn bị đình chỉ.** Con số ĐƯỢC PHÉP công bố là **+6.0 điểm, 5/5 fold**,
+   đo với `adapter_leak = 0.0` — KHÔNG phải +11.0 (nhiễm) cũng KHÔNG phải +3.0 (đo ở lần rò rỉ ít).
+
+### HỢP NHẤT — hai cách DUY NHẤT đã đo được là vượt `maj@k` trên toán
+1. **Bỏ phiếu CÓ TRỌNG SỐ** bằng bộ chấm huấn luyện: **+6.0 điểm** (5/5), lấy 37% khoảng trống.
+2. **ĐỊNH TUYẾN THEO ĐỒNG THUẬN** + tuần tự: **+6.1 đến +6.9 điểm** (4–5/5) ở CÙNG chi phí,
+   và **MIỄN PHÍ** — không huấn luyện gì cả.
+=> Hai đường độc lập, biên độ gần bằng nhau. Nhưng (2) không cần dữ liệu, không cần LoRA,
+   không có rủi ro rò rỉ -> **khuyến nghị thực tiễn ưu tiên (2)**.
+=> Cả hai đều KHÔNG chạm trần `oracle` — nhất quán với "nút thắt là SINH, không phải CHỌN".
