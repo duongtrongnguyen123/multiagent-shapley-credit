@@ -2530,3 +2530,29 @@ GSM8K 1.5B: greedy .636 | maj@3 .608 | maj3_g .652 | **PSV .704** | **SVV .716**
 GSM8K 7B : greedy .924 | maj@3 .928 | maj3_g .932 | PSV .912 | SVV .924 -> `maj3−PSV` = **+.016 (PSV thua, ô BÃO HOÀ)**
 => Lặp lại chính xác mẫu hình đã có: tuần tự thắng ở ô CHƯA bão hoà, thua ở ô ĐÃ bão hoà.
 => `maj3_g − maj3` = +.044 và +.004 -> đối chứng nhiễu loạn vẫn ≈ 0 (ô thứ 8 và 9).
+
+## [Loop] VÒNG #72 — H37 (bộ kiểm huấn luyện) ô 1.5B: 4/5 fold trước khi OOM. **PRIOR CỦA TÔI SAI**
+### Số liệu (hợp lệ: `adapter_leak` = −0.05, đúng bằng ngưỡng)
+`probe_pre` .3333 -> `probe_post` .3833 | **A) TIÊM: DISC = +0.032** | **B) THẬT: DISC = +0.219, AUC .563**
+`wvote − maj@8` theo fold: **+.02, +.02, −.04, .00** (fold 4 OOM)
+
+### PRIOR SAI — và sai theo hướng KHÔNG ai đoán
+Tôi ghi trước (pre-reg #43): "`injected` sẽ CAO (>.6), `real` sẽ THẤP (<.2)" — tức học được
+hiện vật rồi không chuyển giao. **Thực tế NGƯỢC LẠI**: `injected` = **+.032** (gần 0),
+`real` = +.219 (cao hơn). Model **KHÔNG HỌC ĐƯỢC** ngay cả nhiệm vụ tiêm lỗi.
+Loss huấn luyện TĂNG (0.22 -> 0.65), không hội tụ.
+=> Bắt "một chữ số bị đổi trong chuỗi vàng hoàn hảo" khó hơn tôi tưởng RẤT NHIỀU —
+   khó hơn cả phân biệt lời giải đúng/sai thật.
+
+### PHÁN QUYẾT SƠ BỘ: HÀNG 4 của bảng khoá
+"`discrimination_real` > 0 nhưng `wvote` KHÔNG hơn `maj@8` -> kiểm được nhưng KHÔNG chuyển
+thành độ chính xác. Ghi rõ: **đo được ≠ dùng được**."
+AUC .563 chỉ nhỉnh hơn ngẫu nhiên (.50). `wvote−maj` trung bình ≈ 0 trên 4 fold.
+CHỜ ô 7B trước khi chốt — năng lực là lý do prompt thất bại, nên 7B mới là phép thử thật.
+
+### LỖI HẠ TẦNG: chạy song song giết job
+`H37_m7` (7B) phình từ 17.1GB -> **19.5GB** trong lúc chạy (optimizer state), chỉ còn 12.6GB;
+`H37_m15` xin thêm **90 MiB** và OOM ở fold 4.
+=> Supervisor của tôi kiểm VRAM **lúc KHỞI ĐỘNG** nhưng job huấn luyện **PHÌNH LÊN** sau đó.
+=> SỬA: job `checker_local` (có huấn luyện) nay chạy **ĐỘC QUYỀN**, không cùng lúc với job khác.
+   Job chỉ suy luận thì vẫn cho chạy song song (chúng không phình).
