@@ -2378,3 +2378,38 @@ greedy .500 | maj@3 .505 | **PSV .590** | SVV .550 | SS_anc .480
 `maj3 − PSV` = **−.085, 0/5 fold** -> **PSV THẮNG maj@3 ở MATH 7B.**
 ### LƯỚI H32 hiện tại: GSM8K 1.5B ✓(+.084) · MATH 1.5B ~(+.030, 3/5) · **MATH 7B ✓(+.085)**
 · GSM8K 7B đang chạy (dấu hiệu sớm: PSV .90 < greedy .94 -> ô BÃO HOÀ đảo chiều)
+
+## [Loop] VÒNG #68 — H35 **TÁI LẬP ĐỘC LẬP** trên phần cứng khác, mạnh hơn lần đầu
+### R_c15b (HumanEval 1.5B, **bf16 trên RTX 5090**, bộ kiểm ĐÃ SỬA)
+`exec_success_rate` = **.994** (ngưỡng .50 ✓) · tự kiểm bộ kiểm: OK
+| nhánh | acc | phá đáp án đúng |
+|---|---|---|
+| greedy1 | .5625 | — |
+| **maj@4** | **.4313** | — (THẤP HƠN greedy 13 điểm) |
+| **llm3** | .4375 | **4.6 bài/fold** (5/5) |
+| **exec3** | **.6438** | **0.0** (0/5) |
+`exec3 − llm3` = **+.206 (5/5)** · `exec3 − maj@4` = **+.213 (5/5)**
+
+### ĐỐI CHIẾU HAI LẦN CHẠY ĐỘC LẬP — CÙNG KẾT LUẬN, KHÁC PHẦN CỨNG
+| | ev_he15 (Kaggle T4, fp16) | **R_c15b (RTX 5090, bf16)** |
+|---|---|---|
+| exec3 − llm3 | +.119 (5/5) | **+.206 (5/5)** |
+| exec3 − maj@4 | +.175 (5/5) | **+.213 (5/5)** |
+| phá bởi exec3 | **0.0** | **0.0** |
+| phá bởi llm3 | 2.8/fold | **4.6/fold** |
+| maj@4 so với greedy | −.113 | −.131 |
+=> **TÁI LẬP.** Hai lần chạy, hai máy, hai độ chính xác số học, cùng kết luận và cùng dấu.
+   Đây là kết quả DƯƠNG VỮNG NHẤT của dự án — và là kết quả DUY NHẤT tái lập được ở mức này.
+=> `exec3` **KHÔNG PHÁ MỘT ĐÁP ÁN ĐÚNG NÀO** trong 10 fold của cả hai lần chạy (0/10).
+   `llm3` phá trong **10/10 fold**. Khác biệt không nằm ở độ chính xác mà ở TÍNH AN TOÀN.
+
+### XÁC NHẬN LẠI: BỎ PHIẾU CÓ HẠI TRÊN CODE
+`maj@4` thấp hơn `greedy` ở CẢ HAI lần (−.113 và −.131). Không phải nhiễu.
+Cơ chế (khớp vòng #65): code là chuỗi dài, hai lời giải ĐÚNG hiếm khi giống hệt nhau
+-> "đa số" gần như luôn là hoà -> bỏ phiếu thoái hoá thành chọn ngẫu nhiên, tệ hơn greedy.
+
+### R_m7 (MATH 7B bf16) — xác nhận lại lưới H32 và ĐỐI CHỨNG NHIỄU LOẠN
+greedy .480 | maj@3 .515 | maj3_g .500 | **PSV .595** | SVV .525
+`maj3 − PSV` = **−.080, 0/5** -> PSV thắng, lặp lại `bgL_m7` (−.075).
+`maj3_g − maj3` = −.015 (1/5) -> **đối chứng #41 lại cho ~0**: greedy KHÔNG phải nguồn lợi thế.
+Đã đo ở 4 ô độc lập, luôn ≈ 0 -> **nhiễu loạn do người dùng chỉ ra đã bị LOẠI TRỪ dứt điểm.**
