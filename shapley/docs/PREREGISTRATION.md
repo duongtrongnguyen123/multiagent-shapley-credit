@@ -1543,3 +1543,265 @@ Tôi đoán hàng 2: cả hai cùng đóng góp, phần do greedy chiếm khoả
 của +8.4. Tức là kết luận "tuần tự thắng song song" sẽ SỐNG SÓT nhưng **NHỎ ĐI ĐÁNG KỂ**.
 Ghi rõ: đây là nhiễu loạn do NGƯỜI DÙNG phát hiện, không phải tôi. Tôi đã công bố +8.4
 ở vòng #63 mà chưa kiểm nó.
+
+---
+
+# Đăng ký trước #42 — H8b: CHẠY LẠI H8 (verify bằng THỰC THI trên TOÁN) VỚI 7B
+**Viết TRƯỚC khi chạy.** H8 bị tuyên VÔ HIỆU ở 1.5B vì `exec_success_rate` = .42 < ngưỡng .50.
+
+## Vì sao chạy lại bây giờ
+7B viết code chạy được ở mức `exec_success_rate` = **1.000** trên HumanEval (đo ở R_c7b).
+H8 chạy ở 1.5B và chết vì model không viết nổi code chạy được. Câu hỏi mở: **7B có vượt .50
+trên MIỀN TOÁN không?** Nếu có, toán lần đầu có một BỘ KIỂM CHẠY ĐƯỢC.
+
+## PHÂN BIỆT THEN CHỐT — ghi trước để không đọc nhầm kết quả
+Trên CODE, bộ test là **ORACLE VỀ TÍNH ĐÚNG**: pass = đúng, không thể lừa.
+Trên TOÁN, chạy Python chỉ cho biết **CHƯƠNG TRÌNH CHẠY ĐƯỢC**, KHÔNG cho biết chương trình
+MÔ HÌNH HOÁ ĐÚNG bài toán. Một chương trình chạy trơn tru vẫn có thể tính sai thứ cần tính.
+=> Vì vậy `exec3` trên toán chỉ sửa được **LỖI SẬP**, không sửa được **LỖI MÔ HÌNH HOÁ**.
+=> DỰ ĐOÁN: lợi ích trên toán sẽ NHỎ HƠN NHIỀU so với +8.1 điểm đo được trên code.
+   Đây là điều làm cho code và toán KHÁC LOẠI, không chỉ khác độ khó.
+
+## Thiết kế (MATH-500, 7B bf16, 5 fold, đếm token)
+- `greedy1` — suy luận bằng văn bản (1 lượt)
+- `maj3` — 3 mẫu văn bản, bỏ phiếu (3 lượt)
+- **`pal1`** — viết CHƯƠNG TRÌNH PYTHON, chạy, lấy kết quả in ra (1 lượt)
+- **`pal3`** — `pal1` × 3, bỏ phiếu trên KẾT QUẢ ĐÃ CHẠY (3 lượt)
+- **`exec3`** — viết Python; nếu SẬP thì sửa theo stderr, tối đa 3 vòng (<=4 lượt)
+BẮT BUỘC báo: `exec_success_rate` (tỉ lệ code chạy không lỗi), `pct_no_output` (chạy nhưng
+không in ra số), và `n_breaks` cho từng nhánh.
+
+## NGƯỠNG HIỆU LỰC (giữ nguyên ngưỡng đã khoá của H8)
+`exec_success_rate` < **.50** -> **VÔ HIỆU** như H8. Không được đọc là "thực thi thất bại trên toán";
+chỉ được đọc là "7B vẫn chưa viết nổi code chạy được cho toán".
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `exec_success_rate` >= .50 VÀ `pal3` > `maj3` >=4/5 fold | **Toán CÓ THỂ có bộ kiểm chạy được ở 7B.** H8 trước đây thất bại vì NĂNG LỰC MODEL, không phải vì miền. Mở lại hướng thực thi cho toán. |
+| `exec_success_rate` >= .50 nhưng `pal3` <= `maj3` | Code chạy được KHÔNG đủ — chạy được ≠ mô hình hoá đúng. Xác nhận phân biệt then chốt ở trên. Toán vẫn KHÔNG có bộ kiểm thật. |
+| `exec3` > `pal1` nhưng vẫn <= `maj3` | Sửa lỗi SẬP có tác dụng, nhưng không bù được lỗi MÔ HÌNH HOÁ. Ghi rõ hai loại lỗi này khác nhau. |
+| `exec_success_rate` < .50 | **VÔ HIỆU lần hai.** 7B cũng không viết nổi code cho toán -> ghi là giới hạn NĂNG LỰC ở quy mô này, và DỪNG hướng này. |
+| `exec3` ≈ `oracle@k` (như trên code) | Bộ kiểm lại là BỘ CHỌN hoàn hảo -> nhưng phải kiểm xem "chạy được" có thật sự lọc đúng/sai không (nghi ngờ mạnh). |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **`exec_success_rate` sẽ VƯỢT .50 ở 7B** (có lẽ .75–.95) nhưng **`pal3` KHÔNG hơn `maj3`**,
+vì chạy được không đảm bảo mô hình hoá đúng. Tức là rơi HÀNG 2.
+Nếu đúng thì kết luận là: **bộ kiểm chỉ có giá trị khi nó là ORACLE VỀ TÍNH ĐÚNG (như bộ test),
+không phải khi nó chỉ là MỘT CÁCH TÍNH KHÁC (như chạy Python cho toán).**
+Đó sẽ là phát biểu tổng quát và chặt chẽ hơn nhiều so với "code có bộ kiểm, toán thì không".
+
+---
+
+# Đăng ký trước #43 — H37: HUẤN LUYỆN BỘ KIỂM LỖI, VÀ NÓ CÓ CHUYỂN GIAO KHÔNG?
+**Viết TRƯỚC khi chạy.** Trả lời: "có nên align/finetune/reinforce cho việc KIỂM không?"
+
+## Vì sao đáng thử (bằng chứng đã có)
+Cùng model 1.5B, cùng nhiệm vụ phán đoán đúng/sai:
+- **PROMPT**: suy biến .99 (luôn nói "NO") -> VÔ HIỆU ở cả GSM8K lẫn MATH
+- **HUẤN LUYỆN** (H27, nhãn tự động từ grader): **AUC .88–.95**
+=> Năng lực phán đoán CÓ TỒN TẠI trong model, chỉ là **KHÔNG MOI RA ĐƯỢC BẰNG PROMPT**.
+Nhãn cho việc kiểm lỗi tiêm sẵn là MIỄN PHÍ và VÔ HẠN (chuỗi vàng = sạch; đổi 1 số = bẩn).
+
+## RỦI RO CHÍNH — phải thiết kế để đo, không được bỏ qua
+Lỗi TIÊM SẴN = đổi MỘT con số trong chuỗi hoàn hảo.
+Lỗi THẬT của model = sai cách tiếp cận, sai công thức, thiếu trường hợp.
+**Hai loại khác hẳn nhau.** Một bộ kiểm huấn luyện trên lỗi tiêm có thể giỏi bắt "số bị đổi"
+mà VÔ DỤNG với lỗi thật. Vì vậy thiết kế BẮT BUỘC là **huấn luyện trên TIÊM, đánh giá trên THẬT**.
+
+## Thiết kế
+- **Huấn luyện**: LoRA phân loại nhị phân trên MATH *train-half*, nhãn tiêm sẵn
+  (clean vs corrupt, cân bằng). ~3000 cặp. Solver KHÔNG dính adapter (bài học rò rỉ #59).
+- **Đánh giá A (trong phân phối)**: lỗi TIÊM trên test-half -> `discrimination_injected`
+- **Đánh giá B (CHUYỂN GIAO — chỉ số CHÍNH)**: lời giải THẬT do model sinh, nhãn đúng/sai
+  từ grader -> `discrimination_real`
+- **Đánh giá C (giá trị thực tiễn)**: dùng bộ kiểm để CÂN TRỌNG SỐ phiếu trên k=8 -> so `maj@8`
+- Mốc: bộ chấm H27 (huấn luyện trên lời giải THẬT) trên CÙNG tập test.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`adapter_leak` <= .05 (đo trên CÙNG 60 bài trước/sau, theo #37) · AUC > .55 mới đọc được ·
+`degenerate_rate` <= .90.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `discrimination_real` >= .40 VÀ wvote > maj@8 >=4/5 fold | **HUẤN LUYỆN BỘ KIỂM LÀ ĐÚNG HƯỚNG.** Toán có thể có bộ kiểm học được, xấp xỉ vai trò mà bộ test đóng cho code. Kết quả lớn. |
+| `discrimination_injected` cao NHƯNG `discrimination_real` ≈ 0 | **HỌC ĐƯỢC HIỆN VẬT, KHÔNG CHUYỂN GIAO.** Bộ kiểm chỉ bắt "số bị đổi". Phải nói thẳng và KHÔNG được báo cáo con số in-distribution như thành công. |
+| Cả hai đều ≈ 0 | Huấn luyện không moi được năng lực kiểm cho lỗi số học. Cộng với H23 (GRPO im lặng) -> **DỪNG hướng huấn luyện vai kiểm**. |
+| `discrimination_real` > 0 nhưng wvote KHÔNG hơn maj@8 | Kiểm được nhưng KHÔNG chuyển thành độ chính xác. Ghi rõ: đo được ≠ dùng được. |
+| Thua bộ chấm H27 (huấn luyện trên lời giải thật) | Nhãn TIÊM kém hơn nhãn THẬT. Khuyến nghị: dùng grader trên lời giải thật, đừng tiêm. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 2**: `discrimination_injected` sẽ CAO (>.6, vì nhiệm vụ dễ và nhãn sạch) nhưng
+`discrimination_real` sẽ THẤP (<.2). Lý do: lỗi tiêm là bài toán "tìm số không khớp",
+lỗi thật là bài toán "hiểu bài". Hai thứ này không cùng một kỹ năng.
+Nếu đúng hàng 2 thì kết luận là: **nhãn rẻ không thay thế được nhãn đúng loại** — và cách duy
+nhất còn lại cho toán vẫn là bộ kiểm CƠ HỌC, thứ mà toán KHÔNG CÓ (đã đo ở H8b).
+
+---
+
+# Đăng ký trước #44 — H38: ĐỊNH TUYẾN THEO ĐỒNG THUẬN vs TIÊU ĐỀU, Ở CÙNG CHI PHÍ TRUNG BÌNH
+**Viết TRƯỚC khi chạy.** Rút thẳng từ số đã đo ở vòng #65.
+
+## Sự việc đã đo
+| đồng thuận (k=8) | GSM8K | MATH |
+|---|---|---|
+| 8/8 | **1.000** | **1.000** |
+| 1/8 (không có đa số) | **.143** | **.000** |
+Ở k=3, **50–58% số bài KHÔNG có đa số nào** -> `maj@3` thoái hoá thành "lấy mẫu đầu tiên".
+Mọi pipeline của dự án hiện TIÊU CHI PHÍ ĐỀU NHAU cho mọi bài: lãng phí ở bài đã đồng thuận
+(gần chắc đúng), thiếu ở bài phân tán (gần chắc sai).
+
+## Thiết kế — so trên ĐƯỜNG CONG chi phí, không so một điểm
+Đường cong TIÊU ĐỀU: `maj@3`, `maj@4`, `maj@6`, `maj@8` (mỗi bài dùng đúng k lượt).
+Nhánh ĐỊNH TUYẾN (chi phí THAY ĐỔI theo bài):
+- **`route_3_6`**: sinh 3; nếu **>=2 mẫu đồng ý** -> NHẬN, dừng. Nếu không -> sinh thêm 3, bỏ phiếu trên 6.
+- **`route_3_seq`**: sinh 3; nếu đồng thuận -> nhận; nếu không -> chạy **tuần tự có mỏ neo** 3 lượt.
+**BẮT BUỘC báo `mean_gens` và `mean_tokens` THỰC TẾ của từng nhánh** — định tuyến có chi phí
+biến thiên nên chỉ so được khi biết chi phí thật.
+
+## Chỉ số chính
+Nhánh định tuyến có nằm **TRÊN** đường cong tiêu đều tại ĐÚNG chi phí của nó không?
+Cụ thể: nội suy `maj@k` tại `k = mean_gens(route)` rồi so.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+Nếu tỉ lệ bài "không đồng thuận" < .15 hoặc > .85 thì định tuyến gần như không phân biệt được
+gì -> ghi rõ "định tuyến suy biến", không đọc là thành công/thất bại của ý tưởng.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `route` > `maj@k` nội suy tại cùng chi phí, >=4/5 fold | **XÁC NHẬN: định tuyến theo đồng thuận đáng dùng.** Khuyến nghị thực tiễn: đừng tiêu đều — đo đồng thuận trước, chỉ đổ thêm compute vào bài phân tán. Tín hiệu MIỄN PHÍ. |
+| `route` ≈ đường cong tiêu đều | Đồng thuận KHÔNG giúp phân bổ compute tốt hơn. Ghi rõ đã bác; tiêu đều là đủ. |
+| `route` < đường cong | Định tuyến GÂY HẠI — có thể vì bài "đồng thuận" cũng cần kiểm. Phải nói thẳng. |
+| `route_3_seq` > `route_3_6` | Ở bài KHÓ, tuần tự tốt hơn lấy thêm mẫu — khớp H32 và làm sắc thêm nó. |
+| `route_3_6` > `route_3_seq` | Ở bài khó, thêm mẫu tốt hơn tuần tự — MÂU THUẪN với H32, phải điều tra. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 1 nhưng biên độ NHỎ** (1–3 điểm tại cùng chi phí). Lý do: tín hiệu đồng thuận
+rất mạnh ở hai đầu (1.000 vs .143) nhưng nhóm "không đồng thuận" cũng chính là nhóm mà MỌI
+cơ chế đều yếu — đổ thêm compute vào bài model không giải nổi có thể không cứu được.
+Nếu ra hàng 2 thì kết luận thực tiễn của dự án gọn lại còn: **"lấy k mẫu, đếm phiếu, dừng"**.
+
+---
+
+# Đăng ký trước #45 — H39: DÙNG ĐỒNG THUẬN ĐỂ QUYẾT ĐỊNH **KHI NÀO TRẢ TIỀN CHO MODEL LỚN**
+**Viết TRƯỚC khi chạy.** Kết hợp hai phát hiện đã đo của dự án.
+
+## Hai mảnh ghép đã có
+1. **Đồng thuận là tín hiệu đúng/sai gần như hoàn hảo và MIỄN PHÍ** (vòng #65):
+   8/8 đồng ý -> acc 1.000; 1/8 -> .143/.000.
+2. **Solver 1.5B + Verifier 7B** cho +14.0 điểm (H15) — nhưng ta CHƯA BAO GIỜ hỏi:
+   *có cần gọi 7B cho MỌI bài không, hay chỉ cho bài mà 1.5B tự mâu thuẫn?*
+=> Giả thuyết: **1.5B đủ cho phần lớn bài; chỉ escalate lên 7B khi 3 mẫu 1.5B KHÔNG đồng thuận.**
+
+## Thiết kế — chi phí tính bằng FLOP, không phải "số lượt"
+Quy đổi: 1 lượt 7B ≈ **4.67×** chi phí 1 lượt 1.5B (tỉ lệ tham số). Báo `cost_15B_equiv`.
+- `small_maj3` / `small_maj8` : chỉ 1.5B (đường cong rẻ)
+- `big_maj3` / `big_maj8`     : chỉ 7B (đường cong đắt)
+- **`escalate`**: 3 mẫu 1.5B -> nếu >=2 đồng ý thì NHẬN; nếu không -> 3 mẫu **7B** + bỏ phiếu
+- **`escalate_seq`**: như trên nhưng bài phân tán chạy **7B tuần tự có mỏ neo** (rẻ hơn 3 mẫu)
+BẮT BUỘC báo `pct_escalated` và `cost_15B_equiv` của từng nhánh.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`pct_escalated` ngoài khoảng .15–.85 -> SUY BIẾN, không đọc (như rtL_g7 đã bị).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `escalate` >= `big_maj3` NHƯNG `cost_15B_equiv` THẤP HƠN rõ | **XÁC NHẬN: chỉ cần trả tiền cho model lớn ở bài KHÔNG đồng thuận.** Đây là khuyến nghị triển khai trực tiếp, tiết kiệm thật. |
+| `escalate` < `big_maj3` ở cùng chi phí | Escalate không đủ — bài khó cần model lớn TỪ ĐẦU, không chỉ ở lượt sau. Ghi rõ. |
+| `escalate` ≈ `small_maj8` | Model lớn không thêm gì ở nhóm phân tán -> nhóm đó KHÓ với cả hai model. Củng cố "nút thắt là SINH". |
+| `escalate_seq` > `escalate` | Tuần tự lại thắng lấy mẫu, lần thứ hai ở bối cảnh khác. Củng cố H38. |
+| `pct_escalated` ngoài .15–.85 | SUY BIẾN, không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán **hàng 1**: escalate đạt gần `big_maj3` với chi phí thấp hơn nhiều, vì ~60% bài
+1.5B đã đồng thuận và ở nhóm đó nó gần như luôn đúng (acc ~1.0 khi 8/8).
+NHƯNG tôi cũng đoán biên độ so với `big_maj8` sẽ ÂM — model lớn dùng toàn phần vẫn tốt hơn,
+chỉ là đắt hơn nhiều. Kết luận thực tiễn sẽ là về **hiệu quả chi phí**, không phải độ chính xác tuyệt đối.
+
+# Đăng ký trước #46 — H40: **"TRẦN" CÓ THỰC SỰ QUYẾT ĐỊNH KHI NÀO ESCALATE THẮNG KHÔNG?**
+**Viết TRƯỚC khi chạy.** Kiểm chứng lời giải thích hậu nghiệm sinh ra ở vòng #79.
+
+## Vì sao phải chạy cái này
+Vòng #78: escalate theo đồng thuận **thắng** trên MATH (+.140 so `big_maj3`).
+Vòng #79: cùng giao thức, **thua** trên GSM8K (−.064, 0/5 fold).
+Tôi đã đề xuất lời giải thích: *"escalate thắng khi model lớn còn XA TRẦN"* — dựa trên
+**2 điểm dữ liệu**, và hai tác vụ còn khác nhau ở độ dài, kiểu suy luận, bộ chấm.
+**Đó là GIẢ THUYẾT hậu nghiệm. Chưa được tính là kết quả.** Đây là bài kiểm nó.
+
+## Thiết kế — tách độ khó TRONG CÙNG MỘT tác vụ
+MATH-500 có trường `level` 1–5. Chạy nguyên 500 bài, cùng giao thức H39, tách theo:
+- **DỄ** = level 1–2 (n=133) — nơi 7B gần trần
+- GIỮA = level 3 (n=105)
+- **KHÓ** = level 4–5 (n=262) — nơi 7B xa trần
+Cùng model, cùng prompt, cùng bộ chấm, cùng ngày. Chỉ độ khó thay đổi.
+Điều này loại trừ mọi khác biệt giữa-tác-vụ mà so sánh MATH-vs-GSM8K không loại được.
+
+## PHÂN RÃ CƠ CHẾ (phần chính) — không chỉ đo hướng, mà đo VÌ SAO
+Với mỗi tầng, tách tập bài thành NHẬN (đồng thuận, giữ cho 1.5B) và ESC (escalate):
+- `acc_small_on_kept` — ta DÙNG cái này trên tập NHẬN
+- `acc_big3_on_kept`  — 7B lẽ ra đạt được gì ở đó = **CÁI TA TỪ BỎ**
+- `opp_cost` = `acc_big3_on_kept` − `acc_small_on_kept`  (giá phải trả để tiết kiệm)
+- `gain_on_esc` = `acc_seq_on_esc` − `acc_big3_on_esc`   (cái ta THU được ở nhóm khó)
+- **Đẳng thức phải nghiệm đúng:**
+  `escalate_seq − big_maj3` ≈ `p_kept`·(−`opp_cost`) + `p_esc`·`gain_on_esc`
+  Sai số > .01 ⇒ **CÓ BUG, không đọc kết quả.** Đây là tự kiểm tra mã, khoá trước.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `pct_escalated` của một tầng ngoài .15–.85 ⇒ tầng đó SUY BIẾN, không đọc.
+- n mỗi tầng ≥ 40 (đã thoả: 133/105/262).
+- Đẳng thức phân rã lệch > .01 ⇒ huỷ toàn bộ, sửa mã, chạy lại.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `gain`(KHÓ) > 0 **và** `gain`(DỄ) ≤ 0, **và** `opp_cost`(DỄ) > `opp_cost`(KHÓ) | **XÁC NHẬN giả thuyết TRẦN.** Escalate là công cụ cho vùng model lớn CÒN SAI NHIỀU. Quy tắc triển khai có điều kiện đo được. |
+| `gain` > 0 ở **CẢ HAI** tầng | Giả thuyết trần **SAI**. Chênh lệch MATH↔GSM8K do thứ khác (độ dài? kiểu suy luận? bộ chấm?). Ghi rõ là CHƯA GIẢI THÍCH ĐƯỢC. |
+| `gain` ≤ 0 ở **CẢ HAI** tầng | **H39_m CHẾT** — thắng lợi +.140 trên MATH ở vòng #78 là giả tạo, không tái lập khi chạy đủ 500 bài. Phải rút lại vòng #78. |
+| `gain`(DỄ) > 0 và `gain`(KHÓ) ≤ 0 | Ngược hoàn toàn dự đoán. Escalate hợp cho bài DỄ. Ghi rõ, không xoay lời. |
+| hướng đúng nhưng `opp_cost` KHÔNG theo trần | Hướng đúng, **cơ chế sai**. Trần không phải nguyên nhân; phải tìm biến khác. |
+| đẳng thức lệch > .01 | BUG. Không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Tôi đoán hàng 1. **Nhưng prior của tôi vừa sai hai lần liên tiếp trong đúng chuỗi này**:
+(a) tôi đoán `escalate_seq` sẽ THẤP HƠN `big_maj8` trên MATH — nó CAO HƠN 10.5 điểm;
+(b) tôi tuyên bố kết quả #78 là "khuyến nghị mạnh nhất dự án" — GSM8K lật ngược ngay vòng sau.
+Vì vậy prior này đáng được coi trọng **thấp**. Bảng trên mới là thứ quyết định.
+
+# Đăng ký trước #47 — H41: KIỂM GIẢ THUYẾT "TRẦN" NGAY TRONG MIỀN MÀ ESCALATE ĐÃ **THUA**
+**Viết TRƯỚC khi chạy.** Bài kiểm khắt khe hơn #46.
+
+## Vì sao đây là bài kiểm mạnh hơn
+#46 tách độ khó trên MATH — miền escalate đã THẮNG (+.140). Dễ ra kết quả thuận.
+#47 làm đúng thế trên **GSM8K**, miền escalate đã **THUA** (−.064, 0/5 fold, vòng #79).
+Nếu "trần" là nguyên nhân thật, thì NGAY TRONG GSM8K, nhóm bài nhiều bước (7B xa trần hơn)
+phải cho `gain` cao hơn nhóm ít bước. Đây là dự đoán có thể sai rõ ràng.
+
+## Độ khó cho GSM8K — GSM8K KHÔNG có trường `level`
+Dùng **số bước tính** = số chú thích `<<...>>` trong lời giải chuẩn. Khách quan, có sẵn, không do tôi gán.
+Phân bố đo được ở N=500: **DỄ (≤2 bước) 188 · GIỮA (3) 125 · KHÓ (≥4) 187** — đều ≥ 40.
+
+## Thiết kế
+Giao thức H39 y nguyên (3 mẫu 1.5B -> đồng thuận thì nhận, không thì 7B tuần tự có mỏ neo),
+chạy trên 500 bài GSM8K, **bf16** trên RTX 5090, tách theo 3 tầng trên.
+Phân rã cơ chế và **đẳng thức tự kiểm** giống hệt #46:
+  `escalate_seq − big_maj3` ≈ `p_kept`·(−`opp_cost`) + `p_esc`·`gain_on_esc`  (lệch > .01 ⇒ BUG)
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`pct_escalated` của tầng ngoài .15–.85 ⇒ tầng đó SUY BIẾN. n mỗi tầng ≥ 40. Lệch đẳng thức > .01 ⇒ huỷ.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `gain`(KHÓ) > `gain`(DỄ) ít nhất .03 **và** `opp_cost`(DỄ) > `opp_cost`(KHÓ) | **XÁC NHẬN MẠNH giả thuyết trần** — đúng cả trong miền escalate thua tổng thể. Trần là biến điều tiết, không phải khác biệt giữa hai tác vụ. |
+| \|`gain`(KHÓ) − `gain`(DỄ)\| < .03 | Trần **KHÔNG giải thích được trong nội bộ GSM8K**. Khác biệt MATH↔GSM8K là ở cấp TÁC VỤ, không phải cấp độ khó. Giả thuyết trần YẾU ĐI rõ. |
+| `gain`(KHÓ) < `gain`(DỄ) − .03 | **NGƯỢC HẲN. Giả thuyết trần CHẾT.** Ghi rõ, không diễn giải lại. |
+| `gain`(KHÓ) > 0 | Có quy tắc dùng được: escalate CHỈ cho bài ≥4 bước, bỏ qua bài ngắn. |
+| `opp_cost` không giảm theo độ khó | Hướng có thể đúng nhưng **cơ chế sai** — phải tìm biến khác. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán hàng 1, nhưng biên độ nhỏ: `gain`(KHÓ) ≈ −.02, `gain`(DỄ) ≈ −.10.
+Tức escalate vẫn THUA ở mọi tầng của GSM8K, chỉ bớt thua ở nhóm nhiều bước.
+Prior của tôi đã sai 2 lần liên tiếp trong chuỗi này (vòng #78, #79) — bảng khoá mới là thứ quyết định.
