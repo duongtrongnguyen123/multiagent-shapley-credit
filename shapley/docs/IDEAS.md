@@ -2967,3 +2967,37 @@ mà đơn giản là **MATH khác hai miền kia**, và **CHƯA GIẢI THÍCH Đ
 Lưới H32 (PSV vs maj@3, cùng ngân sách, một model) vẫn đứng: PSV thắng 3/4 ô, tái lập hai phần cứng.
 H41 đo thứ KHÁC: **escalate 1.5B→7B** rồi mới chạy tuần tự. Không được lẫn hai phát biểu.
 Việc cần làm là đối chiếu trực tiếp hai thiết kế trên cùng bài — chưa làm.
+
+## [Loop] VÒNG #84 — **H44: MỎ NEO LÀ THỦ PHẠM CHÍNH TRÊN CODE. HÀNG 1 + HÀNG 4 của #50.**
+### MBPP 11–510, 498 bài, 265 bài escalate (.532 — HỢP LỆ), biên dịch được .995, 7B nf4
+Ba hành động trên **CÙNG nhóm escalate**, **cùng một lần chạy**:
+| hành động | acc | chi phí |
+|---|---|---|
+| **A) tuần tự CÓ mỏ neo** | **.3698** | 2 lượt 7B |
+| **B) tuần tự KHÔNG mỏ neo** | **.4679** | 2 lượt 7B |
+| **C) lấy mẫu maj@3** | **.5245** | 3 lượt 7B |
+
+### PHÂN RÃ SẠCH — hai hàng đều kích hoạt và chúng CỘNG LẠI, không mâu thuẫn
+```
+C − A = +.1547   tổng thiệt hại so với lấy mẫu
+  B − A = +.0981   <- RIÊNG do MỎ NEO            (63%)
+  C − B = +.0566   <- do CẤU TRÚC TUẦN TỰ        (37%)
+```
+**Hàng 1**: bỏ mỏ neo — cùng cấu trúc, cùng chi phí, chỉ bỏ code sai khỏi prompt — **hồi lại 9.8 điểm**.
+Đưa code hỏng vào khiến model **VÁ** thay vì **VIẾT LẠI**.
+**Hàng 4**: kể cả đã bỏ mỏ neo, lấy mẫu VẪN hơn tuần tự **5.7 điểm** trên code.
+
+### LẦN ĐẦU PRIOR CỦA TÔI ĐÚNG (sau 5 lần sai liên tiếp)
+Ghi trước: "đoán hàng 1 (mỏ neo là thủ phạm)". Đúng. #78–#81, #83 đều sai; #84 đúng.
+
+### ĐIỀU NÀY ĐÁNH THẲNG VÀO CƠ CHẾ TRUNG TÂM CỦA DỰ ÁN
+Vòng #73 phát biểu: *"Cơ chế là **MỎ NEO ĐÁP ÁN TRƯỚC**, không phải phân vai — nhánh không có
+ngôn ngữ vai nào đạt kết quả ngang hoặc hơn."* Đó là lời giải thích cho `SS_anc` = `PSV`.
+Nay trên code, **chính mỏ neo đó là nguồn thiệt hại lớn nhất (63%)**.
+=> Mỏ neo **không phải cơ chế phổ quát**. Nó giúp ở MATH, hại ở code. **Chưa biết vì sao.**
+
+### H45 (đang chạy) là phép đo quyết định
+H45 đo `delta_seq` = tuần tự-có-mỏ-neo − maj3, **không escalate, không hai model**, trên 4 ô.
+Nếu MATH 7B cho `delta_seq` > 0 còn GSM8K 7B < 0 với CÙNG model -> biến là TÁC VỤ, không phải mỏ neo.
+Nếu cả bốn ô đều âm -> mọi kết quả dương trước đây đến từ escalate, và phát biểu
+"tuần tự hơn lấy mẫu" phải viết lại toàn bộ.
