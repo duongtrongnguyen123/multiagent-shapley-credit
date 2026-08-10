@@ -1901,3 +1901,36 @@ Nguyên yêu cầu không dùng 5090 nữa, nên H41 chạy trên **Kaggle, 20 s
 - **Ngưỡng bổ sung khoá tại đây:** nếu `big_maj3` của tầng DỄ **< .90**, kết luận bắt buộc là
   *"chưa chạm vùng bão hoà, y như H40 — câu hỏi vẫn CHƯA được trả lời"*, chứ không phải
   ủng hộ hay bác bỏ giả thuyết trần.
+
+# Đăng ký trước #50 — H44: TRÊN CODE, THỦ PHẠM LÀ **MỎ NEO** HAY LÀ **CẤU TRÚC TUẦN TỰ**?
+**Viết TRƯỚC khi chạy.** Tách đôi cơ chế đã tái lập ở #81/#82.
+
+## Điều đã ĐO ĐƯỢC (hai tách rời nhau, chênh 0.0005)
+Trên nhóm escalate của code, **lấy mẫu hơn tuần tự +.1159 (H42) và +.1164 (H43)**.
+Nhưng "tuần tự có mỏ neo" gộp HAI thứ: (a) **cho xem code sai trước đó**, (b) **thêm lượt tự kiểm**.
+Chưa biết cái nào gây hại. Trên MATH cùng cấu trúc đó lại **+.18**.
+
+## Thiết kế — ba HÀNH ĐỘNG trên CÙNG nhóm escalate, CÙNG một lần chạy
+Nhóm escalate xác định bằng bộ định tuyến oracle (chạy `assert[0]`), như #82.
+- **A) tuần tự CÓ mỏ neo**: giải-kèm-code-cũ → tự kiểm   (2 lượt 7B)  ← y hệt #81/#82
+- **B) tuần tự KHÔNG mỏ neo**: giải MỚI hoàn toàn → tự kiểm (2 lượt 7B)  ← chỉ bỏ mỏ neo
+- **C) lấy mẫu maj@3**                                  (3 lượt 7B)
+A vs B **cô lập đúng MỎ NEO**: cùng cấu trúc, cùng chi phí, khác duy nhất ở chỗ có đưa code cũ vào hay không.
+B vs C so tuần tự với lấy mẫu ở chi phí gần bằng nhau (2 vs 3 lượt).
+Dữ liệu: MBPP `task_id` 11–510. Chấm CHỈ bằng `assert[1..2]`.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`pct_escalated` ngoài .15–.85 ⇒ SUY BIẾN. Biên dịch được < .50 ⇒ huỷ. n_escalate ≥ 100.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| B − A ≥ +.05 | **MỎ NEO là thủ phạm.** Đưa code sai vào khiến model VÁ thay vì viết lại. Cấu trúc tuần tự tự nó không sai. |
+| \|B − A\| < .05 | **Mỏ neo KHÔNG phải nguyên nhân.** Bản thân LƯỢT TỰ KIỂM trên code mới là thứ gây hại (khớp H35: `llm3` vô dụng). |
+| A − B ≥ +.05 | Mỏ neo **giúp**; thiếu hụt ở #81/#82 đến từ chỗ khác. **Phải RÚT LẠI** phát biểu cơ chế ở vòng #82. |
+| C > B ≥ +.05 | Kể cả bỏ mỏ neo, lấy mẫu vẫn hơn tuần tự trên code -> kết luận là về **LẤY MẪU vs TUẦN TỰ**, không phải về mỏ neo. |
+| `pct_escalated` ngoài .15–.85 | SUY BIẾN, không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1** (mỏ neo là thủ phạm). Nhưng prior của tôi **sai 4 lần liên tiếp** (#78–#81)
+và ở #82 bảng của tôi còn tự mâu thuẫn. Trọng số prior: rất thấp.
