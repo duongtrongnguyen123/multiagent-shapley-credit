@@ -8,7 +8,7 @@ RES = sys.argv[1] if len(sys.argv) > 1 else "res_h46"
 
 cells = defaultdict(list)
 quant = defaultdict(set)
-for f in sorted(glob.glob(f"{RES}/res_H46s*.json")):
+for f in sorted(glob.glob(f"{RES}/**/res_H46s*.json", recursive=True)):
     d = json.load(open(f))
     key = f"{d['task']}-{d['size']}"
     cells[key] += d["items"]; quant[key].add(d.get("quant", "?"))
@@ -37,6 +37,8 @@ def vote(ps):
         if p is not None: c[p] = c.get(p, 0) + 1
     return max(c, key=lambda z: c[z]) if c else None
 
+if len(cells) < 4:
+    print(f"CANH BAO: chi thay {len(cells)} o (can 4). Ket qua CHUA du de doc bang khoa.")
 print(f"{'o':12s}{'n':>5s}{'greedy':>9s}{'maj3':>8s}{'A_neo':>8s}{'B_khong':>9s}{'A-B':>9s}{'A-maj3':>9s}{'B-maj3':>9s}")
 rows = []
 for key in sorted(cells):

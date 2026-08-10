@@ -106,6 +106,13 @@ giữa hai giai đoạn của job người khác.
 **Kernel Kaggle không có internet thì `pip install` chết.** Ảnh Kaggle **không** có sẵn
 `bitsandbytes` → muốn nf4 phải bật `enable_internet`. Nếu không, im lặng lùi về fp16.
 
+**Tên file đầu ra của shard PHẢI là duy nhất trên toàn bộ loạt chạy**
+H45 chạy 4 ô × 5 shard, nhưng kernel đặt tên `res_H45s{0..4}.json` theo chỉ số shard TRONG ô
+-> **cả 4 ô sinh ra CÙNG 5 tên file**, tải về đè lên nhau. 15 shard xong nhưng chỉ còn 5 file.
+Nếu không để ý thì đã gộp 1/4 dữ liệu mà vẫn tưởng là đủ. Cách chữa: tải mỗi kernel vào
+**thư mục riêng**, và script gộp dùng `glob(..., recursive=True)` + **đếm số ô, thiếu thì TỪ CHỐI kết luận**.
+Dấu hiệu bắt được: *số shard báo xong* ≠ *số file trên đĩa*. Luôn so hai con số này.
+
 **Bí mật:** token `KGAT_...` không bao giờ được commit. `accounts.txt`, `manifest*.json`,
 `kernels_*/`, `monitor.sh` đều nằm trong `.gitignore`. Tên tài khoản không xuất hiện trong tài liệu chung.
 
@@ -119,4 +126,6 @@ giữa hai giai đoạn của job người khác.
 - [ ] Batch tính từ VRAM, có lùi lô khi OOM
 - [ ] Không có token trong thứ sắp commit
 - [ ] Monitor bám **mọi trạng thái kết thúc**, không chỉ trạng thái thành công
-- [ ] Script gộp **từ chối kết luận** khi thiếu shard
+- [ ] Script gộp **từ chối kết luận** khi thiếu shard **hoặc thiếu ô**
+- [ ] Tên file đầu ra **duy nhất toàn loạt** (không chỉ duy nhất trong một ô)
+- [ ] Sau khi tải: **số file trên đĩa == số shard báo xong**
