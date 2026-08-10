@@ -2065,3 +2065,41 @@ n mỗi ô ≥ 400. Tỉ lệ biên dịch được ≥ .50. Ô không đạt �
 ## Prior TRUNG THỰC (ghi trước)
 Đoán hàng 1 (quy tắc đúng cả trên code; thất bại trước đó là do lọc theo nhóm escalate).
 Prior gần đây: đúng 2/7 (#84, #86 đúng; #78–#81, #83 sai).
+
+# Đăng ký trước #55 — H49: **LẬP KẾ HOẠCH CÓ ĐÁNG MỘT LƯỢT KHÔNG, KHI BÀI ĐỦ DÀI?**
+**Viết TRƯỚC khi chạy.** Nguyên chỉ ra: MBPP là hàm 3 dòng — **không có gì để lập kế hoạch**.
+
+## Vì sao phép thử cũ có thể đã hỏi sai chỗ
+Dự án đã đo Planner nhiều lần và đều ~vô dụng: Shapley cho planner ÂM ở 1.5B, `P3S − maj@4` = +.012 (2/5),
+`PSVA − PSV` = +.016 (3/5). **Nhưng tất cả đều đo trên GSM8K/MATH/MBPP — bài một bước hoặc một hàm ngắn.**
+Không thể đo giá trị của phân rã trên tác vụ **không có cấu trúc để phân rã**.
+
+## Dữ liệu — BigCodeBench (đã chạy thử: 28/30 lời giải chuẩn ĐẠT qua bộ đo của tôi)
+1140 bài, mỗi bài yêu cầu **ghép nhiều thư viện, nhiều bước**. So với MBPP:
+prompt trung vị **607** ký tự (MBPP: một câu), lời giải chuẩn trung vị **414** ký tự (MBPP: ~3 dòng).
+Chấm bằng `unittest` đi kèm. Dùng 300 bài đầu mỗi ô. 2 ô (7B, 1.5B) × 6 shard = 12 kernel.
+
+## Nhánh — CÙNG NGÂN SÁCH 3 LƯỢT
+- `greedy` (1 lượt) — thước đo bão hoà của ô
+- `maj3` — 3 mẫu song song + bỏ phiếu theo HÀNH VI
+- `seq` — giải → giải lại → tự kiểm (3 lượt)  ← nhánh đã nghiên cứu ở #85/#87
+- **`PSV`** — **lập kế hoạch (không viết code) → giải theo kế hoạch → tự kiểm** (3 lượt)
+`PSV` vs `seq` là phép so sạch: **cùng 3 lượt**, chỉ khác lượt đầu dùng để LẬP KẾ HOẠCH hay để GIẢI.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`maj3` của một ô ngoài khoảng .05–.95 ⇒ ô đó SUY BIẾN (sàn/trần), không đọc.
+n mỗi ô ≥ 250. Tỉ lệ chạy được (không lỗi cú pháp) ≥ .50.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `PSV` > `maj3` **và** `PSV` > `seq`, cả hai ≥ .02 | **LẬP KẾ HOẠCH CÓ GIÁ TRỊ khi bài đủ dài.** Các kết quả null trước đây là do BỘ DỮ LIỆU quá ngắn, không phải do Planner vô dụng. Kết quả lớn — phải tái lập trước khi công bố. |
+| \|`PSV` − `seq`\| < .02, cả hai > `maj3` | **Lượt thêm mới quan trọng, KHÔNG phải nội dung lượt đó.** Khớp #87 (mỏ neo ≈ 0): thứ có giá trị là THÊM MỘT LƯỢT, viết gì trong đó gần như không đổi. |
+| `PSV` ≤ `maj3` | **Lập kế hoạch KHÔNG đáng một lượt kể cả trên bài dài nhiều bước.** Tiền đề phân rã theo vai thất bại ngay trên bộ dữ liệu chọn để ưu ái nó. Ghi rõ. |
+| `seq` > `maj3` nhưng `PSV` < `maj3` | Tinh chỉnh tuần tự giúp; **riêng LẬP KẾ HOẠCH gây hại** — nó tiêu một lượt mà không sinh ra code nào. |
+| `maj3` ngoài .05–.95 | Ô SUY BIẾN, không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2** (lượt thêm quan trọng, nội dung không) vì #87 vừa cho thấy mỏ neo ≈ 0 trên toán.
+Nhưng trực giác của Nguyên (hàng 1) hợp lý và **chưa từng được kiểm trên bài dài** — đó chính là
+lý do chạy phép thử này. Prior gần đây: đúng 2/7.
