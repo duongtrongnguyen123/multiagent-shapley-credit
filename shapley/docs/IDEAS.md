@@ -3212,3 +3212,40 @@ không phải kế hoạch. Đo được: `.1433 → .1267` và `.2967 → .3100
 
 ### Ghi chú: ở 7B, `greedy` = `seq` = **.3467 bằng nhau tuyệt đối** (lặp lại y hệt H49)
 Hai lượt tinh chỉnh thêm không đổi được một bài nào trên BigCodeBench ở 7B.
+
+
+## [Loop] VÒNG #91 — **H51: KẾ HOẠCH TỪ MODEL MẠNH CÓ GIÚP MODEL YẾU — NHƯNG BỊ ÁP ĐẢO**
+### BigCodeBench 300 bài. Can thiệp ĐẠT: "kế hoạch" chứa code **0.0%**, chạy được **1.000**
+| nhánh | acc | chi phí (1.5B-eq) |
+|---|---|---|
+| small_greedy | .1633 | 1.00 |
+| small_seq | .1933 | 3.00 |
+| **big_greedy** | **.3467** | **5.07** |
+| bigplan_smallsolve | .2067 | 7.07 |
+
+### PHÁN QUYẾT: **HÀNG 2 của #57**
+Kế hoạch của 7B **có** nâng 1.5B: `.1633 → .2067` = **+4.3 điểm** so với chính nó chạy tham lam.
+Nhưng so với `small_seq` chỉ **+.0134** — **4 bài trên 300, nằm trong nhiễu**.
+=> **Một kế hoạch từ model lớn gấp 5 lần đáng giá xấp xỉ việc model nhỏ tự thử thêm hai lượt.**
+Và số quyết định: **−.1400 so với `big_greedy`, trong khi TỐN THÊM 2.00 đơn vị chi phí.**
+Chạy thẳng 7B một lượt — không kế hoạch, không phân vai, không model thứ hai — **hơn 14 điểm và RẺ HƠN**.
+**PRIOR CỦA TÔI ĐÚNG** (đoán hàng 2). Tỉ lệ: 4/10.
+
+### ĐÂY LÀ LẦN THỨ BA CÙNG MỘT HÌNH MẪU — và là kết luận thực dụng của cả ngày
+| phép thử | đường ống công phu | bị thua bởi |
+|---|---|---|
+| H42 (#81) định tuyến trên code | định tuyến oracle + escalate | `big_greedy`, thua cả acc lẫn chi phí |
+| H50 (#90) tự lập kế hoạch | kế hoạch → giải → tự kiểm | tuần tự thường |
+| **H51 (#91) kế hoạch bất đối xứng** | 7B lập kế hoạch → 1.5B giải → tự kiểm | **`big_greedy`, −.140 với +2.00 chi phí** |
+
+> **TRÊN CODE, chi phí điều phối KHÔNG BAO GIỜ tự bù lại.** Cùng ngần ấy tính toán,
+> chạy MỘT LƯỢT model lớn hơn luôn tốt hơn.
+
+### Điều này KHÔNG mâu thuẫn với H15 (+14 điểm nhờ Verifier 7B)
+H15 đo trên **toán**, và vai đó là **KIỂM TRA** (dùng thông tin đúng/sai), không phải **LẬP KẾ HOẠCH**.
+Khớp với phân biệt đã khoá ở #42: **bộ kiểm có giá trị khi là ORACLE về tính đúng**;
+lập kế hoạch không mang thông tin đúng/sai nào cả.
+
+### Giới hạn phải nêu
+Một bộ dữ liệu (BigCodeBench), một cặp model (1.5B/7B), n=300, chưa tái lập.
+Chưa thử: kế hoạch từ model MẠNH HƠN NỮA, hoặc trên toán (nơi tuần tự vốn có tác dụng).
