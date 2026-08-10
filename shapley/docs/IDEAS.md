@@ -3106,3 +3106,32 @@ Hai loạt kernel riêng biệt. **Kết quả bão hoà ở #85 đứng vững.
 > Ở cùng ngân sách, **thêm một lượt tinh chỉnh tuần tự** (giải lại + tự kiểm) hơn lấy mẫu + bỏ phiếu
 > **khi model còn xa trần trên tác vụ đó** (`greedy` < ~.60), và hại khi đã bão hoà (`greedy` > ~.85).
 > **Việc có nhắc lại đáp án cũ (mỏ neo) hay không gần như không ảnh hưởng trên toán, và GÂY HẠI trên code.**
+
+## [Loop] VÒNG #88 — **H48: QUY TẮC BÃO HOÀ CHỈ ĐÚNG CHO **TOÁN**. HÀNG 2 của #54.** → SỬA VÒNG #87
+### MBPP 11–510, 498 bài/ô, TOÀN BỘ bài (không escalate), biên dịch .989/.993
+| ô | greedy | maj3 | A (có mỏ neo) | B (không mỏ neo) | **delta_seq** | A−B |
+|---|---|---|---|---|---|---|
+| **mbpp-1.5B** | **.4558** | .4558 | .4337 | .4277 | **−.0221** | +.0060 |
+| mbpp-7B | .6546 | .6727 | .6024 | .6104 | **−.0703** | −.0080 |
+
+### Ô QUYẾT ĐỊNH: mbpp-1.5B có `greedy` = .4558 — **XA TRẦN**, quy tắc toán bảo phải DƯƠNG
+Đo được **−.0221**. **Âm.** Tuần tự hại trên code **kể cả khi model còn xa trần**.
+=> **Quy tắc bão hoà (#85) KHÔNG chuyển sang code.** Phát biểu tôi ghi ở vòng #87 nói chung cho
+"tác vụ" là **QUÁ RỘNG** và phải thu hẹp lại thành **chỉ cho TOÁN**.
+**PRIOR CỦA TÔI SAI** (đoán hàng 1). Tỉ lệ prior đúng: 2/8.
+
+### PHÁT BIỂU ĐÃ SỬA (thay cho bản ở vòng #87)
+> **TRÊN TOÁN** (GSM8K, MATH), ở cùng ngân sách, thêm một lượt tinh chỉnh tuần tự hơn lấy mẫu +
+> bỏ phiếu **khi model còn xa trần** (`greedy` < ~.60), và hại khi đã bão hoà (`greedy` > ~.85).
+> **TRÊN CODE, tuần tự hại ở CẢ HAI cỡ model** (−.022 ở 1.5B `greedy` .46; −.070 ở 7B `greedy` .65),
+> nên quy tắc bão hoà **không áp dụng cho code**. Vì sao code khác — **CHƯA GIẢI THÍCH ĐƯỢC**.
+
+### PHÁT HIỆN THỨ HAI: tác hại của MỎ NEO chỉ nằm ở **NHÓM ĐÃ LỌC**
+Trên TOÀN BỘ bài: `A − B` = **+.0060 / −.0080** ≈ 0.
+Trên **nhóm escalate** (H44/H47): `A − B` = **−.0981 / −.0800**.
+=> Mỏ neo gây hại **tập trung ở những bài mà model yếu đã trượt test hiển thị** (bài khó/gài),
+và **triệt tiêu** khi tính trên toàn bộ. Cả hai phép đo đều đúng; phát biểu "mỏ neo hại trên code"
+**bắt buộc kèm điều kiện "trên nhóm bài khó đã lọc"**.
+
+### Ghi chú: ở mbpp-1.5B, `maj3` = `greedy` = .4558 **bằng nhau tuyệt đối**
+Lấy 3 mẫu không thêm được bài nào so với 1 lượt tham lam. Củng cố "nút thắt là SINH, không phải CHỌN".
