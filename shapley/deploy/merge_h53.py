@@ -69,4 +69,4 @@ if R["ref1"]["good_refactor"] and abs(R["ref_seq"]["good_refactor"] - R["ref1"][
 json.dump({"n": n, "parsed": round(parsed, 3), "arms": R,
            "exec3_minus_seq": round(d, 4), "exec3_minus_exec1": round(d1, 4)},
           open(f"{RES}/H53_merged.json", "w"), indent=2)
-print(f"\nda ghi {RES}/H52_merged.json")
+print(f"\nda ghi {RES}/H53_merged.json")

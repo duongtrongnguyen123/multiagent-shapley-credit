@@ -3285,3 +3285,40 @@ H44/H47: mỏ neo vào code **HỎNG** khiến model VÁ thay vì viết lại (
 Ở đây code đưa vào **ĐÚNG** và mỏ neo chính là đề bài — nhưng model vẫn làm hỏng 1/4 số bài.
 => Vấn đề **không chỉ** là "mỏ neo vào code sai": model **không giữ nổi hành vi** khi viết lại,
 bất kể code gốc đúng hay sai.
+
+
+## [Loop] VÒNG #93 — **H53: ORACLE CHỈ ĐÚNG CHỖ HỎNG, NHƯNG MODEL KHÔNG SỬA NỔI**
+### BigCodeBench refactor, 267 bài, nf4, oracle sửa tối đa 3 vòng
+| nhánh | preserve | simpler¹ | good | nút TB |
+|---|---|---|---|---|
+| `ref1` | .7378 | .3147 | .2322 | 111.2 |
+| `ref_seq` (LLM tự nhận xét) | **.7116** | .2947 | .2097 | 114.3 |
+| `ref_exec1` (1 vòng) | .7715 | .3058 | .2360 | 112.9 |
+| `ref_exec3` (tối đa 3 vòng) | **.7903** | .3081 | .2434 | 114.1 |
+| *(gốc)* | | | | 119.3 |
+
+### TÁI LẬP GẦN NHƯ HOÀN HẢO — kiểm tra quan trọng nhất, và nó ĐẠT
+`ref_exec1` = **.7715**, H52 đo được **.7707** -> lệch **+.0008**.
+`ref_seq` = **.7116**, H52 = **.7105**. Hai loạt kernel riêng biệt.
+=> Toàn bộ đường ống refactor **tái lập được**. Đây là cơ sở để tin phần còn lại.
+
+### PHÁN QUYẾT: **HÀNG 2 của #59** — vòng sửa thêm gần như vô ích
+`exec3 − exec1` = **+.0188**, **dưới ngưỡng .02 đã khoá**.
+Và KHÔNG phải vì không dùng tới: **trung bình 2.70 vòng** trên các bài hỏng, chạm trần 3.
+Model được chỉ ĐÚNG bài test nào trượt, **ba lần**, và chỉ cứu thêm **1.9 điểm**.
+**~21% vẫn hỏng** sau tất cả. **PRIOR CỦA TÔI ĐÚNG.** Tỉ lệ: 5/12.
+
+### ĐỐI CHIẾU VỚI H35 — ĐÂY MỚI LÀ PHÁT HIỆN
+| | tác vụ | oracle 3 vòng đáng giá |
+|---|---|---|
+| H35 `exec3` | **SINH code mới** | **+6 đến +11 điểm** |
+| H53 `ref_exec3` | **REFACTOR** | **+1.9 điểm** |
+Cùng một giao thức, cùng loại oracle. Khác ở chỗ **model có sửa nổi hay không**.
+=> **Lỗi khi SINH code thì thô và khu trú được; lỗi khi REFACTOR là TRÔI NGỮ NGHĨA TINH VI.**
+Stack trace nêu **triệu chứng** chứ không chỉ ra **chỗ lệch**. Oracle cung cấp thông tin như nhau,
+nhưng chỉ hữu ích khi model đủ sức hành động theo nó.
+
+### Sửa lại phát biểu chung của dự án về oracle
+Trước nay: *"bộ kiểm có giá trị khi là ORACLE về tính đúng"*. Cần thêm điều kiện:
+> **Oracle chỉ đáng giá khi model CÓ THỂ HÀNH ĐỘNG theo tín hiệu đó.**
+> Trên refactor, oracle phát hiện đúng nhưng model không sửa được -> lợi ích gần như bằng 0.
