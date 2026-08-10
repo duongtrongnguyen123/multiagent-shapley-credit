@@ -2931,3 +2931,39 @@ RÚT LẠI cơ chế vòng #81") **KHÔNG kích hoạt** — cơ chế đứng v
 ### Ghi thêm: `big_maj8` = `big_maj3` = .7371 **chính xác bằng nhau**
 Lấy thêm 5 mẫu nữa của 7B trên MBPP **không thêm một bài nào**. Củng cố "nút thắt là SINH,
 không phải CHỌN" — ở code còn rõ hơn ở toán.
+
+## [Loop] VÒNG #83 — **H41: GIẢ THUYẾT "TRẦN" CHẾT DỨT KHOÁT. HÀNG 3 — NGƯỢC HẲN.**
+### GSM8K 500 bài, 20 shard Kaggle, 7B nf4, độ khó = số bước tính, đẳng thức tự kiểm HỢP LỆ mọi tầng
+| tầng | n | esc% | big_maj3 | escalate_seq | **gain** | opp_cost | gain_on_esc |
+|---|---|---|---|---|---|---|---|
+| DỄ (≤2 bước) | 188 | .197 | **.9628** | .8883 | **−.0745** | +.0530 | −.1621 |
+| GIỮA (3) | 125 | .304 | .9120 | .8400 | **−.0720** | +.0919 | −.0263 |
+| KHÓ (≥4) | 187 | .455 | .9037 | .7701 | **−.1336** | +.1569 | −.1059 |
+| TẤT CẢ | 500 | .320 | .9280 | .8320 | −.0960 | +.0941 | −.1000 |
+
+### PHÉP THỬ NÀY **HỢP LỆ** — khác H40
+Bổ sung #47 khoá: *"nếu `big_maj3`(DỄ) < .90 thì CHƯA chạm bão hoà, không kết luận"*.
+Đo được **.9628 ≥ .90** -> **đã chạm vùng bão hoà thật**. Điều kiện huỷ KHÔNG kích hoạt.
+
+### PHÁN QUYẾT: **HÀNG 3 của bảng khoá #47**
+`gain`(KHÓ) − `gain`(DỄ) = −.1336 − (−.0745) = **−.0591**, vượt ngưỡng −.03.
+Câu chữ đã khoá: *"**NGƯỢC HẲN. Giả thuyết trần CHẾT.** Ghi rõ, không diễn giải lại."*
+Định tuyến **tệ hơn ở bài KHÓ**, không phải tốt hơn. `opp_cost` cũng đi ngược dự đoán:
+**+.0530 → +.0919 → +.1569**, TĂNG theo độ khó (tôi đoán nó GIẢM).
+**PRIOR CỦA TÔI SAI LẦN THỨ NĂM LIÊN TIẾP** (#78,#79,#80,#81,#83).
+
+### BỨC TRANH BA MIỀN — **MATH mới là NGOẠI LỆ, không phải quy luật**
+| miền | `gain_on_esc` (giá trị mỗi lần escalate) |
+|---|---|
+| MATH | **+.1667 / +.1875 / +.1756** (dương, gần như hằng số) |
+| GSM8K | **−.1621 / −.0263 / −.1059** (âm) |
+| CODE (MBPP) | **−.1159 (H42) / −.1164 (H43)** (âm, tái lập) |
+=> Lượt 7B **tuần tự có mỏ neo** chỉ đáng giá **ở MATH**. Ở GSM8K và code nó **gây hại**.
+Trước đây tôi phát biểu "tuần tự hơn lấy mẫu" như khẳng định mạnh nhất dự án, với ngoại lệ
+là "ô bão hoà". Nay: **hai trong ba miền cho dấu ÂM**. Ngoại lệ không phải bão hoà —
+mà đơn giản là **MATH khác hai miền kia**, và **CHƯA GIẢI THÍCH ĐƯỢC vì sao**.
+
+### Điều gì CHƯA chết
+Lưới H32 (PSV vs maj@3, cùng ngân sách, một model) vẫn đứng: PSV thắng 3/4 ô, tái lập hai phần cứng.
+H41 đo thứ KHÁC: **escalate 1.5B→7B** rồi mới chạy tuần tự. Không được lẫn hai phát biểu.
+Việc cần làm là đối chiếu trực tiếp hai thiết kế trên cùng bài — chưa làm.
