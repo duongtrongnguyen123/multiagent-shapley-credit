@@ -2032,3 +2032,36 @@ MBPP `task_id` **511–974** (464 bài) — tách mà H44 CHƯA từng chạy. 1
 ## Prior TRUNG THỰC (ghi trước)
 Đoán hàng 1 (tái lập, lệch < .05), vì hai lần đo trước trên code (`C − A`) lệch nhau chỉ .0005.
 Prior gần đây: đúng 1/6.
+
+# Đăng ký trước #54 — H48: QUY TẮC BÃO HOÀ (#51) CÓ ĐÚNG TRÊN **CODE** KHÔNG?
+**Viết TRƯỚC khi chạy.** Giải quyết mâu thuẫn giữa vòng #85 và vòng #84/#86.
+
+## Mâu thuẫn cần giải
+- #85 (H45): `delta_seq` DƯƠNG ở mọi ô có `greedy` < .60, ÂM ở ô `greedy` > .85. **Lưới đó chỉ có
+  toán — KHÔNG có ô code nào.**
+- #84/#86 (H44/H47): trên nhóm escalate của MBPP, 7B đạt `maj@3` = .5245 / .5867 — **nằm trong dải
+  "đáng lẽ phải giúp"** — nhưng tuần tự **THUA** lấy mẫu 5.7 / 8.9 điểm.
+=> Hoặc quy tắc bão hoà KHÔNG áp dụng cho code, hoặc code hỏng vì lý do khác. Chưa phân biệt được.
+
+## Thiết kế — thêm ĐÚNG hai ô code vào lưới #51/#52, cùng bộ arm
+MBPP `task_id` 11–510, **TOÀN BỘ bài** (không escalate, không hai model), 2 ô × 6 shard = 12 kernel:
+- ô `mbpp-1.5B` (dự kiến `greedy` ≈ .42 — **XA TRẦN**) và ô `mbpp-7B` (dự kiến `greedy` ≈ .71)
+- nhánh: `greedy` (thước đo bão hoà), `maj3` (bỏ phiếu theo HÀNH VI), **A** (giải → giải lại có mỏ neo
+  → tự kiểm), **B** (giải → giải lại mới → tự kiểm). Chấm CHỈ bằng `assert[1..2]`.
+Giống hệt lưới toán, chỉ đổi tác vụ -> so sánh trực tiếp được với 4 ô đã có.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+n mỗi ô ≥ 400. Tỉ lệ biên dịch được ≥ .50. Ô không đạt ⇒ không đọc.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `delta_seq`(mbpp-1.5B) > 0 (ô có `greedy` < .60) | **Quy tắc bão hoà ĐÚNG cả trên code.** Thất bại ở H44/H47 là do đo trên NHÓM ESCALATE (bài đã lọc), không phải do miền code. |
+| `delta_seq`(mbpp-1.5B) < 0 dù `greedy` < .60 | **Quy tắc bão hoà KHÔNG áp dụng cho code.** Code khác về bản chất. Phải ghi rõ #85 chỉ đúng cho TOÁN, và sửa phát biểu đã ghi ở vòng #87. |
+| cả hai ô code đều ≈ 0 (\|delta\| < .02) | Tuần tự **trung tính** trên code; thiệt hại ở H44/H47 đến từ việc chỉ chạy trên nhóm escalate. |
+| `delta_seq`(mbpp-7B) > 0 dù `greedy` > .60 | Điểm đổi dấu ước lượng .62–.71 ở #85 **SAI**; phải bỏ con số đó. |
+| A − B < −.05 ở ô code | Mỏ neo hại trên code kể cả khi KHÔNG escalate -> củng cố #84/#86 ngoài phạm vi nhóm escalate. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán hàng 1 (quy tắc đúng cả trên code; thất bại trước đó là do lọc theo nhóm escalate).
+Prior gần đây: đúng 2/7 (#84, #86 đúng; #78–#81, #83 sai).
