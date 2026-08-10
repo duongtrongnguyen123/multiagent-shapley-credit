@@ -160,21 +160,6 @@ def pgen(models, sysm, by_idx, temp, rounds, ban=None):
     if miss: raise RuntimeError(f"thieu {len(miss)} bai")
     return store
 
-if SIZE == "7":
-    BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
-                             bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
-    try:
-        MS = [AutoModelForCausalLM.from_pretrained(MODEL, quantization_config=BNB, device_map={"": d}).eval() for d in DEVS]
-        QUANT = "nf4"
-    except Exception as e:
-        print(f"nf4 that bai ({e}) -> fp16 auto", flush=True)
-        MS = [AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16, device_map="auto").eval()]
-        QUANT = "fp16-fallback"
-else:
-    MS = [AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16).to(d).eval() for d in DEVS]
-    QUANT = "fp16"
-print(f"{len(MS)} ban sao | {QUANT}", flush=True)
-
 BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                          bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 try:
