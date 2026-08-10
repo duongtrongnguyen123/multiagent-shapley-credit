@@ -1854,3 +1854,38 @@ Nhánh đối chứng: `small_maj3`, `big_maj3`, `big_maj8`.
 là bằng chứng yếu hơn hẳn so với biết đáp án đúng — nhưng 3 chương trình sai mà trùng đầu ra
 thì hiếm (đã loại trường hợp cùng crash).
 **Prior của tôi đã sai 3 lần liên tiếp (#78, #79, #80).** Bảng khoá mới là thứ quyết định.
+
+# Đăng ký trước #49 — H43: KIỂM NHÁNH HẬU NGHIỆM CỦA #81 TRÊN PHẦN MBPP **CHƯA HỀ ĐỤNG TỚI**
+**Viết TRƯỚC khi chạy.** Vòng #81 quan sát hậu nghiệm; đây là phép thử độc lập của nó.
+
+## Vì sao
+#81 (H42) đo trên MBPP `task_id` 11–510: định tuyến oracle có `opp_cost` ÂM (phân loại gần hoàn hảo)
+nhưng thua vì **hành động sau escalate** — lượt 7B TUẦN TỰ kém bỏ phiếu 7B×3 tới **11.6 điểm**.
+Từ CHÍNH dữ liệu đó tôi tính ra: giữ tín hiệu oracle, escalate bằng `maj@3` -> **.6606 / chi phí 8.91**,
+hơn `big_maj3` +.0080 và rẻ hơn 1.71×. **Biên độ chỉ +.008 = ~4 bài trên 498.** Rất có thể là nhiễu.
+
+## Dữ liệu — KHÔNG dùng lại một bài nào
+MBPP `task_id` **511–974** (~464 bài). Dự án CHƯA từng chạy phần này. Cùng giao thức, cùng model,
+cùng bộ chấm: `assert[0]` để định tuyến, `assert[1..2]` CHỈ để chấm.
+
+## Nhánh (khoá trước)
+`small_1`, `small_maj3`, `big_greedy`, `big_maj3`, `big_maj8`,
+`route_oracle_seq` (như #81), **`route_oracle_maj3`** (nhánh cần kiểm: escalate -> 7B maj@3).
+Chi phí: `route_oracle_maj3` = 1 + 3·5.07·pe · | `route_oracle_seq` = 1 + 2·5.07·pe · | `big_maj3` = 15.20
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`pct_escalated` ngoài .15–.85 ⇒ SUY BIẾN. Tỉ lệ biên dịch được < .50 ⇒ huỷ. n ≥ 400.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `route_oracle_maj3` > `big_maj3` **và** rẻ hơn | **XÁC NHẬN.** Quy tắc dùng được cho code: định tuyến bằng TÍN HIỆU THẬT (chạy 1 test), rồi escalate bằng **LẤY MẪU**, KHÔNG phải tuần tự. |
+| \|chênh\| < .01 nhưng rẻ hơn rõ | Ngang độ chính xác, rẻ hơn. Kết luận YẾU: chỉ tiết kiệm chi phí, không cải thiện. |
+| `route_oracle_maj3` < `big_maj3` | **Nhánh hậu nghiệm KHÔNG tái lập.** +.0080 ở #81 là nhiễu do nhìn dữ liệu rồi mới dựng nhánh. **Định tuyến trên code CHẾT hoàn toàn.** Ghi rõ. |
+| `gain_on_esc`(seq) ≥ 0 ở tách này | Phát hiện "tuần tự hại trên code" (#81) KHÔNG tái lập -> phải **RÚT LẠI** cơ chế đã ghi ở vòng #81. |
+| `pct_escalated` ngoài .15–.85 | SUY BIẾN, không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 hoặc 3**, KHÔNG phải hàng 1: biên độ +.008 quá nhỏ so với nhiễu giữa các lần chạy
+(đã thấy `maj@3` lệch 3.2 điểm giữa hai lần chạy ở H40). Prior của tôi đã sai **4 lần liên tiếp**
+(#78,#79,#80,#81) nên trọng số của nó thấp; bảng khoá mới là thứ quyết định.
