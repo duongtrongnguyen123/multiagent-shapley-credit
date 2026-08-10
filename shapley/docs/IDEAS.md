@@ -3249,3 +3249,39 @@ lập kế hoạch không mang thông tin đúng/sai nào cả.
 ### Giới hạn phải nêu
 Một bộ dữ liệu (BigCodeBench), một cặp model (1.5B/7B), n=300, chưa tái lập.
 Chưa thử: kế hoạch từ model MẠNH HƠN NỮA, hoặc trên toán (nơi tuần tự vốn có tác dụng).
+
+
+## [Loop] VÒNG #92 — **H52: REFACTOR — oracle GIÚP nhưng KHÔNG đạt ngưỡng tôi đã khoá**
+### BigCodeBench, 266 bài (lời giải chuẩn đã đạt test trong chính kernel), nf4, AST đọc được .985
+| nhánh | preserve | simpler¹ | good_refactor | nút TB |
+|---|---|---|---|---|
+| `ref1` | **.7406** | .3147 | **.2331** | 111.2 |
+| `ref_seq` (LLM tự nhận xét) | **.7105** | .2963 | .2105 | 114.5 |
+| `ref_exec` (chạy test) | **.7707** | .3073 | .2368 | 113.1 |
+| *(gốc)* | — | — | — | 119.5 |
+
+¹ chỉ tính trên các bài `preserve`
+
+### PHÁN QUYẾT: **nằm GIỮA hai ngưỡng — không được coi là xác nhận**
+`preserve(exec) − preserve(seq)` = **+.0602**, nằm giữa .05 và .10 đã khoá.
+Hướng ủng hộ oracle nhưng **KHÔNG đạt ngưỡng đã đăng ký**, nên **không được nói là xác nhận #42**.
+**PRIOR CỦA TÔI SAI** (đoán hàng 1, ≥ .10). Tỉ lệ: 4/11.
+
+### KẾT QUẢ SẮC NHẤT: **lượt LLM tự nhận xét làm REFACTOR TỆ ĐI**
+`ref_seq` thua `ref1` ở **mọi** thước đo: preserve −.0301, good −.0226, và code **TO HƠN**
+(114.5 vs 111.2 nút). Một lượt "xem lại" mà **không có cách kiểm hành vi** thì **phá** bản refactor
+đang chạy được. Đây là lần thứ **tư** trong ngày LLM-tự-nhận-xét-không-oracle tỏ ra vô ích hoặc có hại
+(H35 `llm3`, #90 PSV, #91, nay #92).
+
+### GIỚI HẠN NĂNG LỰC — nêu thẳng
+- Chỉ **~23%** lần refactor vừa giữ hành vi vừa đơn giản hơn.
+- **~26% vẫn làm hỏng hành vi NGAY CẢ KHI có oracle sửa lỗi** (`ref_exec` preserve .7707).
+- `ref1` làm hỏng ngay **69/266 = 25.9%**.
+- Độ phức tạp giảm rất ít: 119.5 → 111.2 nút (**~7%**).
+=> 7B ở quy mô này **phần lớn hoặc làm hỏng code, hoặc gần như không đổi gì**.
+
+### VỀ MỎ NEO — câu hỏi đặt ra khi thiết kế
+H44/H47: mỏ neo vào code **HỎNG** khiến model VÁ thay vì viết lại (−8..−10 điểm ở nhóm khó).
+Ở đây code đưa vào **ĐÚNG** và mỏ neo chính là đề bài — nhưng model vẫn làm hỏng 1/4 số bài.
+=> Vấn đề **không chỉ** là "mỏ neo vào code sai": model **không giữ nổi hành vi** khi viết lại,
+bất kể code gốc đúng hay sai.
