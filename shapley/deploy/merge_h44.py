@@ -35,6 +35,9 @@ esc = [it for it in items if it["esc_oracle"]]
 pe = len(esc) / len(items)
 print(f"\nnhom escalate (bo dinh tuyen oracle): {len(esc)}/{len(items)} = {pe:.3f} "
       f"({'HOP LE' if .15 <= pe <= .85 else 'SUY BIEN -> khong doc'})")
+if not esc:
+    print("nhom escalate RONG -> khong co gi de so. Dung.")
+    raise SystemExit(1)
 if len(esc) < 100:
     print(f"n_escalate = {len(esc)} < 100 -> DUOI NGUONG da khoa, khong ket luan")
 
