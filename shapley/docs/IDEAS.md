@@ -3175,3 +3175,40 @@ nhưng **không cổng nào kiểm NHÁNH ĐỐI CHỨNG có đúng là thứ n�
 1. **KHÔNG được dùng tín hiệu chấm điểm để chọn** (nếu không thì nó là oracle, không phải bỏ phiếu).
 2. Phải là **chọn 1 trong k**, không phải điều kiện hội trên k.
 Và: **lưu code của MỌI mẫu**, không chỉ cờ đạt/không — nếu có code thì đã cứu được nhánh này.
+
+
+## [Loop] VÒNG #90 — **H50: LẬP KẾ HOẠCH **THẬT SỰ** KHÔNG ĐÁNG MỘT LƯỢT, KỂ CẢ TRÊN BÀI DÀI**
+### BigCodeBench 300 bài/ô. **Can thiệp ĐÃ diễn ra**: "kế hoạch" chứa code chỉ **7.0%** (1.5B) và **0.0%** (7B)
+Cưỡng chế ở tầng sinh (`bad_words_ids` chặn dấu rào code) hạ tỉ lệ từ **85.3% → 7.0%**.
+Bảo model "đừng viết code" vô dụng; **chặn token thì được**.
+
+| ô | plan có code | greedy | seq | PSV | **PSV − seq** |
+|---|---|---|---|---|---|
+| bcb-1.5B | 7.0% | .1567 | .1900 | .1267 | **−.0633** |
+| bcb-7B | 0.0% | .3467 | .3467 | .3100 | **−.0367** |
+
+### PHÁN QUYẾT: **HÀNG 4 của #56, ở CẢ HAI ô**
+Dùng một trong ba lượt để LẬP KẾ HOẠCH **thua** dùng nó để GIẢI THỬ, **3.7–6.3 điểm**.
+Khác H49: lần này **can thiệp CÓ diễn ra**, nên đây là **kết quả âm THẬT**.
+**PRIOR CỦA TÔI ĐÚNG** (đoán hàng 4). Tỉ lệ: 3/9.
+
+### TRẢ LỜI TRỰC TIẾP CHO GIẢ THUYẾT CỦA NGUYÊN
+Nguyên nêu: MBPP là hàm 3 dòng, không có gì để lập kế hoạch — hãy thử bài dài, nhiều bước.
+Đã thử: BigCodeBench dài gấp ~4 lần, phải ghép nhiều thư viện, đặc tả đầu ra nhiều phần.
+**Lập kế hoạch VẪN không đáng một lượt.** Các kết quả null trước đây trên GSM8K/MATH/MBPP
+**KHÔNG phải** do bộ dữ liệu quá ngắn.
+
+### GIẢ THUYẾT THAY THẾ CŨNG CHẾT
+Tôi đã khoá sẵn hàng: nếu cưỡng chế làm `PSV` TỤT MẠNH thì thứ đang giúp là **BẢN NHÁP CODE**,
+không phải kế hoạch. Đo được: `.1433 → .1267` và `.2967 → .3100` — **gần như không đổi**.
+=> `PSV` thua từ trước rồi, không phải vì code lọt vào kế hoạch.
+
+### KHÔNG được khẳng định
+- So với **lấy mẫu song song**: KHÔNG kết luận được — `maj3` trên BigCodeBench đã bị huỷ ở vòng #89
+  do lỗi thiết kế của tôi (chọn bằng kết quả test = rò rỉ).
+- `seq − greedy` = +.0333 / +.0000 là **3 lượt so với 1 lượt**, không ngang ngân sách.
+- Một bộ dữ liệu, hai cỡ model, n=300 mỗi ô. **Người lập kế hoạch là CHÍNH model đi giải** —
+  một planner MẠNH HƠN (model lớn hơn lập kế hoạch cho model nhỏ giải) **chưa được thử**.
+
+### Ghi chú: ở 7B, `greedy` = `seq` = **.3467 bằng nhau tuyệt đối** (lặp lại y hệt H49)
+Hai lượt tinh chỉnh thêm không đổi được một bài nào trên BigCodeBench ở 7B.
