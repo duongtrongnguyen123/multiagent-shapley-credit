@@ -28,7 +28,10 @@ print("MODEL", MODEL, flush=True)
 # dataset hendrycks chứa MATH/train/**/*.json (có level gốc) + test csv
 FILES = glob.glob("/kaggle/input/**/MATH/train/**/*.json", recursive=True)
 CSV = sorted(glob.glob("/kaggle/input/**/math_500_test.csv", recursive=True), key=len)
-print(f"MATH train json: {len(FILES)}; test csv: {CSV[:2]}", flush=True)
+print(f"MATH train json: {len(FILES)}; test csv found: {len(CSV)}", flush=True)
+if not CSV:
+    raise FileNotFoundError("khong thay math_500_test.csv :: "
+                            + str(glob.glob('/kaggle/input/**', recursive=True)[:30]))
 
 tok = AutoTokenizer.from_pretrained(MODEL); tok.padding_side = "left"
 if tok.pad_token is None: tok.pad_token = tok.eos_token
