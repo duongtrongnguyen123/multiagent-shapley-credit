@@ -4,9 +4,13 @@
 import sys, json, glob
 
 RES = sys.argv[1] if len(sys.argv) > 1 else "res_h52"
-items = []
+items = []; quants = set()
 for f in sorted(glob.glob(f"{RES}/**/res_H52s*.json", recursive=True)):
-    items += json.load(open(f))["items"]
+    d = json.load(open(f)); items += d["items"]; quants.add(d.get("quant", "?"))
+if len(quants) > 1:
+    print(f"DUNG: shard chay o CAC DO CHINH XAC KHAC NHAU {sorted(quants)} -> khong duoc gop chung.")
+    raise SystemExit(1)
+print(f"luong tu hoa (dong nhat): {sorted(quants)}")
 n = len(items)
 nf = len(glob.glob(f"{RES}/**/res_H52s*.json", recursive=True))
 print(f"gop {nf} shard, {n} bai (loi giai chuan da dat test)")

@@ -120,6 +120,13 @@ chết vì `NameError`. Cách bắt: sau khi dựng, **liệt kê hàm đã đ�
 với danh sách hàm cần có**, rồi kiểm mọi tên toàn cục đã được gán (`symtable`).
 Cú pháp đúng ≠ tên tồn tại.
 
+**Chèn khối mới vào kernel cũ: phải XOÁ khối cũ tương ứng**
+H52 dựng bằng cách thay đoạn từ `PR = ...` trở đi, nhưng **khối nạp model nằm TRƯỚC dòng đó**
+nên còn nguyên -> kernel nạp 7B **hai lần**. Lần hai hết VRAM nên tụt về fp16, và shard nào
+chật hơn thì OOM chết. Hậu quả ngầm: 3 shard xong đều là `fp16-fallback` chứ không phải nf4.
+Cách bắt: `grep -c "from_pretrained"` sau khi dựng, và **so `quant` giữa các shard trước khi gộp**
+(script gộp nay DỪNG nếu các shard chạy ở độ chính xác khác nhau).
+
 **Bí mật:** token `KGAT_...` không bao giờ được commit. `accounts.txt`, `manifest*.json`,
 `kernels_*/`, `monitor.sh` đều nằm trong `.gitignore`. Tên tài khoản không xuất hiện trong tài liệu chung.
 
@@ -137,3 +144,5 @@ Cú pháp đúng ≠ tên tồn tại.
 - [ ] Tên file đầu ra **duy nhất toàn loạt** (không chỉ duy nhất trong một ô)
 - [ ] Sau khi tải: **số file trên đĩa == số shard báo xong**
 - [ ] Kernel dựng bằng cắt/ghép: **đối chiếu danh sách hàm bằng AST**, không chỉ `ast.parse`
+- [ ] Đếm số lần `from_pretrained` — chèn khối mới mà quên xoá khối cũ = nạp model hai lần
+- [ ] Trước khi gộp: **mọi shard cùng một `quant`**
