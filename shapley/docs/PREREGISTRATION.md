@@ -2201,3 +2201,48 @@ Nạp model TUẦN TỰ (7B lập kế hoạch cho toàn bộ, giải phóng, r�
 Đoán **hàng 2** (giúp model nhỏ nhưng bị `big_greedy` áp đảo) — theo đúng hình mẫu H42:
 tín hiệu/kế hoạch tốt, nhưng cấu hình tổng thể vẫn thua việc dùng thẳng model lớn.
 Tỉ lệ prior đúng gần đây: 3/9.
+
+
+# Đăng ký trước #58 — H52: **REFACTOR** — giữ nguyên hành vi có cần ORACLE THẬT không?
+**Viết TRƯỚC khi chạy.** Nguyên đề xuất thử tác vụ refactor.
+
+## Vì sao refactor là phép thử đúng cho phân biệt trung tâm
+Phân biệt đã khoá ở #42 và củng cố ở H35: **bộ kiểm chỉ có giá trị khi là ORACLE VỀ TÍNH ĐÚNG**
+(`exec3` +6..+11), **không** khi chỉ là LLM tự nhận xét (`llm3` ≈ 0).
+Refactor là nơi phân biệt đó sắc nhất: **"hành vi có đổi không" được bộ test trả lời CHÍNH XÁC**.
+Ngoài ra refactor còn là **mỏ neo ở dạng thuần tuý**: model được đưa code và bảo cải thiện.
+Ở H44/H47, mỏ neo vào code HỎNG khiến model VÁ thay vì viết lại (−8..−10 điểm).
+Ở đây code được đưa là **ĐÚNG** — mỏ neo chính là đề bài.
+
+## Dữ liệu
+BigCodeBench 300 bài. Đầu vào refactor = `complete_prompt + canonical_solution` (lời giải chuẩn,
+**đã chạy qua test trong chính kernel** để lọc; bài nào lời giải chuẩn không đạt thì LOẠI).
+Trung vị: 114 nút AST, 35 dòng.
+
+## Nhánh (7B)
+- `ref1` — refactor 1 lượt
+- `ref_seq` — refactor → **LLM tự nhận xét** (2 lượt) — **KHÔNG có oracle**
+- `ref_exec` — refactor → **CHẠY TEST** → nếu trượt thì sửa theo stderr (2 lượt) — **CÓ oracle**
+Nêu rõ: `ref_exec` **dùng chính bộ test dùng để chấm**. Đó KHÔNG phải so sánh ngang thông tin;
+đúng là điều kiện "có oracle" mà #42 định nghĩa. Câu hỏi là **oracle đáng giá bao nhiêu**.
+
+## Thước đo (khoá trước)
+1. **`preserve`** = code sau refactor VẪN đạt bộ test. Đây là thước đo chính.
+2. **`simpler`** = giảm số nút AST so với bản gốc, **CHỈ tính trên các bài `preserve`**
+   (nếu không thì xoá sạch code cũng "giảm phức tạp").
+3. **`good_refactor`** = `preserve` **và** `simpler`. Đây mới là refactor thành công.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+n ≥ 250 sau khi lọc. Tỉ lệ phân tích được AST của bản refactor ≥ .80.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `preserve`(exec) − `preserve`(seq) ≥ .10 | **ORACLE LÀ THIẾT YẾU để refactor an toàn.** Xác nhận #42 ở miền thứ ba. LLM tự nhận xét không phát hiện được đổi hành vi. |
+| \|`preserve`(exec) − `preserve`(seq)\| < .05 | LLM tự nhận xét **đủ** cho refactor -> **LÀM YẾU** phân biệt #42. Phải ghi rõ. |
+| `preserve` của MỌI nhánh < .50 | Model **không refactor an toàn được** ở quy mô này. Giới hạn NĂNG LỰC, không phải về vai. |
+| `simpler` cao nhưng `preserve` thấp | "Cải thiện" thực chất là **phá**. Ghi rõ, và chỉ được báo `good_refactor`. |
+| `ref1` ≈ `ref_seq` ở `good_refactor` | Lượt thêm không mang lại gì khi KHÔNG có oracle (khớp #90/#91). |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1** (oracle hơn hẳn), theo #42 và H35. Tỉ lệ prior đúng gần đây: 4/10.
