@@ -3036,3 +3036,34 @@ Hàng 1 chỉ nói về DẤU trong hai dải, và tôi chỉ khẳng định đ
 > Ở CÙNG ngân sách sinh, tinh chỉnh tuần tự có mỏ neo **hơn** lấy mẫu + bỏ phiếu **khi và chỉ khi
 > model còn xa trần trên chính tác vụ đó** (`greedy` < ~.60). Khi model đã bão hoà (`greedy` > ~.85)
 > nó **hại**. Đo sạch trên 4 ô, không escalate, cùng một model cho hai dấu ngược nhau.
+
+## [Loop] VÒNG #86 — **H47: PHÂN RÃ MỎ NEO TÁI LẬP, NHƯNG CON SỐ "63%" THÌ KHÔNG**
+### MBPP 511–974 (tách H44 chưa từng chạy), 464 bài, 225 escalate (.485 HỢP LỆ), biên dịch .993
+| đại lượng | H44 (11–510) | **H47 (511–974)** | lệch |
+|---|---|---|---|
+| **B − A** (riêng MỎ NEO) | +.0981 | **+.0800** | **.018** |
+| C − B (riêng CẤU TRÚC tuần tự) | +.0566 | **+.0889** | .032 |
+| C − A (tổng) | +.1547 | +.1689 | .014 |
+
+### PHÁN QUYẾT: **HÀNG 1 của #53 — TÁI LẬP**
+`B − A` dương ở cả hai tách, lệch **.018 < .05**. **Bỏ mỏ neo hồi lại 8–10 điểm trên code.**
+Đo trên hai tách rời nhau. Đây là kết quả chắc chắn.
+
+### NHƯNG PHẢI **RÚT LẠI** CON SỐ "63%" TÔI ĐÃ NÓI Ở VÒNG #84
+Tỉ lệ `(B−A)/(C−A)` = **63% (H44)** và **47% (H47)**. Hai thành phần **đổi chỗ cho nhau**:
+ở tách thứ hai, CẤU TRÚC tuần tự đóng góp NHIỀU HƠN mỏ neo một chút.
+=> Chỉ được nói: **mỏ neo gây hại ~8–10 điểm trên code, chiếm KHOẢNG MỘT NỬA tổng thiệt hại.**
+KHÔNG được trích "63%". Hai phép đo cách nhau như vậy không đỡ nổi một con số chính xác đến thế.
+(Bảng khoá #53 có sẵn hàng cho tình huống này: "hướng đúng, độ lớn KHÔNG ổn định".)
+
+### Hàng 5 của #53 KHÔNG kích hoạt
+`C − B` giữ NGUYÊN DẤU (dương ở cả hai tách) -> phần "cấu trúc tuần tự cũng gây hại" vẫn đứng,
+dù độ lớn dao động (.0566 vs .0889).
+
+### TỔNG HỢP HAI KẾT QUẢ HÔM NAY VỀ TUẦN TỰ
+- **H45**: dấu của `delta_seq` đi theo **độ chính xác của chính model** — CÙNG 7B cho +.1433 (MATH,
+  `greedy` .49) và −.0100 (GSM8K, `greedy` .91).
+- **H44+H47**: trên code, thiệt hại chia ~nửa-nửa giữa **mỏ neo** và **cấu trúc tuần tự**,
+  tái lập trên hai tách.
+Code (MBPP 7B `greedy` .7091) nằm ở phía "đã khá bão hoà" của điểm đổi dấu .62–.71 -> hai kết quả
+này **nhất quán với nhau**: ở vùng bão hoà, cả mỏ neo lẫn lượt tự kiểm đều chỉ phá đáp án đã đúng.
