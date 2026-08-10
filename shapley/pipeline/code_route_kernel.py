@@ -11,6 +11,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "bitsandbyte
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
+TID_LO, TID_HI = @@TIDLO@@, @@TIDHI@@
 K, MAXNEW, TEMP = 8, 512, 0.8
 KS = 3                      # so ban cua model nho
 BSS, BSB = 32, 8   # 7B nf4: 2 ban sao/the -> logits tien xu ly [B,T,151936] la thu bung VRAM
@@ -36,7 +37,7 @@ ALL = []
 for r in RAW:
     try: tid = int(r["task_id"])
     except Exception: continue
-    if not (11 <= tid <= 510): continue          # tach chuan MBPP test
+    if not (TID_LO <= tid <= TID_HI): continue    # dai task_id do nguoi goi chon
     t = r.get("test_list") or []
     if len(t) < 3: continue
     call = split_assert(t[0])
@@ -44,7 +45,7 @@ for r in RAW:
     ALL.append({"tid": tid, "text": r["text"], "setup": r.get("test_setup_code") or "",
                 "a0": t[0], "a1": t[1], "a2": t[2], "call": call})
 ALL.sort(key=lambda x: x["tid"])
-print(f"sau khi loc: {len(ALL)} bai dung (tach chuan 11-510)", flush=True)
+print(f"sau khi loc: {len(ALL)} bai dung (task_id {TID_LO}-{TID_HI})", flush=True)
 assert len(ALL) >= 400, f"du lieu hong: chi con {len(ALL)}"
 
 MINE = [i for i in range(len(ALL)) if i % NSHARD == SHARD]
@@ -233,7 +234,7 @@ if ESC:
 print("xong pha 3", flush=True)
 
 CAP = 4000
-out = {"tag": f"H42s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
+out = {"tag": f"H43s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
        "quant_big": QUANT, "n_gpu": NG, "task": "mbpp", "items": []}
 for i in MINE:
     x = ALL[i]
@@ -247,6 +248,6 @@ for i in MINE:
         "big_code":   [c[:CAP] for c in B_CODE[i]],
         "seq_code":   (SEQ_CODE.get(i) or "")[:CAP],
     })
-json.dump(out, open(f"/kaggle/working/res_H42s{SHARD}.json", "w"))
-print(f"DA LUU {len(out['items'])} bai -> res_H42s{SHARD}.json", flush=True)
+json.dump(out, open(f"/kaggle/working/res_H43s{SHARD}.json", "w"))
+print(f"DA LUU {len(out['items'])} bai -> res_H43s{SHARD}.json", flush=True)
 print("XONG", flush=True)
