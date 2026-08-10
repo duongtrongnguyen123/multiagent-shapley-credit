@@ -2893,3 +2893,41 @@ Giữ nguyên tín hiệu oracle nhưng escalate bằng **7B maj@3** thay vì tu
 **acc .6606 · chi phí 8.91 · hơn `big_maj3` +.0080 · rẻ hơn 1.71×**.
 Tính từ CHÍNH dữ liệu vừa xem -> **không có giá trị chứng minh**. Phải đăng ký trước và
 kiểm trên **phần MBPP chưa hề đụng tới (task_id 511–974)**. Xem đăng ký trước #49.
+
+## [Loop] VÒNG #82 — **H43 trên MBPP 511–974 (CHƯA TỪNG ĐỤNG): HÀNG 2, không phải hàng 1**
+### 464 bài, 20 shard, 7B nf4, biên dịch được .994 — tất cả nhánh đo trong CÙNG một lần chạy
+| nhánh | acc | chi phí | esc% |
+|---|---|---|---|
+| small_maj3 | .5086 | 3.00 | — |
+| big_greedy | .7091 | 5.07 | — |
+| **big_maj3** | **.7371** | 15.20 | — |
+| big_maj8 | .7371 | 40.53 | — |
+| route_consensus | .5819 | 6.47 | .343 |
+| route_oracle_**seq** | .6228 | 5.89 | .483 |
+| **route_oracle_maj3** (nhánh cần kiểm) | **.7392** | **8.34** | .483 |
+
+### BẢNG KHOÁ CỦA TÔI CÓ HAI HÀNG CHỒNG NHAU — tôi lấy cách đọc BẢO THỦ
+`route_oracle_maj3 − big_maj3` = **+.0021**. Số này thoả **cả** hàng 1 ("> big_maj3 và rẻ hơn")
+**lẫn** hàng 2 ("|chênh| < .01"). Script tôi viết xét hàng 1 trước nên in ra "XÁC NHẬN".
+**Đó là lỗi thiết kế bảng của tôi, và script đã chọn hàng có lợi cho tôi.**
+Cách đọc đúng là **HÀNG 2**: *"Ngang độ chính xác, rẻ hơn. Kết luận YẾU: chỉ tiết kiệm chi phí,
+không cải thiện."* **+.0021 ≈ 1 bài trên 464** — nằm gọn trong nhiễu. Đã sửa thứ tự xét trong script.
+=> Phát biểu được phép dùng: **định tuyến bằng test thật + escalate bằng LẤY MẪU đạt ngang
+`big_maj3` với chi phí 1.82× thấp hơn.** KHÔNG được nói là "chính xác hơn".
+
+### KẾT QUẢ THẬT SỰ MẠNH Ở ĐÂY: **"TUẦN TỰ HẠI TRÊN CODE" ĐÃ TÁI LẬP**
+| | H42 (11–510, 498 bài) | **H43 (511–974, 464 bài, chưa từng đụng)** |
+|---|---|---|
+| lấy mẫu − tuần tự, trên nhóm escalate | **+.1159** | **+.1164** |
+Hai tách rời nhau, chênh nhau **0.0005**. Hàng 4 của #49 ("nếu `gain_on_esc`(seq) ≥ 0 thì phải
+RÚT LẠI cơ chế vòng #81") **KHÔNG kích hoạt** — cơ chế đứng vững.
+`route_oracle_seq` thua `big_maj3` **−.1143**, y hệt hình mẫu ở H42.
+
+### PHÁT BIỂU HỢP NHẤT (toán vs code)
+> Cho model xem lại đáp án trước của chính nó: **+.18 mỗi lần trên MATH**, **−.12 trên CODE**.
+> Cùng một cơ chế, **đảo dấu theo miền**. Ở code, chỉ ORACLE THẬT (chạy test) mới sửa được;
+> mỏ neo bằng văn bản làm model VÁ code sai thay vì viết lại.
+
+### Ghi thêm: `big_maj8` = `big_maj3` = .7371 **chính xác bằng nhau**
+Lấy thêm 5 mẫu nữa của 7B trên MBPP **không thêm một bài nào**. Củng cố "nút thắt là SINH,
+không phải CHỌN" — ở code còn rõ hơn ở toán.

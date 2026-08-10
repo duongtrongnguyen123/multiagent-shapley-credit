@@ -75,8 +75,10 @@ print(f"\n-- doi chieu voi bang khoa #49 (* = nhanh can kiem) --")
 print(f"  route_oracle_maj3 - big_maj3   = {route_orac_maj3-big_maj3:+.4f}   (re hon {3*RATIO/cost_om:.2f}x)")
 print(f"  route_oracle_seq  - big_maj3   = {route_orac-big_maj3:+.4f}")
 print(f"  maj3 vs tuan tu khi escalate   = {route_orac_maj3-route_orac:+.4f}")
-if route_orac_maj3 > big_maj3: print("  -> HANG 1: XAC NHAN (dinh tuyen that + escalate bang LAY MAU)")
-elif abs(route_orac_maj3-big_maj3) < .01: print("  -> HANG 2: ngang do chinh xac, chi re hon")
+# HANG 2 xet TRUOC: hai hang chong nhau trong bang khoa #48/#49, va cach doc
+# BAO THU (|chenh| < .01 = ngang nhau) moi la cach doc trung thuc.
+if abs(route_orac_maj3-big_maj3) < .01: print("  -> HANG 2: NGANG do chinh xac, chi RE HON (chenh trong nguong nhieu .01)")
+elif route_orac_maj3 > big_maj3: print("  -> HANG 1: XAC NHAN (dinh tuyen that + escalate bang LAY MAU)")
 else: print("  -> HANG 3: KHONG TAI LAP -> dinh tuyen tren code CHET hoan toan")
 for nm, p in (("consensus", pe_c), ("oracle", pe_o)):
     if not (0.15 <= p <= 0.85): print(f"  !! pct_escalated({nm}) = {p} NGOAI .15-.85 -> SUY BIEN, khong doc nhanh nay")
