@@ -2125,3 +2125,42 @@ là **kết luận về một can thiệp CHƯA TỪNG DIỄN RA**.
 Ô 1.5B (86%) **KHÔNG ĐỌC ĐƯỢC**. Ô 7B chờ đo — 7B tuân lệnh định dạng tốt hơn nên có thể đạt.
 Nếu ô 7B cũng trượt, phải chạy lại với prompt ép chặt hơn (cấm dấu ```, bắt buộc văn xuôi đánh số)
 trước khi được phát biểu bất cứ điều gì về giá trị của lập kế hoạch.
+
+
+# Đăng ký trước #56 — H50: LẬP KẾ HOẠCH, **CƯỠNG CHẾ Ở TẦNG SINH** (H49 thất bại can thiệp)
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao phải chạy lại
+H49 (#55) hỏng ở khâu can thiệp: "kế hoạch" chứa code ở **85.3% (1.5B)** và **100% (7B)**.
+Bảo model "Do NOT write any code" **không có tác dụng** — cả hai cỡ đều viết thẳng lời giải.
+Không thể kết luận gì về lập kế hoạch từ dữ liệu đó (đã ghi ở bổ sung #55).
+
+## Thay đổi DUY NHẤT so với H49: cưỡng chế, không phải nhờ vả
+1. **Chặn ở tầng sinh**: truyền `bad_words_ids` cho chuỗi ``` (dấu rào code). Model **không thể**
+   sinh khối code trong lượt lập kế hoạch.
+2. Prompt chặt: "Trả lời bằng 3–6 bước đánh số, mỗi bước MỘT CÂU văn xuôi. Không có code."
+3. **Cắt an toàn**: trước khi đưa kế hoạch sang lượt giải, xoá mọi khối ``` còn sót và mọi dòng
+   khớp `def \w+\(`. Lượt giải chỉ nhận VĂN XUÔI.
+
+## Định nghĩa lại thước đo can thiệp (nêu rõ vì đã đổi so với #55)
+`plan_is_code` = có ``` **hoặc** khớp `\bdef\s+\w+\s*\(`.
+(#55 tính cả dòng bắt đầu bằng `import`/`from`; kế hoạch nhắc tên thư viện là HỢP LỆ,
+nên thước đo cũ quá nghiêm. Ghi rõ thay đổi này TRƯỚC khi chạy.)
+**Ngưỡng giữ nguyên: `plan_is_code_rate` > .20 ⇒ ô KHÔNG ĐỌC ĐƯỢC.**
+
+## Thiết kế
+BigCodeBench, 300 bài, 2 ô (1.5B, 7B) × 6 shard. Nhánh: `greedy` | `maj3` | `seq` | `PSV`
+(kế hoạch cưỡng chế → giải theo kế hoạch → tự kiểm). Cùng 3 lượt như #55.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `plan_is_code_rate` > .20 dù đã cưỡng chế | Can thiệp lại thất bại. **KHÔNG kết luận gì về lập kế hoạch**; ghi là giới hạn phương pháp. |
+| Đạt ngưỡng **và** `PSV` > `maj3` **và** `PSV` > `seq`, cả hai ≥ .02 | **LẬP KẾ HOẠCH CÓ GIÁ TRỊ trên bài dài.** Các null trước đây là do bộ dữ liệu ngắn. |
+| Đạt ngưỡng **và** \|`PSV` − `seq`\| < .02 | **Lượt thêm quan trọng, nội dung KHÔNG.** Khớp #87 (mỏ neo ≈ 0). |
+| Đạt ngưỡng **và** `PSV` < `maj3` | **Lập kế hoạch KHÔNG đáng một lượt, kể cả trên bài dài** — và lần này can thiệp CÓ diễn ra. Kết luận âm THẬT. |
+| `PSV` thấp hơn H49 rõ rệt | Cưỡng chế đã lấy mất "kế hoạch = code nháp" vốn đang giúp -> ghi rõ: cái giúp là BẢN NHÁP, không phải KẾ HOẠCH. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán hàng 4 (`PSV` < `maj3`): khi bị cấm viết code, kế hoạch văn xuôi của model 1.5B/7B nhiều khả
+năng mơ hồ và lượt giải phải bắt đầu từ đầu — mất một lượt. Prior gần đây: đúng 2/8.
