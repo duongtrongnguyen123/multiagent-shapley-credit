@@ -2103,3 +2103,25 @@ n mỗi ô ≥ 250. Tỉ lệ chạy được (không lỗi cú pháp) ≥ .50.
 Đoán **hàng 2** (lượt thêm quan trọng, nội dung không) vì #87 vừa cho thấy mỏ neo ≈ 0 trên toán.
 Nhưng trực giác của Nguyên (hàng 1) hợp lý và **chưa từng được kiểm trên bài dài** — đó chính là
 lý do chạy phép thử này. Prior gần đây: đúng 2/7.
+
+## BỔ SUNG cho #55 (H49) — **KIỂM TRA CAN THIỆP**, ghi 2026-08-10, SAU khi thấy dữ liệu 1.5B
+**Ghi rõ: bổ sung này là HẬU NGHIỆM.** #55 gốc khoá ngưỡng độ chính xác và ngưỡng suy biến
+nhưng **QUÊN kiểm tra xem can thiệp có thật sự xảy ra hay không**. Đó là thiếu sót của tôi.
+
+### Điều đã đo được
+Ô 1.5B: **215/250 = 86%** "kế hoạch" **chứa code** (khối ```; có `def`/`import`),
+dù prompt ghi rõ "Do NOT write any code".
+=> Nhánh `PSV` của ô đó **không hề kiểm lập kế hoạch**. Nó là "viết code → viết lại từ code đó →
+tự kiểm", tức `seq` với chữ khác. Đọc `PSV` 8/50 vs `seq` 15/50 thành "lập kế hoạch gây hại"
+là **kết luận về một can thiệp CHƯA TỪNG DIỄN RA**.
+
+### NGƯỠNG BỔ SUNG (áp dụng cho mọi ô của #55, và cho mọi phép thử có vai "Planner" về sau)
+- Tính `plan_is_code_rate` = tỉ lệ "kế hoạch" chứa khối ``` hoặc dòng bắt đầu bằng `def `/`import `/`from `.
+- **`plan_is_code_rate` > .20 ⇒ ô đó KHÔNG ĐỌC ĐƯỢC cho câu hỏi lập kế hoạch.** Ghi là
+  "can thiệp thất bại", KHÔNG phải "lập kế hoạch vô dụng".
+- Ô nào đạt ngưỡng (< .20) thì đọc bình thường theo bảng khoá #55 gốc.
+
+### Hệ quả
+Ô 1.5B (86%) **KHÔNG ĐỌC ĐƯỢC**. Ô 7B chờ đo — 7B tuân lệnh định dạng tốt hơn nên có thể đạt.
+Nếu ô 7B cũng trượt, phải chạy lại với prompt ép chặt hơn (cấm dấu ```, bắt buộc văn xuôi đánh số)
+trước khi được phát biểu bất cứ điều gì về giá trị của lập kế hoạch.
