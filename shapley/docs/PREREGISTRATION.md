@@ -1934,3 +1934,37 @@ Dữ liệu: MBPP `task_id` 11–510. Chấm CHỈ bằng `assert[1..2]`.
 ## Prior TRUNG THỰC (ghi trước)
 Đoán **hàng 1** (mỏ neo là thủ phạm). Nhưng prior của tôi **sai 4 lần liên tiếp** (#78–#81)
 và ở #82 bảng của tôi còn tự mâu thuẫn. Trọng số prior: rất thấp.
+
+# Đăng ký trước #51 — H45: DẤU CỦA "TUẦN TỰ − LẤY MẪU" CÓ ĐI THEO **ĐỘ BÃO HOÀ CỦA CHÍNH MODEL ĐANG CHẠY** KHÔNG?
+**Viết TRƯỚC khi chạy.** Thay thế giả thuyết "trần theo độ khó" đã chết ở vòng #83.
+
+## Điều đã ĐO ĐƯỢC và điều CHƯA giải thích được
+`gain_on_esc` (giá trị mỗi lần escalate, lượt 7B tuần tự có mỏ neo):
+**MATH +.18 · GSM8K −.10 · CODE −.12**. MATH là ngoại lệ, chưa rõ vì sao.
+Ở H41 mọi tầng GSM8K đều có `big_maj3` **> .90** (.9628/.9120/.9037) -> **không tầng nào chưa bão hoà**,
+nên độ khó KHÔNG thể phân biệt được điều gì. Biến ứng viên còn lại: **độ chính xác của CHÍNH model
+đang thực hiện lượt tuần tự** — không phải độ khó của bài.
+
+## Thiết kế — đo `delta_seq` trên lưới tác vụ × cỡ model, CÙNG một bộ arm
+Với mỗi ô (tác vụ ∈ {gsm8k, math} × model ∈ {1.5B, 7B}), trên CÙNG 300 bài, CÙNG một lần chạy:
+- `greedy` (1 lượt) — **đây là thước đo độ bão hoà của ô**
+- `maj3` (3 mẫu, T=0.8)
+- `seq` (giải → giải lại có MỎ NEO → tự kiểm; 3 lượt) — **đúng arm dùng trong H39–H43**
+- **`delta_seq` = `seq` − `maj3`** (cùng 3 lượt sinh, so sánh ngang ngân sách)
+4 ô × 5 shard = 20 kernel. KHÔNG có escalate, KHÔNG có hai model — cô lập đúng một biến.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+n mỗi ô ≥ 300. Tỉ lệ phân tích được đáp án ≥ .80. Ô nào `maj3` = 0 hoặc 1 tuyệt đối ⇒ bỏ.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `delta_seq` > 0 ở MỌI ô có `greedy` < .60 **và** < 0 ở MỌI ô có `greedy` > .85 | **XÁC NHẬN: dấu đi theo ĐỘ BÃO HOÀ CỦA MODEL.** Quy tắc dùng được: chỉ chạy tuần tự khi model còn xa trần TRÊN CHÍNH TÁC VỤ ĐÓ. |
+| dấu KHÔNG theo `greedy` (ví dụ MATH 7B `greedy`≈.50 mà `delta_seq` < 0, hoặc GSM8K 1.5B `greedy`≈.50 mà < 0) | **Bão hoà cũng KHÔNG phải lời giải thích.** Khác biệt là ở TÁC VỤ (MATH vs phần còn lại), chưa rõ cơ chế. Ghi rõ CHƯA GIẢI THÍCH ĐƯỢC. |
+| `delta_seq` < 0 ở CẢ BỐN ô | Arm "mỏ neo + tự kiểm" của tôi **không bao giờ có lợi** khi đo sạch -> mọi kết quả dương trước đây đến từ **escalate**, không từ tuần tự. Phải xem lại toàn bộ phát biểu "tuần tự hơn lấy mẫu". |
+| `delta_seq` > 0 ở CẢ BỐN ô | Ngược lại: tuần tự luôn có lợi khi KHÔNG escalate -> cái hại ở H41/H42 là do **escalate**, không do tuần tự. |
+| tỉ lệ phân tích được < .80 ở ô nào | Ô đó SUY BIẾN, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán hàng 1. **Nhưng prior của tôi sai 5 lần liên tiếp (#78,#79,#80,#81,#83)** — trọng số rất thấp.
+Đáng chú ý: hàng 3 và hàng 4 đều buộc tôi rút lại những phát biểu đã ghi, và tôi để nguyên như vậy.
