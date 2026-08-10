@@ -1889,3 +1889,15 @@ Chi phí: `route_oracle_maj3` = 1 + 3·5.07·pe · | `route_oracle_seq` = 1 + 2�
 Đoán **hàng 2 hoặc 3**, KHÔNG phải hàng 1: biên độ +.008 quá nhỏ so với nhiễu giữa các lần chạy
 (đã thấy `maj@3` lệch 3.2 điểm giữa hai lần chạy ở H40). Prior của tôi đã sai **4 lần liên tiếp**
 (#78,#79,#80,#81) nên trọng số của nó thấp; bảng khoá mới là thứ quyết định.
+
+## BỔ SUNG cho đăng ký trước #47 (H41) — ghi ngày 2026-08-10, TRƯỚC khi chạy
+**Thay đổi phần cứng và độ chính xác số học.** Bản gốc #47 ghi "bf16 trên RTX 5090".
+Nguyên yêu cầu không dùng 5090 nữa, nên H41 chạy trên **Kaggle, 20 shard, 7B nf4 (4-bit)**.
+- Bảng diễn giải đã khoá **GIỮ NGUYÊN, không sửa một chữ**. Nó chỉ nói về **DẤU** của `gain`
+  giữa tầng DỄ và KHÓ; lượng tử hoá không được kỳ vọng làm đảo dấu.
+- Rủi ro phải nêu trước: nf4 kéo `big_maj3` xuống, tức **kéo GSM8K RA XA vùng bão hoà** —
+  đúng cái mà #47 muốn đo. Nếu `big_maj3` đo được **< .90**, thì tầng đó KHÔNG còn bão hoà nữa
+  và **phép thử mất hiệu lực cho câu hỏi bão hoà** — phải ghi rõ, không được đọc như đã kiểm được.
+- **Ngưỡng bổ sung khoá tại đây:** nếu `big_maj3` của tầng DỄ **< .90**, kết luận bắt buộc là
+  *"chưa chạm vùng bão hoà, y như H40 — câu hỏi vẫn CHƯA được trả lời"*, chứ không phải
+  ủng hộ hay bác bỏ giả thuyết trần.
