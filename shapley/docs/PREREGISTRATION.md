@@ -2280,3 +2280,44 @@ n ≥ 250. AST đọc được ≥ .80. Mọi shard cùng `quant` (script gộp 
 Đoán hàng 2 (vòng thêm cứu được rất ít): lỗi refactor thường là **đổi ngữ nghĩa tinh vi**,
 stderr chỉ ra triệu chứng chứ không chỉ ra chỗ lệch. Khác với sinh code mới, nơi lỗi thường thô hơn.
 Tỉ lệ prior đúng gần đây: 4/11.
+
+
+# Đăng ký trước #60 — H54: **THẮNG LỢI DUY NHẤT CỦA DỰ ÁN CÓ SỐNG SÓT KHI LÊN 14B KHÔNG?**
+**Viết TRƯỚC khi chạy.** Nguyên yêu cầu chạy ở 14B.
+
+## Vì sao đúng phép thử này
+Sau cả ngày, **kết quả DƯƠNG thực dụng duy nhất** còn đứng là **định tuyến theo đồng thuận trên MATH**:
+- H39_m (n=200, bf16, RTX 5090): **+.140** so `big_maj3`, rẻ hơn 1.63×
+- H40 (n=500, fp16, 20 kernel Kaggle): **+.092** so `big_maj3`, rẻ hơn 1.66×
+Cùng chiều, phần cứng độc lập, mẫu gấp 2.5×. **Nhưng cả hai đều ở cỡ 7B.**
+Câu hỏi quyết định: đây là **quy tắc triển khai được** hay chỉ là **hiện tượng của model nhỏ**?
+Nếu model lớn đủ giỏi thì nhóm "1.5B đồng thuận" mà ta GIỮ LẠI sẽ ngày càng đắt về cơ hội.
+
+## Thiết kế — y hệt H40, chỉ đổi model LỚN: 7B -> **14B**
+MATH-500, 500 bài, 20 shard. Nhỏ = Qwen2.5-1.5B-Instruct (fp16).
+Lớn = **Qwen2.5-14B-Instruct-AWQ** (đã kiểm: `Qwen2ForCausalLM`, có `lm_head`, có chat template,
+AWQ 4-bit gemm chạy được trên sm_75 của T4).
+Quy đổi chi phí: **1 lượt 14B = 9.80 lượt 1.5B** (14.7/1.5), thay cho 5.07 của 7B.
+Nhánh: `small_maj3`, `small_maj8`, `big_maj3`, `big_maj8`, `escalate`, `escalate_seq` — như H40.
+Phân tầng theo `level` của MATH-500 qua mã băm đề bài, như #46.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `pct_escalated` ngoài .15–.85 ⇒ SUY BIẾN.
+- Đẳng thức phân rã lệch > .01 ⇒ BUG, không đọc.
+- Mọi shard cùng `quant` (script gộp DỪNG nếu khác).
+- `big_maj3`(14B) phải **> `big_maj3`(7B) = .488** đo ở H40; nếu KHÔNG thì model lớn không thực sự
+  mạnh hơn trong thiết lập này ⇒ phép thử **mất hiệu lực**, ghi rõ, không kết luận về quy mô.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `escalate_seq` > `big_maj3` **và** rẻ hơn, như ở 7B | **QUY TẮC SỐNG SÓT QUA MỘT BƯỚC QUY MÔ.** Đây là kết quả triển khai được mạnh nhất dự án có. |
+| chênh acc dương nhưng **NHỎ HƠN** ở 7B (+.092) rõ rệt | Lợi ích **TEO DẦN theo quy mô**. Ngoại suy lên model lớn hơn là KHÔNG có cơ sở. Ghi rõ xu hướng. |
+| `escalate_seq` ≤ `big_maj3` | **Thắng lợi ở 7B là HIỆN TƯỢNG CỦA MODEL NHỎ.** Kết quả dương thực dụng duy nhất của dự án **chết ở 14B**. Phải ghi thẳng, không giảm nhẹ. |
+| `big_maj3`(14B) ≤ .488 | Phép thử mất hiệu lực (model "lớn" không mạnh hơn). Không kết luận. |
+| `pct_escalated` ngoài .15–.85 | SUY BIẾN. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2** (còn dương nhưng teo lại): 14B trên MATH mạnh hơn 7B rõ, nên chi phí cơ hội của
+việc giữ bài cho 1.5B tăng lên — chính là cơ chế đã giết định tuyến trên GSM8K (`opp_cost` tăng).
+Tỉ lệ prior đúng gần đây: **5/12**.
