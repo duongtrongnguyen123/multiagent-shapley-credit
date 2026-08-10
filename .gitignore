@@ -10,6 +10,8 @@ results/
 results_*/
 !**/results_summary/
 !**/results_summary/**
+!**/results_selflevel/
+!**/results_selflevel/**
 kernels/
 kernels_*/
 output/
