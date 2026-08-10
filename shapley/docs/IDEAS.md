@@ -3135,3 +3135,43 @@ và **triệt tiêu** khi tính trên toàn bộ. Cả hai phép đo đều đú
 
 ### Ghi chú: ở mbpp-1.5B, `maj3` = `greedy` = .4558 **bằng nhau tuyệt đối**
 Lấy 3 mẫu không thêm được bài nào so với 1 lượt tham lam. Củng cố "nút thắt là SINH, không phải CHỌN".
+
+
+## [Loop] VÒNG #89 — **H49: HAI NHÁNH BỊ HUỶ. MỘT DO MODEL, MỘT DO **TÔI**.**
+### BigCodeBench 300 bài/ô, chạy được .99–1.00
+| ô | greedy | "maj3" (HỎNG) | seq | "PSV" (HỎNG) |
+|---|---|---|---|---|
+| bcb-1.5B | .1600 | .0667 | .1933 | .1433 |
+| bcb-7B | .3467 | .3467 | .3467 | .2967 |
+
+### NHÁNH 1 BỊ HUỶ — `PSV`: **can thiệp KHÔNG diễn ra** (kiểm tra can thiệp của bổ sung #55)
+"Kế hoạch" chứa code ở **85.3% (1.5B)** và **100% (7B)**. Không đọc được cho câu hỏi lập kế hoạch.
+LƯU Ý: script gộp của tôi **không** cài cổng này nên nó vẫn in ra "HÀNG 3: lập kế hoạch không đáng
+một lượt" cho ô 7B. **Tôi BÁC kết luận đó** — cổng can thiệp có quyền cao hơn script.
+
+### NHÁNH 2 BỊ HUỶ — `maj3`: **lỗi thiết kế CỦA TÔI**
+```
+def maj3(x): return sum(s["pass"] for s in x["samp"]) >= 2
+```
+Hai lỗi: (a) chọn bằng `pass` — **chính là kết quả test dùng để chấm** -> **RÒ RỈ**;
+(b) "≥2/3 đạt" **không phải bỏ phiếu đa số**, mà là điều kiện HỘI. Ở `greedy` .16 điều đó gần như
+không xảy ra -> `maj3` = .0667, **thấp hơn cả greedy .1600**.
+=> **`seq − maj3` = +.1266 KHÔNG PHẢI kết quả. Tôi rút lại trước khi nó đi đâu xa hơn.**
+Không sửa được từ dữ liệu đã lưu: prompt BigCodeBench **không có test ví dụ** nên không có tín hiệu
+thực thi không-rò-rỉ để gom cụm, và tôi chỉ lưu cờ `pass` của 3 mẫu, **không lưu code của chúng**.
+
+### SO SÁNH HỢP LỆ DUY NHẤT CÒN LẠI (3 lượt vs 1 lượt — KHÔNG ngang ngân sách)
+`seq − greedy` = **+.0333** (1.5B) và **+.0000** (7B).
+
+### HỆ QUẢ ĐÚNG
+**H49 KHÔNG nói được gì về `delta_seq` trên BigCodeBench.** Phát biểu ở vòng #88
+("tuần tự hại trên code") vẫn đứng **đúng như đã đo trên MBPP**; BigCodeBench đơn giản là
+**CHƯA ĐO ĐƯỢC**, không phải mâu thuẫn.
+
+### BÀI HỌC — nhánh đối chứng cũng phải qua kiểm tra hiệu lực
+Tôi đã dựng ba lớp cổng cho *giả thuyết* (ngưỡng suy biến, đẳng thức tự kiểm, kiểm tra can thiệp)
+nhưng **không cổng nào kiểm NHÁNH ĐỐI CHỨNG có đúng là thứ nó tự nhận hay không**.
+`maj3` phải thoả hai điều kiện, từ nay ghi thành quy tắc:
+1. **KHÔNG được dùng tín hiệu chấm điểm để chọn** (nếu không thì nó là oracle, không phải bỏ phiếu).
+2. Phải là **chọn 1 trong k**, không phải điều kiện hội trên k.
+Và: **lưu code của MỌI mẫu**, không chỉ cờ đạt/không — nếu có code thì đã cứu được nhánh này.
