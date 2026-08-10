@@ -1968,3 +1968,38 @@ n mỗi ô ≥ 300. Tỉ lệ phân tích được đáp án ≥ .80. Ô nào `m
 ## Prior TRUNG THỰC (ghi trước)
 Đoán hàng 1. **Nhưng prior của tôi sai 5 lần liên tiếp (#78,#79,#80,#81,#83)** — trọng số rất thấp.
 Đáng chú ý: hàng 3 và hàng 4 đều buộc tôi rút lại những phát biểu đã ghi, và tôi để nguyên như vậy.
+
+# Đăng ký trước #52 — H46: TÁCH RIÊNG TÁC DỤNG CỦA **MỎ NEO** TRÊN TOÁN (đối xứng với H44 trên code)
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+H44 (#84) đo trên code: bỏ mỏ neo **hồi lại +.0981**. Tức mỏ neo GÂY HẠI trên code.
+Nhưng vòng #73 khẳng định mỏ neo CHÍNH LÀ cơ chế làm tuần tự thắng trên toán
+(`SS_anc` ngang `PSV` dù không có ngôn ngữ vai nào). **Chưa ai đo tách riêng mỏ neo trên toán.**
+H45 đang chạy chỉ có nhánh CÓ mỏ neo, nên không trả lời được câu này.
+
+## Thiết kế — bốn nhánh trong CÙNG một lần chạy, trên CÙNG bài
+Lưới: tác vụ ∈ {gsm8k, math} × model ∈ {1.5B, 7B}, 300 bài mỗi ô, 4 ô × 3 shard = 12 kernel.
+- `greedy` (1 lượt) — thước đo bão hoà của ô
+- `maj3` (3 mẫu)
+- **A) `seq_anchor`**: giải → giải lại CÓ MỎ NEO → tự kiểm (3 lượt)
+- **B) `seq_noanchor`**: giải → giải lại MỚI (không nhắc đáp án cũ) → tự kiểm (3 lượt)
+**A vs B cô lập đúng MỎ NEO** — cùng cấu trúc, cùng số lượt, khác duy nhất ở việc có đưa đáp án
+trước đó vào prompt hay không. Đây là bản đối xứng của H44 nhưng KHÔNG escalate, KHÔNG hai model.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+n mỗi ô ≥ 300. Tỉ lệ phân tích được đáp án ≥ .80. Ô không đạt ⇒ không đọc ô đó.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| A − B > 0 ở các ô TOÁN **và** < 0 ở code (H44 đã đo −.0981) | **Mỏ neo đảo dấu theo miền.** Cơ chế có thật nhưng CÓ ĐIỀU KIỆN. Phải viết lại phát biểu vòng #73 kèm điều kiện miền. |
+| \|A − B\| < .02 ở mọi ô toán | **Mỏ neo KHÔNG làm gì trên toán.** Phát biểu "cơ chế là mỏ neo" ở vòng #73 **SAI** — `SS_anc` ngang `PSV` vì lý do khác. Phải RÚT LẠI. |
+| A − B < 0 ở ô toán (giống code) | **Mỏ neo hại ở MỌI miền.** Mọi thắng lợi của tuần tự đến từ LƯỢT THÊM, không từ mỏ neo. Rút lại vòng #73. |
+| B > `maj3` nhưng A < `maj3` | Tuần tự KHÔNG mỏ neo mới là thứ đáng dùng; bản có mỏ neo đã luôn tự làm hỏng mình. |
+| parse < .80 ở ô nào | Ô đó SUY BIẾN, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1** (mỏ neo giúp ở toán, hại ở code). Prior của tôi sai 5/6 lần gần đây
+(#84 đúng, #78–#81 và #83 sai). Hàng 2 và hàng 3 đều buộc RÚT LẠI một phát biểu trung tâm
+của dự án, và tôi để nguyên khả năng đó trong bảng.
