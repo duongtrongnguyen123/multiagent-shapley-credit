@@ -11,7 +11,7 @@ RES  = sys.argv[1] if len(sys.argv) > 1 else "res_h44"
 NEED = int(sys.argv[2]) if len(sys.argv) > 2 else 12
 
 items, shards, quants = [], set(), set()
-for f in sorted(glob.glob(f"{RES}/res_H44s*.json")):
+for f in sorted(glob.glob(f"{RES}/**/res_H4*s*.json", recursive=True)):
     d = json.load(open(f))
     shards.add(d["shard"]); quants.add(d.get("quant_big", "?"))
     items += d["items"]

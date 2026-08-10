@@ -12,6 +12,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "bitsandbyte
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
+RUN = "@@RUN@@"          # nhan cua loat chay -> ten file dau ra DUY NHAT toan loat
 TID_LO, TID_HI = @@TIDLO@@, @@TIDHI@@
 K, MAXNEW, TEMP = 8, 512, 0.8
 KS = 3                      # so ban cua model nho
@@ -245,7 +246,7 @@ if ESC:
 print(f"xong pha 3 (A+B tren {len(ESC)} bai escalate)", flush=True)
 
 CAP = 4000
-out = {"tag": f"H44s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
+out = {"tag": f"{RUN}s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
        "quant_big": QUANT, "n_gpu": NG, "task": "mbpp", "items": []}
 for i in MINE:
     x = ALL[i]
@@ -260,6 +261,6 @@ for i in MINE:
         "big_code":   [c[:CAP] for c in B_CODE[i]],
         "seq_code":   (SEQ_CODE.get(i) or "")[:CAP],
     })
-json.dump(out, open(f"/kaggle/working/res_H44s{SHARD}.json", "w"))
-print(f"DA LUU {len(out['items'])} bai -> res_H44s{SHARD}.json", flush=True)
+json.dump(out, open(f"/kaggle/working/res_{RUN}s{SHARD}.json", "w"))
+print(f"DA LUU {len(out['items'])} bai -> res_{RUN}s{SHARD}.json", flush=True)
 print("XONG", flush=True)

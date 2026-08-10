@@ -38,7 +38,7 @@ def main():
         if used[user] > MAX_PER_ACCOUNT:
             sys.exit(f"loi phan bo: {user} vuot {MAX_PER_ACCOUNT}")
         src = (TEMPLATE.replace("@@SHARD@@", str(s)).replace("@@NSHARD@@", str(NSHARD))
-                .replace("@@TIDLO@@", "11").replace("@@TIDHI@@", "510"))
+                .replace("@@RUN@@", "H44").replace("@@TIDLO@@", "11").replace("@@TIDHI@@", "510"))
         slug = f"code-repair-ablation-shard-{s:02d}"
         d = KDIR / f"s{s:02d}"
         d.mkdir()
