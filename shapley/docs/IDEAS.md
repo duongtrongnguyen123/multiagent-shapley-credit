@@ -3067,3 +3067,42 @@ dù độ lớn dao động (.0566 vs .0889).
   tái lập trên hai tách.
 Code (MBPP 7B `greedy` .7091) nằm ở phía "đã khá bão hoà" của điểm đổi dấu .62–.71 -> hai kết quả
 này **nhất quán với nhau**: ở vùng bão hoà, cả mỏ neo lẫn lượt tự kiểm đều chỉ phá đáp án đã đúng.
+
+## [Loop] VÒNG #87 — **H46: MỎ NEO **KHÔNG PHẢI** CƠ CHẾ. LƯỢT THÊM MỚI LÀ.** → RÚT LẠI VÒNG #73
+### 4 ô × 300 bài, bốn nhánh trong CÙNG một lần chạy
+| ô | greedy | maj3 | A (có mỏ neo) | B (không mỏ neo) | **A−B** | A−maj3 | B−maj3 |
+|---|---|---|---|---|---|---|---|
+| math-1.5B | .3300 | .3600 | .4333 | .4033 | +.0300 | +.0733 | +.0433 |
+| **math-7B** | .4933 | .4800 | **.6367** | **.6267** | **+.0100** | **+.1567** | **+.1467** |
+| gsm8k-1.5B | .6233 | .6400 | .6900 | .6833 | +.0067 | +.0500 | +.0433 |
+| gsm8k-7B | .9133 | .9267 | .9100 | .9167 | −.0067 | −.0167 | −.0100 |
+
+### Script báo **HỖN HỢP** (dấu A−B không đồng nhất) — và cách đọc trung thực còn sắc hơn
+Trên TOÁN, mỏ neo gần như **không làm gì**: |A−B| ≤ .01 ở **ba trên bốn ô** (~3 bài/300), tối đa .03.
+Trên CODE, cùng phép đo đó cho **−.0800 (H47)** và **−.0981 (H44)**.
+=> Mỏ neo chạy từ **vô tác dụng** (toán) đến **gây hại rõ** (code). **Không bao giờ là nguồn của lợi ích.**
+
+### NGUỒN CỦA LỢI ÍCH LÀ **LƯỢT THÊM**, KHÔNG PHẢI MỎ NEO
+math-7B: có mỏ neo hơn `maj3` **+.1567**; KHÔNG mỏ neo hơn `maj3` **+.1467**. **Gần như bằng nhau.**
+Bỏ sạch mỏ neo, lợi ích vẫn còn nguyên.
+
+### RÚT LẠI PHÁT BIỂU TRUNG TÂM CỦA VÒNG #73
+Vòng #73 ghi: *"Cơ chế là **MỎ NEO ĐÁP ÁN TRƯỚC**, không phải phân vai — nhánh không có ngôn ngữ
+vai nào đạt kết quả ngang hoặc hơn."* Đó là lời giải thích cho việc `SS_anc` ngang `PSV`.
+**Đo trực tiếp: mỏ neo đóng góp ≈ 0 trên toán. Phát biểu đó SAI và tôi RÚT LẠI.**
+`SS_anc` ngang `PSV` vì **lý do khác** — và lý do đó vẫn CHƯA BIẾT. Ứng viên còn lại:
+đơn giản là **số lượt sinh thêm + một lượt tự kiểm**, bất kể prompt viết gì.
+
+### H46 CŨNG TÁI LẬP ĐỘC LẬP H45
+| ô | H45 (`delta_seq`) | H46 (`A−maj3`) | lệch |
+|---|---|---|---|
+| math-7B | +.1433 | +.1567 | .013 |
+| gsm8k-7B | −.0100 | −.0167 | .007 |
+| math-1.5B | +.0566 | +.0733 | .017 |
+| gsm8k-1.5B | +.0100 | +.0500 | .040 |
+Hai loạt kernel riêng biệt. **Kết quả bão hoà ở #85 đứng vững.**
+
+### PHÁT BIỂU ĐƯỢC PHÉP DÙNG SAU HÔM NAY
+> Ở cùng ngân sách, **thêm một lượt tinh chỉnh tuần tự** (giải lại + tự kiểm) hơn lấy mẫu + bỏ phiếu
+> **khi model còn xa trần trên tác vụ đó** (`greedy` < ~.60), và hại khi đã bão hoà (`greedy` > ~.85).
+> **Việc có nhắc lại đáp án cũ (mỏ neo) hay không gần như không ảnh hưởng trên toán, và GÂY HẠI trên code.**
