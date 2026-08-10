@@ -2003,3 +2003,32 @@ n mỗi ô ≥ 300. Tỉ lệ phân tích được đáp án ≥ .80. Ô không 
 Đoán **hàng 1** (mỏ neo giúp ở toán, hại ở code). Prior của tôi sai 5/6 lần gần đây
 (#84 đúng, #78–#81 và #83 sai). Hàng 2 và hàng 3 đều buộc RÚT LẠI một phát biểu trung tâm
 của dự án, và tôi để nguyên khả năng đó trong bảng.
+
+# Đăng ký trước #53 — H47: TÁI LẬP PHÂN RÃ MỎ NEO CỦA H44 TRÊN TÁCH MBPP CÒN LẠI
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+H44 (#84) đo trên MBPP 11–510: trên nhóm escalate, `B − A` = **+.0981** (bỏ mỏ neo hồi lại 9.8 điểm),
+`C − B` = **+.0566**. Đó là **MỘT tách duy nhất**. Phát hiện "tuần tự hại trên code" chỉ trở nên
+chắc chắn khi H43 tái lập nó trên tách khác (+.1159 vs +.1164, lệch .0005). Phân rã mỏ neo
+xứng đáng được đối xử y như vậy.
+
+## Thiết kế
+Y HỆT H44 (cùng kernel, cùng arm A/B/C, cùng bộ định tuyến oracle), chỉ đổi dữ liệu sang
+MBPP `task_id` **511–974** (464 bài) — tách mà H44 CHƯA từng chạy. 12 shard.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`pct_escalated` ngoài .15–.85 ⇒ SUY BIẾN. Biên dịch được < .50 ⇒ huỷ. n_escalate ≥ 100.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `B − A` > 0 và lệch với H44 (+.0981) dưới .05 | **TÁI LẬP.** Phân rã mỏ neo là thật: mỏ neo chiếm phần lớn thiệt hại trên code. |
+| `B − A` > 0 nhưng lệch ≥ .05 | Hướng đúng, **độ lớn KHÔNG ổn định**. Chỉ được nói về DẤU, không được trích con số 63%. |
+| \|`B − A`\| < .02 | **KHÔNG tái lập.** +.0981 ở H44 là nhiễu một tách. Phải rút lại phát biểu "mỏ neo là thủ phạm chính". |
+| `B − A` < 0 | Đảo dấu -> phân rã ở #84 **SAI**. Rút lại toàn bộ vòng #84. |
+| `C − B` đổi dấu so với H44 | Phần "cấu trúc tuần tự" của phân rã không ổn định; chỉ giữ phần mỏ neo. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán hàng 1 (tái lập, lệch < .05), vì hai lần đo trước trên code (`C − A`) lệch nhau chỉ .0005.
+Prior gần đây: đúng 1/6.
