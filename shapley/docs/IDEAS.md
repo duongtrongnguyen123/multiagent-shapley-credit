@@ -3001,3 +3001,38 @@ H45 đo `delta_seq` = tuần tự-có-mỏ-neo − maj3, **không escalate, khô
 Nếu MATH 7B cho `delta_seq` > 0 còn GSM8K 7B < 0 với CÙNG model -> biến là TÁC VỤ, không phải mỏ neo.
 Nếu cả bốn ô đều âm -> mọi kết quả dương trước đây đến từ escalate, và phát biểu
 "tuần tự hơn lấy mẫu" phải viết lại toàn bộ.
+
+## [Loop] VÒNG #85 — **H45: DẤU CỦA `delta_seq` ĐI THEO **ĐỘ CHÍNH XÁC CỦA CHÍNH MODEL**. HÀNG 1 của #51.**
+### 4 ô × 300 bài, KHÔNG escalate, KHÔNG hai model — cô lập đúng một biến
+| ô | greedy | maj3 | seq | **delta_seq** | lượng tử |
+|---|---|---|---|---|---|
+| math-1.5B | .3367 | .3667 | .4233 | **+.0566** | fp16 |
+| **math-7B** | **.4900** | .5100 | **.6533** | **+.1433** | nf4 |
+| gsm8k-1.5B | .6200 | .6700 | .6800 | +.0100 | fp16 |
+| **gsm8k-7B** | **.9067** | .9233 | .9133 | **−.0100** | nf4 |
+
+### PHÉP SO SÁNH QUYẾT ĐỊNH: **CÙNG MỘT MODEL 7B, HAI DẤU NGƯỢC NHAU**
+7B trên MATH (`greedy` .4900) -> `delta_seq` **+.1433**.
+7B trên GSM8K (`greedy` .9067) -> `delta_seq` **−.0100**.
+Cùng trọng số, cùng arm, cùng ngân sách. **Biến quyết định là model đã giỏi tới đâu TRÊN TÁC VỤ ĐÓ**,
+không phải tác vụ là gì, cũng không phải bài khó hay dễ.
+Mọi ô có `greedy` < .60 đều DƯƠNG; ô có `greedy` > .85 ÂM. **Hàng 1 của #51.**
+
+### ĐÂY KHÔNG PHẢI GIẢ THUYẾT ĐÃ CHẾT SỐNG LẠI
+#47 kiểm **độ khó của BÀI trong cùng tác vụ** -> CHẾT ở vòng #83, và chết đúng: cả ba tầng GSM8K
+đều có `big_maj3` > .90, **không tầng nào chưa bão hoà**, nên độ khó không thể phân biệt gì.
+#51 kiểm **độ chính xác của MODEL ĐANG CHẠY** — biến KHÁC — và biến này đứng vững.
+
+### GIẢI ĐƯỢC CÂU ĐỐ "MATH LÀ NGOẠI LỆ" Ở VÒNG #83
+MATH không đặc biệt. 7B chỉ đơn giản là **còn xa trần trên MATH** (.49) và **đã bão hoà trên GSM8K** (.91).
+Code nằm giữa: MBPP 7B đo được `greedy` = .7091 (H43) và cho dấu ÂM.
+=> Điểm đổi dấu nằm đâu đó trong khoảng **.62 – .71**.
+
+### KHÔNG khẳng định: độ lớn KHÔNG đơn điệu theo `greedy`
+.3367 -> +.0566 nhưng .4900 -> +.1433. Đỉnh nằm quanh .49, không phải giảm đều.
+Hàng 1 chỉ nói về DẤU trong hai dải, và tôi chỉ khẳng định đúng chừng đó.
+
+### PHÁT BIỂU ĐƯỢC PHÉP DÙNG (thay cho phát biểu cũ ở vòng #73)
+> Ở CÙNG ngân sách sinh, tinh chỉnh tuần tự có mỏ neo **hơn** lấy mẫu + bỏ phiếu **khi và chỉ khi
+> model còn xa trần trên chính tác vụ đó** (`greedy` < ~.60). Khi model đã bão hoà (`greedy` > ~.85)
+> nó **hại**. Đo sạch trên 4 ô, không escalate, cùng một model cho hai dấu ngược nhau.
