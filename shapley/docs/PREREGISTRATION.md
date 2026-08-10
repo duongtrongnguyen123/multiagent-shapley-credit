@@ -2246,3 +2246,37 @@ n ≥ 250 sau khi lọc. Tỉ lệ phân tích được AST của bản refactor
 
 ## Prior TRUNG THỰC (ghi trước)
 Đoán **hàng 1** (oracle hơn hẳn), theo #42 và H35. Tỉ lệ prior đúng gần đây: 4/10.
+
+
+# Đăng ký trước #59 — H53: ORACLE ĐƯỢC SỬA **BA VÒNG** THAY VÌ MỘT, TRÊN REFACTOR
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+H52 (#92) cho `preserve(exec) − preserve(seq)` = **+.0602**, **giữa** hai ngưỡng đã khoá (.05–.10),
+nên không được coi là xác nhận #42. **Nhưng thiết kế của tôi chỉ cho oracle SỬA MỘT VÒNG.**
+H35 — nơi oracle thắng +6..+11 — dùng **BA VÒNG** (`exec3`). Vậy +.0602 có thể là hệ quả của
+lựa chọn ngân sách của tôi, không phải giá trị thật của oracle.
+Và 26% bài **vẫn hỏng hành vi dù đã có oracle** — cần biết một vòng nữa có cứu được không.
+
+## Thiết kế — y hệt H52, chỉ đổi số vòng sửa
+BigCodeBench, cùng bộ lọc (lời giải chuẩn phải đạt test trong kernel), 7B nf4, 6 shard.
+- `ref1` — refactor 1 lượt (mốc)
+- `ref_exec1` — refactor → chạy test → sửa **1 vòng**  (bằng H52, để đối chiếu tái lập)
+- **`ref_exec3`** — refactor → chạy test → sửa, lặp tối đa **3 vòng**, dừng sớm khi đạt
+Ghi thêm: `rounds_used` (số vòng thực dùng) và `preserve` sau mỗi vòng.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+n ≥ 250. AST đọc được ≥ .80. Mọi shard cùng `quant` (script gộp DỪNG nếu khác).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `preserve`(exec3) − `preserve`(seq) ≥ .10 | **XÁC NHẬN #42 trên refactor.** +.0602 ở H52 là do tôi chỉ cho sửa MỘT vòng, không phải giới hạn của oracle. |
+| `preserve`(exec3) − `preserve`(exec1) < .02 | **Vòng sửa thêm KHÔNG cứu được gì.** 26% hỏng là lỗi model không giữ nổi hành vi, oracle chỉ ra lỗi nhưng model không sửa nổi. Kết luận NĂNG LỰC. |
+| `preserve`(exec3) ≥ .90 | Oracle + lặp làm refactor **an toàn thực dụng**. Khuyến nghị triển khai: KHÔNG BAO GIỜ refactor mà không chạy test sau mỗi vòng. |
+| `preserve`(exec1) lệch H52 (.7707) hơn .05 | H52 **không tái lập** — phải xem lại cả vòng #92. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán hàng 2 (vòng thêm cứu được rất ít): lỗi refactor thường là **đổi ngữ nghĩa tinh vi**,
+stderr chỉ ra triệu chứng chứ không chỉ ra chỗ lệch. Khác với sinh code mới, nơi lỗi thường thô hơn.
+Tỉ lệ prior đúng gần đây: 4/11.
