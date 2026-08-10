@@ -113,6 +113,13 @@ Nếu không để ý thì đã gộp 1/4 dữ liệu mà vẫn tưởng là đ�
 **thư mục riêng**, và script gộp dùng `glob(..., recursive=True)` + **đếm số ô, thiếu thì TỪ CHỐI kết luận**.
 Dấu hiệu bắt được: *số shard báo xong* ≠ *số file trên đĩa*. Luôn so hai con số này.
 
+**Kiểm cú pháp KHÔNG đủ khi cắt/ghép kernel**
+Dựng H48 bằng cách cắt một đoạn của kernel cũ: `ast.parse` PASS, nhưng đoạn cắt đã xoá mất
+`mktok`, `probe_src`, `gen`, `task_prompt` — những hàm mà phần còn lại vẫn gọi. 12 kernel sẽ
+chết vì `NameError`. Cách bắt: sau khi dựng, **liệt kê hàm đã định nghĩa bằng AST và đối chiếu
+với danh sách hàm cần có**, rồi kiểm mọi tên toàn cục đã được gán (`symtable`).
+Cú pháp đúng ≠ tên tồn tại.
+
 **Bí mật:** token `KGAT_...` không bao giờ được commit. `accounts.txt`, `manifest*.json`,
 `kernels_*/`, `monitor.sh` đều nằm trong `.gitignore`. Tên tài khoản không xuất hiện trong tài liệu chung.
 
@@ -129,3 +136,4 @@ Dấu hiệu bắt được: *số shard báo xong* ≠ *số file trên đĩa*.
 - [ ] Script gộp **từ chối kết luận** khi thiếu shard **hoặc thiếu ô**
 - [ ] Tên file đầu ra **duy nhất toàn loạt** (không chỉ duy nhất trong một ô)
 - [ ] Sau khi tải: **số file trên đĩa == số shard báo xong**
+- [ ] Kernel dựng bằng cắt/ghép: **đối chiếu danh sách hàm bằng AST**, không chỉ `ast.parse`
