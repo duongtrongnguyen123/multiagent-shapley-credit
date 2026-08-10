@@ -2164,3 +2164,40 @@ BigCodeBench, 300 bài, 2 ô (1.5B, 7B) × 6 shard. Nhánh: `greedy` | `maj3` | 
 ## Prior TRUNG THỰC (ghi trước)
 Đoán hàng 4 (`PSV` < `maj3`): khi bị cấm viết code, kế hoạch văn xuôi của model 1.5B/7B nhiều khả
 năng mơ hồ và lượt giải phải bắt đầu từ đầu — mất một lượt. Prior gần đây: đúng 2/8.
+
+
+# Đăng ký trước #57 — H51: **NGƯỜI LẬP KẾ HOẠCH MẠNH HƠN NGƯỜI GIẢI** — dạng bất đối xứng chưa từng thử
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao đúng phép thử này
+H50 (#90) đã chốt: lập kế hoạch không đáng một lượt **khi model tự lập kế hoạch cho chính mình**.
+Nhưng **kết quả DƯƠNG mạnh nhất của dự án là BẤT ĐỐI XỨNG**: Solver 1.5B + Verifier 7B = **+14 điểm** (H15),
+và Shapley cho planner ÂM ở 1.5B nhưng **DƯƠNG ở 7B** — gợi ý ngưỡng NĂNG LỰC, không phải vai vô dụng.
+Dạng tương ứng cho lập kế hoạch **chưa bao giờ chạy**: **7B lập kế hoạch, 1.5B thực thi.**
+
+## Thiết kế — BigCodeBench 300 bài, người GIẢI luôn là 1.5B
+Chi phí quy về FLOP 1.5B (1 lượt 7B = 5.07):
+- `small_greedy` — 1.5B, 1 lượt — **chi phí 1.00**
+- `small_seq` — 1.5B: giải → giải lại → tự kiểm — **chi phí 3.00**
+- **`bigplan_smallsolve`** — **7B lập kế hoạch** (cưỡng chế như #56) → 1.5B giải theo kế hoạch →
+  1.5B tự kiểm — **chi phí 5.07 + 2 = 7.07**
+- `big_greedy` — 7B, 1 lượt — **chi phí 5.07** ← mốc quan trọng nhất
+Nạp model TUẦN TỰ (7B lập kế hoạch cho toàn bộ, giải phóng, rồi nạp 1.5B) để vừa VRAM T4.
+6 shard. Chấm bằng unittest đi kèm.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `plan_is_code_rate` > .20 ⇒ KHÔNG đọc (như #56; thước đo: có ``` hoặc khớp `\bdef\s+\w+\s*\(`).
+- n ≥ 250. Tỉ lệ chạy được ≥ .50.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `bigplan_smallsolve` > `small_seq` **và** > `big_greedy` | **PHÂN RÃ VAI BẤT ĐỐI XỨNG CÓ GIÁ TRỊ.** Kế hoạch từ model mạnh nâng được model yếu vượt cả việc chạy thẳng model mạnh. Kết quả lớn — phải tái lập. |
+| > `small_seq` nhưng ≤ `big_greedy` | Kế hoạch mạnh **có giúp** model yếu, **nhưng bị ÁP ĐẢO**: rẻ hơn và tốt hơn nếu chỉ chạy thẳng 7B. Y hệt hình mẫu định tuyến ở #81. |
+| ≤ `small_seq` | **Kế hoạch từ model MẠNH HƠN cũng không giúp nổi model yếu.** Đây là dạng phủ định MẠNH NHẤT: lập kế hoạch thất bại kể cả khi người lập kế hoạch giỏi hơn hẳn người giải. |
+| `plan_is_code_rate` > .20 | Can thiệp thất bại, không kết luận. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2** (giúp model nhỏ nhưng bị `big_greedy` áp đảo) — theo đúng hình mẫu H42:
+tín hiệu/kế hoạch tốt, nhưng cấu hình tổng thể vẫn thua việc dùng thẳng model lớn.
+Tỉ lệ prior đúng gần đây: 3/9.
