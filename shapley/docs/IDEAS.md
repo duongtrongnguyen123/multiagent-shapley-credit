@@ -3615,3 +3615,51 @@ Bài học: tôi đã dùng vòng #87 làm bằng chứng cho miễn nhiễm —
 > Baseline đúng của bất kỳ pipeline nhiều agent nào không phải là agent YẾU NHẤT trong đó,
 > mà là **agent MẠNH NHẤT chạy một mình** — thường là lựa chọn RẺ HƠN.
 > Với `V−S` thì đây là "+16 điểm, precision .955". Với `V−I` thì đây là **âm và đắt hơn**.
+
+---
+
+## Vòng #101 — H62: **TRÌNH BÀY GỠ ĐƯỢC MỘT NỬA. NỬA CÒN LẠI KHÔNG.**
+*(đăng ký trước #67, khoá tại `6250ac0` TRƯỚC khi chạy)*
+
+### Cổng tái lập H61: ĐẠT — `V_std − I` = **−.0940** ∈ [−.12, −.03]
+n = 500 GSM8K test · greedy · S = 1.5B (.6780) · I = 7B tự giải (**.9340**) · mọi nhánh V dùng
+CHUNG một bộ lời giải S · cùng chi phí (1 lượt 7B).
+
+| nhánh | acc | `−I` | bị đầu độc | **nhại** | **thứ ba** | được cứu |
+|---|---|---|---|---|---|---|
+| `V_std` "Proposed solution: …" | .8400 | −.0940 | 57 | **36** | 21 | **10** |
+| `V_first` tự giải & CAM KẾT trước khi đọc | .8780 | −.0560 | 38 | **15** | 23 | **10** |
+| `V_label` nói rõ nguồn yếu, hãy hoài nghi | **.8860** | **−.0480** | 34 | 19 | **15** | **10** |
+
+**PHÁN QUYẾT: HÀNG 2.** `V_first` gỡ lại **40.4%**, `V_label` gỡ **48.9%**. Không nhánh nào
+về được tới `I`. Và **hàng phụ cũng khớp**: `V_label` > `V_first` → **HOÀI NGHI NGUỒN
+quan trọng hơn THỨ TỰ CAM KẾT.**
+
+### Cơ chế tách ra rất sạch — hai loại thiệt hại, hai thuốc chữa khác nhau
+- **Cam kết trước khi đọc giết NHẠI LẠI**: 36 → **15** (−58%), nhưng **KHÔNG đụng được đáp án
+  thứ ba**: 21 → **23**. Cam kết đáp án của mình ngăn được việc CHÉP, không ngăn được việc
+  **đọc làm nhiễu lập luận**.
+- **Hoài nghi nguồn giảm CẢ HAI**: nhại 36→19, thứ ba 21→**15**.
+
+### PHÁT HIỆN SẮC NHẤT: **số bài ĐƯỢC CỨU KHÔNG ĐỔI — đúng 10 ở cả ba nhánh**
+Không cách trình bày nào làm **tăng** phần lợi. Mọi chuyển động đều nằm ở phần **hại**.
+> **Tỉ lệ cứu là thuộc tính của TASK, không phải của PROMPT. Chỉ thiệt hại là uốn được — và không đủ.**
+
+### Chặn trên định lượng cho toàn bộ hướng này
+`V = I − đầu_độc/500 + cứu/500`. Với `cứu` cố định = 10:
+- trình bày hoàn hảo (đầu độc → 0) ⇒ `V` = **.9540**, tức **chỉ +.020** so với `I`.
+- hiện tại còn dư **34** bài đầu độc, tức −.068.
+
+**Trần lý thuyết của việc cho 7B xem lời giải 1.5B là +.020 — và chỉ đạt được nếu việc tiếp xúc
+trở nên HOÀN TOÀN miễn phí.** Thực tế tốt nhất đo được là **−.048**. Khoảng cách giữa
+"tốt nhất có thể" và "đáng làm" quá hẹp để hướng này đáng theo.
+
+### Prior của tôi ĐÚNG (lần đầu sau ba lần trượt)
+Ghi trước: hàng 2, gỡ **40–70%**. Thực tế **40.4% / 48.9%** — trúng, sát mép dưới.
+Tỉ lệ prior đúng: **8/18**.
+
+### Ghi chú confound (tự bắt)
+`I` = .9340 ở H62 nhưng .9080 ở H61. Khác biệt: `MAXNEW` 512 vs 400 → 7B được sinh dài hơn thì
+tốt hơn 2.6 điểm. **Không ảnh hưởng kết luận**: mọi so sánh trong H62 là CẶP, cùng `MAXNEW`,
+và cổng tái lập đặt trên `V_std − I` (đo trong cùng một lần chạy) đã ĐẠT.
+Nhưng ghi lại: **`MAXNEW` là một biến có tác dụng thật, phải giữ cố định khi so giữa các vòng.**
