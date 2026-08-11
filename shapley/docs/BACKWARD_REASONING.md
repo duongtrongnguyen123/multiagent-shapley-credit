@@ -26,8 +26,8 @@ song trên 2 T4** (mỗi GPU 1 model 1.5B, cùng bài, cùng seed) — mock test
 |---|---|---|---|
 | GSM8K × PSVA | .7000 | .6933 | **−.007** |
 | GSM8K × solve-judge | .6267 | .6533 | **+.027** |
+| MATH × PSVA | .4733 | .4600 | **−.013** |
 | MATH × solve-judge | .4867 | .4800 | **−.007** |
-| MATH × PSVA | _pending v1_ | _pending v1_ | — |
 
 ### Bảng v2 (prompt backward thật)
 
@@ -66,5 +66,5 @@ plan/prompt không chuyển thành accuracy (cùng họ với prompt-swap, role 
 
 - n=150 mỗi ô, một lần chạy. Δ đều dưới/trong sàn nhiễu ~5 điểm (trừ MATH solve-judge v2 −7.3
   vượt nhiễu).
-- v1 MATH PSVA đang chạy bổ sung để hoàn bảng.
-- Chưa thử backward trên 7B (Solver mạnh hơn có thể dùng được plan gọn hơn).
+- **Đang chạy bổ sung: backward trên 7B** (cả pipeline 7B 4-bit, prompt v2, 4 ô) — để kiểm tra
+  liệu Solver mạnh hơn có dùng được plan backward gọn không. Kết quả sẽ cập nhật sau.
