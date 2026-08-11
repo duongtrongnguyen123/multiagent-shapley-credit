@@ -2321,3 +2321,55 @@ Phân tầng theo `level` của MATH-500 qua mã băm đề bài, như #46.
 Đoán **hàng 2** (còn dương nhưng teo lại): 14B trên MATH mạnh hơn 7B rõ, nên chi phí cơ hội của
 việc giữ bài cho 1.5B tăng lên — chính là cơ chế đã giết định tuyến trên GSM8K (`opp_cost` tăng).
 Tỉ lệ prior đúng gần đây: **5/12**.
+
+
+# Đăng ký trước #61 — H55: **VERIFIER TỰ VIẾT TEST** (đề xuất của Nguyên) — vai trò có ARTIFACT KHÁC NHAU
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao thiết kế này khác mọi thứ đã đo
+Mọi "vai" tôi đã đo đều sinh ra **CÙNG một artifact**: một lời giải. "Kế hoạch" hoá ra là code ở
+**85.3%–100%** (#89); lượt "kiểm" chỉ là giải lại. **Không có gì để phân rã.**
+Ở đây mỗi vai sinh ra **loại đối tượng KHÁC NHAU**: kế hoạch (văn xuôi) · **test (chạy được)** · code.
+Model không thể gộp "viết test" thành "viết hàm" — kiểu đầu ra không cho phép.
+
+Quan trọng hơn: **verifier không NHẬN XÉT, nó TẠO RA ORACLE.** Phát hiện bền nhất của dự án là
+bộ kiểm chỉ đáng giá khi là oracle về tính đúng (test thật: +6..+11; LLM nhận xét: 0 hoặc hại,
+**4 lần độc lập** trong ngày). Thiết kế này tự sinh ra đúng thứ đó.
+
+## Dữ liệu — MBPP 11–510 (498 bài), model 7B
+Chọn MBPP vì đã có sẵn mốc trên **cùng 498 bài** (#88): `greedy` .6546 · `maj3` .6727 ·
+định tuyến oracle .7392. `assert[0]` cho tên hàm; **`assert[1..2]` CHỈ để chấm**, không nhánh nào thấy.
+
+## Nhánh — cùng 3 lượt sinh
+- `solve1` — 1 lượt (mốc)
+- `maj3` — 3 mẫu, bỏ phiếu theo HÀNH VI trên lời gọi `assert[0]` (giống #88, KHÔNG dùng kết quả chấm)
+- **`TDD`** — verifier **viết test** → solver cài đặt → **CHẠY test tự sinh** → hỏng thì sửa (3 lượt)
+- **`TDD_noexec`** — verifier viết test → solver cài đặt **CÓ NHÌN test** → tự nhận xét (3 lượt)
+  ← đối chứng tách **"chạy test"** khỏi **"prompt giàu thông tin hơn"**
+
+## Thước đo (khoá trước)
+- **`test_soundness`** = tỉ lệ test tự sinh mà **LỜI GIẢI CHUẨN VẪN ĐẠT**. Test bác bỏ lời giải
+  tham chiếu là **sai theo định nghĩa**.
+- **`test_power`** = tỉ lệ mẫu solver ĐÃ BIẾT LÀ SAI (trượt `assert[1..2]`) mà test tự sinh **bắt được**.
+  (Chống test đúng-nhưng-rỗng kiểu `assert f(x) == f(x)`: soundness hoàn hảo, power = 0.)
+- Độ chính xác cuối cùng chấm **CHỈ bằng `assert[1..2]`**.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- **`test_soundness` < .50 ⇒ ô KHÔNG ĐỌC ĐƯỢC** cho câu hỏi TDD (test sai nhiều hơn đúng).
+  Ghi là "vai verifier thất bại ở khâu tạo oracle", KHÔNG phải "phân rã vai vô dụng".
+- Tỉ lệ biên dịch ≥ .50. n ≥ 400.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `TDD` − `maj3` ≥ +.02 **và** `test_soundness` ≥ .70 | **PHÂN RÃ VAI CÓ GIÁ TRỊ khi các vai sinh ra ARTIFACT KHÁC NHAU.** Verifier tự tạo oracle là vai đầu tiên trong dự án trả được tiền. Phải tái lập trên tách 511–974 trước khi công bố. |
+| \|`TDD` − `maj3`\| < .02 | Oracle tự sinh **không thêm gì** so với lấy mẫu. Ghi rõ. |
+| `TDD` < `maj3` − .02 | **Test tự sinh ĐÁNH LẠC HƯỚNG**: solver tối ưu theo đặc tả SAI. Kết quả âm có cơ chế rõ. |
+| \|`TDD` − `TDD_noexec`\| < .02 | Lợi ích (nếu có) đến từ **prompt giàu hơn**, KHÔNG phải từ việc CHẠY test. Làm yếu cách đọc "oracle". |
+| `test_soundness` ≥ .70 nhưng `test_power` < .20 | Test **đúng nhưng rỗng** — không bắt được lỗi nào. Vai verifier hình thức, vô dụng. |
+| `test_soundness` < .50 | Ô SUY BIẾN cho câu hỏi TDD. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán `test_soundness` khoảng **.60–.80**, và kết quả rơi vào **hàng 2 hoặc 3**: một test sai một cách
+tự tin còn tệ hơn không có test. Nhưng đây là thiết kế vai **đầu tiên** có cơ chế mà tôi tin là
+có thể chạy được nếu test đủ đúng. Tỉ lệ prior đúng gần đây: **5/12**.
