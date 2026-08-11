@@ -8,7 +8,8 @@
 #   7B   nf4   = ~5  GB  -> moi GPU mot ban sao   (fp16 15.2 GB KHONG vua 1 the T4)
 # device_map="auto" chi chia lop (pipeline) = suc chua, KHONG phai toc do. O day ta muon toc do.
 import os, re, csv, json, glob, threading, hashlib, torch, subprocess, sys
-subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "autoawq"], check=False)
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "gptqmodel", "autoawq"], check=False)
+# transformers moi nap AWQ qua `gptqmodel` (KHONG phai autoawq) — da xac nhan tu log H54 lan 1.
 subprocess.run([sys.executable,"-m","pip","install","-q","-U","bitsandbytes>=0.46.1"])
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
