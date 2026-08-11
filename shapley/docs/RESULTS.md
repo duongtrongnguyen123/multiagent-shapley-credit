@@ -338,3 +338,120 @@ Mọi thí nghiệm phán đoán nhị phân PHẢI khoá TRƯỚC:
 `degenerate_rate` <= .90 (tầng vi phạm -> VÔ HIỆU) · `parse_fail_rate` <= .20 (cả lần chạy VÔ HIỆU)
 · cỡ mẫu tối thiểu cho tầng dùng để kết luận · và với thí nghiệm tiêm lỗi: `pct_corruptible` >= .50.
 Ba lần ngưỡng này đã cứu khỏi đọc nhầm một phép đo hỏng (dt_g15, dt2_g15, dt3_m15).
+
+---
+
+## 8. VÒNG #59–#70 — BỐN PHÁT HIỆN ĐÃ TÁI LẬP, MỘT NHÁNH BỊ ĐÌNH CHỈ
+
+### 8.1 BỘ KIỂM ĐÚNG ĐẮN vs LLM-ĐI-KIỂM (HumanEval) — kết quả bền nhất dự án
+Cùng model, cùng 4 lượt sinh, chỉ khác NGUỒN TÍN HIỆU KIỂM.
+| lần chạy | máy | greedy | maj@4 | **exec3** | llm3 | exec3−llm3 | phá exec3 | phá llm3 |
+|---|---|---|---|---|---|---|---|---|
+| HE 1.5B | Kaggle | .5375 | .4250 | **.6000** | .4812 | +.119 (5/5) | **0.0** | 2.8 |
+| HE 1.5B | 5090 | .5625 | .4313 | **.6438** | .4375 | +.206 (5/5) | **0.0** | 4.6 |
+| HE 7B | 5090 | .8000 | .7875 | **.8812** | .7812 | +.100 (4/5) | **0.0** | 2.6 |
+| HE 7B | Kaggle | .7938 | .7375 | **.9000** | .7438 | +.156 (5/5) | **0.0** | 3.2 |
+**0 lần phá trong 20/20 fold; llm3 phá trong 20/20 fold.**
+CƠ CHẾ: `exec3` = `oracle@4` **CHÍNH XÁC** (.6438 và .8812). Bộ kiểm là **BỘ CHỌN hoàn hảo**,
+không phải bộ sửa. Phân bố: 14% số bài ở 1.5B chỉ có ĐÚNG 1/4 mẫu đúng — bỏ phiếu gần như
+không thể chọn ra, bộ kiểm tìm ra hết. Bỏ phiếu bỏ lỡ **21.3 điểm**.
+LƯU Ý MỐC: `maj@4` trên code THẤP HƠN greedy (−.113, −.131) -> **bỏ phiếu CÓ HẠI trên code**
+(lời giải là chuỗi dài, hiếm khi trùng nhau -> "đa số" là hoà -> chọn ngẫu nhiên).
+Vì vậy mốc trung thực là **`exec3 − greedy` = +.063 đến +.106**, không phải `exec3 − maj@4`.
+
+### 8.2 H8b — "CHẠY ĐƯỢC" ≠ "MÔ HÌNH HOÁ ĐÚNG"
+| | exec_success | greedy | maj3 | pal1 | pal3 | exec3 | pal3−maj3 |
+|---|---|---|---|---|---|---|---|
+| MATH 7B | **.875** (.975 sau sửa) | .485 | **.540** | .430 | .475 | .475 | **−.065 (1/5)** |
+| MATH 1.5B | **.760** (.895) | .325 | **.370** | .250 | .295 | .280 | **−.075 (0/5)** |
+Rào cản của H8 (exec_success .42 < .50) ĐÃ HẾT ở 7B. Nhưng PAL vẫn THUA suy luận văn bản.
+Sửa lỗi SẬP có tác dụng nhất quán (`exec3−pal1` = +.045 và +.030, **5/5 fold**) — và vẫn thua.
+=> **Bộ kiểm chỉ có giá trị khi là ORACLE VỀ TÍNH ĐÚNG, không phải khi là MỘT CÁCH TÍNH KHÁC.**
+=> Hệ quả: bộ kiểm Lean LÀ oracle -> chứng minh định lý thuộc nhóm CODE, không phải nhóm này.
+
+### 8.3 TUẦN TỰ vs SONG SONG ở CÙNG NGÂN SÁCH (mỗi nhánh 3 lượt)
+| ô | greedy | maj@3 | PSV | SVV | SS_anc | maj3−PSV |
+|---|---|---|---|---|---|---|
+| GSM8K 1.5B | .632 | .664 | **.728** | .692 | **.728** | −.084 (5/5) |
+| MATH 1.5B | .325 | .385 | **.440** | .385 | — | −.055 (0/5) |
+| MATH 7B | .480 | .515 | **.595** | .525 | .475 | −.080 (0/5) |
+| GSM8K 7B | .924 | **.928** | .912 | .924 | .928 | +.016 (3/5) |
+Token: `PSV` **2.29×** greedy vs `maj@3` **2.96×** -> tuần tự RẺ HƠN 22% mà vẫn hơn.
+`SS_anc` (không có ngôn ngữ vai) = `PSV` chính xác -> **cơ chế là MỎ NEO, không phải VAI**.
+ĐỐI CHỨNG `maj3_g` (bỏ phiếu có 1 mẫu greedy) ≈ `maj@3` ở **7 ô** -> loại trừ nhiễu loạn giải mã.
+
+### 8.4 KIỂM LỖI = NĂNG LỰC × MIỀN (không chỉ năng lực)
+| | 1.5B | 7B |
+|---|---|---|
+| GSM8K | suy biến .99 VÔ HIỆU | **+.651** |
+| MATH | suy biến .99 VÔ HIỆU | **+.113** (ZERO n=224, HỢP LỆ + ĐỦ LỰC) |
+Chênh **5.8 lần** chỉ vì miền. Ở MATH, ZERO (+.116) ≈ HIGH (+.113) -> yếu ĐỀU, không phải
+"bị chặn bởi năng lực giải". Đây là lần thứ hai kết luận "năng lực" hoá ra là "năng lực × miền".
+
+### 8.5 ĐỒNG THUẬN — tín hiệu miễn phí, mạnh hơn bộ chấm huấn luyện
+k=8: đồng thuận 8/8 -> acc **1.000**; 1/8 -> **.143** (GSM8K) / **.000** (MATH).
+k=3: **50–58% số bài KHÔNG có đa số** -> `maj@3` thoái hoá thành "lấy mẫu đầu".
+Chỉ cần đếm. So với bộ chấm huấn luyện (AUC .88–.95) tốn dữ liệu + LoRA + đã gây lỗi rò rỉ adapter.
+
+### 8.6 ĐANG ĐÌNH CHỈ
+H27/H28/H28b/H31 (rerank, bỏ phiếu có trọng số, oracle_solid) — lỗi RÒ RỈ ADAPTER:
+mẫu đánh giá sinh khi LoRA Yes/No còn bật. Không trích dẫn tới khi bản sửa (#36/#37) chạy xong.
+
+### 8.2b H8b CHỐT — PAL thua ở 5/5 phép đo (bổ sung cho 8.2)
+Phép thử GSM8K THẬT (trước bị lỗi tham số `task` che mất — kernel hardcode MATH):
+| ô | exec_ok | greedy | maj@3 | pal3 | exec3 | pal3−maj3 | exec3−pal1 |
+|---|---|---|---|---|---|---|---|
+| GSM8K 7B | **.980** | .948 | .944 | .876 | — | **−.068 (0/5)** | — |
+| GSM8K 1.5B | .872 | .492 | .480 | .436 | — | **−.044 (1/5)** | — |
+| MATH 7B n200 | .875 | .485 | .540 | .475 | .475 | −.065 (1/5) | +.045 (5/5) |
+| MATH 7B n250 | .852 | .480 | .508 | .452 | .452 | −.056 (2/5) | +.048 (5/5) |
+| MATH 1.5B | .760 | .325 | .370 | .295 | .280 | −.075 (0/5) | +.030 (5/5) |
+**exec_success .98 ở GSM8K 7B** -> chương trình chạy được gần như luôn luôn; vẫn thua văn bản.
+Sửa lỗi SẬP giúp nhất quán (`exec3−pal1` dương **5/5 fold** ở cả ba ô MATH) mà vẫn không đủ.
+=> Xác lập phân biệt: **ORACLE VỀ TÍNH ĐÚNG** (bộ test) vs **MỘT CÁCH TÍNH KHÁC** (chạy Python cho toán).
+=> Lean là oracle -> chứng minh định lý thuộc nhóm CODE; kết quả âm này KHÔNG áp cho Lean.
+
+## 9. H41 — GIẢ THUYẾT "TRẦN" BỊ BÁC TRONG GSM8K (pre-reg #47)
+
+Kiểm tra khắt khe nhất: escalate đã **thua** trên GSM8K (−.064, 0/5 fold, vòng #79).
+Nếu "trần" là nguyên nhân thật thì NGAY TRONG GSM8K, nhóm bài nhiều bước (7B xa trần hơn)
+phải cho `gain` cao hơn nhóm ít bước.
+
+**Thiết kế:** 1319 bài GSM8K, bf16 trên RTX 5090, k=8 mẫu. Độ khó = số bước tính `<<...>>`
+trong lời giải chuẩn. Tách 3 tầng: DỄ (≤2 bước, n=440) · GIỮA (3 bước, n=364) · KHÓ (≥4 bước, n=515).
+Giao thức H39: 3 mẫu 1.5B → đồng thuận thì nhận, không → 7B tuần tự có mỏ neo.
+
+### Kết quả tổng quan
+
+| Chiến lược | Accuracy |
+|---|---|
+| small_maj8 (1.5B ×8) | .711 |
+| **big_maj3 (7B ×3)** | **.920** |
+| big_maj8 (7B ×8) | .930 |
+| escalate_seq | .811 (thua big_maj3 **−10.8đ**) |
+| pct_escalated | 33.4% |
+
+### Phân rã theo độ khó
+
+| Tầng | n | pct_esc | big_maj3 | escalate | esc−big3 | opp_cost | gain_on_esc |
+|---|---|---|---|---|---|---|---|
+| **DỄ** (≤2 bước) | 440 | 20.9% | .952 | .882 | **−.071** | +.081 | **−.033** |
+| **GIỮA** (3 bước) | 364 | 29.1% | .931 | .843 | **−.088** | +.097 | **−.066** |
+| **KHÓ** (≥4 bước) | 515 | 47.2% | .884 | .728 | **−.155** | +.228 | **−.074** |
+
+Đẳng thức tự kiểm (khoá trước): `escalate_seq − big_maj3 ≈ p_kept·(−opp_cost) + p_esc·gain`
+→ **lệch 0.0000 ở cả 3 tầng** → mã đúng, số liệu tin được.
+
+### Kết luận (khoá trước ở pre-reg #47)
+
+`gain(KHÓ) − gain(DỄ)` = −0.074 − (−0.033) = **−0.041 < −0.03** → **NGƯỢC HẶN. Giả thuyết trần CHẾT.**
+
+- `gain_on_esc` **âm ở mọi tầng** — tuần tự có mỏ neo tệ hơn big_maj3 ngay trên tập đã escalate.
+- `opp_cost` đi **sai chiều dự đoán**: tăng từ +0.08 (dễ) lên +0.23 (khó), thay vì giảm.
+  Tức bài khó càng phải trả đắt để giữ 1.5B, ngược logic "trần".
+- Escalate thua **NHIỀU HƠN** ở bài khó (−.155) so với bài dễ (−.071) — ngược hoàn toàn dự đoán.
+
+**Phát biểu thay thế:** khác biệt MATH↔GSM8K (escalate thắng ở MATH, thua ở GSM8K)
+**không phải do độ khó trong nhiệm vụ**, mà ở cấp **tác vụ**. Giả thuyết "trần" không giải thích được.
+Phải tìm biến khác (độ dài? kiểu suy luận? bộ chấm?) hoặc chấp nhận kết quả #78 trên MATH
+có thể không tái lập.

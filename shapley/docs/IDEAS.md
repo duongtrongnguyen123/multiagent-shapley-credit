@@ -2446,3 +2446,365 @@ Trên toán tôi từng tranh cãi `oracle@k` phóng đại vì tính cả "đú
 Trên CODE thì KHÔNG có vấn đề đó: "đúng" = **chạy qua toàn bộ test**, không thể trúng ngẫu nhiên.
 => `oracle@4` trên code là trần THẬT, và nó **lấy được** — exec3 đã lấy.
 => Đây là lý do miền có BỘ KIỂM ĐÚNG ĐẮN khác hẳn miền chỉ có LLM đi kiểm.
+
+## [Quy uoc] VONG LAP TU DONG DAY LEN NHANH RIENG (tu 2026-08-09)
+Tu day, moi commit cua vong lap tu dong day len **`loop-autonomous`**, KHONG day thang vao `main`.
+Ly do: Duc lam viec tren nhanh `duc` va gop bang PR. Vong lap cua toi day thang vao `main` voi
+nhip do cao da buoc Duc phai merge `origin/main` vao `duc` **5 lan**. Tach nhanh de anh ay
+khong bi ep merge lien tuc, va de review theo PR nhu binh thuong.
+Gop vao `main` bang PR khi mot manh viec da xong, khong gop tung commit le.
+
+## [Loop] VÒNG #70 — dt6_m7 HỢP LỆ VÀ ĐỦ LỰC LẦN ĐẦU: **HÀNG 3 — kiểm lỗi YẾU ở MỌI tầng trên MATH**
+### dt6_m7 (MATH 7B, bản sửa cắt cụt #34: 1024 token + giới hạn 120 từ + lượt hỏi lại)
+`parse_fail` = **0.000** (trước là .38!) · `pct_needed_retry` = .0013 · `pct_corruptible` = .9775
+**Lần ĐẦU TIÊN cả ba tầng vừa HỢP LỆ vừa ĐỦ LỰC** (ZERO **n=224**).
+| tầng | n | phát hiện | báo động giả | PHÂN BIỆT | suy biến | HỢP LỆ | ĐỦ LỰC |
+|---|---|---|---|---|---|---|---|
+| HIGH | 97 | .186 | .072 | **+.113** | .871 | CÓ | CÓ |
+| MID | 70 | .143 | .143 | **+.000** | .857 | CÓ | CÓ |
+| ZERO | 224 | .192 | .076 | **+.116** | .866 | CÓ | CÓ |
+
+=> **HÀNG 3 của bảng khoá (#26)**: "phân biệt THẤP ở mọi tầng HỢP LỆ -> model KHÔNG kiểm được
+   lỗi số học dù đã được suy luận. **Bác hướng 'vai kiểm'.**"
+=> Đáng chú ý: ZERO (+.116) ≈ HIGH (+.113) -> phát hiện **KHÔNG giảm** theo độ khó.
+   Nó YẾU ĐỀU. Tức KHÔNG phải "bị chặn bởi năng lực giải" (hàng 2) mà là **yếu toàn cục** trên MATH.
+
+### MÂU THUẪN VỚI dt2_g7 — VÀ ĐÓ LÀ PHÁT HIỆN
+`dt2_g7` (**GSM8K** 7B): phân biệt **+.651** ở HIGH.
+`dt6_m7` (**MATH** 7B): phân biệt **+.113** ở HIGH.
+Cùng cỡ model, cùng 4-bit, cùng cách tiêm lỗi, cùng prompt -> **khác 5.8 LẦN chỉ vì MIỀN.**
+=> Phát biểu "ngưỡng NĂNG LỰC cho việc kiểm" phải sửa thành **"phụ thuộc NĂNG LỰC *VÀ* MIỀN"**.
+   Kiểm số học trong chuỗi GSM8K (số nguyên, bước ngắn) thì 7B làm được;
+   kiểm trong chuỗi MATH (LaTeX, đại số, nhiều bước) thì KHÔNG.
+   Đây là lần thứ hai một kết luận "năng lực" hoá ra là "năng lực × miền" (lần trước: H1).
+
+## ev_he7 (HumanEval 7B, Kaggle 4-bit) — **TÁI LẬP LẦN THỨ BA của H35**
+greedy .7938 | maj@4 .7375 | **exec3 .9000** | llm3 .7438
+`exec3−llm3` = **+.156 (5/5)** · `exec3−maj@4` = **+.163 (5/5)** · `exec3−greedy` = **+.106**
+phá: **exec3 = 0.0 (0/5)** · llm3 = **3.2/fold (5/5)**
+### BA LẦN CHẠY ĐỘC LẬP, HAI CỠ MODEL, HAI PHẦN CỨNG
+| run | máy | exec3−llm3 | exec3−greedy | phá exec3 | phá llm3 |
+|---|---|---|---|---|---|
+| ev_he15 (1.5B, T4) | Kaggle | +.119 | +.063 | **0.0** | 2.8 |
+| R_c15b (1.5B, bf16) | 5090 | +.206 | +.081 | **0.0** | 4.6 |
+| R_c7b (7B, bf16) | 5090 | +.100 | +.081 | **0.0** | 2.6 |
+| **ev_he7 (7B, 4-bit)** | **Kaggle** | **+.156** | **+.106** | **0.0** | **3.2** |
+=> **exec3 KHÔNG phá một đáp án đúng nào trong 20/20 fold của BỐN lần chạy.**
+   `llm3` phá trong **20/20 fold**. Đây là kết quả bền vững nhất dự án có.
+
+## R_g7b (GSM8K 7B bf16) — lặp lại ô BÃO HOÀ
+greedy .924 | maj@3 .928 | maj3_g .932 | **PSV .912** | SVV .924
+`maj3−PSV` = **+.016 (3/5)** -> PSV THUA, lặp lại `bgL_g7` (+.036). Ô bão hoà đảo chiều: XÁC NHẬN.
+`maj3g−maj3` = +.004 (2/5) -> đối chứng nhiễu loạn ≈ 0 lần thứ **7**.
+
+## [Loop] VÒNG #71 — H8b CHỐT TRÊN **CẢ HAI MIỀN**: PAL thua ở MỌI ô, "chạy được ≠ mô hình hoá đúng"
+### H8b_G7real — phép thử GSM8K THẬT (trước đó bị lỗi tham số task che mất)
+`exec_success_rate` = **.980** — gần như MỌI chương trình đều CHẠY ĐƯỢC.
+greedy **.948** | maj@3 **.944** | **pal3 .876** -> `pal3−maj3` = **−.068, 0/5 fold**
+
+### BẢNG ĐẦY ĐỦ — PAL thua ở **5/5 phép đo**, hai miền, hai cỡ model
+| ô | exec_ok | greedy | maj@3 | pal3 | **pal3 − maj3** |
+|---|---|---|---|---|---|
+| GSM8K 7B | **.980** | .948 | .944 | .876 | **−.068 (0/5)** |
+| GSM8K 1.5B | .872 | .492 | .480 | .436 | **−.044 (1/5)** |
+| MATH 7B (n=200) | .875 | .485 | .540 | .475 | **−.065 (1/5)** |
+| MATH 7B (n=250) | .852 | .480 | .508 | .452 | **−.056 (2/5)** |
+| MATH 1.5B | .760 | .325 | .370 | .295 | **−.075 (0/5)** |
+
+=> **KẾT LUẬN CHỐT**: viết-và-chạy chương trình Python **LUÔN THUA** suy luận bằng văn bản,
+   ở CẢ HAI miền, CẢ HAI cỡ model, **5/5 phép đo**, biên độ −4.4 đến −7.5 điểm.
+=> Và điều này KHÔNG phải vì model không viết nổi code: `exec_success` = **.98 ở GSM8K 7B**.
+   **Chương trình CHẠY ĐƯỢC gần như luôn luôn. Chúng chỉ tính SAI THỨ CẦN TÍNH.**
+=> Đây là bằng chứng mạnh nhất cho phân biệt đã khoá ở #42:
+   **BỘ KIỂM chỉ có giá trị khi là ORACLE VỀ TÍNH ĐÚNG (bộ test: pass = đúng),
+   KHÔNG có giá trị khi chỉ là MỘT CÁCH TÍNH KHÁC (chạy Python cho toán).**
+   Code: `exec3` = `oracle@4` chính xác, +6 đến +11 điểm, 0 lần phá.
+   Toán/GSM8K: PAL = −4.4 đến −7.5 điểm dù chương trình chạy được .98.
+
+### GHI CHÚ CHO CHỨNG MINH ĐỊNH LÝ
+Bộ kiểm Lean LÀ oracle (chứng minh kiểm được hoặc không) -> thuộc nhóm CODE.
+Kết quả âm của PAL **KHÔNG** dự đoán thất bại cho Lean. Hai thứ khác loại.
+
+## R_g15b / R_g7b — lưới H32 tái lập lần nữa (có trace đầy đủ)
+GSM8K 1.5B: greedy .636 | maj@3 .608 | maj3_g .652 | **PSV .704** | **SVV .716** -> `maj3−PSV` = **−.096 (PSV thắng 4/5)**
+GSM8K 7B : greedy .924 | maj@3 .928 | maj3_g .932 | PSV .912 | SVV .924 -> `maj3−PSV` = **+.016 (PSV thua, ô BÃO HOÀ)**
+=> Lặp lại chính xác mẫu hình đã có: tuần tự thắng ở ô CHƯA bão hoà, thua ở ô ĐÃ bão hoà.
+=> `maj3_g − maj3` = +.044 và +.004 -> đối chứng nhiễu loạn vẫn ≈ 0 (ô thứ 8 và 9).
+
+## [Loop] VÒNG #72 — H37 (bộ kiểm huấn luyện) ô 1.5B: 4/5 fold trước khi OOM. **PRIOR CỦA TÔI SAI**
+### Số liệu (hợp lệ: `adapter_leak` = −0.05, đúng bằng ngưỡng)
+`probe_pre` .3333 -> `probe_post` .3833 | **A) TIÊM: DISC = +0.032** | **B) THẬT: DISC = +0.219, AUC .563**
+`wvote − maj@8` theo fold: **+.02, +.02, −.04, .00** (fold 4 OOM)
+
+### PRIOR SAI — và sai theo hướng KHÔNG ai đoán
+Tôi ghi trước (pre-reg #43): "`injected` sẽ CAO (>.6), `real` sẽ THẤP (<.2)" — tức học được
+hiện vật rồi không chuyển giao. **Thực tế NGƯỢC LẠI**: `injected` = **+.032** (gần 0),
+`real` = +.219 (cao hơn). Model **KHÔNG HỌC ĐƯỢC** ngay cả nhiệm vụ tiêm lỗi.
+Loss huấn luyện TĂNG (0.22 -> 0.65), không hội tụ.
+=> Bắt "một chữ số bị đổi trong chuỗi vàng hoàn hảo" khó hơn tôi tưởng RẤT NHIỀU —
+   khó hơn cả phân biệt lời giải đúng/sai thật.
+
+### PHÁN QUYẾT SƠ BỘ: HÀNG 4 của bảng khoá
+"`discrimination_real` > 0 nhưng `wvote` KHÔNG hơn `maj@8` -> kiểm được nhưng KHÔNG chuyển
+thành độ chính xác. Ghi rõ: **đo được ≠ dùng được**."
+AUC .563 chỉ nhỉnh hơn ngẫu nhiên (.50). `wvote−maj` trung bình ≈ 0 trên 4 fold.
+CHỜ ô 7B trước khi chốt — năng lực là lý do prompt thất bại, nên 7B mới là phép thử thật.
+
+### LỖI HẠ TẦNG: chạy song song giết job
+`H37_m7` (7B) phình từ 17.1GB -> **19.5GB** trong lúc chạy (optimizer state), chỉ còn 12.6GB;
+`H37_m15` xin thêm **90 MiB** và OOM ở fold 4.
+=> Supervisor của tôi kiểm VRAM **lúc KHỞI ĐỘNG** nhưng job huấn luyện **PHÌNH LÊN** sau đó.
+=> SỬA: job `checker_local` (có huấn luyện) nay chạy **ĐỘC QUYỀN**, không cùng lúc với job khác.
+   Job chỉ suy luận thì vẫn cho chạy song song (chúng không phình).
+
+## [Loop] VÒNG #73 — **LƯỚI H32 HOÀN TẤT VÀ TÁI LẬP ĐỘC LẬP**: 8 phép đo, 4 ô, 2 phần cứng
+| ô | phần cứng | greedy | maj@3 | PSV | `maj3−PSV` | fold |
+|---|---|---|---|---|---|---|
+| GSM8K 1.5B | T4 | .632 | .644 | **.728** | **−.084** | 0/5 |
+| GSM8K 1.5B | 5090 | .636 | .608 | **.704** | **−.096** | 1/5 |
+| MATH 1.5B | T4 | .330 | .350 | **.380** | −.030 | 2/5 |
+| MATH 1.5B | 5090 | .325 | .385 | **.440** | **−.055** | 0/5 |
+| MATH 7B | T4 4-bit | .500 | .505 | **.590** | **−.085** | 0/5 |
+| MATH 7B | 5090 bf16 | .480 | .520 | **.595** | **−.075** | 0/5 |
+| **GSM8K 7B** | T4 4-bit | .912 | **.916** | .904 | **+.012** | 3/5 |
+| **GSM8K 7B** | 5090 bf16 | .924 | **.932** | .896 | **+.036** | 4/5 |
+
+### KẾT LUẬN — mọi ô đo HAI LẦN, hai phần cứng, hai độ chính xác số học, CÙNG DẤU
+- **PSV thắng ở 3/4 ô**, tái lập ở cả hai lần chạy của mỗi ô.
+- **Chỉ thua ở ô BÃO HOÀ** (GSM8K 7B, greedy .912–.924) — và thua ở CẢ HAI lần chạy.
+  Đây là ĐIỀU KIỆN đã khoá trước, không phải phản chứng: solver gần trần thì lượt thêm
+  chỉ có thể PHÁ đáp án đang đúng.
+- Tái lập chéo T4-4bit vs 5090-bf16 -> **kết luận KHÔNG phụ thuộc lượng tử hoá hay phần cứng.**
+
+### VÀ NÓ RẺ HƠN
+Token ở GSM8K 7B: `PSV` **1.89×** greedy vs `maj@3` **3.04×** -> tuần tự dùng **ÍT HƠN 38% token**
+mà vẫn ngang/hơn. (Ở GSM8K 1.5B trước đó: 2.29× vs 2.96×, ít hơn 22%.)
+
+### CƠ CHẾ VẪN LÀ MỎ NEO, KHÔNG PHẢI VAI
+`SS_anc` (giải → neo → neo, KHÔNG một chữ nào về vai) = .924 ở GSM8K 7B, **cao hơn cả PSV .904**.
+`SSanc − PSV` = +.020. Cộng với các ô trước (SS_anc = PSV chính xác ở GSM8K 1.5B):
+**bỏ hết ngôn ngữ vai mà kết quả không đổi hoặc tốt hơn.**
+
+### PHÁT BIỂU ĐƯỢC PHÉP DÙNG
+"Ở CÙNG ngân sách sinh, **tinh chỉnh tuần tự có mỏ neo** hơn **lấy mẫu song song + bỏ phiếu**
+từ 3 đến 9.6 điểm, trên 3/4 ô của lưới `task × cỡ model`, tái lập độc lập trên hai phần cứng,
+và dùng ít token hơn 22–38%. Ngoại lệ DUY NHẤT là khi solver đã bão hoà (>.90), lúc đó
+lượt thêm chỉ gây hại. Cơ chế là **MỎ NEO ĐÁP ÁN TRƯỚC**, không phải phân vai —
+nhánh không có ngôn ngữ vai nào đạt kết quả ngang hoặc hơn."
+
+## [Loop] VÒNG #74 — H37 ô 7B: **BỘ KIỂM HỌC RẤT TỐT (AUC .893) NHƯNG GẦN NHƯ VÔ DỤNG (+2.4 điểm)**
+### Số liệu (HỢP LỆ: `adapter_leak` = 0.05, đúng bằng ngưỡng; đo trên CÙNG 60 bài trước/sau)
+| | 1.5B | **7B** |
+|---|---|---|
+| A) TIÊM (trong phân phối) | +0.032 | **+0.573** |
+| B) THẬT (chuyển giao) | +0.219 (AUC .563) | **+0.693 (AUC .893)** |
+| `wvote − maj@8` | ≈0 (4 fold) | **+0.024, 2/5 fold** |
+| maj@8 / wvote | — | .504 / .528 |
+
+### PHÁN QUYẾT: **HÀNG 4 của bảng khoá (#43)**
+"`discrimination_real` > 0 nhưng `wvote` KHÔNG hơn `maj@8` (>=4/5) -> kiểm được nhưng KHÔNG
+chuyển thành độ chính xác. **ĐO ĐƯỢC ≠ DÙNG ĐƯỢC.**"
+`real` = +.693 vượt xa ngưỡng .40, nhưng `wvote` chỉ hơn `maj@8` ở **2/5 fold**, +2.4 điểm.
+
+### PRIOR CỦA TÔI SAI LẦN THỨ HAI — và sai cả hai chiều
+Tôi ghi trước: "`injected` CAO, `real` THẤP" (học hiện vật, không chuyển giao).
+Thực tế ở 7B: **CẢ HAI ĐỀU CAO, và `real` (+.693) CAO HƠN `injected` (+.573).**
+Chuyển giao KHÔNG phải vấn đề. Nút thắt nằm ở chỗ khác hoàn toàn.
+
+### NÚT THẮT THẬT: BỘ CHỌN KHÔNG THỂ VƯỢT `oracle@k`
+Bộ kiểm chỉ CHỌN trong k ứng viên. Nếu **không ứng viên nào đúng**, AUC .893 cũng vô ích.
+Khớp với vòng #65: bài "không đồng thuận" (50–58% số bài) có độ chính xác ~**.14 / .00** —
+tức là ở nhóm đó, thường KHÔNG CÓ đáp án đúng nào để chọn.
+=> Đây là lý do vì sao mọi cơ chế TỔNG HỢP của dự án đều chạm trần thấp:
+   **giới hạn không phải ở việc CHỌN, mà ở việc SINH.**
+
+### ĐỐI CHIẾU VỚI CODE — vì sao code khác hẳn
+Trên code, `exec3` = `oracle@4` **CHÍNH XÁC**, và `oracle@4` = .644/.881 — CAO hơn `maj@4` rất nhiều
+(bỏ lỡ 21.3 điểm). Nên ở đó bộ chọn hoàn hảo mua được 21 điểm.
+Trên toán, `oracle` gần `maj` hơn nhiều -> bộ chọn dù hoàn hảo cũng mua được ít.
+=> **Giá trị của bộ kiểm = khoảng cách `oracle@k − maj@k`, KHÔNG phải chất lượng bộ kiểm.**
+   AUC .893 trên toán mua +2.4 điểm; bộ test trên code (AUC hiệu dụng 1.0) mua +21 điểm.
+
+### NĂNG LỰC QUYẾT ĐỊNH VIỆC HỌC ĐƯỢC HAY KHÔNG
+`injected`: 1.5B **+.032** vs 7B **+.573** — gấp **18 lần**. Loss 1.5B TĂNG (0.22->0.65),
+loss 7B GIẢM (8.56->0.18). Bắt lỗi số học tiêm sẵn cần năng lực mà 1.5B KHÔNG có.
+
+## [Loop] VÒNG #75 — H38 ô GSM8K 7B: **SUY BIẾN** (chỉ 2.8% bài không đồng thuận) + H37 hoàn tất
+### rtL_g7 (GSM8K 7B) — VÔ HIỆU theo ngưỡng đã khoá
+`pct_no_consensus` = **.028**, dưới ngưỡng hiệu lực **.15** khoá ở #44.
+Đường cong tiêu đều: maj@3 .9240 | maj@4 .9280 | maj@6 .9400 | maj@8 .9400
+Nhánh định tuyến: `route_3_6` .9360 @ 3.08 lượt (delta +.0117) · `route_3_seq` .9360 @ 3.06 lượt (+.0118)
+=> Delta DƯƠNG nhưng chỉ dựa trên **~7/250 bài** được định tuyến -> **KHÔNG ĐỌC ĐƯỢC**,
+   theo đúng hàng đã khoá: "ghi rõ suy biến, không đọc là thành công/thất bại của ý tưởng".
+=> NGUYÊN NHÂN có ý nghĩa: GSM8K 7B **BÃO HOÀ** (greedy .924 = maj@3 .924), model tự đồng ý
+   với chính nó gần như luôn luôn -> **không có gì để định tuyến**.
+   Khớp y hệt lưới H32: ô bão hoà là nơi MỌI cơ chế đều mất tác dụng.
+=> Ô kiểm được ý tưởng là 1.5B (50–58% bài không đồng thuận): `rt_g15`, `rt_m15`, `rtL_g15`.
+
+## H37 HOÀN TẤT — cả hai ô, cả hai HỢP LỆ, cùng HÀNG 4
+| | leak | A) tiêm | B) thật | AUC | `wvote−maj@8` |
+|---|---|---|---|---|---|
+| 1.5B (chạy lại sạch) | −.017 ✓ | **−.012** | +.195 | .528 | **−.008 (1/5)** |
+| 7B | +.050 ✓ | **+.573** | **+.693** | **.893** | **+.024 (2/5)** |
+=> **HÀNG 4 ở CẢ HAI ô: "đo được ≠ dùng được".**
+=> 1.5B: phân biệt lỗi tiêm **ÂM** — không học được gì. 7B: học rất tốt VÀ chuyển giao tốt hơn
+   cả trong phân phối (+.693 > +.573) — **chuyển giao KHÔNG phải vấn đề**.
+=> Nhưng AUC .893 chỉ mua được **+2.4 điểm, 2/5 fold**.
+
+### PHÁT BIỂU HỢP NHẤT (nối H27 + H35 + H8b + H37)
+**Giá trị của một bộ kiểm = khoảng cách `oracle@k − maj@k`, KHÔNG phải chất lượng bộ kiểm.**
+- Code: khoảng cách **+21.3 điểm**; bộ test (AUC hiệu dụng 1.0) lấy được **toàn bộ**.
+- Toán: khoảng cách nhỏ; bộ kiểm AUC .893 chỉ lấy được **+2.4**.
+Bộ kiểm chỉ CHỌN trong k ứng viên. Ở 50–58% bài không đồng thuận (độ chính xác ~.14/.00),
+**thường KHÔNG CÓ ứng viên đúng nào để chọn**.
+=> **NÚT THẮT LÀ SINH, KHÔNG PHẢI CHỌN.** Đây là lý do mọi cơ chế tổng hợp của dự án
+   (rerank, bỏ phiếu có trọng số, bộ chấm huấn luyện) đều chạm trần thấp trên toán.
+
+## [Loop] VÒNG #76 — **HAI KẾT QUẢ LỚN**: H38 XÁC NHẬN (hàng 1) và H28d GỠ ĐÌNH CHỈ (leak = 0.0)
+### A) H38 — ĐỊNH TUYẾN THEO ĐỒNG THUẬN **THẮNG** TIÊU ĐỀU Ở CÙNG CHI PHÍ
+| ô | không đồng thuận | nhánh | acc | chi phí (lượt) | tiêu đều CÙNG chi phí | **delta** | fold |
+|---|---|---|---|---|---|---|---|
+| GSM8K 1.5B | .368 ✓ | route_3_6 | .7360 | 4.10 | .6865 | **+.0495** | 4/5 |
+| GSM8K 1.5B | .368 ✓ | **route_3_seq** | .7360 | **3.74** | .6671 | **+.0689** | 4/5 |
+| MATH 1.5B | .600 ✓ | route_3_6 | .4400 | 4.80 | .4160 | **+.0240** | 4/5 |
+| MATH 1.5B | .600 ✓ | **route_3_seq** | .4650 | **4.20** | .4040 | **+.0610** | **5/5** |
+(GSM8K 7B: không đồng thuận .028 -> **SUY BIẾN**, không đọc — ô bão hoà)
+
+=> **HÀNG 1 của bảng khoá #44**: "`route` > `maj@k` nội suy tại cùng chi phí, >=4/5 fold ->
+   XÁC NHẬN, định tuyến theo đồng thuận đáng dùng." **Đạt ở 4/4 phép đo hợp lệ.**
+=> **HÀNG 4 CŨNG NỔ**: `route_3_seq` > `route_3_6` ở **CẢ HAI ô** (+.069 vs +.050; +.061 vs +.024)
+   VÀ rẻ hơn (3.74 vs 4.10; 4.20 vs 4.80 lượt).
+   "Ở bài KHÓ, TUẦN TỰ tốt hơn LẤY THÊM MẪU" — khớp và làm sắc thêm H32.
+=> Tín hiệu đồng thuận **MIỄN PHÍ** (chỉ đếm), không cần huấn luyện, không có rủi ro rò rỉ adapter.
+
+### B) H28d — GỠ ĐÌNH CHỈ cho H28: bỏ phiếu có trọng số ĐỨNG VỮNG
+`probe_pre` = `probe_post` = **.55** trên CÙNG 60 bài -> **`adapter_leak` = 0.0**, VALID.
+(Ngưỡng cũ hỏng vì so tập TRAIN với tập TEST; nay so CÙNG bài trước/sau.)
+greedy .5267 | **maj@8 .7167** | rerank .7200 | **wvote_sum .7767** | oracle@8 .8767 | AUC .8555
+**`wsum − maj` = +.0600, [+.017,+.100], 5/5 fold** (f0 +.100, f1 +.017, f2 +.100, f3 +.067, f4 +.017)
+Lấy được **37%** khoảng trống `maj@8 -> oracle@8` (+.160).
+=> **H27/H28/H28b/H31 KHÔNG còn bị đình chỉ.** Con số ĐƯỢC PHÉP công bố là **+6.0 điểm, 5/5 fold**,
+   đo với `adapter_leak = 0.0` — KHÔNG phải +11.0 (nhiễm) cũng KHÔNG phải +3.0 (đo ở lần rò rỉ ít).
+
+### HỢP NHẤT — hai cách DUY NHẤT đã đo được là vượt `maj@k` trên toán
+1. **Bỏ phiếu CÓ TRỌNG SỐ** bằng bộ chấm huấn luyện: **+6.0 điểm** (5/5), lấy 37% khoảng trống.
+2. **ĐỊNH TUYẾN THEO ĐỒNG THUẬN** + tuần tự: **+6.1 đến +6.9 điểm** (4–5/5) ở CÙNG chi phí,
+   và **MIỄN PHÍ** — không huấn luyện gì cả.
+=> Hai đường độc lập, biên độ gần bằng nhau. Nhưng (2) không cần dữ liệu, không cần LoRA,
+   không có rủi ro rò rỉ -> **khuyến nghị thực tiễn ưu tiên (2)**.
+=> Cả hai đều KHÔNG chạm trần `oracle` — nhất quán với "nút thắt là SINH, không phải CHỌN".
+
+## [Loop] VÒNG #77 — **rtL_m7: ĐỊNH TUYẾN + TUẦN TỰ HƠN `maj@8` 10.5 ĐIỂM VỚI CHI PHÍ ÍT HƠN 2.1 LẦN**
+### MATH 7B (không đồng thuận .405 — HỢP LỆ), 5/5 fold
+| fold | maj@3 | maj@8 | **route_3_seq** | chi phí | tiêu đều cùng chi phí | delta |
+|---|---|---|---|---|---|---|
+| 0 | .575 | .550 | **.725** | 3.80 | .5750 | **+.1500** |
+| 1 | .675 | .675 | **.750** | 3.45 | .6750 | +.0750 |
+| 2 | .375 | .450 | **.550** | 4.05 | .3519 | **+.1981** |
+| 3 | .375 | .475 | **.575** | 4.10 | .3775 | **+.1975** |
+| 4 | .575 | .575 | **.650** | 3.65 | .5750 | +.0750 |
+**route_3_seq = .6500 @ 3.81 lượt** vs **maj@8 = .5450 @ 8.00 lượt**
+=> **HƠN 10.5 ĐIỂM với chi phí ÍT HƠN 2.1 LẦN.** So với tiêu đều CÙNG chi phí: **+.1391, 5/5 fold.**
+=> `route_3_6` chỉ +.0273 -> **tuần tự hơn hẳn lấy thêm mẫu** (gấp 5 lần hiệu quả), rẻ hơn (3.81 vs 4.21).
+
+### LƯỚI H38 ĐẦY ĐỦ — 3 ô hợp lệ, 1 ô suy biến
+| ô | không đồng thuận | route_3_6 | **route_3_seq** | fold (seq) |
+|---|---|---|---|---|
+| GSM8K 1.5B | .368 | +.0495 | **+.0689** | 4/5 |
+| MATH 1.5B | .600 | +.0240 | **+.0610** | 5/5 |
+| **MATH 7B** | .405 | +.0273 | **+.1391** | **5/5** |
+| GSM8K 7B | .028 | — | — | SUY BIẾN (bão hoà) |
+=> `route_3_seq` THẮNG ở **3/3 ô hợp lệ**, và LUÔN hơn `route_3_6`.
+=> Hiệu ứng LỚN NHẤT ở ô mà H32 cũng cho PSV thắng đậm nhất (MATH 7B) — **nhất quán nội tại**:
+   đó là ô "giữa dải độ khó" (solver ~.50), đúng luật dải độ khó đã đo từ đầu dự án.
+
+### PHÁT BIỂU THỰC TIỄN MẠNH NHẤT DỰ ÁN CÓ
+**"Lấy 3 mẫu. Nếu >=2 đồng ý -> nhận, dừng. Nếu không -> chạy tuần tự có mỏ neo.
+Kết quả hơn `maj@8` tới 10.5 điểm với chi phí chưa bằng một nửa."**
+- Tín hiệu định tuyến MIỄN PHÍ (chỉ đếm phiếu trùng nhau), không huấn luyện, không rò rỉ adapter.
+- Vượt cả bỏ phiếu có trọng số (+6.0, cần LoRA + dữ liệu) VÀ rẻ hơn.
+- Ngoại lệ: ô BÃO HOÀ (solver >.90) — ở đó không có gì để định tuyến, đừng dùng.
+
+## [Loop] VÒNG #78 — **H39: ESCALATE THEO ĐỒNG THUẬN + TUẦN TỰ HƠN "LUÔN DÙNG 7B" 10.5 ĐIỂM VỚI CHI PHÍ 4.3× ÍT HƠN**
+### MATH, escalate 1.5B -> 7B, tỉ lệ escalate = **.625** (HỢP LỆ), chi phí quy về FLOP 1.5B (7B = 5.07×)
+| nhánh | acc | chi phí (1.5B-eq) |
+|---|---|---|
+| small_maj3 (chỉ 1.5B) | .3500 | 3.00 |
+| small_maj8 (chỉ 1.5B) | .4800 | 8.00 |
+| big_maj3 (chỉ 7B) | .5050 | 15.20 |
+| big_maj8 (chỉ 7B) | .5400 | 40.53 |
+| escalate (7B lấy mẫu) | .4950 | 12.50 |
+| **escalate_seq (7B TUẦN TỰ)** | **.6450** | **9.33** |
+
+| so sánh | chênh acc | chi phí |
+|---|---|---|
+| `escalate_seq` vs `big_maj3` | **+.1400** | **1.63× rẻ hơn** (5/5 fold) |
+| `escalate_seq` vs `big_maj8` | **+.1050** | **4.34× rẻ hơn** |
+| `escalate_seq` vs `small_maj8` | +.1650 | — |
+| `escalate` (lấy mẫu) vs `big_maj3` | −.0100 | 1.22× rẻ hơn |
+
+### PHÁN QUYẾT: **HÀNG 1 + HÀNG 4 của bảng khoá #45**
+Hàng 1: "`escalate` >= `big_maj3` nhưng chi phí thấp hơn rõ -> XÁC NHẬN: chỉ trả tiền cho model
+lớn ở bài KHÔNG đồng thuận." **Đạt (với biến thể tuần tự): +.14 acc, 1.63× rẻ hơn, 5/5 fold.**
+Hàng 4: "`escalate_seq` > `escalate` -> tuần tự lại thắng lấy mẫu." **Đạt rất mạnh: .645 vs .495 = +.150.**
+Bản LẤY MẪU của escalate (.495) còn THUA `big_maj3` (.505) -> **chỉ TUẦN TỰ mới có tác dụng.**
+
+### PRIOR CỦA TÔI SAI — lần này sai theo chiều TỐT
+Tôi ghi trước: "escalate sẽ gần `big_maj3` với chi phí thấp hơn, NHƯNG sẽ THẤP HƠN `big_maj8`;
+kết luận sẽ là về hiệu quả chi phí, không phải độ chính xác."
+Thực tế: `escalate_seq` = .645 **CAO HƠN** `big_maj8` = .540 **10.5 điểm**, và rẻ hơn **4.34 lần**.
+Không chỉ hiệu quả chi phí — mà **CHÍNH XÁC HƠN VÀ RẺ HƠN CÙNG LÚC**.
+
+### VÌ SAO — ba mảnh khớp nhau
+1. **Đồng thuận biết bài nào dễ** (vòng #65): 37.5% bài mà 1.5B tự đồng ý -> nó gần như luôn đúng,
+   dùng 7B ở đó là LÃNG PHÍ.
+2. **Tuần tự > song song** (H32, H38): ở bài khó, một lượt có MỎ NEO đáng giá hơn nhiều lượt độc lập.
+3. **Nút thắt là SINH, không phải CHỌN** (H37): `big_maj8` tiêu 40.5 đơn vị để lấy mẫu SONG SONG —
+   nhưng 8 mẫu song song của 7B vẫn không sinh ra đáp án đúng ở nhóm khó. Tuần tự thì có.
+
+### KHUYẾN NGHỊ TRIỂN KHAI (mạnh nhất dự án đưa ra được)
+**"Lấy 3 mẫu bằng model NHỎ. Nếu >=2 đồng ý -> nhận, dừng. Nếu không -> gọi model LỚN chạy
+TUẦN TỰ CÓ MỎ NEO (giải lại + kiểm), KHÔNG phải lấy nhiều mẫu."**
+Trên MATH: **.645 so với .540 của "luôn dùng 7B, 8 mẫu", với 1/4.3 chi phí.**
+Tín hiệu định tuyến MIỄN PHÍ. Không huấn luyện. Không rò rỉ adapter.
+
+## [Loop] VÒNG #79 — **H39_g: TRÊN GSM8K, ESCALATE **THUA**. HÀNG 2 CỦA BẢNG KHOÁ #45.**
+### GSM8K, escalate 1.5B -> 7B, tỉ lệ escalate = **.372** (HỢP LỆ)
+| nhánh | acc | chi phí (1.5B-eq) |
+|---|---|---|
+| small_maj3 | .6160 | 3.00 |
+| small_maj8 | .7400 | 8.00 |
+| big_maj3 | **.9360** | 15.20 |
+| big_maj8 | **.9480** | 40.53 |
+| escalate (lấy mẫu) | .8880 | 8.65 |
+| escalate_seq (tuần tự) | .8720 | 6.77 |
+
+| so sánh | chênh acc | chi phí | fold |
+|---|---|---|---|
+| `escalate_seq` vs `big_maj3` | **−.0640** | 2.25× rẻ hơn | **0/5** |
+| `escalate_seq` vs `big_maj8` | **−.0760** | 5.99× rẻ hơn | **0/5** |
+| tuần tự vs lấy mẫu | **−.0160** | — | ĐẢO CHIỀU so với MATH |
+
+### PHÁN QUYẾT: **HÀNG 2 của bảng khoá #45 — "escalate < big_maj3"**
+Đúng câu chữ đã khoá: *"Escalate không đủ — ghi rõ."* **GHI RÕ: trên GSM8K, escalate THUA
+`big_maj3` 6.4 điểm ở 0/5 fold.** Rẻ hơn 2.25× nhưng KHÔNG chính xác bằng.
+Và **hàng 4 ĐẢO CHIỀU**: tuần tự (.872) THẤP HƠN lấy mẫu (.888) — ngược hẳn MATH (+.150).
+
+### KẾT QUẢ #78 KHÔNG PHỔ QUÁT. Phải thu hẹp phạm vi.
+Vòng #78 tôi viết: *"khuyến nghị triển khai mạnh nhất dự án đưa ra được."* **Câu đó SAI vì
+thiếu điều kiện.** Nó đúng trên MATH, sai trên GSM8K. Ghi lại cho đúng:
+> escalate theo đồng thuận thắng **trên MATH**, thua **trên GSM8K**. Chưa biết cái gì quyết định.
+
+### ĐỐI CHIẾU HAI MIỀN — khác biệt lớn nhất là **TRẦN**
+| | acc `big_maj3` | dư địa còn lại | chênh `escalate_seq` |
+|---|---|---|---|
+| MATH | .5050 | .495 | **+.1400** |
+| GSM8K | .9360 | .064 | **−.0640** |
+Khi 7B đã ở .936, việc GIỮ 62.8% bài cho 1.5B nghĩa là **từ bỏ** phần 7B lẽ ra sửa được.
+Lỗi còn lại trong nhóm "đồng thuận" là KHÔNG THỂ cứu — ta không bao giờ gọi 7B ở đó.
+Khi 7B mới ở .505, dư địa lớn, và lượt tuần tự trên nhóm khó thu được nhiều hơn phần đánh mất.
+
+### ĐÂY LÀ **GIẢ THUYẾT**, KHÔNG PHẢI ĐO ĐƯỢC
+"Trần quyết định" mới chỉ dựa trên **2 điểm dữ liệu** (2 tác vụ). Hai miền còn khác nhau ở
+độ dài bài, kiểu suy luận, chất lượng bộ chấm. **Chưa được coi là đã chứng minh.**
+Kiểm chứng ở đăng ký trước #46: đo TRONG CÙNG MỘT tác vụ, tách theo độ khó.
