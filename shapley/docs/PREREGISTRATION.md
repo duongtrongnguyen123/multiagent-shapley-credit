@@ -2504,3 +2504,65 @@ Toàn văn đầu ra verifier của **cả hai** nhánh trên tập eval -> đ�
 mọi cách làm verifier "thông minh hơn" đều không chuyển thành độ chính xác (H37: AUC .893 -> +2.4;
 #94: oracle tự sinh dùng để SỬA -> +.004). Nút thắt là **SINH**, không phải **PHÁN ĐOÁN**.
 Tỉ lệ prior đúng gần đây: **7/14**.
+
+
+# Đăng ký trước #65 — H60: **BẤT ĐỐI XỨNG THÔNG TIN** — nhại lại có biến mất khi Solver YẾU HƠN thật không?
+**Viết TRƯỚC khi chạy.** Đây là bài kiểm để **GIẾT lời giải thích của chính tôi ở vòng #98.**
+
+## Lời giải thích cần kiểm
+H59: GRPO làm verifier co từ **480 -> 19 ký tự**; nó học cách **NHẠI LẠI** Solver.
+Tôi đã giải thích bằng số học: nhại lại ghi điểm **đúng bằng** độ chính xác của Solver (.646),
+và verifier **cùng model, cùng tri thức** thì không có cách nào làm hơn -> tối ưu của hàm thưởng
+CHÍNH LÀ nhại lại. Kết luận tôi đã ghi: *"Verifier KHÔNG có lợi thế thông tin so với Solver
+thì KHÔNG THỂ vượt Solver, bất kể hàm thưởng."*
+
+**Đó mới là một lời giải thích, chưa phải bằng chứng.** Nếu đúng, thì khi Solver YẾU HƠN HẲN,
+nhại lại bị chặn trần ở độ chính xác thấp của Solver, tối ưu phải dịch ra khỏi nhại lại,
+và độ dài đầu ra **không được** sụp.
+
+## Thiết kế
+Thay đổi **DUY NHẤT** so với H59: **Solver = Qwen2.5-0.5B-Instruct** (`/root/m05`),
+Verifier vẫn là 1.5B (`/root/m15`) + LoRA + **đúng hàm thưởng H59** (+1 đúng / −1 sai).
+Mọi thứ khác giữ nguyên: GSM8K train 2400 / test 500, bp=24, k=4, 100 bước, eval 5 fold, seed 0.
+
+## BỐN nhánh, cùng 500 bài test
+| Nhánh | Là gì | Vai trò |
+|---|---|---|
+| **S** | 0.5B giải, greedy | sàn |
+| **I** | 1.5B **tự giải, KHÔNG được xem lời giải** | trần-tầm-thường ("cứ lờ Solver đi") |
+| **V0** | 1.5B gốc, ĐƯỢC xem lời giải của S | verifier chưa huấn luyện |
+| **V\*** | 1.5B + GRPO, ĐƯỢC xem lời giải của S | verifier đã huấn luyện |
+
+**Đại lượng chính là `V* − I`, KHÔNG phải `V* − S`.**
+`V* − S` dương là tầm thường (1.5B > 0.5B) và **không** chứng minh gì về việc kiểm tra.
+Chỉ `V* − I` mới tách được câu hỏi *"nó có HỌC CÁCH DÙNG lời giải không"*.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `acc(S)` ∈ **[.20, .55]**. Nếu ≥ .55 thì bất đối xứng quá yếu, phép kiểm vô nghĩa ⇒ HUỶ.
+- `adapter_leak` ≤ .05 (đo `probe_pre`/`probe_post`, adapter TẮT, cùng 60 bài).
+- `nseq` TB 20 bước cuối ≥ 10/96, nếu không: suy biến, ghi rõ.
+- n = 500 test, tách rời tập train.
+- **Bắt buộc lưu toàn văn** trace cả 4 nhánh.
+
+## Chỉ số CHẨN ĐOÁN NHẠI LẠI (khoá trước, so thẳng với H59)
+- `len_med`: độ dài trung vị đầu ra verifier. H59: base 480 -> lora **19**.
+- `agree_wrong`: tỉ lệ verifier ra ĐÚNG đáp án của Solver **khi Solver SAI**. H59: .497 -> **.644**.
+- `agree_right`: như trên nhưng khi Solver ĐÚNG.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V* − I` ≥ **+.02** VÀ `agree_wrong` GIẢM VÀ `len_med` không sụp (≥ 50% của base) | **Verifier ĐÃ HỌC DÙNG lời giải một cách CÓ ĐIỀU KIỆN.** Lời giải thích #98 **ĐƯỢC XÁC NHẬN**: lợi thế thông tin đúng là ràng buộc chặn. Vai trò "verifier" có thật khi có bất đối xứng. |
+| \|`V* − I`\| < .02 và `V*` >> `S` | Nó học cách **LỜ ĐI** Solver, không phải kiểm tra nó. Giải thích #98 đúng NỬA (hết nhại lại) nhưng **vai trò verifier vẫn không hình thành** — nó chỉ thành một Solver thứ hai. Phải ghi: vai trò không tồn tại, chỉ có năng lực model. |
+| `len_med` VẪN sụp (< 50% base) VÀ `agree_wrong` VẪN tăng, dù Solver yếu | **GIẢI THÍCH #98 SAI — RÚT LẠI.** Sụp đổ do thứ khác (độ dài chuỗi / entropy / advantage thưa), không phải do thiếu lợi thế thông tin. |
+| `V*` < `V0` − .02 | GRPO có hại kể cả khi bất đối xứng. Ghi rõ, RL bỏ khỏi hướng này. |
+| `acc(S)` ≥ .55 | HUỶ, không đọc (bất đối xứng không thành). |
+| `adapter_leak` > .05 | HUỶ, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2** (~55%). Một verifier 1.5B nhìn lời giải kém của 0.5B có rất ít lý do để
+*điều kiện hoá* lên lời giải đó; nước đi dễ nhất là **tự giải lấy**. Nếu vậy thì đây là một
+kết quả ÂM quan trọng: "verifier" chưa bao giờ là một VAI TRÒ, nó chỉ là năng lực model
+được dán nhãn khác. Hàng 1 ~25%. Hàng 3 (tôi sai) ~15% — và tôi phải ghi nhận nghiêm túc
+khả năng này vì hôm nay tôi đã sai công khai 2 lần (GPU "bị chia sẻ", `seq − maj3` rò rỉ).
+Tỉ lệ prior đúng gần đây: **7/15**.
