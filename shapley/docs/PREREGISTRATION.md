@@ -2373,3 +2373,46 @@ Chọn MBPP vì đã có sẵn mốc trên **cùng 498 bài** (#88): `greedy` .6
 Đoán `test_soundness` khoảng **.60–.80**, và kết quả rơi vào **hàng 2 hoặc 3**: một test sai một cách
 tự tin còn tệ hơn không có test. Nhưng đây là thiết kế vai **đầu tiên** có cơ chế mà tôi tin là
 có thể chạy được nếu test đủ đúng. Tỉ lệ prior đúng gần đây: **5/12**.
+
+
+# Đăng ký trước #62 — H56: DÙNG TEST TỰ SINH ĐỂ **CHỌN** TRONG k MẪU (không phải để SỬA)
+**Viết TRƯỚC khi chạy.**
+
+## Khoảng trống ĐO ĐƯỢC — đây là chỗ duy nhất còn tiền trên bàn
+MBPP 7B, n=464 (dữ liệu H47 đã có):
+| | |
+|---|---|
+| `maj@8` | **.7306** |
+| `oracle@8` (có ít nhất 1 mẫu đúng) | **.8082** |
+| **khoảng trống** | **+.0776** |
+**375/464 = 80.8% số bài ĐÃ CÓ lời giải đúng trong 8 mẫu**; bỏ phiếu chọn sai ở **36** bài.
+Suốt cả ngày không đường ống nào thu được quá +.01. Ở đây có **7.8 điểm** đang bỏ không.
+
+## Vì sao lần này khác các phép thử CHỌN đã thất bại
+- H37: bộ kiểm huấn luyện, AUC **.893** -> chỉ **+2.4** điểm. Nhưng đó là **điểm số học được**.
+- #94 (H55): test tự sinh có **soundness .871**, **power .751** — tức **BỘ LỌC CHẠY ĐƯỢC**,
+  đúng loại tín hiệu mà cả dự án cho thấy là có giá trị. **Nhưng tôi dùng nó để SỬA, không phải để CHỌN.**
+=> Phép thử này chĩa đúng công cụ vào đúng việc.
+
+## Thiết kế — MBPP 11–510, 7B, 12 shard
+- `maj3`, `maj8` — bỏ phiếu theo HÀNH VI (mốc, giống #88)
+- **`select_tests`** — sinh 8 mẫu + 1 lượt viết test; **chấm mỗi mẫu bằng SỐ TEST TỰ SINH nó đạt**;
+  chọn mẫu đạt nhiều nhất (hoà -> bỏ phiếu hành vi trong nhóm hoà). Chi phí: 8 lượt + **1 lượt** viết test.
+- `oracle8` — trần lý thuyết (có mẫu nào đúng không), **chỉ để báo cáo tỉ lệ khoảng trống thu được**
+Chấm CHỈ bằng `assert[1..2]`. Ghi thêm `test_soundness`, `test_power` như #61.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` < .50 ⇒ không đọc. n ≥ 400. Mọi shard cùng `quant`.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `select_tests` − `maj8` ≥ +.02 | **CHỌN BẰNG ORACLE TỰ SINH CÓ TÁC DỤNG.** Kết quả DƯƠNG đầu tiên vượt mốc trong ngày. Báo **tỉ lệ khoảng trống thu được** = (select−maj8)/(oracle8−maj8). Phải tái lập trên 511–974. |
+| \|`select_tests` − `maj8`\| < .02 | Test tự sinh **không chọn tốt hơn bỏ phiếu**. Cùng với #94 -> oracle tự sinh vô dụng cho CẢ sửa lẫn chọn. Kết luận âm MẠNH. |
+| `select_tests` < `maj8` − .02 | Test tự sinh **làm hỏng việc chọn** (đẩy về mẫu sai). |
+| thu được < 25% khoảng trống dù ≥ +.02 | Có tác dụng nhưng **phần lớn 7.8 điểm vẫn bỏ không** -> nút thắt là CHỌN, và ta chưa chọn nổi. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 với biên độ nhỏ**: soundness .871 và power .751 là bộ lọc thật, nhưng chỉ **1.44 assert/bài**
+nên nhiều mẫu sẽ HOÀ nhau -> thu được có lẽ **25–50%** khoảng trống, tức **+2 đến +4 điểm**.
+Nếu đúng, đây là thứ đầu tiên trong ngày HƠN được mốc. Tỉ lệ prior đúng: **6/13**.
