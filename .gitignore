@@ -16,6 +16,8 @@ results_*/
 !**/results_solvejudge/**
 !**/results_judge/
 !**/results_judge/**
+!**/results_solvejudge_v2/
+!**/results_solvejudge_v2/**
 kernels/
 kernels_*/
 output/
