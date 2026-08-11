@@ -3429,3 +3429,53 @@ Hợp nhất test lấy mẫu làm **soundness tụt .8712 -> .8048 (−.066)**:
 **loại oan mẫu ĐÚNG**. Phần lợi từ phân biệt thêm bị chính phần hại này ăn mất phần lớn.
 => Muốn thu thêm khoảng trống thì phải **tăng CHẤT LƯỢNG test**, không phải số lượng —
 ví dụ lọc test bằng chính lời giải đa số, hoặc sinh test đối kháng có kiểm tra tính đúng.
+
+
+## [Loop] VÒNG #98 — **H59 (GRPO thưởng đã sửa): HỌC CÁCH **NHẠI LẠI**. Cùng một lỗ hổng, cửa khác.**
+### GSM8K, 1.5B + LoRA, 100 bước, `adapter_leak = 0.0` (HỢP LỆ)
+
+### TRƯỚC HẾT: TÔI ĐÃ BÁO SAI SỐ ĐẦU TIÊN — lỗi BỘ CHẤM
+Bộ rút đáp án của tôi dùng `=\s*\$?(\d...)` nên **không đọc được `= \$12`** (dấu `$` thoát LaTeX).
+Model GỐC viết nhiều LaTeX -> bị đọc sai **23/500**; model đã huấn luyện viết văn trơn -> chỉ **7/500**.
+**Lỗi thiên vị đúng nhánh tôi mong thắng.** Sửa bộ chấm rồi chấm lại toàn bộ 500 trace:
+| | báo lần đầu | **đã sửa** |
+|---|---|---|
+| gain_base | .054 | .042 |
+| gain_lora | .076 | .060 |
+| **chênh** | **+.0220** | **+.0180** |
+| sửa/phá base | 45/18 | 37/16 |
+| sửa/phá lora | 42/4 | **33/3** |
+=> **+.0180 DƯỚI ngưỡng +.02 đã khoá** -> **HÀNG 1 KHÔNG kích hoạt.** Thêm nữa, số can thiệp
+giảm 27.6% (> mức 25% cho phép) -> điều kiện HÀNG 4 thoả. **H59 KHÔNG xác nhận "RL giúp khi mục tiêu đúng".**
+
+### PHÁT HIỆN THẬT: ĐỘ DÀI ĐẦU RA VERIFIER **480 -> 19 KÝ TỰ**
+Trung vị đầu ra: gốc **480** ký tự, sau huấn luyện **19** ký tự — tức là `"The answer is 240."`
+**Nó thôi kiểm tra hoàn toàn. Nó NHẠI LẠI đáp án của Solver.**
+| | gốc | GRPO |
+|---|---|---|
+| đồng ý với Solver | .790 | **.868** |
+| **đồng ý KHI Solver SAI** (bỏ lọt lỗi) | .497 | **.644** |
+| đồng ý khi Solver ĐÚNG (không phá) | .950 | **.991** |
+Tốt hơn ở chỗ không phá, **tệ hơn ở chỗ bắt lỗi**. +.0180 là hai hiệu ứng gần như triệt tiêu nhau.
+
+### VÌ SAO — LÀ SỐ HỌC, KHÔNG PHẢI TINH CHỈNH
+Thưởng = `+1` nếu đáp án cuối của verifier ĐÚNG. **Nhại lại Solver được đúng bằng độ chính xác
+của Solver (.646).** Muốn hơn nhại lại thì verifier phải **CHÍNH XÁC HƠN Solver** — nhưng nó
+CHÍNH LÀ Solver: cùng 1.5B, cùng tri thức, chỉ thêm LoRA.
+=> **Điểm tối ưu của hàm thưởng CHÍNH LÀ nhại lại**, và nó tìm ra.
+Tôi đã thay một chiến lược thoái hoá (**im lặng miễn phí**) bằng một chiến lược thoái hoá khác
+(**đồng ý miễn phí**). Cả hai đều là "không làm việc". Sửa hàm thưởng mà không cho verifier
+bất kỳ **lợi thế thông tin** nào thì vô ích.
+
+### PHÁT BIỂU TỔNG QUÁT (khớp mọi kết quả về verifier của dự án)
+> **Verifier KHÔNG có lợi thế thông tin so với Solver thì KHÔNG THỂ vượt Solver, bất kể hàm thưởng.**
+- H15: 7B kiểm 1.5B (**lệch năng lực**) -> **+14 điểm** ✅
+- #95/#96: test CHẠY ĐƯỢC (**thông tin model không có**) -> **+.040**, tái lập ✅
+- H37 (bộ kiểm huấn luyện, cùng cỡ), #90/#92/#93 (LLM tự nhận xét), H59 (RL cùng model) -> ≈0 hoặc hại ❌
+
+### GIỚI HẠN DỮ LIỆU (nêu rõ)
+- Lời giải huấn luyện sinh ở **T=0.8**, đánh giá ở **T=0.0** -> phân bố lỗi khác nhau.
+- `nseq` chỉ **12.8/96**: ~87% nhóm mẫu đồng đều (cùng đúng hoặc cùng sai) nên **không có gradient**.
+### Bước kế đúng đắn (chưa chạy)
+Huấn luyện verifier trên lời giải của **model KHÁC/YẾU HƠN chính nó**, hoặc cho nó **công cụ thực thi** —
+để việc "đúng hơn Solver" là chuyện KHẢ THI về nguyên tắc.
