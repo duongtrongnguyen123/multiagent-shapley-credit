@@ -283,6 +283,6 @@ for k_, i in enumerate(MINE):
         "tdd_noexec":{k2: P_NE[k_][k2] for k2 in K4},
         "gen_pass_impl": chk[i][0],
     })
-json.dump(out, open(f"/kaggle/working/res_H43s{SHARD}.json", "w"))
-print(f"DA LUU {len(out['items'])} bai -> res_H43s{SHARD}.json", flush=True)
+json.dump(out, open(f"/kaggle/working/res_{RUN}s{SHARD}.json", "w"))
+print(f"DA LUU {len(out['items'])} bai -> res_{RUN}s{SHARD}.json", flush=True)
 print("XONG", flush=True)

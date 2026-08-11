@@ -6,12 +6,18 @@ import sys, json, glob
 RES = sys.argv[1] if len(sys.argv) > 1 else "res_h55"
 NEED = int(sys.argv[2]) if len(sys.argv) > 2 else 12
 items, quants, nsh = [], set(), set()
-for f in sorted(glob.glob(f"{RES}/**/res_H55s*.json", recursive=True)):
-    d = json.load(open(f)); items += d["items"]; quants.add(d.get("quant")); nsh.add(d.get("nshard"))
+# ten file co the sai do ke thua tu kernel to tien -> XAC THUC BANG NOI DUNG (`tag`)
+nfile = 0
+for f in sorted(glob.glob(f"{RES}/**/res_H*s*.json", recursive=True)):
+    try: d = json.load(open(f))
+    except Exception: continue
+    if not str(d.get("tag","")).startswith("H55"): continue
+    nfile += 1
+    items += d["items"]; quants.add(d.get("quant")); nsh.add(d.get("nshard"))
 if len(quants) > 1 or len(nsh) > 1:
     print(f"DUNG: tron shard khac nhau (quant={sorted(quants)}, nshard={sorted(nsh)})"); raise SystemExit(1)
 n = len(items)
-print(f"gop {len(glob.glob(f'{RES}/**/res_H55s*.json', recursive=True))}/{NEED} shard, {n} bai, quant={sorted(quants)}")
+print(f"gop {nfile}/{NEED} shard, {n} bai, quant={sorted(quants)}")
 
 with_tests = [x for x in items if x["n_gen_tests"] > 0]
 gen_rate = len(with_tests) / max(n, 1)
