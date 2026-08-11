@@ -3551,3 +3551,67 @@ và GRPO chỉ gỡ lại **38.1%** thiệt hại rồi dừng.
 > **Định tuyến đầu ra của agent yếu vào agent mạnh là ÂM RÒNG.
 > Không phải vì agent mạnh không đủ giỏi, mà vì việc ĐỌC đã gây hại rồi.
 > Không hàm thưởng nào sửa được — thiệt hại nằm ở lần tiếp xúc, không nằm ở chính sách.**
+
+---
+
+## Vòng #100 — H61: **NHÁNH ĐỐI CHỨNG CÒN THIẾU GIẾT CÁCH PHÁT BIỂU CỦA H15**
+*(đăng ký trước #66 khoá tại `9754607`, sửa prior #66-b tại `7aeaa89` — cả hai TRƯỚC khi có số)*
+
+### Cổng: ĐẠT (`I − S` = +.2360 ≥ .05) · n = 500 · greedy · GSM8K test
+| nhánh | là gì | acc | chi phí |
+|---|---|---|---|
+| S | 1.5B giải | .6720 | 1×1.5B |
+| **I** | **7B TỰ giải, không xem gì** | **.9080** | **1×7B** |
+| V | 7B xem lời giải của S rồi kiểm/sửa (thiết lập H15) | .8340 | 1×1.5B + 1×7B |
+
+| đại lượng | giá trị | 5 fold |
+|---|---|---|
+| `V − S` (con số kiểu H15) | **+.1620** | +.14 +.16 +.17 +.21 +.13 → **5/5 DƯƠNG** |
+| **`V − I`** (đăng ký trước là CHÍNH) | **−.0740** | −.12 −.05 −.04 −.03 −.13 → **5/5 ÂM** |
+
+**PHÁN QUYẾT: HÀNG 3.** Leo thang **tệ hơn** chỉ dùng 7B, **ở chi phí CAO HƠN**
+(V tốn thêm một lượt 1.5B mà I không tốn). **V bị ÁP ĐẢO HOÀN TOÀN.**
+
+### Con số làm cho việc kiểm tra TRÔNG tuyệt vời
+`fix/break` so với S = **85/4**, precision **.955**. Theo cách đo của H15 thì đây là verifier
+xuất sắc: sửa 85 lỗi của 1.5B, chỉ phá 4. **Vẫn thấp hơn 7B-tự-giải 7.4 điểm.**
+> **precision cao trên `fix/break` HOÀN TOÀN tương thích với việc cả pipeline bị áp đảo,**
+> vì `fix/break` đo so với **S**, không đo so với **I**.
+
+### Đầu độc tái lập qua thang model, benchmark khác, cặp model khác
+**56 bị đầu độc** (I đúng → V sai) vs **19 được cứu**, ròng **−37/500 = −.074**, khớp đúng `V−I`.
+| | H60 (0.5B→1.5B, GSM8K) | H61 (1.5B→7B, GSM8K) |
+|---|---|---|
+| nhại đáp án sai của S | 46% | **55%** |
+| ra **đáp án THỨ BA** | 54% | **45%** |
+
+Cả hai thang: **gần một nửa thiệt hại là đáp án thứ ba** — không theo ai cả.
+Đọc một lời giải kém **làm hỏng lập luận vốn đã đúng**, không chỉ dụ nó chép.
+
+### PRIOR CỦA TÔI SAI LẦN NỮA — và sai đúng chỗ tôi vừa tự tin thêm
+`#66` tôi đoán hàng 2/3 (~70%). Rồi `#66-b` tôi **tự sửa prior sang hàng 1 (~55%)** vì tin
+"7B đủ mạnh để miễn nhiễm". **Sai.** 7B bị đầu độc −.074. Tỉ lệ prior đúng: **7/17**.
+Bài học: tôi đã dùng vòng #87 làm bằng chứng cho miễn nhiễm — **đó là đọc sai chính dữ liệu của mình.**
+
+### HOÀ GIẢI với vòng #87 (mỏ neo ≈ 0 ở 7B) — KHÔNG mâu thuẫn, KHÁC CÂU HỎI
+- #87 so **seq-có-neo vs seq-KHÔNG-neo**: cả hai đều là pipeline **nhiều lượt**, 7B vẫn tự giải
+  ở lượt đầu. Nó trả lời: *"trong pipeline 2 lượt, lượt 2 nhìn thấy đáp án lượt 1 có quan trọng không?"*
+  → Không.
+- H61 so **V vs I**: có-xem-lời-giải-của-model-khác vs **không xem gì cả**. Nó trả lời:
+  *"việc TIẾP XÚC với lời giải của một model yếu tốn bao nhiêu?"* → **−.074.**
+
+**#87 chưa bao giờ đo giá của việc tiếp xúc.** H60+H61 là lần đo trực tiếp đầu tiên.
+
+### Phạm vi — cái gì SỐNG, cái gì CHẾT
+- **CHẾT: cách phát biểu của H15.** "+14 điểm" là so với **1.5B**, không phải so với
+  **lựa chọn rẻ hơn là gọi thẳng 7B**. Con số giữ nguyên, **DIỄN GIẢI RÚT LẠI.**
+- **SỐNG: H39 (vòng #78).** `escalate_seq` .6450 vs `big_maj3` .5050 / `big_maj8` .5400 —
+  **đã có** nhánh 7B-chạy-một-mình và vẫn thắng, còn rẻ hơn. **Định tuyến CÓ ĐIỀU KIỆN
+  (chỉ gọi 7B ở bài 1.5B không tự đồng thuận) khác hẳn định tuyến VÔ ĐIỀU KIỆN.**
+  H61 giết cái sau, không đụng cái trước.
+- **SỐNG: test chạy được** (+.0401 / +.0388, tái lập) — oracle mang thông tin model KHÔNG có.
+
+> **Quy tắc: `V − S` là con số sai. Luôn báo `V − I`.**
+> Baseline đúng của bất kỳ pipeline nhiều agent nào không phải là agent YẾU NHẤT trong đó,
+> mà là **agent MẠNH NHẤT chạy một mình** — thường là lựa chọn RẺ HƠN.
+> Với `V−S` thì đây là "+16 điểm, precision .955". Với `V−I` thì đây là **âm và đắt hơn**.
