@@ -2460,3 +2460,47 @@ Một test sai sẽ **loại oan mẫu đúng**. Vì vậy bắt buộc báo:
 Đoán **hàng 1 nhưng biên độ vừa phải (+.02 đến +.04)**: nhiều test hơn sẽ phá được phần lớn
 hoà-8-mẫu, nhưng trần phá-hoà-hoàn-hảo chỉ là +.0301 nên phần lớn lợi ích phải đến từ việc
 test mới phân biệt được ở những bài trước đây cả 8 mẫu cùng đạt. Tỉ lệ prior đúng: **7/14**.
+
+
+# Đăng ký trước #64 — H59: GRPO **VỚI HÀM THƯỞNG ĐÃ SỬA** — RL có giúp verifier khi mục tiêu không bị lách được?
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao chạy lại
+Vòng #44 (H23): GRPO đạt **precision 1.00** (5/5 fold) nhưng **V_gain giảm** +.068 -> +.044,
+số lần can thiệp **20.2 -> 8.4 / 100 bài**, sửa/phá **45/11 -> 22/0**.
+Cơ chế đã rõ và **lỗi là ở tôi, không ở thuật toán**: thưởng = `+1 sửa / −1 phá / **0 nếu im lặng**`.
+**Im lặng là MIỄN PHÍ** -> chiến lược tối ưu tầm thường là NÓI ÍT ĐI. Log khớp: `nseq` (chuỗi có
+advantage ≠ 0) tụt còn 4–24/96 ở các bước cuối vì mọi mẫu đều đã im lặng như nhau.
+=> H23 **không kiểm được** câu hỏi "RL có giúp verifier không". Nó chỉ chứng minh hàm thưởng của tôi hỏng.
+
+## Thay đổi DUY NHẤT: hàm thưởng
+- **CŨ**: `+1` sửa đúng · `−1` phá · `0` không đổi
+- **MỚI**: thưởng theo **ĐÚNG/SAI CUỐI CÙNG của đầu ra verifier**: `+1` nếu đáp án verifier ĐÚNG,
+  `−1` nếu SAI. **Im lặng trên lời giải SAI bị phạt y như phá một lời giải đúng.**
+  Không còn nước đi miễn phí.
+Mọi thứ khác giữ nguyên: 1.5B + LoRA, GSM8K `main_train`, bp=24, k=4, 100 bước, eval 5 fold test,
+Solver LUÔN chạy trên model gốc (so sánh CẶP, hai nhánh dùng chung lời giải).
+
+## PHẢI LƯU (thiếu ở H23)
+Toàn văn đầu ra verifier của **cả hai** nhánh trên tập eval -> để đọc trace, không chỉ đếm số.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- **`adapter_leak`**: đo `probe_pre` và `probe_post` trên **CÙNG 60 bài**, adapter **TẮT**.
+  Lệch > .05 ⇒ HUỶ (6/6 kernel huấn luyện từng dính lỗi này, vòng #60).
+- `nseq` trung bình 20 bước cuối < 10/96 ⇒ tín hiệu học đã tắt, ghi rõ là **suy biến**.
+- Số lần can thiệp phải báo KÈM precision — không được báo precision một mình.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V_gain`(lora) − `V_gain`(base) ≥ +.02 **và** số can thiệp KHÔNG giảm quá 25% | **RL CÓ GIÚP khi mục tiêu đúng.** Kết quả dương thật; phải tái lập. |
+| `V_gain` không tăng nhưng số can thiệp **TĂNG** | Sửa thưởng đã chặn được "học im lặng", nhưng RL vẫn không làm verifier chính xác hơn. |
+| `V_gain` giảm và số can thiệp **TĂNG** | Thưởng mới đẩy sang thái cực ngược: can thiệp bừa. Ghi rõ. |
+| số can thiệp vẫn giảm > 25% | Model VẪN học im lặng dù bị phạt -> vấn đề sâu hơn hàm thưởng. |
+| `adapter_leak` > .05 | HUỶ, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2**: chặn được nước đi "im lặng" nhưng `V_gain` không tăng — vì suốt cả ngày,
+mọi cách làm verifier "thông minh hơn" đều không chuyển thành độ chính xác (H37: AUC .893 -> +2.4;
+#94: oracle tự sinh dùng để SỬA -> +.004). Nút thắt là **SINH**, không phải **PHÁN ĐOÁN**.
+Tỉ lệ prior đúng gần đây: **7/14**.
