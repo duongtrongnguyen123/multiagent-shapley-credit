@@ -32,14 +32,49 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 N    = __N__
 NF   = __NF__
 BS   = __BS__
+TASK = "__TASK__"      # "math" | "gsm8k"
 MAXV = 3               # budget: tối đa 3 vòng (S+J)
 TEMP = [1.0, 0.7, 0.4] # nhiệt độ mỗi vòng — v1 greedy, sau đó hạ dần để ép đa dạng
 
 _c = glob.glob("/kaggle/input/**/model.safetensors", recursive=True)
 MODEL = os.path.dirname(sorted(_c, key=len)[0])
-CSV = sorted(glob.glob("/kaggle/input/**/math_500_test.csv", recursive=True), key=len)[0]
+FNAME = "math_500_test.csv" if TASK == "math" else "main_test.csv"
+CSV = sorted(glob.glob(f"/kaggle/input/**/{FNAME}", recursive=True), key=len)[0]
 ALL = list(csv.DictReader(open(CSV, encoding="utf-8")))[:N]
-print(f"N={N} NF={NF} fold={N//NF} MAXV={MAXV} TEMP={TEMP}", flush=True)
+print(f"TASK={TASK} N={N} NF={NF} fold={N//NF} MAXV={MAXV} TEMP={TEMP}", flush=True)
+
+# ---- config theo task ----
+if TASK == "math":
+    PLAN_SYS   = ("You are a math planning assistant. Read the competition problem and give a "
+                  "concise numbered plan of the solution steps. Do NOT compute the final answer.")
+    SOLVE_SYS  = ("You are an expert mathematician. Solve the problem step by step. Put the "
+                  "final answer in \\boxed{}.")
+    JUDGE_SYS  = ("You are a strict math judge. You are given a problem and a proposed solution. "
+                  "Reply with a single digit: 1 if the solution is correct, 0 if it is wrong.")
+    VER_SYS    = ("You are a math verifier. Given a problem and a proposed solution, check each "
+                  "step; if wrong, correct it. Put the final answer in \\boxed{}.")
+    AGG_SYS    = ("You are given a problem and one or more candidate solutions. Decide the "
+                  "correct final answer by re-checking. Put the final answer in \\boxed{}.")
+    q_of = lambda r: r["Question"].strip()
+    def gold_of(r): return boxed(r["Answer"])
+    PLAN_MX, SOLVE_MX, JUDGE_MX = 512, 1024, 8
+else:
+    PLAN_SYS   = ("You are a math planning assistant. Read the problem and give a concise "
+                  "numbered plan of the steps needed. Do NOT compute the final answer.")
+    SOLVE_SYS  = ("You are a careful math solver. Solve step by step, showing arithmetic. "
+                  "End with a line: 'The answer is <number>'.")
+    JUDGE_SYS  = ("You are a strict math judge. You are given a problem and a proposed solution. "
+                  "Reply with a single digit: 1 if the solution is correct, 0 if it is wrong.")
+    VER_SYS    = ("You are a math verifier. You are given a problem and a proposed solution. "
+                  "Check each step; if wrong, correct it. End with 'The answer is <number>'.")
+    AGG_SYS    = ("You are given a math problem and one or more candidate solutions. Decide the "
+                  "correct final answer by re-checking and majority. End with 'The answer is "
+                  "<number>'.")
+    q_of = lambda r: r["question"].strip()
+    def gold_of(r):
+        m = re.search(r"####\s*([-\d,\.]+)", r["answer"])
+        return m.group(1).replace(",", "").strip() if m else None
+    PLAN_MX, SOLVE_MX, JUDGE_MX = 256, 512, 8
 
 tok = AutoTokenizer.from_pretrained(MODEL); tok.padding_side = "left"
 if tok.pad_token is None: tok.pad_token = tok.eos_token
@@ -96,35 +131,29 @@ def eq(p, g):
     if p == g: return True
     try: return abs(float(p) - float(g)) < 1e-6
     except (ValueError, TypeError): return False
+NUM_RE = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 def pred(t):
-    b = boxed(t)
-    if b is not None: return b
-    m = re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I)
-    return m[-1].strip() if m else None
-
-PLAN_SYS   = ("You are a math planning assistant. Read the competition problem and give a "
-              "concise numbered plan of the solution steps. Do NOT compute the final answer.")
-SOLVE_SYS  = ("You are an expert mathematician. Solve the problem step by step. Put the final "
-              "answer in \\boxed{}.")
-JUDGE_SYS  = ("You are a strict math judge. You are given a problem and a proposed solution. "
-              "Reply with a single digit: 1 if the solution is correct, 0 if it is wrong.")
-VER_SYS    = ("You are a math verifier. Given a problem and a proposed solution, check each "
-              "step; if wrong, correct it. Put the final answer in \\boxed{}.")
-AGG_SYS    = ("You are given a problem and one or more candidate solutions. Decide the "
-              "correct final answer by re-checking. Put the final answer in \\boxed{}.")
+    if TASK == "math":
+        b = boxed(t)
+        if b is not None: return b
+        m = re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I)
+        return m[-1].strip() if m else None
+    else:
+        m = re.findall(r"(?:answer is|=)\s*\$?(-?\d[\d,]*(?:\.\d+)?)", t or "", re.I)
+        cands = m if m else NUM_RE.findall(t or "")
+        return cands[-1].replace(",", "") if cands else None
 
 # baselines cùng model
 def solve_alone(usrs):
-    return gen(SOLVE_SYS, usrs, 1024, temp=1.0)
+    return gen(SOLVE_SYS, usrs, SOLVE_MX, temp=1.0)
 
-PLAN_MX, SOLVE_MX = 512, 1024
 FOLD = N // NF
 fold_stats, sample = [], []
 
 for f in range(NF):
     rows = ALL[f * FOLD:(f + 1) * FOLD]
-    qs = [r["Question"].strip() for r in rows]
-    gs = [boxed(r["Answer"]) for r in rows]
+    qs = [q_of(r) for r in rows]
+    gs = [gold_of(r) for r in rows]
     n = len(rows)
     print(f"\n===== FOLD {f+1}/{NF} ({n}) =====", flush=True)
 

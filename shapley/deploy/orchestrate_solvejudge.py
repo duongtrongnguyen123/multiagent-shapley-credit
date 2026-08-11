@@ -13,10 +13,12 @@ SRC = ROOT / "pipeline" / "solvejudge_kernel.py"
 N = int(os.environ.get("N", "150"))
 NF = int(os.environ.get("NF", "5"))
 BS = int(os.environ.get("BS", "8"))
+TASK = os.environ.get("TASK", "math")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 KDIR = ROOT / "kernels_solvejudge"
-DATASETS = ["xatri007/qwen2-5-1-5b-instruct",
-            "open-benchmarks/math-500-measuring-mathematical-problem-solving"]
+DS_MODEL = "xatri007/qwen2-5-1-5b-instruct"
+DATASETS = {"math":  [DS_MODEL, "open-benchmarks/math-500-measuring-mathematical-problem-solving"],
+            "gsm8k": [DS_MODEL, "thedevastator/grade-school-math-8k-q-a"]}[TASK]
 
 def accounts():
     out = []
@@ -46,12 +48,13 @@ def pick():
 def main():
     user, token = pick()
     src = (SRC.read_text(encoding="utf-8")
-              .replace("__N__", str(N)).replace("__NF__", str(NF)).replace("__BS__", str(BS)))
+              .replace("__N__", str(N)).replace("__NF__", str(NF))
+              .replace("__BS__", str(BS)).replace("__TASK__", TASK))
     left = re.findall(r"__[A-Z_]+__", src)
     if left:
         raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")
-    slug = "solvejudge-loop"
+    slug = f"solvejudge-loop-{TASK}"
     d = KDIR
     shutil.rmtree(d, ignore_errors=True)
     d.mkdir(parents=True)
