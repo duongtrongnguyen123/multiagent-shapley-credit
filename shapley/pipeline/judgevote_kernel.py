@@ -33,13 +33,13 @@ print("model loaded", flush=True)
 JUDGE_SYS = ("You are a strict math judge. You are given a problem and a proposed solution. "
              "Reply with a single digit: 1 if the solution is correct, 0 if it is wrong.")
 
-def gen(usrs, mx=8, temp=1.0, seed=None):
+def gen(sysm, usrs, mx=8, temp=1.0, seed=None):
     if seed is not None:
         torch.manual_seed(seed)
     outs = []
     for i in range(0, len(usrs), BS):
         ch = usrs[i:i + BS]
-        ps = [tok.apply_chat_template([{"role": "system", "content": JUDGE_SYS},
+        ps = [tok.apply_chat_template([{"role": "system", "content": sysm},
                                        {"role": "user", "content": u}],
                                       tokenize=False, add_generation_prompt=True) for u in ch]
         e = tok(ps, return_tensors="pt", padding=True).to(model.device)
@@ -135,15 +135,16 @@ qs = [q_of(r) for r in ALL]
 gs = [gold_of(r) for r in ALL]
 n = len(ALL)
 
-# S1 greedy
-S1 = gen([f"{q}" for q in qs], 1024, temp=1.0)
+# S1 greedy (dùng SOLVE_SYS, không phải JUDGE_SYS)
+S1 = gen(SOLVE_SYS, [f"{q}" for q in qs], 1024, temp=1.0)
 pred_fn = pred_math if TASK == "math" else pred_gsm
 s1_ok = [eq(pred_fn(t), g) for t, g in zip(S1, gs)]
+print(f"S1 acc: {sum(s1_ok)/n:.3f}", flush=True)
 
-# K Judge độc lập
+# K Judge độc lập (dùng JUDGE_SYS)
 judges = []
 for k in range(K):
-    j = gen([f"{q}\n\nProposed solution:\n{s}" for q, s in zip(qs, S1)], 8,
+    j = gen(JUDGE_SYS, [f"{q}\n\nProposed solution:\n{s}" for q, s in zip(qs, S1)], 8,
             temp=TEMPS[k], seed=2000 + k)
     judges.append([read_digit(t) for t in j])
     print(f"  judge{k+1} parsed: {sum(1 for x in judges[k] if x is not None)}/{n}", flush=True)
