@@ -2628,3 +2628,49 @@ hàng 2 ~30%, hàng 3 (đầu độc lan sang 7B) xuống **~15%**. Nếu hàng 
 KHÔNG phải "đầu độc là phổ quát" mà là **"đầu độc là hiện tượng của model YẾU; năng lực đủ lớn
 thì miễn nhiễm"** — và ranh giới đó là phát hiện có giá trị hơn một kết quả âm.
 Bảng khoá #66 giữ NGUYÊN, không sửa một chữ.
+
+
+# Đăng ký trước #67 — H62: **ĐẦU ĐỘC CÓ SỬA ĐƯỢC BẰNG CÁCH TRÌNH BÀY KHÔNG?**
+**Viết TRƯỚC khi chạy.**
+
+## Câu hỏi
+#99/#100 cho thấy *đọc* lời giải yếu tốn **−.074** (7B) / **−.104** (1.5B), và **~50%** thiệt hại
+là **đáp án THỨ BA** — tức lập luận bị hỏng, không phải bắt chước. Câu hỏi tiếp theo là câu
+**hữu dụng**: thiệt hại đó nằm ở **việc tiếp xúc** (không sửa được) hay ở **cách trình bày**
+(sửa được bằng một dòng prompt)?
+
+Nếu bắt model **tự giải XONG rồi mới đọc** lời giải kia, nó đã **cam kết** vào đáp án của mình
+trước khi bị neo. Nếu cách đó gỡ được phần lớn −.074 thì đây là một **kết quả DƯƠNG, rẻ, dùng ngay được**.
+
+## Thiết kế — thuần đánh giá, GSM8K test 500, greedy, 7B (`/root/m7`), solver 1.5B (`/root/m15`)
+Cùng một bộ lời giải S cho cả ba nhánh V (so sánh CẶP).
+| nhánh | prompt | chi phí |
+|---|---|---|
+| **I** | 7B tự giải, không xem gì | 1×7B |
+| **V_std** | "Proposed solution: …" + kiểm/sửa (đúng H61) | 1×1.5B + 1×7B |
+| **V_first** | **"Giải bài này một mình TRƯỚC. Viết đáp án của bạn ra. RỒI mới đọc lời giải đề xuất và chốt."** | 1×1.5B + 1×7B |
+| **V_label** | như V_std nhưng NÓI RÕ nguồn là model yếu hơn nhiều, chỉ đúng ~2/3, hãy hoài nghi | 1×1.5B + 1×7B |
+
+`V_first` và `V_label` vẫn là **một lượt 7B** → chi phí ngang `V_std`.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- Phải tái lập được H61: `V_std − I` ∈ **[−.12, −.03]**. Nếu không, thiết lập đã trôi ⇒ HUỶ, không đọc.
+- n = 500, 5 fold, cùng bộ S.
+- Báo `poisoned`/`rescued` cho **cả ba** nhánh V.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V_first − I` ≥ **−.02** VÀ `V_first − V_std` ≥ **+.04** | **ĐẦU ĐỘC SỬA ĐƯỢC BẰNG TRÌNH BÀY.** Bắt reviewer cam kết đáp án của mình TRƯỚC khi đọc là biện pháp một dòng, không tốn thêm lượt. Kết quả DƯƠNG dùng được ngay. |
+| `V_first − V_std` ≥ +.02 nhưng `V_first` vẫn < `I` − .02 | Giảm nhẹ được, **không** khử được. Giá tiếp xúc là thật nhưng co lại được. Báo % gỡ lại. |
+| \|`V_first − V_std`\| < .02 | **THIỆT HẠI LÀ NỘI TẠI CỦA VIỆC TIẾP XÚC.** Prompt không cứu được. Đây là bản mạnh nhất của #99/#100. |
+| `V_label` > `V_first` | Điều quan trọng là **HOÀI NGHI NGUỒN**, không phải **thứ tự cam kết**. Ghi rõ, đảo lại lời giải thích. |
+| `V_label` < `V_std` − .02 | Nói "nguồn này yếu" khiến nó **can thiệp bừa** → phá cả bài đúng. |
+| `V_std − I` ngoài [−.12,−.03] | HUỶ, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~50%)**: gỡ được một phần (tôi đoán 40–70% của khoảng cách) nhưng không hết,
+vì **~45–54% thiệt hại là "đáp án thứ ba"** — nghĩa là ngay cả khi không bị dụ chép, việc đọc
+vẫn làm nhiễu. Hàng 1 ~25%, hàng 3 ~25%.
+**Lưu ý về chính tôi:** hai lần gần nhất tôi đoán sai, và lần #66-b tôi còn tự tin sửa prior
+theo hướng sai. Tỉ lệ prior đúng: **7/17**. Đừng tin prior này quá.
