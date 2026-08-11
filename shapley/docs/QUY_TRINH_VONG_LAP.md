@@ -135,6 +135,18 @@ Cách bắt (1 giây): duyệt AST, lấy mọi `ast.Name` ở ngữ cảnh `Loa
 tham số/hàm/lớp, bỏ built-in. Còn lại là **tên chưa định nghĩa**.
 Kiểm "tên đã được GÁN" là KHÔNG đủ: `RUN` chỉ được DÙNG nên phép kiểm cũ cho qua.
 
+**Job trên máy remote: THEO DÒNG, đừng POLL**
+Đặt monitor với chu kỳ 300 s cho một job còn ~4 phút -> Nguyên thấy job xong trước khi monitor
+kiểm lần kế. **Poll chậm hơn sự kiện thì không phải là giám sát.** Cách đúng — bắn ngay khi
+dòng được ghi, không có chu kỳ:
+```
+ssh -p <port> root@<host> 'tail -f -n +1 /root/job.log | \
+  grep --line-buffered -E "XONG|DONE|Traceback|Error|OutOfMemory|Killed"'
+```
+`--line-buffered` là BẮT BUỘC. Phải bắt **mọi trạng thái kết thúc**, không chỉ thành công.
+Không có log thì chặn theo tiến trình: `while kill -0 <PID>; do sleep 2; done; echo DONE`.
+Đừng dùng nhịp tim chậm (hợp cho loạt Kaggle hàng giờ) cho job remote sắp xong.
+
 **Bí mật:** token `KGAT_...` không bao giờ được commit. `accounts.txt`, `manifest*.json`,
 `kernels_*/`, `monitor.sh` đều nằm trong `.gitignore`. Tên tài khoản không xuất hiện trong tài liệu chung.
 
