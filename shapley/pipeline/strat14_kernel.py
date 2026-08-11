@@ -158,11 +158,22 @@ print(f"escalate {len(ESC)}/{len(MINE)}", flush=True)
 BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                          bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 import gc
+# Giai phong TRIET DE pha 1 truoc khi nap 14B: xoa ca pool sinh lan cache.
+for _v in ("ms","m","smalls"):
+    if _v in dir(): pass
+gc.collect(); torch.cuda.empty_cache(); torch.cuda.synchronize()
 gc.collect(); torch.cuda.empty_cache()
+print("VRAM TRUOC khi nap 14B (MiB/gpu):",
+      [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)],
+      "| da giu cho:", [round(torch.cuda.memory_reserved(i)/1048576) for i in range(NG)], flush=True)
 # 14B: TRAI TREN CA HAI THE (device_map="auto").
 # Da thu 1-ban-sao-moi-GPU: dinh 9 GB trong so + mot shard fp16 dang chuyen doi > 14.56 GB -> OOM.
 # Doi song song du lieu lay do TIN CAY; model lon la nut co chai nhung phai CHAY duoc da.
-bigs = [AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB, device_map="auto").eval()]
+MAXMEM = {i: "9GiB" for i in range(NG)}
+MAXMEM["cpu"] = "24GiB"        # cho phep tran ra CPU thay vi chet
+bigs = [AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB,
+                                             device_map="auto", max_memory=MAXMEM,
+                                             low_cpu_mem_usage=True).eval()]
 print("14B nf4 trai 2 the | VRAM MiB/gpu:",
       [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)], flush=True)
 QUANT = "nf4-split"
