@@ -68,7 +68,7 @@ def main():
     (d / "kernel-metadata.json").write_text(json.dumps(
         {"id": ref, "title": slug, "code_file": "kernel.py", "language": "python",
          "kernel_type": "script", "is_private": True, "enable_gpu": True,
-         "enable_internet": False, "machine_shape": "NvidiaTeslaT4",
+         "enable_internet": "7b" in str(SRC).lower(), "machine_shape": "NvidiaTeslaT4",
          "dataset_sources": DATASETS, "competition_sources": [], "kernel_sources": []}, indent=2))
     r = subprocess.run(["kaggle", "kernels", "push", "-p", str(d)],
                        env=dict(os.environ, KAGGLE_API_TOKEN=token),
