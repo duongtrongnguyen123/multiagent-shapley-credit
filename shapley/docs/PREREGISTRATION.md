@@ -2566,3 +2566,47 @@ kết quả ÂM quan trọng: "verifier" chưa bao giờ là một VAI TRÒ, nó
 được dán nhãn khác. Hàng 1 ~25%. Hàng 3 (tôi sai) ~15% — và tôi phải ghi nhận nghiêm túc
 khả năng này vì hôm nay tôi đã sai công khai 2 lần (GPU "bị chia sẻ", `seq − maj3` rò rỉ).
 Tỉ lệ prior đúng gần đây: **7/15**.
+
+
+# Đăng ký trước #66 — H61: **NHÁNH ĐỐI CHỨNG CÒN THIẾU** — H15 (+14) có phải ảo giác không?
+**Viết TRƯỚC khi chạy.** Đây là bài kiểm có thể **GIẾT kết quả dương LÂU ĐỜI NHẤT của dự án.**
+
+## Vì sao
+H60 (vòng #99): cùng một thí nghiệm cho `V−S` = **+.17** và `V−I` = **−.104**, ngược dấu.
+Khác biệt duy nhất là nhánh **I** = *"cứ để model MẠNH tự giải, không cho xem lời giải của model yếu"*.
+**H15 chưa bao giờ có nhánh I.** Nó báo cáo 7B-kiểm-1.5B hơn 1.5B **+14 điểm** và tôi đã
+diễn giải đó là "kiểm tra có giá trị". Nhưng +14 so với **1.5B** không trả lời được câu hỏi
+thật: *có hơn việc gọi thẳng 7B không* — mà gọi thẳng 7B lại còn **RẺ HƠN** (1 lượt thay vì 2).
+
+## Thiết kế — thuần đánh giá, không huấn luyện
+GSM8K test 500 bài, greedy, 5 fold × 100. Solver 1.5B (`/root/m15`), Verifier/Solver-mạnh 7B (`/root/m7`), bf16.
+| Nhánh | Là gì | Chi phí |
+|---|---|---|
+| **S** | 1.5B giải | 1×1.5B |
+| **V** | 7B ĐƯỢC XEM lời giải của S rồi kiểm/sửa (đúng thiết lập H15) | 1×1.5B + 1×7B |
+| **I** | 7B **tự giải, KHÔNG xem gì cả** | **1×7B** ← RẺ HƠN V |
+
+**I rẻ hơn V.** Nên nếu `I ≥ V` thì V bị **áp đảo hoàn toàn** (vừa tệ hơn vừa đắt hơn).
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `acc(I) − acc(S)` ≥ **.05**, nếu không thì bất đối xứng không thành ⇒ HUỶ.
+- n = 500. Cùng bộ lời giải S cho V (so sánh CẶP).
+- Lưu toàn văn cả 3 nhánh.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V − I` ≥ **+.02** | **Leo thang CÓ giá trị thật.** Đọc lời giải yếu vẫn thêm thông tin ròng dù tốn thêm 1 lượt. H15 ĐỨNG VỮNG. Năng lực đủ lớn thì MIỄN NHIỄM với đầu độc — ghi là biên giới của H60. |
+| \|`V − I`\| < .02 | **+14 của H15 là ẢO GIÁC do thiếu đối chứng.** Leo thang không mua được gì so với gọi thẳng 7B, mà lại đắt hơn. Con số +14 giữ nguyên, **DIỄN GIẢI bị RÚT LẠI**. |
+| `V − I` ≤ **−.02** | **Leo thang TỆ HƠN việc chỉ dùng 7B, ở chi phí CAO HƠN.** H60 tổng quát qua thang model. Kết quả âm mạnh: định tuyến agent-yếu→agent-mạnh bị áp đảo. |
+| `acc(I) − acc(S)` < .05 | HUỶ, không đọc. |
+
+Bắt buộc báo KÈM (bất kể hàng nào): số bài **BỊ ĐẦU ĐỘC** (I đúng→V sai) so với **ĐƯỢC CỨU**
+(I sai→V đúng), và trong số bị đầu độc, bao nhiêu là **nhại theo đáp án sai của S** so với
+bao nhiêu ra **đáp án THỨ BA** (H60: 46% / 54%).
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 hoặc 3 (~70% gộp)**, vì H60 rất sạch và 5/5 fold. Nhưng để ngỏ **hàng 1 (~30%)**:
+7B mạnh hơn 1.5B nhiều, có thể **đủ tự tin để bỏ qua** lời giải kém — trong khi 1.5B thì không.
+Nếu vậy thì "đầu độc" là hiện tượng của model YẾU, và đó là một biên giới đáng giá, không phải
+kết quả âm. Tỉ lệ prior đúng gần đây: **7/16** (H60 tôi đoán hàng 2, thực tế không hàng nào khớp — tính là SAI).
