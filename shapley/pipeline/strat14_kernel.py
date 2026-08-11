@@ -8,7 +8,12 @@
 #   7B   nf4   = ~5  GB  -> moi GPU mot ban sao   (fp16 15.2 GB KHONG vua 1 the T4)
 # device_map="auto" chi chia lop (pipeline) = suc chua, KHONG phai toc do. O day ta muon toc do.
 import os, re, csv, json, glob, threading, hashlib, torch, subprocess, sys
-subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "gptqmodel", "autoawq"], check=False)
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "--no-deps", "gptqmodel", "device-smi", "tokenicer", "logbar"], check=False)
+# --no-deps BAT BUOC: `pip install -U gptqmodel` keo theo numpy khac ABI ->
+# "cannot import name '_center' from numpy._core.umath" va giet kernel (H54 lan 2).
+# Moi thu gptqmodel can (torch/transformers/accelerate) da co san tren anh Kaggle.
+import importlib.util as _ilu
+print("gptqmodel co import duoc:", _ilu.find_spec("gptqmodel") is not None, flush=True)
 # transformers moi nap AWQ qua `gptqmodel` (KHONG phai autoawq) — da xac nhan tu log H54 lan 1.
 subprocess.run([sys.executable,"-m","pip","install","-q","-U","bitsandbytes>=0.46.1"])
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
