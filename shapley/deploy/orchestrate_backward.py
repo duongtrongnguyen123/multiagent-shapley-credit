@@ -20,7 +20,7 @@ PIPE = os.environ.get("PIPE", "psva")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 SUFFIX = os.environ.get("SUFFIX", "")
 KDIR = ROOT / "kernels_backward"
-DS_MODEL = "xatri007/qwen2-5-1-5b-instruct"
+DS_MODEL = "ragnar123/qwen2-5-7b-instruct" if "7b" in str(SRC).lower() else "xatri007/qwen2-5-1-5b-instruct"
 DATASETS = {"math":  [DS_MODEL, "open-benchmarks/math-500-measuring-mathematical-problem-solving"],
             "gsm8k": [DS_MODEL, "thedevastator/grade-school-math-8k-q-a"]}[TASK]
 
@@ -58,7 +58,8 @@ def main():
     if left:
         raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")
-    slug = f"bwd-{TASK}-{PIPE}{'-' + SUFFIX if SUFFIX else ''}"
+    model_tag = "-7b" if "7b" in str(SRC).lower() else ""
+    slug = f"bwd{TASK}-{PIPE}{model_tag}{'-' + SUFFIX if SUFFIX else ''}"
     d = KDIR
     shutil.rmtree(d, ignore_errors=True)
     d.mkdir(parents=True)
