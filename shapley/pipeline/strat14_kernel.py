@@ -1,30 +1,26 @@
-# H54 (dang ky truoc #60) — nhu H40 nhung model LON = 14B AWQ (thay 7B).
+# H54 (dang ky truoc #60) — nhu H40 nhung model LON = 14B (thay 7B).
+# 14B tai tu HF va luong tu hoa nf4 TAI CHO bang bitsandbytes.
+# (Da thu AWQ: transformers doi `gptqmodel`, goi do keo numpy khac ABI, roi thieu `pcre` -> bo.)
 # (dan xuat tu H40 / #46) — SHARD @@SHARD@@/@@NSHARD@@ tren MATH-500.
 # Kernel chi SINH va LUU du lieu tho. Moi tong hop (bo phieu, tang do kho, phan ra) lam O LOCAL
 # tren toan bo 500 bai sau khi gop -> khong shard nao tu ket luan gi.
 #
 # DUNG CA HAI T4 THAT SU (data parallel, KHONG phai pipeline):
 #   1.5B fp16  = 3.1 GB  -> moi GPU mot ban sao
-#   7B   nf4   = ~5  GB  -> moi GPU mot ban sao   (fp16 15.2 GB KHONG vua 1 the T4)
+#   14B  nf4   = ~9  GB  -> moi GPU mot ban sao   (fp16 29.5 GB KHONG vua 2 the T4)
 # device_map="auto" chi chia lop (pipeline) = suc chua, KHONG phai toc do. O day ta muon toc do.
 import os, re, csv, json, glob, threading, hashlib, torch, subprocess, sys
-subprocess.run([sys.executable, "-m", "pip", "install", "-q", "--no-deps", "gptqmodel", "device-smi", "tokenicer", "logbar"], check=False)
-# --no-deps BAT BUOC: `pip install -U gptqmodel` keo theo numpy khac ABI ->
-# "cannot import name '_center' from numpy._core.umath" va giet kernel (H54 lan 2).
-# Moi thu gptqmodel can (torch/transformers/accelerate) da co san tren anh Kaggle.
-import importlib.util as _ilu
-print("gptqmodel co import duoc:", _ilu.find_spec("gptqmodel") is not None, flush=True)
-# transformers moi nap AWQ qua `gptqmodel` (KHONG phai autoawq) — da xac nhan tu log H54 lan 1.
-subprocess.run([sys.executable,"-m","pip","install","-q","-U","bitsandbytes>=0.46.1"])
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "bitsandbytes>=0.46.1"], check=False)
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
 K, MAXNEW = 8, 512
-BSS, BSB = 48, 8           # 14B AWQ ~8.6 GB + KV 192 KB/token (48 lop x 8 kv-head) -> BSB 8
+BSS, BSB = 48, 8           # 14B nf4 ~9 GB + KV 192 KB/token (48 lop x 8 kv-head) -> BSB 8
 TEMP = 0.8
 
 M15 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors", recursive=True), key=len)[0])
-M7  = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors.index.json", recursive=True), key=len)[0])
+M7  = "Qwen/Qwen2.5-14B-Instruct"   # tai tu HF, luong tu hoa nf4 tai cho bang bitsandbytes
+os.environ.setdefault("HF_HOME", "/kaggle/temp/hf")   # tranh gioi han 20GB cua /kaggle/working
 CSV = sorted(glob.glob("/kaggle/input/**/math_500_test.csv", recursive=True), key=len)[0]
 # newline="" BAT BUOC: de bai MATH co xuong dong ben trong o -> thieu no thi DictReader
 # cat nham dong va tra ve None cho cac cot cuoi (da lam chet shard 01/02/04/05).
@@ -158,26 +154,25 @@ def vote3(ps):
 ESC = [i for i in MINE if vote3(S_PRED[i])[1] < 2]
 print(f"escalate {len(ESC)}/{len(MINE)}", flush=True)
 
-# ---------- PHA 2+3: 14B AWQ, mot ban sao MOI GPU ----------
-# AWQ da luong tu hoa san trong checkpoint -> KHONG truyen quantization_config.
+# ---------- PHA 2+3: 14B nf4 (bitsandbytes), mot ban sao MOI GPU ----------
 BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                          bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 bigs = []
 try:
     for d in DEVS:
-        m = AutoModelForCausalLM.from_pretrained(M7, device_map={"": d}).eval()
+        m = AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB, device_map={"": d}).eval()
         bigs.append(m)
-    print(f"14B AWQ: {len(bigs)} ban sao | VRAM MiB/gpu:",
+    print(f"14B nf4: {len(bigs)} ban sao | VRAM MiB/gpu:",
           [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)], flush=True)
 except Exception as e:
     # Du phong: neu 4-bit khong dung duoc (thieu bitsandbytes), quay ve fp16 trai tren ca 2 the.
     # Cham hon (pipeline, khong song song) nhung VAN RA KET QUA — 20 shard khong duoc chet ca loat.
-    print(f"AWQ 1-ban-sao-moi-GPU THAT BAI ({type(e).__name__}: {e}) -> trai tren ca 2 the", flush=True)
+    print(f"nf4 1-ban-sao-moi-GPU THAT BAI ({type(e).__name__}: {e}) -> trai tren ca 2 the", flush=True)
     for m in bigs: del m
     bigs = []; torch.cuda.empty_cache()
-    bigs = [AutoModelForCausalLM.from_pretrained(M7, device_map="auto").eval()]
+    bigs = [AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB, device_map="auto").eval()]
     out_quant = "fp16-fallback"
-QUANT = "awq" if len(bigs) == NG else "fp16-fallback"
+QUANT = "nf4" if len(bigs) == NG else "nf4-split"
 
 B_TXT = parallel_gen(bigs, T7, SOLVE, Q, BSB, TEMP, K)
 print("xong pha 2", flush=True)
