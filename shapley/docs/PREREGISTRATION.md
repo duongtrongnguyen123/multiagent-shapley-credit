@@ -2610,3 +2610,21 @@ bao nhiêu ra **đáp án THỨ BA** (H60: 46% / 54%).
 7B mạnh hơn 1.5B nhiều, có thể **đủ tự tin để bỏ qua** lời giải kém — trong khi 1.5B thì không.
 Nếu vậy thì "đầu độc" là hiện tượng của model YẾU, và đó là một biên giới đáng giá, không phải
 kết quả âm. Tỉ lệ prior đúng gần đây: **7/16** (H60 tôi đoán hàng 2, thực tế không hàng nào khớp — tính là SAI).
+
+## BỔ SUNG #66-b — sửa prior TRƯỚC KHI CÓ SỐ H61 (viết trong lúc H61 đang chạy, chưa có kết quả nào)
+Đang chờ H61 thì tôi rà lại IDEAS.md và tìm được **bằng chứng có sẵn mà tôi đã quên**, nó
+**chống lại** dự đoán tôi vừa ghi ở #66. Ghi lại NGAY, trước khi số về, để không thành hồi tố:
+
+1. **H39 (vòng #78) ĐÃ CÓ nhánh model-mạnh-tự-chạy.** `big_maj3` = .5050 và `big_maj8` = .5400
+   là 7B chạy MỘT MÌNH. `escalate_seq` = .6450 hơn cả hai (+.1400 / +.1050) và còn rẻ hơn.
+   => **Kết quả leo thang của dự án KHÔNG dính lỗi thiếu đối chứng.** Nó đã được kiểm đúng.
+   H61 chỉ nhắm vào cách phát biểu của **H15**, không nhắm vào H39.
+2. **Vòng #87/#94 đo THẲNG tác dụng của mỏ neo ở 7B trên TOÁN: ≈ 0** (có neo +.1567 vs
+   không neo +.1467, lệch .01; ba trên bốn ô có |A−B| ≤ .01).
+   => Ở **7B**, việc bị cho xem lời giải yếu **không** gây hại. Đầu độc −.168 của H60 đo ở **1.5B**.
+
+**Sửa prior:** hàng 1 (leo thang có giá trị thật, 7B miễn nhiễm đầu độc) lên **~55%**,
+hàng 2 ~30%, hàng 3 (đầu độc lan sang 7B) xuống **~15%**. Nếu hàng 1 đúng thì kết luận đúng
+KHÔNG phải "đầu độc là phổ quát" mà là **"đầu độc là hiện tượng của model YẾU; năng lực đủ lớn
+thì miễn nhiễm"** — và ranh giới đó là phát hiện có giá trị hơn một kết quả âm.
+Bảng khoá #66 giữ NGUYÊN, không sửa một chữ.
