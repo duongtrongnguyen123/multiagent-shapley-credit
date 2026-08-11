@@ -11,13 +11,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt")).expanduser()
-SRC = ROOT / "pipeline" / "backward_kernel.py"
+SRC = Path(os.environ.get("KERNEL_SRC", ROOT / "pipeline" / "backward_kernel.py"))
 N = int(os.environ.get("N", "150"))
 NF = int(os.environ.get("NF", "5"))
 BS = int(os.environ.get("BS", "8"))
 TASK = os.environ.get("TASK", "gsm8k")
 PIPE = os.environ.get("PIPE", "psva")
 ACCOUNT = os.environ.get("ACCOUNT", "")
+SUFFIX = os.environ.get("SUFFIX", "")
 KDIR = ROOT / "kernels_backward"
 DS_MODEL = "xatri007/qwen2-5-1-5b-instruct"
 DATASETS = {"math":  [DS_MODEL, "open-benchmarks/math-500-measuring-mathematical-problem-solving"],
@@ -57,7 +58,7 @@ def main():
     if left:
         raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")
-    slug = f"bwd-{TASK}-{PIPE}"
+    slug = f"bwd-{TASK}-{PIPE}{'-' + SUFFIX if SUFFIX else ''}"
     d = KDIR
     shutil.rmtree(d, ignore_errors=True)
     d.mkdir(parents=True)
