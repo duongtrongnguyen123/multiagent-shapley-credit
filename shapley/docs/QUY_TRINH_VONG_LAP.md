@@ -167,3 +167,41 @@ Không có log thì chặn theo tiến trình: `while kill -0 <PID>; do sleep 2;
 - [ ] Quét **tên DÙNG mà chưa gán** (bắt `RUN`, `mktok`… — `ast.parse` không thấy)
 - [ ] Đếm số lần `from_pretrained` — chèn khối mới mà quên xoá khối cũ = nạp model hai lần
 - [ ] Trước khi gộp: **mọi shard cùng một `quant`**
+
+---
+
+## BÀI HỌC #99–#100: **NHÁNH ĐỐI CHỨNG CÒN THIẾU** — sai lầm phương pháp đắt nhất từ trước tới nay
+
+### Quy tắc
+> **Baseline của một pipeline multi-agent KHÔNG phải agent yếu nhất trong đó,
+> mà là AGENT MẠNH NHẤT CHẠY MỘT MÌNH.**
+
+Với mọi cấu hình có agent mạnh đọc đầu ra của agent yếu, **BẮT BUỘC** có nhánh:
+```
+I = agent mạnh tự làm, KHÔNG cho xem gì của agent kia
+```
+Đo `V − I`, **không** đo `V − S`. Hai lần liên tiếp chúng ngược dấu:
+| | `V − S` | `V − I` |
+|---|---|---|
+| H60 (0.5B→1.5B) | **+.1700** | **−.1040** |
+| H61 (1.5B→7B) | **+.1620** | **−.0740** |
+
+Và phải so **CHI PHÍ**: `I` thường **rẻ hơn** `V` (một lượt thay vì hai). Nếu `I ≥ V` thì
+`V` **bị áp đảo hoàn toàn** — tệ hơn VÀ đắt hơn. Đó là kết luận, không phải chi tiết phụ.
+
+### Vì sao tôi trượt lâu đến thế
+1. `fix/break` **trông** rất thuyết phục: H61 cho **85/4, precision .955**. Nhưng nó đo so với
+   **S**. Một verifier có thể sửa 85 lỗi của model yếu mà vẫn thua xa việc **không gọi model yếu ngay từ đầu**.
+   **precision cao KHÔNG loại trừ việc bị áp đảo.**
+2. Tôi đọc sai chính dữ liệu của mình. Vòng #87 ("mỏ neo ≈ 0 ở 7B") so **seq-có-neo vs seq-không-neo**
+   — cả hai đều để 7B tự giải trước. Nó **chưa bao giờ** đo giá của việc TIẾP XÚC. Tôi đã dùng nó
+   để tự sửa prior sang hướng sai (#66-b), rồi sai.
+   → **Trước khi viện dẫn một kết quả cũ làm bằng chứng, đọc lại xem nó ĐO CÁI GÌ,
+     không chỉ nhớ nó KẾT LUẬN GÌ.**
+
+### Cách viết bảng khoá cho tốt hơn
+H60 rơi vào ô **không hàng nào khớp**: tôi khoá bảng với giả định ngầm rằng chiều "đầu độc"
+không thể lớn. Nó lớn hơn mọi hiệu ứng tôi đã đăng ký.
+→ **Mỗi bảng khoá phải có một hàng cho "hiệu ứng đi theo chiều tôi cho là không thể",
+  với biên độ LỚN.** Nếu không nghĩ ra nổi, đó là dấu hiệu bảng còn thiếu, không phải dấu hiệu
+  giả thuyết chắc chắn. Và khi không hàng nào khớp: **GHI NHẬN LÀ THIẾU SÓT, không bịa hàng mới cho vừa.**
