@@ -2416,3 +2416,47 @@ Chấm CHỈ bằng `assert[1..2]`. Ghi thêm `test_soundness`, `test_power` nh�
 Đoán **hàng 1 với biên độ nhỏ**: soundness .871 và power .751 là bộ lọc thật, nhưng chỉ **1.44 assert/bài**
 nên nhiều mẫu sẽ HOÀ nhau -> thu được có lẽ **25–50%** khoảng trống, tức **+2 đến +4 điểm**.
 Nếu đúng, đây là thứ đầu tiên trong ngày HƠN được mốc. Tỉ lệ prior đúng: **6/13**.
+
+
+# Đăng ký trước #63 — H58: **SINH NHIỀU TEST HƠN** — số lượng test có phải nút thắt của việc CHỌN?
+**Viết TRƯỚC khi chạy.**
+
+## Đo được ở #95, và nó chỉ thẳng vào việc kế tiếp
+`select_tests` thắng +.0401 với **chỉ 1.44 assert/bài**. Nhưng phân tích thêm:
+| | |
+|---|---|
+| bài có HOÀ ở điểm cao nhất | **96.4%** |
+| bài mà **CẢ 8** mẫu hoà nhau | **371/498 = 74.5%** |
+| phá hoà HOÀN HẢO chỉ thêm | **+.0301** (→ .7390) |
+=> Trên 3/4 số bài, test **không phân biệt được gì** -> nhánh tụt về bỏ phiếu thường.
+Toàn bộ +.0401 kiếm được từ **~25% số bài** mà test có phân biệt. Tín hiệu mỏng mà hiệu quả cao
+=> **số lượng test là nút thắt**, không phải chất lượng.
+
+## Thiết kế — y hệt H56, chỉ đổi cách sinh test
+MBPP 11–510, 7B, 12 shard.
+- H56: **1 lượt** viết test, T=0.0 -> 1.44 assert
+- **H58: 3 lượt** viết test ở T=0.8, **hợp nhất + khử trùng lặp** -> kỳ vọng 3–5 assert
+Chấm mỗi mẫu bằng số test đạt; chọn mẫu cao điểm nhất; hoà -> bỏ phiếu hành vi. Như #62.
+Chi phí: 8 lượt sinh + **3 lượt** viết test (H56: 8 + 1).
+
+## RỦI RO PHẢI ĐO — hợp nhất nhiều test thì dễ dính test SAI
+Một test sai sẽ **loại oan mẫu đúng**. Vì vậy bắt buộc báo:
+- `test_soundness` của **tập hợp nhất** (lời giải chuẩn đạt HẾT các test hợp nhất)
+- `avg_tests`, và **tỉ lệ bài còn hoà 8 mẫu**
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` < .50 ⇒ không đọc. n ≥ 400. Mọi shard cùng `quant`.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `select`(H58) − `select`(H56 = .7088) ≥ +.02 | **SỐ LƯỢNG TEST LÀ NÚT THẮT.** Sinh thêm test là đòn bẩy rẻ và trực tiếp. Báo tỉ lệ khoảng trống thu được so với `oracle8`. |
+| \|chênh\| < .02 | Thêm test **không giúp** -> nút thắt là **chất lượng phân biệt**, không phải số lượng. |
+| `select`(H58) < `select`(H56) − .02 | **Hợp nhất test làm HẠI**: test sai loại oan mẫu đúng. Kiểm bằng `test_soundness` giảm. |
+| `test_soundness` giảm > .10 so với .8712 | Ghi rõ: đánh đổi số lượng lấy độ đúng. Nếu acc vẫn tăng thì chấp nhận được; nếu giảm thì đây là nguyên nhân. |
+| tỉ lệ hoà-8-mẫu vẫn > .50 | Ngay cả 3 lượt viết test vẫn không đủ phân biệt -> cần cách khác (test sinh theo mẫu, hoặc test đối kháng). |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 nhưng biên độ vừa phải (+.02 đến +.04)**: nhiều test hơn sẽ phá được phần lớn
+hoà-8-mẫu, nhưng trần phá-hoà-hoàn-hảo chỉ là +.0301 nên phần lớn lợi ích phải đến từ việc
+test mới phân biệt được ở những bài trước đây cả 8 mẫu cùng đạt. Tỉ lệ prior đúng: **7/14**.
