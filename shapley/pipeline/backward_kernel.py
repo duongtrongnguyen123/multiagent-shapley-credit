@@ -105,11 +105,23 @@ if TASK == "math":
                   "correct final answer by re-checking. Put the final answer in \\boxed{}.")
     PLAN_FWD   = ("You are a math planning assistant. Read the competition problem and give a "
                   "concise numbered plan of the solution steps. Do NOT compute the final answer.")
-    PLAN_BWD   = ("You are a math planning assistant. Starting from what the problem asks for, "
-                  "reason BACKWARD: to determine the target quantity, what must be known first? "
-                  "Keep expanding each needed quantity until every leaf is directly given in the "
-                  "problem. Then output the plan in forward computation order. Do NOT compute "
-                  "the final answer.")
+    PLAN_BWD   = ("You are a math planning assistant. Do BACKWARD CHAINING to build a plan.\n"
+                  "1. State the target quantity the problem asks for.\n"
+                  "2. Ask: to get the target, what sub-quantities must be known first?\n"
+                  "3. For each sub-quantity, keep asking what must be known, until every leaf is "
+                  "a value directly given in the problem.\n"
+                  "4. Output ONLY the final plan as a numbered list, ordered from first "
+                  "computation to last. Do NOT compute any arithmetic. Do NOT restate the "
+                  "question.\n\n"
+                  "Example:\n"
+                  "Problem: A shop sells apples at $2 each. Jill buys 3 apples and a $4 basket. "
+                  "How much does she pay?\n"
+                  "Target: total cost = apples cost + basket cost.\n"
+                  "  apples cost <- $2/apple x 3 apples (given)\n"
+                  "  basket cost <- $4 (given)\n"
+                  "Plan:\n"
+                  "1. apples cost = 2 * 3\n"
+                  "2. total = apples cost + 4")
     q_of = lambda r: r["Question"].strip()
     def gold_of(r): return boxed(r["Answer"])
     def pred(t):
@@ -130,10 +142,22 @@ else:
                   "<number>'.")
     PLAN_FWD   = ("You are a math planning assistant. Read the problem and give a concise "
                   "numbered plan of the steps needed. Do NOT compute the final answer.")
-    PLAN_BWD   = ("You are a math planning assistant. Starting from what the problem asks for, "
-                  "reason BACKWARD: to find the answer, what must be known first? Keep expanding "
-                  "each needed quantity until every leaf is directly given in the problem. Then "
-                  "output the plan in forward computation order. Do NOT compute the final answer.")
+    PLAN_BWD   = ("You are a math planning assistant. Do BACKWARD CHAINING to build a plan.\n"
+                  "1. State the target quantity the problem asks for.\n"
+                  "2. Ask: to get the target, what sub-quantities must be known first?\n"
+                  "3. For each sub-quantity, keep asking what must be known, until every leaf is "
+                  "a value directly given in the problem.\n"
+                  "4. Output ONLY the final plan as a numbered list, ordered from first "
+                  "computation to last. Do NOT compute any arithmetic. Do NOT restate the "
+                  "question.\n\n"
+                  "Example:\n"
+                  "Problem: Janet sells eggs. She lays 16 per day, eats 3, bakes with 4, sells "
+                  "rest at $2 each. How much does she make daily?\n"
+                  "Target: daily income = eggs sold x $2.\n"
+                  "  eggs sold <- 16 - 3 - 4 (all given)\n"
+                  "Plan:\n"
+                  "1. eggs sold = 16 - 3 - 4\n"
+                  "2. income = eggs sold * 2")
     q_of = lambda r: r["question"].strip()
     def gold_of(r):
         m = re.search(r"####\s*([-\d,\.]+)", r["answer"])
