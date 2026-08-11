@@ -127,6 +127,14 @@ chật hơn thì OOM chết. Hậu quả ngầm: 3 shard xong đều là `fp16-f
 Cách bắt: `grep -c "from_pretrained"` sau khi dựng, và **so `quant` giữa các shard trước khi gộp**
 (script gộp nay DỪNG nếu các shard chạy ở độ chính xác khác nhau).
 
+**Kiểm `ast.parse` KHÔNG bắt được tên THIẾU — phải quét tên DÙNG-mà-chưa-gán**
+Hai lần trong một ngày, kernel cú pháp đúng nhưng chết vì tên không tồn tại:
+`mktok/probe_src/gen` (bị đoạn cắt xoá mất) và `RUN` (dán khối output từ bản khác mà quên định nghĩa).
+Lần sau **toàn bộ tính toán của shard đã chạy xong** rồi mới chết ở dòng `json.dump` — mất trắng.
+Cách bắt (1 giây): duyệt AST, lấy mọi `ast.Name` ở ngữ cảnh `Load` trừ đi mọi tên được gán/import/
+tham số/hàm/lớp, bỏ built-in. Còn lại là **tên chưa định nghĩa**.
+Kiểm "tên đã được GÁN" là KHÔNG đủ: `RUN` chỉ được DÙNG nên phép kiểm cũ cho qua.
+
 **Bí mật:** token `KGAT_...` không bao giờ được commit. `accounts.txt`, `manifest*.json`,
 `kernels_*/`, `monitor.sh` đều nằm trong `.gitignore`. Tên tài khoản không xuất hiện trong tài liệu chung.
 
@@ -144,5 +152,6 @@ Cách bắt: `grep -c "from_pretrained"` sau khi dựng, và **so `quant` giữa
 - [ ] Tên file đầu ra **duy nhất toàn loạt** (không chỉ duy nhất trong một ô)
 - [ ] Sau khi tải: **số file trên đĩa == số shard báo xong**
 - [ ] Kernel dựng bằng cắt/ghép: **đối chiếu danh sách hàm bằng AST**, không chỉ `ast.parse`
+- [ ] Quét **tên DÙNG mà chưa gán** (bắt `RUN`, `mktok`… — `ast.parse` không thấy)
 - [ ] Đếm số lần `from_pretrained` — chèn khối mới mà quên xoá khối cũ = nạp model hai lần
 - [ ] Trước khi gộp: **mọi shard cùng một `quant`**
