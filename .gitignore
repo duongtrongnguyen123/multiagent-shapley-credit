@@ -12,6 +12,8 @@ results_*/
 !**/results_summary/**
 !**/results_selflevel/
 !**/results_selflevel/**
+!**/results_solvejudge/
+!**/results_solvejudge/**
 kernels/
 kernels_*/
 output/
