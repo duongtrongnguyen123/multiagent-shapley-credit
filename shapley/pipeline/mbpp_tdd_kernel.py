@@ -12,6 +12,7 @@ subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "bitsandbyte
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
+RUN = "@@RUN@@"
 TID_LO, TID_HI = @@TIDLO@@, @@TIDHI@@
 K, MAXNEW, TEMP = 8, 512, 0.8
 KS = 3                      # so ban cua model nho
