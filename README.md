@@ -43,8 +43,56 @@ chính bảng Shapley ban đầu:
 > Quá dễ → không còn gì để sửa. Và giá trị của verifier nằm ở **ĐỘ CHÍNH XÁC KHI CAN THIỆP**,
 > không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
 > đó chính là cơ chế của kết quả +14.0đ.
+>
+> ⚠️ **DIỄN GIẢI CỦA "+14.0đ" ĐÃ BỊ RÚT LẠI ở vòng #100 — xem mục ngay dưới.**
+> Con số đúng, nhưng nó so với **1.5B**. So với **7B chạy một mình** (rẻ hơn) thì nó **ÂM**.
 
-## Kết quả mới nhất (vòng #78–#93) — 16 đăng ký trước, **5 phát biểu bị rút lại**
+## ⭐ Kết quả mới nhất (vòng #99–#100) — **NHÁNH ĐỐI CHỨNG CÒN THIẾU**
+
+Hai thí nghiệm liên tiếp, đăng ký trước, cùng chỉ ra một lỗi phương pháp **trong chính công trình
+này** — và trong cách gần như mọi báo cáo multi-agent tính điểm.
+
+Khi bạn cho agent **mạnh** đọc lời giải của agent **yếu** rồi kiểm/sửa, con số hầu như ai cũng
+báo cáo là `V − S`: verifier hơn **solver yếu** bao nhiêu. Nhưng lựa chọn thay thế thật sự
+không phải là solver yếu — mà là **cứ để agent mạnh tự giải một mình**, và nó thường **RẺ HƠN**
+(một lượt thay vì hai). Gọi đó là `I`.
+
+| | S (yếu giải) | **I (mạnh TỰ giải)** | V (mạnh kiểm lời giải của yếu) | `V − S` | **`V − I`** |
+|---|---|---|---|---|---|
+| **H60** 0.5B→1.5B | .3700 | **.6440** | .5400 | **+.1700** (5/5) | **−.1040** (5/5) |
+| **H61** 1.5B→7B | .6720 | **.9080** | .8340 | **+.1620** (5/5) | **−.0740** (5/5) |
+
+**Cùng thí nghiệm. Hai con số. Ngược dấu.** Ở H61, verifier trông xuất sắc theo mọi cách đo
+thông thường — sửa **85** lỗi của solver, chỉ phá **4**, precision **.955** — mà vẫn thấp hơn
+việc chỉ gọi thẳng 7B **7.4 điểm**, với chi phí **cao hơn**. `fix/break` đo so với **S**,
+nên precision cao hoàn toàn tương thích với việc cả pipeline **bị áp đảo**.
+
+### Vì sao: *đọc* một lời giải kém là ĐỘC, chứ không chỉ vô ích
+Tách từng bài (I đúng → V sai) so với (I sai → V đúng): **56 bị đầu độc vs 24 được cứu** (H60),
+**56 vs 19** (H61) — ròng đúng bằng `V − I`. Trong số bị đầu độc:
+
+| | nhại đáp án SAI của S | ra **đáp án THỨ BA**, không theo ai |
+|---|---|---|
+| H60 | 46% | **54%** |
+| H61 | 55% | **45%** |
+
+Gần một nửa thiệt hại **không phải bắt chước**. Nhìn thấy một lời giải kém **làm hỏng lập luận
+vốn đã đúng** của chính model mạnh. Ở H60 chúng tôi còn huấn luyện verifier bằng GRPO cho đúng
+mục tiêu này: nó thành verifier **tốt hơn thật** (dài gấp đôi, `agree_wrong` .441→.274,
+sửa 11.6→19.4) nhưng chỉ gỡ lại **38%** thiệt hại. **Tổn thất nằm ở lần TIẾP XÚC, không nằm ở
+chính sách — nên không hàm thưởng nào sửa được.**
+
+### Cái gì SỐNG
+- **Định tuyến CÓ ĐIỀU KIỆN vẫn sống.** H39: `escalate_seq` .6450 vs **7B chạy một mình**
+  (`big_maj3` .5050 / `big_maj8` .5400) — thắng **và** rẻ hơn. Nó chỉ gọi 7B ở những bài
+  1.5B **không tự đồng thuận**. Khác hẳn định tuyến **vô điều kiện** mà H61 giết.
+- **Test chạy được vẫn sống** (+.0401, tái lập +.0388) — oracle mang thông tin model KHÔNG có.
+
+> **Quy tắc rút ra: `V − S` là con số sai. Luôn báo `V − I`.**
+> Baseline đúng của một pipeline multi-agent không phải agent **yếu nhất** trong đó,
+> mà là **agent mạnh nhất chạy một mình** — thường là lựa chọn rẻ hơn.
+
+## Kết quả vòng #78–#93 — 16 đăng ký trước, **5 phát biểu bị rút lại**
 
 Một ngày chạy liên tục trên Kaggle (≈250 kernel). Mỗi phép thử có **bảng diễn giải khoá trước**,
 kèm **một hàng cho trường hợp giả thuyết chết**. Kết quả: prior của tôi **đúng 5/12 lần**,
