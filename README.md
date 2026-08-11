@@ -44,7 +44,97 @@ chính bảng Shapley ban đầu:
 > không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
 > đó chính là cơ chế của kết quả +14.0đ.
 
-## Kết quả mới nhất (vòng #59–#70) — bốn phát hiện đã tái lập
+## Kết quả mới nhất (vòng #78–#93) — 16 đăng ký trước, **5 phát biểu bị rút lại**
+
+Một ngày chạy liên tục trên Kaggle (≈250 kernel). Mỗi phép thử có **bảng diễn giải khoá trước**,
+kèm **một hàng cho trường hợp giả thuyết chết**. Kết quả: prior của tôi **đúng 5/12 lần**,
+và phần lớn công việc là **thu hẹp** các phát biểu cũ, không phải mở rộng.
+
+### A. ✅ Kết quả DƯƠNG thực dụng **duy nhất**: định tuyến theo đồng thuận, **trên MATH**
+Lấy 3 mẫu bằng 1.5B; nếu ≥2 đồng ý thì NHẬN và dừng; nếu không thì gọi 7B chạy **tuần tự có mỏ neo**.
+
+| lần chạy | n | máy | `escalate_seq` vs `big_maj3` | chi phí |
+|---|---|---|---|---|
+| H39_m | 200 | RTX 5090 (bf16) | **+.140** (5/5 fold) | rẻ hơn **1.63×** |
+| H40 | 500 | 20 kernel Kaggle (fp16) | **+.092** | rẻ hơn **1.66×** |
+
+So với `big_maj8`: **+.105 với 4.34× ít tính toán hơn**. Cùng chiều, phần cứng độc lập, mẫu gấp 2.5×.
+**Chưa kiểm ở 14B** — đó là phép thử quyết định xem đây là quy tắc hay hiện tượng của model nhỏ.
+
+### B. ❌ Trên **CODE**, điều phối **không bao giờ bù lại được** — 3 lần độc lập
+| phép thử | đường ống | bị thua bởi |
+|---|---|---|
+| định tuyến (#81) | định tuyến oracle + escalate | `big_greedy` .6365, thua **cả acc lẫn chi phí** |
+| tự lập kế hoạch (#90) | kế hoạch → giải → tự kiểm | tuần tự thường, −.037 đến −.063 |
+| kế hoạch bất đối xứng (#91) | **7B lập kế hoạch → 1.5B giải** | `big_greedy`, **−.140 với +2.00 chi phí** |
+
+> **Cùng ngần ấy tính toán, chạy MỘT LƯỢT model lớn hơn luôn tốt hơn mọi đường ống đã thử.**
+
+### C. 🔄 "Tuần tự thắng song song" — **thu hẹp lại**: chỉ TOÁN, và là **LƯỢT THÊM** chứ không phải mỏ neo
+Lưới 4 ô, **không escalate, không hai model** (#85), tái lập độc lập ở #87:
+
+| ô | `greedy` | `delta_seq` = tuần tự − maj3 |
+|---|---|---|
+| MATH 1.5B | .3367 | **+.0566** |
+| **MATH 7B** | **.4900** | **+.1433** |
+| GSM8K 1.5B | .6200 | +.0100 |
+| **GSM8K 7B** | **.9067** | **−.0100** |
+
+**CÙNG một model 7B cho hai dấu ngược nhau** — biến quyết định là **model đã giỏi tới đâu TRÊN
+TÁC VỤ ĐÓ**, không phải bài khó hay dễ (giả thuyết "độ khó" đã **chết** ở #83, ngược hẳn dấu).
+**Trên CODE quy tắc này KHÔNG áp dụng**: MBPP 1.5B có `greedy` .456 (xa trần) mà `delta_seq` vẫn **−.022** (#88).
+
+### D. ❌ **Lập kế hoạch không đáng một lượt** — kể cả trên bài dài, với can thiệp đã kiểm chứng
+Lần đầu (#89) hỏng: **85–100% "kế hoạch" thực ra là CODE**. Bảo model "đừng viết code" vô dụng.
+Chặn dấu rào code ở **tầng sinh** (`bad_words_ids`) hạ tỉ lệ xuống **7.0% / 0.0%** — khi đó (#90):
+
+| ô | `seq` | `PSV` (kế hoạch) | **PSV − seq** |
+|---|---|---|---|
+| BigCodeBench 1.5B | .1900 | .1267 | **−.0633** |
+| BigCodeBench 7B | .3467 | .3100 | **−.0367** |
+
+BigCodeBench dài gấp ~4 lần MBPP (prompt trung vị 607 ký tự, phải ghép nhiều thư viện).
+=> Các kết quả null trước đây về Planner **KHÔNG** phải do bộ dữ liệu quá ngắn.
+
+### E. 🔄 Oracle chỉ đáng giá khi **model SỬA NỔI** theo nó
+| tác vụ | oracle 3 vòng đáng giá |
+|---|---|
+| **SINH** code mới (H35) | **+6 đến +11 điểm** |
+| **REFACTOR** (#93) | **+1.9 điểm** (dù dùng TB 2.70 vòng) |
+
+Trên refactor, ~26% vẫn làm hỏng hành vi **ngay cả khi có oracle**, và **lượt LLM tự nhận xét làm
+TỆ ĐI** (.7116 vs .7378 khi không xem lại) — tái lập ở hai lần chạy.
+=> Bổ sung điều kiện cho phát biểu #1: **oracle phải KHU TRÚ được lỗi thì model mới sửa được.**
+Lỗi khi sinh code thì thô; lỗi khi refactor là **trôi ngữ nghĩa tinh vi**, stack trace chỉ nêu triệu chứng.
+
+### F. Chất lượng tái lập — hai cặp chặt nhất dự án có
+| đại lượng | lần 1 | lần 2 | lệch |
+|---|---|---|---|
+| lấy mẫu − tuần tự (code, nhóm escalate) | +.1159 | +.1164 | **.0005** |
+| `preserve` của refactor có oracle | .7707 | .7715 | **.0008** |
+
+Hai tách dữ liệu rời nhau / hai loạt kernel riêng biệt.
+
+### G. Đã RÚT LẠI trong ngày (chi tiết ở `IDEAS.md`)
+1. **"Trần/bão hoà theo ĐỘ KHÓ giải thích được định tuyến"** — chết ở #83, **ngược hẳn dấu**.
+2. **"Cơ chế là MỎ NEO"** (vòng #73) — đo trực tiếp: mỏ neo đóng góp **≈0** trên toán (|A−B| ≤ .01
+   ở 3/4 ô); cái có tác dụng là **lượt thêm**. Trên code mỏ neo lại **gây hại** (−.08 đến −.10),
+   nhưng **chỉ trên nhóm bài khó đã lọc** — trên toàn bộ bài thì ≈0.
+3. **"Mỏ neo chiếm 63% thiệt hại trên code"** — tách khác cho **47%**; con số không ổn định, chỉ
+   được nói "khoảng một nửa".
+4. **`seq − maj3` = +.1266 trên BigCodeBench** — **lỗi thiết kế của tôi**: nhánh `maj3` chọn bằng
+   **kết quả test dùng để chấm** (rò rỉ) và là điều kiện "≥2/3 đạt" chứ không phải bỏ phiếu.
+5. **"Định tuyến chết trên code"** — nói quá: định tuyến + **lấy mẫu** đạt ngang `big_maj3` với
+   **1.82× ít chi phí**; cái chết là định tuyến + **tuần tự**.
+
+### H. Hai thí nghiệm bị **tuyên vô hiệu** bởi chính cổng đã khoá
+- **#89**: nhánh `PSV` — can thiệp không xảy ra (kế hoạch chứa code). Script gộp vẫn in ra
+  "lập kế hoạch không đáng một lượt"; **cổng can thiệp có quyền cao hơn script**, nên kết luận đó bị bác.
+- **#89**: nhánh `maj3` — rò rỉ tín hiệu chấm điểm (mục G.4).
+
+---
+
+## Kết quả vòng #59–#70 (vẫn đứng, trừ mục 3 đã thu hẹp ở trên)
 
 ### 1. ✅ BỘ KIỂM ĐÚNG ĐẮN thắng LLM-đi-kiểm — **4 lần chạy độc lập, 0 lần gây hại**
 Cùng model, cùng 4 lượt sinh, **chỉ khác NGUỒN TÍN HIỆU KIỂM** (chạy test thật vs LLM tự đọc lại):
@@ -82,7 +172,7 @@ H8 từng bị tuyên VÔ HIỆU ở 1.5B (`exec_success_rate` .42 < ngưỡng .
 
 *(Hệ quả cho chứng minh định lý hình thức: bộ kiểm Lean LÀ oracle -> thuộc nhóm CODE, không phải nhóm này.)*
 
-### 3. ✅ TUẦN TỰ thắng SONG SONG ở **CÙNG NGÂN SÁCH** — 3/4 ô, và rẻ hơn
+### 3. 🔄 TUẦN TỰ thắng SONG SONG — **ĐÃ THU HẸP** (xem mục C ở trên: chỉ TOÁN, và cơ chế KHÔNG phải mỏ neo)
 Mọi nhánh **đúng 3 lượt sinh**; đếm cả token thực sinh ra:
 
 | ô | greedy | maj@3 | **P→S→V** | `maj3−PSV` |
@@ -96,6 +186,7 @@ Mọi nhánh **đúng 3 lượt sinh**; đếm cả token thực sinh ra:
 — đã khoá trước là ĐIỀU KIỆN, không phải phản chứng.
 **Nhưng cơ chế KHÔNG phải phân vai**: nhánh `S→neo→neo` (không một chữ nào về vai) đạt **.728**,
 GIỐNG HỆT `P→S→V`. Cái có tác dụng là **MỎ NEO**, không phải tên vai.
+> ⚠️ **RÚT LẠI (#87)**: đo tách riêng cho thấy mỏ neo đóng góp **≈0**. Thứ có tác dụng là **LƯỢT THÊM**.
 
 **Nhiễu loạn đã loại trừ**: đối chứng `maj3_g` (bỏ phiếu CÓ một mẫu greedy) ≈ `maj@3` ở
 **7 ô độc lập** (−.025 đến +.016) -> lợi thế KHÔNG đến từ giải mã greedy.
