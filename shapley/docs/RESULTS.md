@@ -410,3 +410,48 @@ Phép thử GSM8K THẬT (trước bị lỗi tham số `task` che mất — ker
 Sửa lỗi SẬP giúp nhất quán (`exec3−pal1` dương **5/5 fold** ở cả ba ô MATH) mà vẫn không đủ.
 => Xác lập phân biệt: **ORACLE VỀ TÍNH ĐÚNG** (bộ test) vs **MỘT CÁCH TÍNH KHÁC** (chạy Python cho toán).
 => Lean là oracle -> chứng minh định lý thuộc nhóm CODE; kết quả âm này KHÔNG áp cho Lean.
+
+## 9. H41 — GIẢ THUYẾT "TRẦN" BỊ BÁC TRONG GSM8K (pre-reg #47)
+
+Kiểm tra khắt khe nhất: escalate đã **thua** trên GSM8K (−.064, 0/5 fold, vòng #79).
+Nếu "trần" là nguyên nhân thật thì NGAY TRONG GSM8K, nhóm bài nhiều bước (7B xa trần hơn)
+phải cho `gain` cao hơn nhóm ít bước.
+
+**Thiết kế:** 1319 bài GSM8K, bf16 trên RTX 5090, k=8 mẫu. Độ khó = số bước tính `<<...>>`
+trong lời giải chuẩn. Tách 3 tầng: DỄ (≤2 bước, n=440) · GIỮA (3 bước, n=364) · KHÓ (≥4 bước, n=515).
+Giao thức H39: 3 mẫu 1.5B → đồng thuận thì nhận, không → 7B tuần tự có mỏ neo.
+
+### Kết quả tổng quan
+
+| Chiến lược | Accuracy |
+|---|---|
+| small_maj8 (1.5B ×8) | .711 |
+| **big_maj3 (7B ×3)** | **.920** |
+| big_maj8 (7B ×8) | .930 |
+| escalate_seq | .811 (thua big_maj3 **−10.8đ**) |
+| pct_escalated | 33.4% |
+
+### Phân rã theo độ khó
+
+| Tầng | n | pct_esc | big_maj3 | escalate | esc−big3 | opp_cost | gain_on_esc |
+|---|---|---|---|---|---|---|---|
+| **DỄ** (≤2 bước) | 440 | 20.9% | .952 | .882 | **−.071** | +.081 | **−.033** |
+| **GIỮA** (3 bước) | 364 | 29.1% | .931 | .843 | **−.088** | +.097 | **−.066** |
+| **KHÓ** (≥4 bước) | 515 | 47.2% | .884 | .728 | **−.155** | +.228 | **−.074** |
+
+Đẳng thức tự kiểm (khoá trước): `escalate_seq − big_maj3 ≈ p_kept·(−opp_cost) + p_esc·gain`
+→ **lệch 0.0000 ở cả 3 tầng** → mã đúng, số liệu tin được.
+
+### Kết luận (khoá trước ở pre-reg #47)
+
+`gain(KHÓ) − gain(DỄ)` = −0.074 − (−0.033) = **−0.041 < −0.03** → **NGƯỢC HẶN. Giả thuyết trần CHẾT.**
+
+- `gain_on_esc` **âm ở mọi tầng** — tuần tự có mỏ neo tệ hơn big_maj3 ngay trên tập đã escalate.
+- `opp_cost` đi **sai chiều dự đoán**: tăng từ +0.08 (dễ) lên +0.23 (khó), thay vì giảm.
+  Tức bài khó càng phải trả đắt để giữ 1.5B, ngược logic "trần".
+- Escalate thua **NHIỀU HƠN** ở bài khó (−.155) so với bài dễ (−.071) — ngược hoàn toàn dự đoán.
+
+**Phát biểu thay thế:** khác biệt MATH↔GSM8K (escalate thắng ở MATH, thua ở GSM8K)
+**không phải do độ khó trong nhiệm vụ**, mà ở cấp **tác vụ**. Giả thuyết "trần" không giải thích được.
+Phải tìm biến khác (độ dài? kiểu suy luận? bộ chấm?) hoặc chấp nhận kết quả #78 trên MATH
+có thể không tái lập.
