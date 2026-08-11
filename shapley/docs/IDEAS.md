@@ -3394,3 +3394,38 @@ rơi về bỏ phiếu hành vi. Muốn thu thêm phải **sinh NHIỀU test hơ
 ### BẮT BUỘC TRƯỚC KHI CÔNG BỐ
 Bảng khoá #62 ghi rõ: **phải TÁI LẬP trên tách MBPP 511–974** (dữ liệu H56 chưa từng chạm).
 Đang chạy ngay: H57.
+
+
+## [Loop] VÒNG #96 — **H57: TÁI LẬP THÀNH CÔNG. Kết quả dương đầu tiên của dự án trên CODE đứng vững.**
+| lần chạy | tách MBPP | n | `select − maj8` | thu được | soundness |
+|---|---|---|---|---|---|
+| H56 (#95) | 11–510 | 498 | **+.0401** | 42.5% | .8712 |
+| **H57** | **511–974** | **464** | **+.0388** | **46.1%** | .8750 |
+**Hai tách RỜI NHAU, lệch .0013.** Ngang với hai cặp tái lập chặt nhất trong ngày (.0005 / .0008).
+
+### PHÁT BIỂU ĐƯỢC PHÉP DÙNG
+> Dùng **test do chính model tự sinh** để **CHỌN trong 8 ứng viên** hơn bỏ phiếu đa số
+> **+.039 đến +.040** trên MBPP, tái lập trên hai tách rời nhau, với chi phí **thêm 1 lượt sinh**
+> (8+1 so với 8). Thu được **42–46%** khoảng cách tới trần `oracle@8`.
+
+### VÌ SAO ĐÂY LÀ KẾT QUẢ THẬT (khác mọi thứ trước đó trong ngày)
+- Nút thắt đã đo: **80.8% số bài ĐÃ CÓ lời giải đúng trong pool** -> vấn đề là CHỌN, không phải SINH.
+- Cùng bộ test đó dùng để **SỬA** chỉ được **+.004** (#94); dùng để **CHỌN** được **+.040** — gấp 10 lần.
+=> **Oracle nên dùng để LỌC ỨNG VIÊN, không phải để SỬA một ứng viên.**
+
+## [Loop] VÒNG #97 — **H58: SỐ LƯỢNG TEST *KHÔNG* PHẢI NÚT THẮT. HÀNG 2 của #63.**
+Sinh test 3 lượt (T=0.8) rồi hợp nhất, cùng tách 11–510:
+| | H56 | **H58** |
+|---|---|---|
+| assert/bài | 1.44 | **2.22** |
+| `test_soundness` | .8712 | **.8048** |
+| `select_tests` | .7088 | **.7189** |
+`select`(H58) − `select`(H56) = **+.0101**, **DƯỚI** ngưỡng +.02 đã khoá -> **HÀNG 2**:
+*"thêm test KHÔNG giúp -> nút thắt là CHẤT LƯỢNG PHÂN BIỆT, không phải số lượng."*
+**PRIOR CỦA TÔI SAI** (đoán hàng 1). Tỉ lệ: **7/15**.
+
+### RỦI RO ĐÃ KHOÁ TRƯỚC ĐÃ XẢY RA ĐÚNG NHƯ DỰ ĐOÁN
+Hợp nhất test lấy mẫu làm **soundness tụt .8712 -> .8048 (−.066)**: test sai lọt vào và
+**loại oan mẫu ĐÚNG**. Phần lợi từ phân biệt thêm bị chính phần hại này ăn mất phần lớn.
+=> Muốn thu thêm khoảng trống thì phải **tăng CHẤT LƯỢNG test**, không phải số lượng —
+ví dụ lọc test bằng chính lời giải đa số, hoặc sinh test đối kháng có kiểm tra tính đúng.
