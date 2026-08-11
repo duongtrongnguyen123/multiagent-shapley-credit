@@ -3322,3 +3322,43 @@ nhưng chỉ hữu ích khi model đủ sức hành động theo nó.
 Trước nay: *"bộ kiểm có giá trị khi là ORACLE về tính đúng"*. Cần thêm điều kiện:
 > **Oracle chỉ đáng giá khi model CÓ THỂ HÀNH ĐỘNG theo tín hiệu đó.**
 > Trên refactor, oracle phát hiện đúng nhưng model không sửa được -> lợi ích gần như bằng 0.
+
+
+## [Loop] VÒNG #94 — **H55: VAI VERIFIER LÀM ĐƯỢC VIỆC — nhưng vẫn KHÔNG hơn lấy mẫu**
+### MBPP 11–510, 498 bài, 12 shard, nf4. Đề xuất của Nguyên: verifier TỰ VIẾT TEST.
+
+### VAI NÀY THÀNH CÔNG — artifact đầu tiên trong dự án ĐO ĐƯỢC LÀ TỐT
+| thước đo | giá trị |
+|---|---|
+| sinh được test | **99.8%** số bài, trung bình **1.44** assert |
+| **`test_soundness`** | **.8712** — lời giải chuẩn ĐẠT hết test tự sinh |
+| **`test_power`** | **.7514** — bắt được **133/177** bản cài đặt SAI thật |
+Prior của tôi là soundness .60–.80; đo được **.87**. Verifier viết test **ĐÚNG** và **CÓ LỰC**.
+
+### NHƯNG ĐƯỜNG ỐNG THÌ HOÀ
+| nhánh | acc (assert giữ lại) |
+|---|---|
+| solve1 | .6546 |
+| **maj3** | **.6627** |
+| tdd_impl (thấy test, KHÔNG chạy) | .6426 |
+| tdd_noexec (thấy test + tự nhận xét) | **.6084** |
+| **tdd (thấy test + CHẠY + sửa)** | **.6667** |
+
+**HÀNG 2 của #61**: `tdd − maj3` = **+.0040**. Oracle tự sinh — dù đúng và có lực —
+**không thêm gì** so với bỏ phiếu đa số. **PRIOR CỦA TÔI ĐÚNG.** Tỉ lệ: 6/13.
+
+### PHÂN RÃ — vì sao hoà, và KHÔNG phải lý do tôi đoán
+1. **Đưa test vào prompt LÀM HẠI bản cài đặt đầu**: `tdd_impl` .6426 **THẤP HƠN** `solve1` .6546 (−.0120).
+   Viết code bám theo **1.44 assert mỏng** làm hỏng nhiều hơn được.
+2. **CHẠY test thì hồi lại**: `tdd − tdd_noexec` = **+.0583** — CÙNG bộ test, khác duy nhất ở chỗ CÓ CHẠY.
+   Nguyên tắc oracle đứng vững thêm một lần nữa.
+3. Toàn bộ phần lợi ở (2) bị tiêu để bù cho phần hại ở (1) -> tổng ≈ 0.
+
+### `tdd_noexec` là nhánh TỆ NHẤT (.6084) — thấp hơn cả không làm gì
+Lần thứ **năm** trong ngày: LLM tự nhận xét mà KHÔNG chạy được gì thì **gây hại**
+(H35 `llm3`, #90 PSV, #92/#93 refactor, nay #94).
+
+### BƯỚC KẾ SUY RA TRỰC TIẾP TỪ PHÂN RÃ
+Đừng để bản cài đặt đầu nhìn thấy test. **Giải bình thường → CHẠY test tự sinh → chỉ dùng để SỬA.**
+Giữ được +.0583 của việc chạy test mà không phải trả −.0120 của việc bám theo test mỏng.
+Dự đoán thô: ≈ .6667 + .0120 ≈ **.679** vs `maj3` .6627. Phải ĐĂNG KÝ TRƯỚC rồi mới chạy.
