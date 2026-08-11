@@ -154,25 +154,18 @@ def vote3(ps):
 ESC = [i for i in MINE if vote3(S_PRED[i])[1] < 2]
 print(f"escalate {len(ESC)}/{len(MINE)}", flush=True)
 
-# ---------- PHA 2+3: 14B nf4 (bitsandbytes), mot ban sao MOI GPU ----------
+# ---------- PHA 2+3: 14B nf4 (bitsandbytes), TRAI TREN CA HAI THE ----------
 BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                          bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
-bigs = []
-try:
-    for d in DEVS:
-        m = AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB, device_map={"": d}).eval()
-        bigs.append(m)
-    print(f"14B nf4: {len(bigs)} ban sao | VRAM MiB/gpu:",
-          [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)], flush=True)
-except Exception as e:
-    # Du phong: neu 4-bit khong dung duoc (thieu bitsandbytes), quay ve fp16 trai tren ca 2 the.
-    # Cham hon (pipeline, khong song song) nhung VAN RA KET QUA — 20 shard khong duoc chet ca loat.
-    print(f"nf4 1-ban-sao-moi-GPU THAT BAI ({type(e).__name__}: {e}) -> trai tren ca 2 the", flush=True)
-    for m in bigs: del m
-    bigs = []; torch.cuda.empty_cache()
-    bigs = [AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB, device_map="auto").eval()]
-    out_quant = "fp16-fallback"
-QUANT = "nf4" if len(bigs) == NG else "nf4-split"
+import gc
+gc.collect(); torch.cuda.empty_cache()
+# 14B: TRAI TREN CA HAI THE (device_map="auto").
+# Da thu 1-ban-sao-moi-GPU: dinh 9 GB trong so + mot shard fp16 dang chuyen doi > 14.56 GB -> OOM.
+# Doi song song du lieu lay do TIN CAY; model lon la nut co chai nhung phai CHAY duoc da.
+bigs = [AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB, device_map="auto").eval()]
+print("14B nf4 trai 2 the | VRAM MiB/gpu:",
+      [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)], flush=True)
+QUANT = "nf4-split"
 
 B_TXT = parallel_gen(bigs, T7, SOLVE, Q, BSB, TEMP, K)
 print("xong pha 2", flush=True)
