@@ -3479,3 +3479,75 @@ bất kỳ **lợi thế thông tin** nào thì vô ích.
 ### Bước kế đúng đắn (chưa chạy)
 Huấn luyện verifier trên lời giải của **model KHÁC/YẾU HƠN chính nó**, hoặc cho nó **công cụ thực thi** —
 để việc "đúng hơn Solver" là chuyện KHẢ THI về nguyên tắc.
+
+---
+
+## Vòng #99 — H60: **CON SỐ AI CŨNG BÁO CÁO NÓI NGƯỢC VỚI CON SỐ ĐÚNG**
+*(đăng ký trước #65, khoá tại `6ff5cce` TRƯỚC khi chạy — Solver 0.5B, Verifier 1.5B + GRPO)*
+
+### Cổng hiệu lực: ĐẠT
+`acc(S)` = **.3700** (trong [.20,.55]) · `adapter_leak` = **0.0** · `nseq` ~40/96 suốt 100 bước
+(không suy biến, khác hẳn H23) · n = 500, 5 fold.
+
+### Kết quả
+| | S (0.5B giải) | I (1.5B **tự giải**) | V0 (1.5B xem lời giải) | V\* (1.5B + GRPO) |
+|---|---|---|---|---|
+| acc | .3700 | **.6440** | .4760 | .5400 |
+
+| Đại lượng | Giá trị | 5 fold |
+|---|---|---|
+| **`V* − I`** (đăng ký trước là CHÍNH) | **−.1040** | −.14 −.07 −.11 −.12 −.08 → **5/5 ÂM** |
+| `V* − S` (con số ai cũng báo cáo) | **+.1700** | **5/5 DƯƠNG** |
+| `V0 − I` (giá bị đầu độc, chưa huấn luyện) | −.1680 | |
+| `V* − V0` (GRPO có giúp) | +.0640 | 5/5 dương |
+
+**Cùng một thí nghiệm. Hai con số. Kết luận NGƯỢC DẤU.**
+Chênh lệch chỉ nằm ở **một nhánh đối chứng** mà gần như không ai chạy: *"nếu model mạnh cứ
+tự giải, KHÔNG thèm xem lời giải của model yếu, thì sao?"*
+
+### Bảng khoá #65: KHÔNG HÀNG NÀO KHỚP — lỗi thiết kế của tôi
+- Hàng 1 cần `V*−I` ≥ +.02 → không.
+- Hàng 2 cần \|`V*−I`\| < .02 → không.
+- Hàng 3 cần độ dài SỤP và `agree_wrong` TĂNG → **ngược lại cả hai**.
+- Hàng 4 cần `V*` < `V0` − .02 → không, `V*` > `V0` cả 5 fold.
+
+Tôi đã viết bảng với giả định ngầm rằng chiều đầu độc không thể lớn đến thế. Nó lớn hơn
+mọi hiệu ứng tôi đã đăng ký. **Ghi nhận là thiếu sót của bảng, KHÔNG bịa thêm hàng cho khớp.**
+
+### Phần giải thích #98 ĐƯỢC XÁC NHẬN (cơ chế)
+Ba chỉ số nhại lại đảo chiều **đúng như đã đoán trước** khi Solver yếu đi:
+| | H59 (Solver 1.5B) | H60 (Solver 0.5B) |
+|---|---|---|
+| độ dài trung vị | 480 → **19** (sụp) | 418 → **822** (GẤP ĐÔI) |
+| `agree_wrong` | .497 → **.644** (tăng) | .441 → **.274** (giảm) |
+| sửa/phá | — | 11.6/1.0 → **19.4**/2.4 |
+
+Nhại lại **đã biến mất** khi nó không còn là nước đi tối ưu. Lợi thế thông tin đúng là ràng buộc
+chặn hành vi nhại lại. Nhưng gỡ được ràng buộc đó **không** làm kết quả dương.
+
+### Điều MỚI: bị *cho xem* lời giải kém là ĐỘC, và độc hơn mọi thứ khác
+Tách 300 bài (fold 0–2): **56 bài BỊ ĐẦU ĐỘC** (I đúng → V\* sai) so với **24 bài ĐƯỢC CỨU**.
+Ròng −32/300 = −.107, khớp đúng `V*−I`.
+
+Trong 56 bài bị đầu độc:
+- **26 (46%)** — V\* lấy theo đáp án SAI của Solver (nhại lại còn sót).
+- **30 (54%)** — V\* ra **đáp án THỨ BA**, không theo ai cả.
+
+Hơn một nửa thiệt hại **không phải bắt chước**. Nhìn thấy một lời giải kém *làm hỏng lập luận
+của chính nó* ngay cả khi nó không chép. Đây là **nhiễm độc**, không phải bắt chước —
+và GRPO chỉ gỡ lại **38.1%** thiệt hại rồi dừng.
+
+### Ý nghĩa
+1. **`V − S` là con số sai.** Đúng phải là `V − I`. Ở đây một cái +.17, một cái −.10.
+   Báo cáo `V−S` là so verifier với **model yếu**, không phải với **lựa chọn thay thế thật sự**
+   (dùng chính con model mạnh đó mà giải thẳng, RẺ HƠN vì chỉ 1 lượt thay vì 2).
+2. **Điều này đe doạ H15 (+14, 7B kiểm 1.5B)** — kết quả dương LÂU ĐỜI NHẤT của dự án.
+   H15 **chưa bao giờ có nhánh I**. Nếu 7B tự giải mà đã ≥ 7B-kiểm-1.5B thì +14 là ảo giác
+   do thiếu đối chứng. **Phải kiểm ngay** (H61).
+3. Khớp với luận điểm xuyên suốt: thứ DUY NHẤT từng thắng là **test chạy được** (+.040, tái lập).
+   Ở đó oracle mang thông tin model KHÔNG có. Ở đây ta có cho verifier lợi thế năng lực thật
+   (1.5B > 0.5B) nhưng **kênh truyền là "đọc đoạn văn này"** — và văn bản từ agent yếu là độc ròng.
+
+> **Định tuyến đầu ra của agent yếu vào agent mạnh là ÂM RÒNG.
+> Không phải vì agent mạnh không đủ giỏi, mà vì việc ĐỌC đã gây hại rồi.
+> Không hàm thưởng nào sửa được — thiệt hại nằm ở lần tiếp xúc, không nằm ở chính sách.**
