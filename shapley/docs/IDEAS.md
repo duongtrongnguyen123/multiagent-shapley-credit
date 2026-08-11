@@ -3362,3 +3362,35 @@ Lần thứ **năm** trong ngày: LLM tự nhận xét mà KHÔNG chạy đượ
 Đừng để bản cài đặt đầu nhìn thấy test. **Giải bình thường → CHẠY test tự sinh → chỉ dùng để SỬA.**
 Giữ được +.0583 của việc chạy test mà không phải trả −.0120 của việc bám theo test mỏng.
 Dự đoán thô: ≈ .6667 + .0120 ≈ **.679** vs `maj3` .6627. Phải ĐĂNG KÝ TRƯỚC rồi mới chạy.
+
+
+## [Loop] VÒNG #95 — **H56: KẾT QUẢ DƯƠNG ĐẦU TIÊN — dùng test tự sinh để CHỌN, +.0401**
+### MBPP 11–510, 498 bài, 12 shard, 7B nf4. `test_soundness` .8712 (ĐẠT), 1.44 assert/bài.
+| nhánh | acc | chi phí |
+|---|---|---|
+| maj3 | .6586 | 3 lượt |
+| **maj8** | **.6687** | 8 lượt |
+| **`select_tests`** | **.7088** | **8 + 1 lượt** |
+| oracle8 (trần) | .7631 | — |
+
+### PHÁN QUYẾT: **HÀNG 1 của #62**
+`select_tests − maj8` = **+.0401**, vượt xa ngưỡng +.02.
+Khoảng trống `oracle8 − maj8` = **+.0944** -> **thu được 42.5%**.
+**PRIOR CỦA TÔI ĐÚNG** (đoán +2..+4 điểm, thu 25–50%). Tỉ lệ: **7/14**.
+
+### ĐIỀU LÀM NÊN KHÁC BIỆT — cùng một công cụ, khác chỗ dùng
+| dùng test tự sinh để… | kết quả |
+|---|---|
+| **SỬA** một bản cài đặt (#94) | **+.0040** — vô nghĩa |
+| **CHỌN** trong 8 mẫu (#95) | **+.0401** — gấp 10 lần |
+Soundness .871 / power .751 luôn là **bộ lọc chạy được**; ở #94 tôi chĩa nó vào việc sai.
+=> Bài học tổng quát: **oracle nên dùng để LỌC ỨNG VIÊN, không phải để SỬA một ứng viên.**
+Khớp với nút thắt đã đo suốt ngày: 80.8% bài ĐÃ CÓ lời giải đúng trong pool; vấn đề là CHỌN.
+
+### VÌ SAO KHÔNG THU ĐƯỢC 100%
+Chỉ **1.44 assert/bài** -> nhiều mẫu HOÀ điểm (cùng đạt hết số test ít ỏi đó), lúc đó phải
+rơi về bỏ phiếu hành vi. Muốn thu thêm phải **sinh NHIỀU test hơn** — đó là phép thử kế tiếp.
+
+### BẮT BUỘC TRƯỚC KHI CÔNG BỐ
+Bảng khoá #62 ghi rõ: **phải TÁI LẬP trên tách MBPP 511–974** (dữ liệu H56 chưa từng chạm).
+Đang chạy ngay: H57.
