@@ -31,20 +31,65 @@ model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16,
                                              device_map="auto").eval()
 print("model loaded", flush=True)
 
-DECOMPOSE_SYS = ("You are a math decomposition assistant. Given a math word problem, break it "
-                 "into a sequence of sub-questions that lead step by step to the answer. Each "
-                 "sub-question should ask for ONE computation. Return ONLY a JSON array of "
-                 "strings, e.g. [\"Sub-question 1 text\", \"Sub-question 2 text\"]. No extra "
-                 "text.")
-SOLVER_SYS = ("You are a careful math solver. You are given a math problem broken into "
-              "sub-questions. For the current sub-question, use the original problem and any "
-              "previous sub-question answers provided. Show your reasoning briefly, then give "
-              "the answer clearly.")
-if TASK == "math":
-    SOLVER_SYS = ("You are a careful math solver. You are given a math problem broken into "
-                  "sub-questions. For the current sub-question, use the original problem and any "
-                  "previous sub-question answers. Show your reasoning briefly, then put the "
-                  "answer in \\\\boxed{}.")
+DECOMPOSE_SYS = (
+    "You are a mathematical problem decomposition planner.\n\n"
+    "Your task is to decompose the given original problem into a sequence of small, logically "
+    "ordered sub-questions.\n\n"
+    "The sub-questions must form a STRICT SEQUENTIAL CHAIN.\n\n"
+    "For each sub-question i > 1:\n"
+    "- It must be solvable using the original problem, the sub-question itself, and the answer "
+    "produced for sub-question i-1.\n"
+    "- It must make meaningful use of the previous answer.\n"
+    "- Do not require answers from earlier steps other than the immediately previous answer.\n"
+    "- Do not solve any sub-question yourself.\n"
+    "- Do not compute the final answer.\n"
+    "- Do not include explanations, solutions, calculations, or answers.\n"
+    "- Do not introduce information that is not present or logically implied by the original "
+    "problem.\n\n"
+    "The final sub-question must directly determine the final answer to the original problem.\n\n"
+    "A good decomposition should:\n"
+    "1. Break a complex problem into simple atomic questions.\n"
+    "2. Preserve the logical dependency between consecutive steps.\n"
+    "3. Ensure that each step produces information needed by the next step.\n"
+    "4. Avoid redundant or unnecessary steps.\n"
+    "5. End with a sub-question whose answer is the final answer.\n\n"
+    "Return ONLY valid JSON using exactly this format:\n\n"
+    "{\n"
+    "  \"sub_questions\": [\n"
+    "    {\"id\": 1, \"question\": \"...\"},\n"
+    "    {\"id\": 2, \"question\": \"...\"}\n"
+    "  ]\n"
+    "}\n\n"
+    "Do not output Markdown.\nDo not output code fences.\n"
+    "Do not output any text outside the JSON object.")
+SOLVER_SYS = (
+    "You are a step-by-step mathematical sub-question solver.\n\n"
+    "You are one solver in a sequential reasoning pipeline.\n\n"
+    "At each step, you receive:\n"
+    "1. The original problem.\n"
+    "2. The current sub-question.\n"
+    "3. The answer produced by the previous step.\n\n"
+    "Your task is to answer ONLY the current sub-question.\n\n"
+    "IMPORTANT RULES:\n"
+    "1. Do not solve the entire original problem.\n"
+    "2. Do not skip the current sub-question.\n"
+    "3. Use the previous answer as an input when it is relevant.\n"
+    "4. Check whether the previous answer provides the information needed for the current "
+    "sub-question.\n"
+    "5. Perform any calculations necessary to answer the current sub-question.\n"
+    "6. Your answer must be self-contained enough to be used as the previous answer for the "
+    "next step.\n"
+    "7. Do not assume that previous answers are necessarily correct. If the previous answer "
+    "contains an error, correct it when necessary before continuing.\n"
+    "8. Do not invent information that is not supported by the original problem or previous "
+    "answer.\n"
+    "9. Focus only on the current sub-question.\n"
+    "10. The final step's answer should directly provide the answer to the original problem.\n\n"
+    "Return the reasoning needed to solve the current sub-question followed by a clearly "
+    "identifiable final answer.\n\n"
+    "Format:\n\n"
+    "Reasoning:\n<reasoning for the current sub-question>\n\n"
+    "Answer:\n<answer to the current sub-question>")
 SOLVE_SYS_ALONE = (
     ("You are an expert mathematician. Solve the problem step by step. Put the final answer "
      "in \\boxed{}.") if TASK == "math" else
@@ -102,7 +147,6 @@ if TASK == "math":
         if b is not None: return b
         m = re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I)
         return m[-1].strip() if m else None
-    DECOMPOSE_USER = ("Break this problem into sub-questions:\n{}")
 else:
     q_of = lambda r: r["question"].strip()
     def gold_of(r):
@@ -112,31 +156,62 @@ else:
         m = re.findall(r"(?:answer is|=)\s*\$?(-?\d[\d,]*(?:\.\d+)?)", t or "", re.I)
         cands = m if m else NUM_RE.findall(t or "")
         return cands[-1].replace(",", "") if cands else None
-    DECOMPOSE_USER = ("Break this problem into sub-questions, ending with one that asks for the "
-                      "final answer:\n{}")
+DECOMPOSE_USER = (
+    "Original problem:\n{}\n\n"
+    "Decompose this problem into a strict sequential chain of atomic sub-questions.\n\n"
+    "Remember:\n"
+    "- Do not solve the problem.\n"
+    "- Do not provide answers.\n"
+    "- Each sub-question after the first must meaningfully depend on the answer to the "
+    "immediately preceding sub-question.\n"
+    "- The answer to the final sub-question must be the final answer to the original problem.\n\n"
+    "Return only the required JSON.")
 
 def parse_subquestions(s):
-    """Robust JSON array parse: thử whole, fallback từng mảng con, chọn mảng chuỗi dài nhất."""
+    """Parse format {'sub_questions': [{'id':1,'question':'...'}, ...]} mới.
+     Trả list câu hỏi (strings), hoặc None nếu không parse được."""
     if not s:
         return None
-    # 1) thử toàn output
+    # 1) thử toàn output là dict
+    try:
+        d = json.loads(s)
+        if isinstance(d, dict) and isinstance(d.get("sub_questions"), list):
+            subs = d["sub_questions"]
+            if subs and all(isinstance(x, dict) and isinstance(x.get("question"), str)
+                            for x in subs):
+                return [x["question"] for x in subs]
+            # fallback nếu list string thuần
+            if subs and all(isinstance(x, str) for x in subs):
+                return subs
+    except Exception:
+        pass
+    # 2) thử list string thuần (format cũ)
     try:
         arr = json.loads(s)
         if isinstance(arr, list) and arr and all(isinstance(x, str) for x in arr):
             return arr
     except Exception:
         pass
-    # 2) fallback: tìm tất cả mảng JSON lồng nhau
-    candidates = []
+    # 3) fallback regex - tìm dict sub_questions
+    m = re.search(r'\{\s*"sub_questions"\s*:\s*\[.*?\]\s*\}', s, re.S)
+    if m:
+        try:
+            d = json.loads(m.group(0))
+            if isinstance(d, dict) and isinstance(d.get("sub_questions"), list):
+                subs = [x["question"] for x in d["sub_questions"]
+                        if isinstance(x, dict) and isinstance(x.get("question"), str)]
+                if subs:
+                    return subs
+        except Exception:
+            pass
+    # 4) regex tìm mảng chuỗi bất kỳ
     for m in re.finditer(r'\[.*?\]', s, re.S):
         try:
             arr = json.loads(m.group(0))
             if isinstance(arr, list) and arr and all(isinstance(x, str) for x in arr):
-                candidates.append(arr)
+                return arr
         except Exception:
             continue
-    if candidates:
-        return max(candidates, key=len)
     return None
 
 FOLD = N // NF
@@ -172,13 +247,12 @@ for f in range(NF):
         answers_txt = []
         for si, sub in enumerate(subs):
             if si == 0:
-                u = f"Problem: {qs[i]}\n\nSub-question 1: {sub}"
+                u = (f"Original problem:\n{qs[i]}\n\nCurrent sub-question:\n{sub}\n\n"
+                     f"Previous step answer:\n(none - this is the first step)")
             else:
-                prev_ctx = "\n".join(f"  Sub-question {k+1}: {subs[k]}\n  Answer: {answers_txt[k]}"
-                                     for k in range(si))
-                u = (f"Problem: {qs[i]}\n\nPrevious sub-questions and answers:\n{prev_ctx}\n\n"
-                     f"Sub-question {si+1}: {sub}")
-            ans = gen([u], 128)[0]
+                u = (f"Original problem:\n{qs[i]}\n\nCurrent sub-question:\n{sub}\n\n"
+                     f"Previous step answer:\n{answers_txt[si-1]}")
+            ans = gen([u], 256)[0]
             answers_txt.append(ans)
             prev = ans
         finals.append(answers_txt[-1] if answers_txt else None)
