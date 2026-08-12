@@ -36,9 +36,20 @@ DECOMPOSE_SYS = ("You are a math decomposition assistant. Given a math word prob
                  "sub-question should ask for ONE computation. Return ONLY a JSON array of "
                  "strings, e.g. [\"Sub-question 1 text\", \"Sub-question 2 text\"]. No extra "
                  "text.")
-SOLVER_SYS = ("You are a careful math solver. You are given a sub-question to answer. If "
-              "previous sub-question answers are provided, use them. Keep your answer concise. "
-              "Output ONLY the final value or answer.")
+SOLVER_SYS = ("You are a careful math solver. You are given a math problem broken into "
+              "sub-questions. For the current sub-question, use the original problem and any "
+              "previous sub-question answers provided. Show your reasoning briefly, then give "
+              "the answer clearly.")
+if TASK == "math":
+    SOLVER_SYS = ("You are a careful math solver. You are given a math problem broken into "
+                  "sub-questions. For the current sub-question, use the original problem and any "
+                  "previous sub-question answers. Show your reasoning briefly, then put the "
+                  "answer in \\\\boxed{}.")
+SOLVE_SYS_ALONE = (
+    ("You are an expert mathematician. Solve the problem step by step. Put the final answer "
+     "in \\boxed{}.") if TASK == "math" else
+    ("You are a careful math solver. Solve step by step, showing arithmetic. End with a line: "
+     "'The answer is <number>'."))
 
 def gen(usrs, mx, sysm=SOLVER_SYS, temp=1.0):
     outs = []
@@ -137,8 +148,8 @@ for f in range(NF):
     n = len(rows)
     print(f"\n===== FOLD {f+1}/{NF} ({n}) =====", flush=True)
 
-    # Baseline: Solver-alone (cùng bài, cùng seed)
-    sol_alone = gen([f"{q}" for q in qs], 1024)
+    # Baseline: Solver-alone (cùng bài, cùng seed, dùng SOLVE gốc)
+    sol_alone = gen([f"{q}" for q in qs], 1024, sysm=SOLVE_SYS_ALONE)
 
     # Planner decompose
     dec = gen([DECOMPOSE_USER.format(q) for q in qs], 256, sysm=DECOMPOSE_SYS)
@@ -158,13 +169,14 @@ for f in range(NF):
         subs = subs_list[i]
         if not subs:
             finals.append(None); all_answers.append(None); continue
-        prev = None
         answers_txt = []
         for si, sub in enumerate(subs):
             if si == 0:
-                u = f"Problem: {qs[i]}\n\nSub-question {si+1}: {sub}"
+                u = f"Problem: {qs[i]}\n\nSub-question 1: {sub}"
             else:
-                u = (f"Problem: {qs[i]}\n\nPrevious sub-question {si} answer: {prev}\n\n"
+                prev_ctx = "\n".join(f"  Sub-question {k+1}: {subs[k]}\n  Answer: {answers_txt[k]}"
+                                     for k in range(si))
+                u = (f"Problem: {qs[i]}\n\nPrevious sub-questions and answers:\n{prev_ctx}\n\n"
                      f"Sub-question {si+1}: {sub}")
             ans = gen([u], 128)[0]
             answers_txt.append(ans)
