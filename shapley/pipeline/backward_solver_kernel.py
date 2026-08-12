@@ -135,7 +135,6 @@ if TASK == "math":
         m = re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I)
         return m[-1].strip() if m else None
     PLAN_MX, SOLVE_MX, J_MX = 512, 1024, 8
-    SOLVE_SHOTS = SOLVE_SHOTS_MATH
 else:
     SOLVE_SYS_FWD = ("You are a careful math solver. Solve step by step, showing arithmetic. "
                      "End with a line: 'The answer is <number>'.")
