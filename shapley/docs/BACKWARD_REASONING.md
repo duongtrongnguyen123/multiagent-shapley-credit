@@ -77,6 +77,18 @@ trên MATH (đều trong nhiễu). Solver 7B mạnh hơn cũng không dùng đư
 accuracy hơn forward. Khác biệt đáng chú ý nhất: MATH solve-judge 1.5B v2 backward thua −.073,
 trên 7B cùng ô thành +.007 — 7B "chịu đựng" backward tốt hơn nhưng vẫn không thắng.
 
+**Kiểm chứng trace MATH PSVA 7B (n=150): Planner 7B THỰC SỰ reverse reasoning, nhưng vẫn không
+giúp.** Không giống 1.5B v1 (chỉ wrap forward), 7B tạo plan backward thật:
+- **92/150 (61%)** plan backward dùng ký hiệu sub-goal `<-` (vd "distance <- √(0²+3²)",
+  "f(-2) <- (3(-2)-2)/(-2-2)") — cấu trúc reverse rõ ràng.
+- Plan backward **ngắn hơn forward đáng kể** ở 47% câu; plan_len fwd/bwd gần bằng (405/388).
+- Nhưng rescued (bwd đúng fwd sai) 11 vs broke (fwd đúng bwd sai) 10 → **net +1, trong nhiễu.**
+
+⇒ **Vấn đề KHÔNG phải "model không reverse được" — 7B reverse thật mà kết quả vẫn hòa.** Điều này
+củng cố kết luận: **reverse reasoning không chuyển thành accuracy tốt hơn dù thực hiện đúng**,
+vì Solver (cả 1.5B lẫn 7B) không hưởng lợi từ plan gọn/đảo thứ tự — nó cần plan forward chi tiết
+để bám.
+
 ## Giới hạn
 
 - n=150 mỗi ô, một lần chạy. Δ đều dưới/trong sàn nhiễu ~5 điểm (trừ MATH solve-judge 1.5B v2
