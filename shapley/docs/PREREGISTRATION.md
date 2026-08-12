@@ -2796,3 +2796,20 @@ H59/H60 verifier). Nhưng hàng 1 **~30%** là thật, cao hơn tôi từng cho 
 lần ĐẦU TIÊN sản phẩm đủ dài để một kế hoạch có nội dung để mang, và vì **H60/H61 cho thấy
 đọc văn xuôi của agent khác là ĐỘC** — kế hoạch là văn xuôi của CHÍNH nó, nên có thể thoát.
 Hàng 2 ~10%, hàng 4 ~10%. Tỉ lệ prior đúng: **8/18**.
+
+## BỔ SUNG #69-b — LỌC THEO LỜI GIẢI CHUẨN (viết TRƯỚC khi chạy, chưa có số nào của H64)
+Chạy thử bộ chấm tại chỗ trên 30 lớp đầu: **lời giải CHUẨN chỉ đạt 109/118 = .9237**.
+Chín method trượt là do **môi trường**, không do bộ chấm: `BookManagementDB` (cần file sqlite),
+`CookiesUtil` (đọc/ghi file), `CalendarUtil.get_upcoming_events` (phụ thuộc `datetime.now`).
+
+Để nguyên thì **trần của MỌI nhánh bị hạ xuống ~.92** và các lớp phụ thuộc môi trường sẽ
+làm nhiễu phép so sánh — đúng loại lỗi đã ghi ở #58/H52.
+
+**Áp dụng đúng bộ lọc của H52:** chạy `solution_code` qua bộ chấm **NGAY TRONG KERNEL**,
+và **chỉ tính điểm trên những method mà lời giải chuẩn ĐẠT**. Trần trở lại 1.0 cho mọi nhánh.
+- Bộ lọc **giống hệt nhau cho cả ba nhánh** ⇒ không ưu ái nhánh nào.
+- `n` được xác định trong kernel và **phải báo cáo**.
+- **Ngưỡng mới thay cho "410 method"**: `n_method` sau lọc **≥ 350** và `n_class` **≥ 80**,
+  nếu không ⇒ HUỶ. Nhóm ba theo độ dài chia trên tập ĐÃ LỌC.
+
+Mọi phần còn lại của #69 giữ NGUYÊN, không sửa một chữ.
