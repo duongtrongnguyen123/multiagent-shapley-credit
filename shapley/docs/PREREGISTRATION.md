@@ -2674,3 +2674,62 @@ vì **~45–54% thiệt hại là "đáp án thứ ba"** — nghĩa là ngay c�
 vẫn làm nhiễu. Hàng 1 ~25%, hàng 3 ~25%.
 **Lưu ý về chính tôi:** hai lần gần nhất tôi đoán sai, và lần #66-b tôi còn tự tin sửa prior
 theo hướng sai. Tỉ lệ prior đúng: **7/17**. Đừng tin prior này quá.
+
+
+# Đăng ký trước #68 — H63: **REFACTOR bằng CHỌN LỌC, không phải SỬA CHỮA**
+**Viết TRƯỚC khi chạy.** Nguyên hỏi lại về refactor.
+
+## Vì sao đúng là phép thử còn thiếu
+Quy tắc dương DUY NHẤT tái lập được của dự án (#95/#96/#97): **oracle nên LỌC ứng viên,
+đừng SỬA một ứng viên** — trên MBPP, dùng test để **CHỌN** trong 8 mẫu = **+.0401** (tái lập +.0388),
+còn dùng oracle để **SỬA** = **+.004**. Gấp **10 lần**.
+Trên refactor, H53 đã thử **SỬA** (`ref_exec3`, tối đa 3 vòng, dùng TB 2.70 vòng): chỉ **+1.9 điểm**.
+**CHỌN LỌC thì CHƯA AI THỬ trên refactor.**
+
+Refactor hợp với chọn lọc hơn cả sinh code, vì có **HAI** tín hiệu tự động, không cần LLM phán xét:
+1. `preserve` — bộ test trả lời CHÍNH XÁC (oracle hành vi),
+2. `simpler` — **đếm nút AST**, khách quan hoàn toàn.
+=> chọn lọc **hoàn toàn tự động**: lọc theo (1), xếp hạng theo (2).
+
+Refactor cũng là tác vụ **DUY NHẤT** mà phê phán ở #100 không áp dụng: **không thể refactor mà
+không đọc code** — tiếp xúc là ĐỊNH NGHĨA của tác vụ, nên không tồn tại nhánh `I`.
+
+## Dữ liệu & nhánh (BigCodeBench, 7B bf16 trên 5090, lọc như H52: chỉ giữ bài mà lời giải chuẩn ĐẠT test)
+| nhánh | mô tả | chi phí |
+|---|---|---|
+| `ref1` | refactor 1 lượt, greedy (tái lập H52/H53) | 1 |
+| `ref_exec3` | refactor → chạy test → sửa theo stderr, tối đa 3 vòng (tái lập H53) | ≤4 |
+| **`ref_sel8`** | **sinh 8 bản refactor (T=0.8) → chạy test cả 8 → trong số ĐẠT, chọn bản ÍT NÚT AST NHẤT** | 8 |
+| `ref_sel8_first` | như trên nhưng chọn bản ĐẠT **ĐẦU TIÊN** (đối chứng: lợi ích đến từ LỌC hay từ XẾP HẠNG?) | 8 |
+| *(gốc)* | không refactor: `preserve` = 1.000, `simpler` = 0 | 0 |
+
+`ref_sel8_first` là đối chứng quan trọng: tách **"có ứng viên nào sống sót"** khỏi
+**"chọn được ứng viên tốt nhất"**.
+
+## Thước đo — GIỮ NGUYÊN định nghĩa #58, không đổi một chữ
+`preserve` (đạt test) · `simpler` (giảm nút AST, **chỉ tính trên bài preserve**) ·
+**`good_refactor` = preserve ∧ simpler** ← thước đo CHÍNH.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- n ≥ 250 sau lọc · tỉ lệ đọc được AST ≥ .80.
+- **Cổng tái lập**: `preserve(ref1)` ∈ [.70, .79] (H52 .7406, H53 .7378). Ngoài khoảng ⇒ HUỶ.
+- Báo `preserve` KÈM `good_refactor` — **không được báo `preserve` một mình**, vì
+  "không refactor gì cả" đạt `preserve` = 1.000. `preserve` cao mà `simpler` thấp là VÔ GIÁ TRỊ.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `good(sel8) − good(ref_exec3)` ≥ **+.08** | **CHỌN LỌC THẮNG SỬA CHỮA TRÊN REFACTOR.** Quy tắc "lọc, đừng sửa" tổng quát từ SINH sang BIẾN ĐỔI code. Kết quả dương thứ hai của dự án trên code. Phải nêu chi phí 8× và so với `ref1`×8 công bằng. |
+| +.02 ≤ chênh < +.08 | Chọn lọc hơn sửa chữa nhưng **khiêm tốn**; nêu rõ chi phí 8 lượt so với ≤4 lượt của `exec3`. |
+| \|chênh\| < .02 | **Chọn lọc KHÔNG tổng quát sang refactor.** Quy tắc #95 bị thu hẹp: chỉ đúng cho SINH code. Nút thắt refactor là **năng lực giữ ngữ nghĩa**, không phải chọn ứng viên. |
+| `good(sel8) < good(ref_exec3)` − .02 | Chọn lọc TỆ HƠN sửa chữa. Ghi rõ, rút hướng này. |
+| `good(sel8) − good(sel8_first)` < .02 | Lợi ích đến từ **LỌC** (có bản nào sống sót), không từ **XẾP HẠNG** theo độ đơn giản. Quan trọng: nghĩa là chỉ cần test, không cần thước đo "tốt hơn". |
+| `preserve(sel8)` < .90 | Đáng ngạc nhiên: 8 mẫu mà vẫn không bản nào giữ được hành vi ở >10% số bài ⇒ giới hạn NĂNG LỰC, không phải giới hạn tìm kiếm. Ghi thẳng. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~50%)**. Lý do số học: `ref1` giữ được hành vi .74; nếu 8 mẫu độc lập gần như
+độc lập thì `preserve(sel8)` phải rất cao (~.95+), và trong số đó chọn bản đơn giản nhất trong
+nhiều bản làm `simpler` tăng mạnh. `good` có thể từ .2434 lên **.45–.60**.
+**Rủi ro tôi thấy trước**: các mẫu có thể **tương quan cao** — model hỏng cùng một kiểu ở cùng
+những bài, nên 8 mẫu không cho 8 cơ hội thật. Nếu vậy ra hàng 3, và đó cũng là phát hiện tốt.
+Hàng 2 ~25%, hàng 3 ~20%. Tỉ lệ prior đúng: **8/18**.
