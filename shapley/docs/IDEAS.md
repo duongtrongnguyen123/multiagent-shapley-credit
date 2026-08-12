@@ -3663,3 +3663,59 @@ Tỉ lệ prior đúng: **8/18**.
 tốt hơn 2.6 điểm. **Không ảnh hưởng kết luận**: mọi so sánh trong H62 là CẶP, cùng `MAXNEW`,
 và cổng tái lập đặt trên `V_std − I` (đo trong cùng một lần chạy) đã ĐẠT.
 Nhưng ghi lại: **`MAXNEW` là một biến có tác dụng thật, phải giữ cố định khi so giữa các vòng.**
+
+---
+
+## Vòng #102 — H64: **LẬP KẾ HOẠCH KHÔNG GIÚP, VÀ THÊM LƯỢT CŨNG KHÔNG**
+*(đăng ký trước #69 + #69-b, khoá tại `b715ab2` / `334a82a` TRƯỚC khi chạy — đề xuất của Nguyên)*
+
+### Mọi cổng ĐẠT
+Lọc theo lời giải chuẩn: **88 lớp / 354 method** (từ 100/410) ≥ 80/350 ✓ ·
+`class_pass(solve1)` = **.3295** ∈ [.10,.60] ✓ · **`plan_is_code_rate` = .0000** ✓
+(kế hoạch là văn xuôi thật, trung vị 462 ký tự) · AST .920 ≥ .80 ✓
+
+### Kết quả — ClassEval, 4.1 method/lớp, lời giải TB 1334 ký tự (3.2× BigCodeBench)
+| nhánh | lượt | method_pass | class_pass |
+|---|---|---|---|
+| `solve1` | 1 | .6328 | **.3295** |
+| `seq3` (giải→sửa→sửa) | 3 | **.6356** | .3182 |
+| `PSV` (kế hoạch→giải→kiểm) | 3 | .6243 | .2841 |
+
+**PHÁN QUYẾT: HÀNG 3.** `PSV − seq3` = **−.0113** (method), **−.0341** (class).
+Bất đồng 19/15, **p = .608**. Lập kế hoạch **không thêm gì**, kể cả ở 3.2× độ dài.
+
+### ĐÁP ỨNG THEO LIỀU: nhìn thì thuyết phục, đếm ra thì là NHIỄU
+| nhóm | dài | seq3 | PSV | chênh % | **chênh SỐ METHOD** | p |
+|---|---|---|---|---|---|---|
+| 0 | 496–1029 | .7300 | .6900 | −.0400 | **−4** | .125 |
+| 1 | 1031–1457 | .7154 | .7073 | −.0081 | **−1** | 1.000 |
+| 2 | 1461–3914 | .4885 | .4962 | **+.0077** | **+1** | 1.000 |
+
+Tỉ số odds cũng tăng đều (.823 → .961 → **1.031**) nên **không phải** hiệu ứng nén sàn.
+Nhưng tính bằng **số method** thì toàn bộ "xu hướng" là **−4, −1, +1 = biên độ 5 method / 354**.
+> **Tôi đã đăng ký phép thử đáp ứng-theo-liều là QUYẾT ĐỊNH. Nó KHÔNG đủ lực.**
+> ~118 method/nhóm, tỉ lệ bất đồng ~10% ⇒ không phân biệt nổi +.05 với 0. **Đây là lỗi thiết kế của tôi**,
+> phải ghi rõ: hướng của số liệu đúng như Nguyên đoán, nhưng **dữ liệu không cho phép kết luận gì từ hướng đó**.
+
+### PHÁT HIỆN MỚI VÀ QUAN TRỌNG HƠN: **THÊM LƯỢT CŨNG KHÔNG GIÚP TRÊN SẢN PHẨM DÀI**
+`seq3 − solve1` = **+.0028** method · **−.0113** class. **Ba lượt ≈ một lượt.**
+Và ở cấp lớp thì **sửa lại LÀM HẠI**: .3295 → .3182 → **.2841** (`PSV` kém `solve1` **−.0454**).
+
+Điều này **ngược với TOÁN**, nơi `PSV`/`SS_anc` thắng `maj@3` ở 3/4 ô (H32).
+=> Lời giải thích cũ *"thứ có tác dụng là SỐ LƯỢT, không phải VAI"* **chỉ đúng trên bài NGẮN**.
+Trên sản phẩm dài, **cả hai đều không có tác dụng, và lượt sửa lại gây hại**.
+
+**Vì sao cấp lớp hại nặng hơn cấp method**: một lớp chỉ đạt khi **MỌI** method đạt, nên mọi
+hư hại đều **cộng dồn**. Sửa 4.1 method cùng lúc thì xác suất phá ít nhất một cái tăng theo.
+Khớp với #92 (`ref_seq` làm refactor tệ đi) và #99–#101 (đọc lại thì hỏng).
+
+### Trả lời thẳng giả thuyết của Nguyên
+*"Bài dài sẽ thực sự cần planner"* — **đo rồi: không.** Ở nhóm dài nhất, `PSV` hơn `seq3`
+đúng **1 method trên 131**. Và ở đó `solve1` một lượt vẫn ngang cả hai.
+Nhưng phải nói rõ phần tôi **chưa** loại trừ: ClassEval dài hơn BigCodeBench 3.2× **nhưng vẫn là
+MỘT FILE, MỘT LỚP**. Chưa chạm tới nhiều file / nhiều vòng phụ thuộc / trạng thái kéo dài —
+nơi kế hoạch có thể mang thông tin mà một lượt không giữ nổi. **Kết quả này đóng "lớp ~1300 ký tự",
+KHÔNG đóng "tác vụ dài" nói chung.**
+
+### Prior của tôi ĐÚNG
+Ghi trước: hàng 3 ~50%. Ra hàng 3. Tỉ lệ prior đúng: **9/19**.
