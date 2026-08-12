@@ -2733,3 +2733,66 @@ nhiều bản làm `simpler` tăng mạnh. `good` có thể từ .2434 lên **.4
 **Rủi ro tôi thấy trước**: các mẫu có thể **tương quan cao** — model hỏng cùng một kiểu ở cùng
 những bài, nên 8 mẫu không cho 8 cơ hội thật. Nếu vậy ra hàng 3, và đó cũng là phát hiện tốt.
 Hàng 2 ~25%, hàng 3 ~20%. Tỉ lệ prior đúng: **8/18**.
+
+
+# Đăng ký trước #69 — H64: **LẬP KẾ HOẠCH CÓ ĐÁNG KHÔNG KHI SẢN PHẨM ĐỦ DÀI?**
+**Viết TRƯỚC khi chạy.** Nguyên: *"what about a long coding task? it will really need planner, other role."*
+
+## Vì sao đây là ô còn trống — và vì sao bằng chứng cũ KHÔNG kết luận được
+| bằng chứng | nói gì |
+|---|---|
+| H32 (lưới 4 ô) | `PSV` **thắng** `maj@3` ở **3/4 ô**, tái lập trên hai phần cứng |
+| cùng H32 | `SS_anc` (**cùng số lượt, KHÔNG có chữ nào về vai**) − `PSV` = **+.020** ⇒ **hoà** |
+| vòng #87 | mỏ neo đóng góp **≈ 0** trên toán ⇒ không phải mỏ neo giải thích |
+
+=> Trên bài NGẮN, "lập kế hoạch" **không phân biệt được với việc chỉ thêm một lượt**.
+GSM8K = một câu · MBPP = ~3 dòng · BigCodeBench = lời giải chuẩn **414 ký tự**.
+**Chưa bao giờ có tác vụ đủ dài để một kế hoạch có việc mà làm.**
+
+## Dữ liệu: ClassEval (`FudanSELab/ClassEval`)
+100 lớp · **4.1 method/lớp**, phụ thuộc lẫn nhau · lời giải TB **1334 ký tự**
+(**3.2× BigCodeBench**) · có test chạy được ở **cả cấp method lẫn cấp lớp**.
+=> **410 method** làm đơn vị đo ⇒ độ phân giải cao hơn con số n=100 gợi ý.
+
+## Nhánh — KHOÁ CỨNG NGÂN SÁCH 3 LƯỢT cho hai nhánh chính
+| nhánh | lượt | có ngôn ngữ VAI? |
+|---|---|---|
+| `solve1` | 1 | không (mốc tham chiếu) |
+| **`seq3`** | 3: giải → sửa lại → sửa lại | **KHÔNG** |
+| **`PSV`** | 3: **lập kế hoạch** → giải theo kế hoạch → tự kiểm | **CÓ** |
+
+**Đại lượng CHÍNH = `PSV − seq3`.** Cùng model, cùng số lượt, cùng ngân sách token.
+Khác **đúng một điều**: lượt đầu dùng để **LẬP KẾ HOẠCH** hay để **GIẢI**.
+(Đây là contrast đã dùng ở H49; điều mới là **ĐỘ DÀI SẢN PHẨM**.)
+
+## PHÉP THỬ QUYẾT ĐỊNH: **ĐÁP ỨNG THEO LIỀU** (dose-response)
+Chia 100 lớp thành **3 nhóm ba** theo độ dài lời giải chuẩn. Tính `PSV − seq3` **trong từng nhóm**.
+> Nếu lập kế hoạch có giá trị THẬT vì sản phẩm dài, lợi ích **PHẢI TĂNG** theo nhóm.
+> **Đường phẳng thì giả thuyết "bài quá ngắn" CHẾT**, dù trung bình có dương hay không.
+
+## Thước đo (khoá trước)
+1. **`method_pass`** = tỉ lệ method qua test (410 đơn vị) ← **CHÍNH**
+2. `class_pass` = cả lớp qua toàn bộ test ← phụ
+3. `plan_is_code_rate` ≤ .20 (kế hoạch phải là văn xuôi; nếu là code thì "lập kế hoạch" chỉ là giải sớm) ⇒ >.20 thì HUỶ nhánh PSV
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `class_pass(solve1)` ∈ **[.10, .60]** — ngoài khoảng là sàn/bão hoà ⇒ HUỶ, không đọc.
+- tỉ lệ đọc được AST ≥ .80 · n = 100 lớp / 410 method.
+- Báo `method_pass` KÈM `class_pass` — không được báo một mình.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `PSV − seq3` ≥ **+.05** VÀ tăng đều theo 3 nhóm dài | **LẬP KẾ HOẠCH ĐÁNG GIÁ KHI SẢN PHẨM ĐỦ DÀI.** Giả thuyết của Nguyên ĐÚNG: các vòng trước đo trên bài quá ngắn nên không thấy. Vai Planner CÓ THẬT, có điều kiện kích hoạt là **độ dài**. |
+| `PSV − seq3` ≥ +.05 nhưng **PHẲNG** theo nhóm | Lập kế hoạch giúp, nhưng **KHÔNG PHẢI vì độ dài**. Phải tìm cơ chế khác; không được nói "vì bài dài". |
+| \|`PSV − seq3`\| < .05 | **LẬP KẾ HOẠCH VẪN KHÔNG THÊM GÌ, kể cả ở 3.2× độ dài.** Vai Planner không phải một vai — thứ có tác dụng là **SỐ LƯỢT**. Bản mạnh nhất của kết quả âm; khép lại hướng phân vai bằng prompt. |
+| `PSV < seq3 − .05` | Lập kế hoạch **có hại** trên bài dài (kế hoạch sai khoá chặt lời giải). Ghi rõ. |
+| `class_pass(solve1)` ngoài [.10,.60] | HUỶ, không đọc. |
+| `plan_is_code_rate` > .20 | Nhánh PSV không hợp lệ: "kế hoạch" thực chất là code. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 3 (~50%)**: mọi vai không-oracle đều đã thất bại (H35 `llm3`, #90 PSV, #91, #92 `ref_seq`,
+H59/H60 verifier). Nhưng hàng 1 **~30%** là thật, cao hơn tôi từng cho bất kỳ vai nào — vì đây là
+lần ĐẦU TIÊN sản phẩm đủ dài để một kế hoạch có nội dung để mang, và vì **H60/H61 cho thấy
+đọc văn xuôi của agent khác là ĐỘC** — kế hoạch là văn xuôi của CHÍNH nó, nên có thể thoát.
+Hàng 2 ~10%, hàng 4 ~10%. Tỉ lệ prior đúng: **8/18**.
