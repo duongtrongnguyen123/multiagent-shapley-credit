@@ -29,7 +29,7 @@ song trên 2 T4** (mỗi GPU 1 model 1.5B, cùng bài, cùng seed) — mock test
 | MATH × PSVA | .4733 | .4600 | **−.013** |
 | MATH × solve-judge | .4867 | .4800 | **−.007** |
 
-### Bảng v2 (prompt backward thật)
+### Bảng v2 (prompt backward thật, Solver 1.5B)
 
 | kernel | forward | backward | Δ |
 |---|---|---|---|
@@ -37,6 +37,15 @@ song trên 2 T4** (mỗi GPU 1 model 1.5B, cùng bài, cùng seed) — mock test
 | GSM8K × solve-judge | .6600 | .6400 | **−.020** |
 | MATH × PSVA | .4733 | .4800 | **+.007** |
 | MATH × solve-judge | .5333 | .4600 | **−.073** |
+
+### Bảng v2 trên **toàn pipeline 7B** (4-bit, n=150)
+
+| kernel | forward | backward | Δ |
+|---|---|---|---|
+| GSM8K × PSVA | .9067 | .9000 | **−.007** |
+| GSM8K × solve-judge | .9067 | .8733 | **−.033** |
+| MATH × PSVA | .6867 | .6933 | **+.007** |
+| MATH × solve-judge | .6733 | .6800 | **+.007** |
 
 ## Vì sao backward tệ (phân tích trace MATH solve-judge v2)
 
@@ -62,9 +71,15 @@ nhiễu).
 hợp năng lực của Solver nhỏ** — thêm một lần nữa khẳng định mẫu hình của dự án: thay đổi cấu trúc
 plan/prompt không chuyển thành accuracy (cùng họ với prompt-swap, role order).
 
+**Trên 7B (toàn pipeline 4-bit): backward cũng KHÔNG giúp hơn.** Ưu điểm duy nhất là acc cao hơn
+nhiều (vì model mạnh hơn), nhưng pattern Δ vẫn giống 1.5B: backward thua trên GSM8K, thắng nhẹ
+trên MATH (đều trong nhiễu). Solver 7B mạnh hơn cũng không dùng được plan backward gọn để tăng
+accuracy hơn forward. Khác biệt đáng chú ý nhất: MATH solve-judge 1.5B v2 backward thua −.073,
+trên 7B cùng ô thành +.007 — 7B "chịu đựng" backward tốt hơn nhưng vẫn không thắng.
+
 ## Giới hạn
 
-- n=150 mỗi ô, một lần chạy. Δ đều dưới/trong sàn nhiễu ~5 điểm (trừ MATH solve-judge v2 −7.3
-  vượt nhiễu).
-- **Đang chạy bổ sung: backward trên 7B** (cả pipeline 7B 4-bit, prompt v2, 4 ô) — để kiểm tra
-  liệu Solver mạnh hơn có dùng được plan backward gọn không. Kết quả sẽ cập nhật sau.
+- n=150 mỗi ô, một lần chạy. Δ đều dưới/trong sàn nhiễu ~5 điểm (trừ MATH solve-judge 1.5B v2
+  −7.3 vượt nhiễu).
+- 7B chạy 4-bit (nf4), batch 2 cho MATH PSVA (OOM ở batch 8) — quantization có thể ảnh hưởng nhẹ.
+- 7B chạy 2 pipeline song song trên 2 GPU — đã xác nhận khả thi (không phải data-parallel).
