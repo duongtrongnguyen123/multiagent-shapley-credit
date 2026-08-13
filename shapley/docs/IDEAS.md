@@ -4628,3 +4628,28 @@ MBPP: chỉ **3/500** ứng viên thiếu `def` (0.6%), `S` **0/500**; tỉ lệ
 > ở #106/#108: thứ tôi tưởng là chi tiết kỹ thuật lại là biến gây nhiễu.
 > **Cổng mới bắt buộc cho mọi thí nghiệm MATH: tỉ lệ có `\boxed` ≥ .80 ở MỌI nhánh,
 > và chênh lệch tỉ lệ đó giữa hai nhánh < .05.**
+
+### Phụ lục #119-b — **THĂM DÒ: confound cắt ngắn chỉ đe doạ các kết quả mà `V` TRÔNG TỐT**
+> ⚠️ Hậu kiểm trên trace H61/H66/H65c, **không đăng ký trước**. Miễn phí.
+
+Đo lệch cắt ngắn (`I` thiếu dấu đáp án − `V` thiếu) trên **cả ba** miền:
+
+| miền | `MAXNEW` | `I` thiếu | `V` thiếu | **lệch** | ảnh hưởng tới kết luận |
+|---|---|---|---|---|---|
+| **MATH** (#114/#116/H65c) | 640 | 39.8% | 25.4% | **−14.4 đpt** | **ĐÌNH CHỈ** — làm `V` trông TỐT hơn |
+| **GSM8K** (#100) | 400 | 9.4% | 4.2% | **−5.2 đpt** | **AN TOÀN** — xem dưới |
+| **MBPP code** (#103…#118) | 512 | 0.6% | 0.6% | ~0 | **AN TOÀN** |
+
+### Vì sao GSM8K vẫn đứng vững dù có lệch
+Lệch **luôn có lợi cho `V`**. Ở GSM8K kết quả là `V − I` = **−.0740**, tức **`V` THUA**.
+Một thiên lệch giúp `V` mà `V` vẫn thua **−.074** ⇒ **giá trị thật còn ÂM HƠN**.
+> **Confound làm kết quả #100 trở nên BẢO THỦ, không thể tạo ra nó.**
+
+Cùng lập luận cho **MBPP** (#103, `V − I` = −.0740, lệch ~0) và cho `V_review` ở #110/#112.
+
+### Quy tắc rút ra
+> **Một thiên lệch chỉ nguy hiểm khi nó CÙNG CHIỀU với kết luận.**
+> Khi nó **ngược chiều**, nó biến kết quả thành **cận dưới** — vẫn dùng được, thậm chí mạnh hơn.
+> Vì thế: **#114/#116 (V trông TỐT trên MATH) bị đình chỉ; #100/#103 (V trông XẤU) không bị đụng.**
+
+Điều này thu hẹp đúng phạm vi thiệt hại của #119: **chỉ các kết quả MATH có dấu DƯƠNG cho `V`.**
