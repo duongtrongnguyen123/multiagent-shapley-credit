@@ -4033,3 +4033,45 @@ Tôi sửa `mbpp_select_vs_review_kernel.py` (#74-c) nhưng quên `mbpp_budget_k
 ### Chạy lại H71b với đúng giao thức #74-c
 `assert[0]` vào cả prompt giải lẫn prompt viết test · chấm CHỈ bằng `assert[1..2]` ·
 loại bài < 3 assert. Bảng khoá #76 giữ NGUYÊN.
+
+---
+
+## Vòng #110 — H69c: **KẾT QUẢ DƯƠNG ĐẦU TIÊN CHO HỢP TÁC YẾU→MẠNH**
+### Cùng hai bản code. REVIEW mất −.1080. CHỌN được +.0220. Chênh **+.1300**.
+*(đăng ký trước #74 + #74-b + #74-c, khoá tại `9169ff5`/`6b85a15` TRƯỚC khi chạy)*
+
+### MỌI CỔNG ĐẠT (sau hai lần HUỶ vì chính tôi cắt chống-rò-rỉ quá tay)
+`test_soundness` = **.7214** ≥ .50 ✓ (.0523 → .2580 → **.7214**) · `test_copy_rate` = **.0258** ≤ .20 ✓
+· `V_review − I` **ÂM** ✓ · biên dịch .9955 · n = 500 · chấm **chỉ bằng `assert[1..2]`**
+
+| nhánh | acc | so với `I` | chi phí (1.5B-eq) |
+|---|---|---|---|
+| `S` (1.5B viết) | .4400 | −.2000 | 1.00 |
+| **`I` (7B tự viết)** | **.6400** | — | **5.07** |
+| `V_review` (7B review code S) | **.5320** | **−.1080** | 6.07 |
+| **`SEL`** (7B viết test → chọn giữa S và I) | **.6620** | **+.0220** | 11.14 |
+| *(trần: hợp của S và I)* | .6740 | +.0340 | — |
+
+**PHÁN QUYẾT: HÀNG 1.** 5/5 fold dương [.04 .01 .00 .01 .05].
+
+### Điều này nói gì
+1. **Cùng HAI ARTIFACT y hệt nhau, chỉ đổi GIAO THỨC, kết quả lệch .1300.**
+   Review phá −.1080; chọn thu +.0220. **Vấn đề chưa bao giờ là code của 1.5B — mà là cách dùng nó.**
+2. `SEL` thu được **65%** khoảng trống oracle (+.0220 / +.0340). H56 thu 42–46% ⇒ **cao hơn**,
+   vì ở đây chỉ phải phân biệt **hai** ứng viên chứ không phải tám.
+3. Chọn rất **sạch**: loại oan **4**, lấy nhầm **2** trên 500. Lấy bản của 1.5B **42 lần**.
+4. Khẳng định lại quy tắc đã tái lập: **oracle nên LỌC ứng viên, đừng SỬA một ứng viên.**
+   Nay có thêm dạng mạnh hơn: **kể cả khi ứng viên đến từ model YẾU HƠN NHIỀU.**
+
+### Nhưng phải nói thẳng phần chưa xong
+- **+.0220 là khiêm tốn** và tốn **2.2×** chi phí của `I` (11.14 vs 5.07).
+- Câu hỏi đúng chưa trả lời: **cùng ngân sách đó tiêu vào MẪU CỦA CHÍNH 7B thì sao?**
+  Đó là **H71b đang chạy**. Nếu `SEL_self` ≥ `SEL` thì agent yếu **vẫn** không đáng dùng,
+  chỉ là "chọn" đỡ tệ hơn "review". **Chưa được tuyên bố hợp tác yếu→mạnh thắng cho tới khi có H71b.**
+- Thang chấm đổi (`assert[1..2]`) nên `acc` **không so trực tiếp** với #103/#105.
+  Trong vòng này mọi nhánh dùng **cùng** bộ chấm nên so sánh nội bộ hợp lệ.
+
+### Prior của tôi: gần đúng
+Ghi trước hàng 2 (~45%), hàng 1 ~30%. Ra **hàng 1** — tôi đã đánh giá thấp vì ước tính theo
+H56 (42–46% khoảng trống) mà quên rằng **hai ứng viên dễ phân biệt hơn tám**.
+Tỉ lệ prior đúng: **11/23**.
