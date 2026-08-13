@@ -20,7 +20,8 @@ M15, M7 = find_model("1-5b", "1_5b", "1.5b"), find_model("7b")
 print(f"GPU={torch.cuda.get_device_name(0)} x{torch.cuda.device_count()}", flush=True)
 
 DS = load_dataset("mbpp", "full", split="test+train+validation")
-ALL = sorted([r for r in DS if TIDLO <= r["task_id"] <= TIDHI], key=lambda r: r["task_id"])
+ALL = sorted([r for r in DS if TIDLO <= r["task_id"] <= TIDHI and len(r["test_list"]) >= 3],
+             key=lambda r: r["task_id"])   # #74-c: can >=3 assert (1 lam vi du, 2 de cham)
 N = len(ALL)
 print(f"MBPP {TIDLO}-{TIDHI}: {N} bai", flush=True)
 assert N >= 400
@@ -69,7 +70,8 @@ def _run(code, checks, all_or_count):
             except Exception: pass
 def par(fn, args, w=8):
     with ThreadPoolExecutor(max_workers=w) as ex: return list(ex.map(lambda a: fn(*a), args))
-def grade(codes): return par(_run, [(codes[i], ALL[i]["test_list"], "all") for i in range(N)])
+# #74-c: CHAM CHI bang assert[1..2] — assert[0] da vao prompt lam vi du (giao thuc H56)
+def grade(codes): return par(_run, [(codes[i], ALL[i]["test_list"][1:3], "all") for i in range(N)])
 
 BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                          bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
@@ -116,7 +118,7 @@ def gen(mos, tk, sysm, usrs, bs):
     if errs: raise RuntimeError(errs[0])
     return [store[i] for i in range(len(usrs))]
 
-PR   = [f"{r['text']}\n\nYour code must satisfy:\n" + "\n".join(r["test_list"]) for r in ALL]
+PR   = [f"{r['text']}\n\nYour code must satisfy this test:\n{r['test_list'][0]}" for r in ALL]
 # #106: bo test_list lam MAT TEN HAM -> model bia ten -> soundness .0523 -> HUY.
 # Nay dua TEN HAM (trich tu test_list) nhung KHONG dua gia tri ky vong (do moi la bo cham).
 def fname(r):
@@ -127,8 +129,10 @@ def fname(r):
 FN = [fname(r) for r in ALL]
 n_noname = sum(1 for f in FN if not f)
 print(f"trich ten ham: {N-n_noname}/{N} bai (thieu {n_noname})", flush=True)
-PRNT = [f"{ALL[i]['text']}\n\nThe function is named exactly: {FN[i]}" if FN[i] else ALL[i]["text"]
-        for i in range(N)]
+# #74-c: dua assert[0] lam VI DU NGU NGHIA (H56 dat soundness .8712 nho dieu nay).
+# Chi assert[0]; assert[1..2] la phan GIU LAI de cham.
+PRNT = [f"{ALL[i]['text']}\n\nExample test (shows the function name and expected behaviour):\n"
+        f"{ALL[i]['test_list'][0]}" for i in range(N)]
 t0 = time.time()
 
 m15, tk15 = load(M15, False)
@@ -147,7 +151,7 @@ TESTS = [clean_asserts(t) for t in gen(m7, tk7, WTEST, PRNT, 8)]
 print(f"test tu sinh xong ({time.time()-t0:.0f}s)", flush=True)
 
 def nrm(s): return " ".join(s.split())
-off = [set(nrm(x) for x in r["test_list"]) for r in ALL]
+off = [set(nrm(x) for x in r["test_list"][1:3]) for r in ALL]   # ro ri = chep trung PHAN CHAM
 ngen = sum(len(t) for t in TESTS)
 ncopy = sum(1 for i in range(N) for a in TESTS[i] if nrm(a) in off[i])
 copy_rate = round(ncopy / max(ngen, 1), 4)

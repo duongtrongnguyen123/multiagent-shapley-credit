@@ -3183,3 +3183,25 @@ cao hơn `I` đáng kể và H56 thu được 42–46% khoảng trống oracle b
 Hàng 2 ~25%, hàng 3 ~20%. Về cặp `SEL_self` vs `SEL_weak`: đoán `SEL_self` hơn (~60%),
 nhưng #104 cho thấy 1.5B giải được **22 bài** 7B trượt — đa dạng là thật, nên không chắc.
 Tỉ lệ prior đúng: **11/22**.
+
+## BỔ SUNG #74-c — H69c: dùng ĐÚNG giao thức giữ-lại của H56 (viết TRƯỚC khi chạy lại)
+Hai lần HUỶ đều do tôi **cắt chống-rò-rỉ quá tay**: #106 cắt mất TÊN HÀM (soundness .0523),
+#108 vẫn thiếu VÍ DỤ NGỮ NGHĨA (soundness .2580). H56 đạt **.8712** vì nó dùng ranh giới đúng:
+
+- `assert[0]` **ĐƯỢC** đưa vào prompt (cả lượt giải lẫn lượt viết test) làm **ví dụ**.
+- **Chấm CHỈ bằng `assert[1..2]`** — phần model chưa từng thấy.
+Đây là **giữ-lại (held-out)** hợp lệ, không phải rò rỉ, và đã dùng ở kết quả +.0401/+.0388.
+
+**Thay đổi cho H69c:**
+1. prompt giải + prompt viết test: thêm `assert[0]`.
+2. **bộ chấm đổi sang `test_list[1:3]`** cho **MỌI** nhánh.
+3. Loại bài có < 3 assert (như H56 đã làm).
+4. Giữ cổng `test_copy_rate` ≤ .20 (nay tính trên `assert[1..2]`, tức phần chấm) và
+   `test_soundness` ≥ .50.
+
+**HỆ QUẢ PHẢI GHI RÕ:** thang điểm khác H66/H68 (vốn chấm cả ba assert) ⇒ **`acc` tuyệt đối
+KHÔNG so trực tiếp giữa các vòng**. Vì thế **BỎ cổng tái lập theo giá trị `V_review − I` ∈ [−.12,−.03]**
+và thay bằng: **`V_review − I` phải ÂM** (cùng dấu với H66), nếu dương ⇒ ghi rõ là bất nhất và
+kiểm lại trước khi đọc gì thêm. Mọi so sánh khác là **nội bộ, cùng bộ chấm** nên hợp lệ.
+
+Bảng khoá #74 giữ NGUYÊN. Prior giữ nguyên (hàng 2, ~45%).
