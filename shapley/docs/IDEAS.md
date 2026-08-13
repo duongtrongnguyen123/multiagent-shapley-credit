@@ -4153,3 +4153,53 @@ Toàn bộ lợi ích đến từ **~10% bài mà hai bản KHÁC nhau**.
 Giả thuyết sinh ra (phải đăng ký trước rồi mới kiểm): **lợi ích của `SEL` tăng theo k**
 (số ứng viên) chứ không theo chất lượng test; và tỉ lệ hoà giảm khi k tăng.
 H72 (đang chạy) cho một điểm dữ liệu: thêm 1.5B vào pool có nâng trần không.
+
+---
+
+## Vòng #112 — H69d: **TÁI LẬP trên dải tách rời — nhưng biên độ CO LẠI 1/3**
+*(đăng ký trước #77, khoá tại `2ef8593` TRƯỚC khi chạy — MBPP 511–974, không giao với 11–510)*
+
+### Cổng ĐẠT: `soundness` .7084 · `copy_rate` .0218 · `V_review − I` ÂM ✓ · biên dịch .9973 · n = **464**
+
+| | H69c (11–510, n=500) | **H69d (511–974, n=464)** |
+|---|---|---|
+| `S` (1.5B) | .4400 | .5172 |
+| `I` (7B) | .6400 | .7069 |
+| `V_review` | .5320 | .6379 |
+| **`SEL`** | **.6620** | **.7220** |
+| trần (hợp) | .6740 | .7500 |
+| **`SEL − I`** | **+.0220** | **+.0151** |
+| **`SEL − V_review`** | **+.1300** | **+.0841** |
+| `V_review − I` | −.1080 | −.0690 |
+
+fold H69d: [.0000 .0109 .0326 .0217 .0109] — **4/5 dương, 1 bằng 0, KHÔNG fold nào âm.**
+
+### PHÁN QUYẾT theo bảng khoá #77 (bảng CHI PHỐI H69d): **HÀNG 1 — TÁI LẬP**
+`SEL − I` = **+.0151 ≥ +.01** ⇒ tái lập. Hàng 4 cũng khớp: `SEL − V_review` = +.0841 ≥ +.05.
+
+### NHƯNG phải nói rõ điều này, nếu không là báo cáo thiếu trung thực
+Kernel in ra **"HÀNG 2"** vì nó dùng bảng **#74** (bảng của H69c, ngưỡng **+.02**).
+Dưới ngưỡng của chính H69c thì **+.0151 sẽ KHÔNG kích hoạt hàng 1**.
+> **Hai cách đọc, phải nêu cả hai:**
+> - theo **#77** (bảng tái lập, ngưỡng +.01, viết trước khi chạy H69d): **TÁI LẬP**.
+> - theo **#74** (ngưỡng +.02 của lần đầu): **không đạt**.
+>
+> Tôi giữ kết luận **TÁI LẬP** vì #77 là đăng ký chi phối, khoá trước khi có số.
+> Nhưng **biên độ co từ +.0220 xuống +.0151 (giảm ~1/3)** là dữ kiện phải đi kèm mọi lần trích dẫn.
+Ước lượng gộp hai dải: **≈ +.019** (n = 964).
+
+### Cái TÁI LẬP MẠNH không phải cái tôi nhắm ban đầu
+`SEL − V_review`: **+.1300** và **+.0841** — lớn ở cả hai dải, cùng dấu, cùng cỡ.
+`V_review − I`: **−.1080** và **−.0690** — âm ở cả hai dải.
+> **Phát biểu vững nhất: CHỌN hơn REVIEW rất nhiều (+.08..+.13).**
+> Phát biểu yếu hơn: chọn hơn gọi thẳng model mạnh **+.015..+.022** — thật, nhưng nhỏ,
+> và **#111 đã cho thấy tiêu cùng ngân sách vào mẫu của chính 7B còn hơn (+.0340)**.
+
+### Bức tranh cuối cho vai "agent yếu" trên code
+1. làm **mỏ neo** (review) → **−.069..−.108** ❌
+2. làm **ứng viên** (chọn) → **+.015..+.022** ✓ nhưng nhỏ
+3. **không dùng, tiêu tiền vào mẫu của chính model mạnh** → **+.0340** ✓✓ tốt nhất
+
+### Prior của tôi ĐÚNG
+Ghi trước: tái lập ~70%, biên độ **+.01..+.03**. Thực tế **+.0151** — trúng cả hai.
+Tỉ lệ prior đúng: **13/25**.
