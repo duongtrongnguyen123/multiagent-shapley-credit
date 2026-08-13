@@ -3816,3 +3816,69 @@ Triage chỉ trả lời *"có cho xem không"*. **CHỌN** trả lời *"lấy 
 
 Điều này **khớp** với quy tắc đã tái lập của dự án: **oracle nên LỌC, đừng SỬA.**
 Ở đây oracle lọc *ứng viên nào được nhìn thấy*, chứ không sửa gì cả.
+
+---
+
+## Vòng #105 — H68: **CẢ CHẾ ĐỘ LẪN NGUỒN ĐỀU GÓP — "đầu độc" đúng một phần, và phải nói rõ phần nào**
+*(đăng ký trước #73, khoá tại `ccdff64` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: tái lập H66 `V_weak − I` = **−.0740** ∈ [−.12,−.03] · biên dịch **.9955** · n=500
+| nhánh | 7B xem gì | acc | `− I` | 5 fold |
+|---|---|---|---|---|
+| `I` | không gì (sáng tác) | **.6400** | — | — |
+| `V_self` | **code của CHÍNH NÓ** | .6120 | **−.0280** | −.02 −.06 −.03 −.03 .00 |
+| `V_weak` | code của **1.5B** | .5660 | **−.0740** | −.10 −.04 −.09 −.09 −.05 |
+
+**PHÁN QUYẾT: HÀNG 3 — CẢ HAI ĐỀU GÓP.**
+- **chế độ SỬA CHỮA** tự nó: **−.0280** (38% thiệt hại) — 7B sửa **code của chính nó** cũng tệ đi.
+- **nguồn NGOẠI LAI** cộng thêm: **−.0460** (62%).
+
+### Phải nói rõ: cách gọi ở #99–#103 ĐÚNG MỘT PHẦN
+Tôi đã gọi toàn bộ hiệu ứng là "đầu độc", ngụ ý **lỗi ở sản phẩm agent yếu**.
+Đo ra thì **38% của nó xảy ra kể cả khi KHÔNG có agent yếu nào** — chỉ cần bảo model
+xem lại việc của chính mình là đã mất .028. **Không rút lại số, nhưng thu hẹp cách gọi:**
+> *`V − I` = (thuế của việc THÊM MỘT LƯỢT SỬA) + (thiệt hại RIÊNG của sản phẩm ngoại lai).*
+> Trên MBPP: **−.028 + −.046**.
+
+### Bằng chứng cơ chế: nó VIẾT LẠI code người khác nhiều hơn code của mình
+| | giữ nguyên đầu vào (`unchanged_rate`) | bị đầu độc: giữ/bản thứ ba |
+|---|---|---|
+| `V_self` | **.6980** | 0 / **24** |
+| `V_weak` | **.3820** | 15 / **54** |
+
+Với code của **chính nó**, 7B giữ nguyên **70%** số bài. Với code của **1.5B**, chỉ **38%** —
+nó viết lại gần **gấp đôi**. Khớp thẳng với #103 (78% thiệt hại là bản thứ ba).
+`V_self` có **0** ca "giữ nguyên bản sai" — đúng như định nghĩa, giữ nguyên code của mình
+thì kết quả y như `I`; mọi thiệt hại của `V_self` đều là **tự viết lại rồi tự phá**.
+
+### Prior của tôi ĐÚNG (đoán hàng 3, ~45%)
+Tỉ lệ prior đúng: **11/21**.
+
+---
+
+## Vòng #106 — H69: **HUỶ — chốt chống rò rỉ của tôi đã PHÁ chính nhánh cần đo**
+*(đăng ký trước #74, khoá tại `9169ff5`)*
+
+### Cổng chặn đúng chỗ: `test_soundness` = **.0523** < .50 ⇒ **HUỶ, KHÔNG ĐỌC**
+`test_copy_rate` = .0004 (không rò rỉ) nhưng test tự sinh **gần như sai hết**.
+
+### Nguyên nhân — lỗi thiết kế của tôi, không phải kết quả khoa học
+Để chống rò rỉ tôi **bỏ `test_list` khỏi lượt viết test**. Nhưng trong MBPP, `test_list`
+là **NƠI DUY NHẤT chứa TÊN HÀM**. Không có nó, model **tự bịa tên**:
+| MBPP | model viết test cho |
+|---|---|
+| `remove_Occ` | `remove_first_last_occurrence` |
+| `sort_matrix` | `sort_matrix_by_row_sum` |
+| `count_common` | `count_most_common_words` |
+
+Mọi assert chết vì `NameError` ⇒ soundness .052 ⇒ chọn lựa **suy biến**: chỉ lấy bản của S
+**3/500 lần**, nên `SEL` = .6360 ≈ `I` = .6400. **`SEL − I` = −.0040 là VÔ NGHĨA, không được đọc.**
+(Đối chiếu: H56 đạt soundness **.8712** vì ở đó model **có** chữ ký hàm.)
+
+### Sửa cho lần chạy lại (H69b)
+Đưa **TÊN HÀM** (trích tự động từ `test_list` bằng regex `assert\s+(\w+)\(`) vào lượt viết test,
+**KHÔNG** đưa giá trị kỳ vọng. Tên hàm **không phải** tín hiệu chấm; **giá trị kỳ vọng mới là**.
+Giữ nguyên cổng `test_copy_rate` ≤ .20 và thêm cổng `test_soundness` ≥ .50 chạy **TRƯỚC** khi kết luận.
+
+> **Bài học: một chốt chống rò rỉ cũng là một CAN THIỆP — phải kiểm nó có phá phép đo không.**
+> Ở đây "bỏ test_list" tưởng chỉ chặn rò rỉ, thực ra còn cắt luôn thông tin cần thiết.
