@@ -140,7 +140,8 @@ off = [set(nrm(x) for x in r["test_list"]) for r in ALL]
 ngen = sum(len(t) for t in TESTS)
 ncopy = sum(1 for i in range(N) for a in TESTS[i] if nrm(a) in off[i])
 copy_rate = round(ncopy / max(ngen, 1), 4)
-sound = par(_run, [(ALL[i]["code"]   # MBPP dung truong 'code', KHONG phai 'solution' (da kiem), TESTS[i], "all") for i in range(N)])
+# MBPP dung truong 'code', KHONG phai 'solution' (da kiem tra schema truoc khi chay)
+sound = par(_run, [(ALL[i]["code"], TESTS[i], "all") for i in range(N)])
 soundness = round(sum(1 for i in range(N) if TESTS[i] and sound[i]) / max(sum(1 for t in TESTS if t), 1), 4)
 
 cI = par(_run, [(I[i], TESTS[i], "count") for i in range(N)])
