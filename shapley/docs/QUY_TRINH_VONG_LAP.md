@@ -205,3 +205,25 @@ không thể lớn. Nó lớn hơn mọi hiệu ứng tôi đã đăng ký.
 → **Mỗi bảng khoá phải có một hàng cho "hiệu ứng đi theo chiều tôi cho là không thể",
   với biên độ LỚN.** Nếu không nghĩ ra nổi, đó là dấu hiệu bảng còn thiếu, không phải dấu hiệu
   giả thuyết chắc chắn. Và khi không hàng nào khớp: **GHI NHẬN LÀ THIẾU SÓT, không bịa hàng mới cho vừa.**
+
+---
+
+## Bài học #107: **kiểm tra phải quét TOÀN BỘ file, và mỗi lần sửa phải kiểm LẠI**
+
+Ba lỗi liên tiếp trong một vòng, cùng một gốc: **kiểm tra một lần rồi sửa tiếp**.
+
+| lỗi | hậu quả | vì sao lọt |
+|---|---|---|
+| `ALL[i]["solution"]` (MBPP dùng `code`) | `KeyError` **sau ~40 phút sinh** | không kiểm schema dataset trước |
+| comment nội dòng do `sed` làm vỡ tuple | `SyntaxError`, **đã đẩy lên Kaggle** | AST-check chạy **TRƯỚC** khi sửa, không chạy lại sau |
+| còn sót `find_model("1.5b")` khi đã bỏ nhánh 1.5B | `RuntimeError` ngay lúc khởi động | tôi chỉ grep phần **sau** `t0 = time.time()` |
+
+**Quy tắc bắt buộc từ nay:**
+1. Sau **MỖI** lần sửa file kernel (kể cả một dòng, kể cả bằng `sed`/`replace`):
+   chạy lại **cả** `ast.parse` (cú pháp) **và** quét tên chưa gán — **trên TOÀN BỘ file**.
+2. Khi bỏ một nhánh, `grep` tên biến/model đó trên **toàn file**, không chỉ khu vực vừa sửa.
+3. Kiểm **schema dataset** (tên cột/trường) **offline** trước khi tiêu một phiên GPU.
+4. Không bao giờ chèn comment nội dòng vào giữa biểu thức nhiều dòng bằng thay thế chuỗi.
+
+**Điểm sáng:** cả ba đều **chết NHANH và RÕ** (giây thứ 20, hoặc trước khi chạy), không âm thầm
+sinh số sai. Kernel in cấu hình + tự huỷ sớm là thứ giữ cho lỗi hạ tầng không biến thành lỗi khoa học.
