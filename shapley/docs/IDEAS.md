@@ -4463,3 +4463,45 @@ Và bản **ĐÚNG** thua bản được chọn trung bình **1.00 điểm test*
 > **Dự đoán sắc hơn (ghi trước khi H75 có số): đồng thuận sẽ KHÔNG hơn nhiều — hàng 2 hoặc hàng 3
 > của bảng #81.** Trần tuyệt đối nếu sửa được cả 21 bài là **+.042**, nhưng phần khả thi thực tế
 > nhỏ hơn nhiều. Nếu H75 ra hàng 1 (≥ +.02) thì tôi đã đánh giá thấp đồng thuận và phải ghi nhận.
+
+---
+
+## Vòng #117 — H73: **k LÀ ĐÒN BẨY — +.0800 so với greedy, hiệu ứng DƯƠNG LỚN NHẤT của dự án**
+*(đăng ký trước #79, khoá tại `f522179` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: `soundness` .7214 · `copy_rate` .0258 · `acc(SEL@1)` = .6400 ∈ [.60,.68] · biên dịch .9948
+8 ứng viên đều là **7B** (1 greedy + 7 mẫu T=0.8), acc riêng **.624–.662**. Test sinh **một lần**, dùng chung.
+k nhỏ là **tiền tố** của k lớn ⇒ ghép cặp hoàn hảo.
+
+| k | `SEL@k` | so với k=1 | **trần** | **thu được** | **tie_rate** | chi phí |
+|---|---|---|---|---|---|---|
+| 1 | .6400 | — | .6400 | — | 1.000 | 10.14 |
+| 2 | **.6800** | **+.0400** | .6840 | **91%** | .9080 | 15.21 |
+| 4 | **.7040** | **+.0640** | .7180 | **82%** | .7980 | 25.35 |
+| 8 | **.7200** | **+.0800** | .7500 | **73%** | .7240 | 45.63 |
+
+**PHÁN QUYẾT: HÀNG 1.** `SEL@8 − SEL@2` = **+.0400** ≥ +.02, tăng đều theo k.
+**`tie_rate` giảm .908 → .724** đúng như cơ chế đã nêu ở #111-b.
+
+### Giải quyết mâu thuẫn #111-b ↔ #115 — **cả hai đều đúng**
+- #115 đúng: **tỉ lệ thu được GIẢM** khi pool giàu lên (91% → 73%).
+- #111-b đúng: **k vẫn là đòn bẩy**, vì **trần tăng NHANH HƠN mức bộ chọn xuống cấp**
+  (trần +.1100 từ k=1→8, thu được mất 18 điểm phần trăm ⇒ ròng vẫn **+.0800**).
+> **Phát biểu hợp nhất: thêm ứng viên vừa nâng trần vừa làm bộ chọn khó hơn — nhưng ở dải k≤8
+> phần nâng trần THẮNG.** Cả hai kết luận trước đều đúng một nửa; không cái nào bị rút.
+
+### Nhưng phải nói rõ CHI PHÍ
++.0800 đổi bằng **4.5× chi phí** (10.14 → 45.63). Lợi ích mỗi đơn vị chi phí **giảm dần**:
+k=2 **+.00113/đơn vị** · k=4 **+.00042** · k=8 **+.00023**.
+**Nếu ngân sách là ràng buộc thì k=2 là điểm ngọt**, không phải k=8.
+
+### Cảnh báo so sánh CHÉO LẦN CHẠY (lần thứ ba)
+`SEL@2` ở đây = **.6800**; `SEL{I,I2}` ở H74 = **.6640**. Cùng thiết lập, khác **mẫu T=0.8**
+(cand-1 ở đây .662, `I2` ở H74 .626). Chênh **.0160** thuần do rút mẫu.
+**Chỉ đọc các so sánh GHÉP CẶP TRONG CÙNG lần chạy.** Đã dính ba lần: #70 (`MAXNEW`),
+#113 (`I2`), nay lại.
+
+### Prior của tôi ĐÚNG (hàng 1, ~55%)
+Đoán `SEL@8 − SEL@2` ≈ +.025; thực tế **+.0400** — đúng hướng, **đánh giá thấp biên độ**.
+Rủi ro tôi nêu trước (*"tie_rate .898 quá cao, có thể ra hàng 2"*) **không xảy ra**: tie giảm mạnh.
+Tỉ lệ prior đúng: **15/29**.
