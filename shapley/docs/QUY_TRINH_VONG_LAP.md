@@ -255,3 +255,22 @@ bản sửa #74-c vào. Tôi sửa bản gốc, quên bản sao ⇒ **đốt m�
 **Quy tắc:** khi sửa một kernel, `grep` đoạn mã bị lỗi trên **toàn thư mục `pipeline/`**
 và sửa mọi bản sao **trước khi** phóng bất cứ thứ gì. Kernel trong dự án này được sinh ra bằng
 cách sao chép nhau, nên **mỗi bản sửa là một bản sửa cho cả HỌ kernel**, không phải một file.
+
+---
+
+## Bài học H65T2: hai lỗi hạ tầng thật, và một chỉ số **tự nói dối**
+
+**1. `torch.cuda.empty_cache()` / `memory_allocated()` chỉ tác dụng lên THIẾT BỊ HIỆN TẠI.**
+Kernel in *"VRAM sau khi giải phóng 7B: 0.01 GB"* và tôi tin nó. Đó **chỉ là GPU 0**;
+bản sao trên GPU 1 vẫn giữ 5.2 GB, nên model tiếp theo OOM.
+> **Chỉ số chẩn đoán bị chính lỗi mà nó phải phát hiện làm cho sai.**
+> Mọi báo cáo VRAM phải in **theo TỪNG GPU**:
+> `" | ".join(f"gpu{d} {torch.cuda.memory_allocated(d)/2**30:.2f}" for d in range(NG))`
+> và giải phóng phải lặp: `for d in range(NG): with torch.cuda.device(d): torch.cuda.empty_cache()`
+
+**2. Quota GPU Kaggle 30 giờ/tuần/tài khoản.** `hduong` cạn giữa chừng ⇒ `kernels push` bị từ chối
+với *"Maximum weekly GPU quota of 30.00 hours reached"*. Phải **luân phiên tài khoản** cho các
+kernel dài, và coi lỗi push này là tín hiệu đổi tài khoản chứ không phải lỗi cấu hình.
+
+**Điểm sáng:** bản sửa *lưu từng phần* (bài học H65T) đã **cứu 2.5 giờ** dữ liệu 1.5B + 7B
+trong đúng lần sập này. Chi phí thêm gần bằng 0, giá trị rất lớn.
