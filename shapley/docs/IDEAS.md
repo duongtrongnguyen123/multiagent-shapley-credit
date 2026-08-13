@@ -4075,3 +4075,47 @@ loại bài < 3 assert. Bảng khoá #76 giữ NGUYÊN.
 Ghi trước hàng 2 (~45%), hàng 1 ~30%. Ra **hàng 1** — tôi đã đánh giá thấp vì ước tính theo
 H56 (42–46% khoảng trống) mà quên rằng **hai ứng viên dễ phân biệt hơn tám**.
 Tỉ lệ prior đúng: **11/23**.
+
+---
+
+## Vòng #111 — H71b: **NGÂN SÁCH THÊM NÊN TIÊU VÀO MẪU CỦA CHÍNH MODEL MẠNH**
+### …nhưng khoảng cách nhỏ hơn tôi tưởng, và **tính theo chi phí thì HOÀ**
+*(đăng ký trước #76, khoá tại `32afad3` TRƯỚC khi chạy)*
+
+### Mọi cổng ĐẠT: `soundness` .7214 · `copy_rate` .0258 · `acc(I)` = .6400 ∈ [.60,.68] · biên dịch .9975
+**PHÁN QUYẾT #76: HÀNG 1.** `SEL_self − I` = **+.0340**, 5/5 fold [.02 .04 .02 .04 .05].
+
+### So sánh CẶP với H69c — **cùng bộ test y hệt** (soundness .7214, 1395 assert, sinh xác định)
+| giao thức | ứng viên | acc | so với `I` | trần | thu được | chi phí |
+|---|---|---|---|---|---|---|
+| `I` | — | .6400 | — | — | — | **5.07** |
+| **`SEL_weak`** (H69c) | 1.5B + 7B | .6620 | **+.0220** | .6740 | **65%** | 11.14 |
+| **`SEL_self`** (H71b) | 7B + 7B(T=.8) | **.6740** | **+.0340** | .6820 | **81%** | 15.21 |
+
+### `SEL_self − SEL_weak` = **+.0120** — KHÔNG hàng nào của bảng khoá khớp
+Bảng #76 có hai hàng: `≥ +.02` (mẫu của chính nó thắng) và `≤ −.02` (agent yếu đóng góp thật).
+**+.0120 nằm GIỮA.** Ghi nhận đúng như vậy, **không ép vào hàng nào.**
+
+### Ba điều đọc được, và điều thứ ba là điều tôi suýt bỏ sót
+1. **Trần cao hơn khi ứng viên đến từ chính model mạnh**: .6820 vs .6740. Hai mẫu 7B **đa dạng
+   hơn** cặp (1.5B, 7B) về mặt hữu ích — dù 1.5B "khác" nhiều hơn, cái nó thêm vào phần lớn là **sai**.
+2. **Chọn cũng dễ hơn**: thu 81% khoảng trống so với 65%. Phân biệt hai bản **cùng chất lượng**
+   dễ hơn phân biệt một bản tốt với một bản kém — ngược với trực giác của tôi.
+3. **TÍNH THEO CHI PHÍ THÌ HOÀ.** Lợi ích trên mỗi đơn vị chi phí **thêm**:
+   `SEL_weak` **.00362** · `SEL_self` **.00335**. **`SEL_weak` nhỉnh hơn một chút.**
+   `SEL_self` thắng về **độ chính xác tuyệt đối**, `SEL_weak` thắng về **hiệu quả**. **Không cái nào áp đảo.**
+
+### Trả lời thẳng câu hỏi tôi đã hứa không đoán trước
+Ở #110 tôi viết: *"chưa được tuyên bố hợp tác yếu→mạnh thắng cho tới khi có H71b."*
+**Kết quả: KHÔNG thắng.** Cùng cơ chế chọn, mẫu của chính 7B cho **+.0340** so với **+.0220**.
+> **Phát biểu đúng là: "CHỌN hơn REVIEW" (+.1300, rất lớn), KHÔNG phải "agent yếu có giá trị".**
+> Agent yếu vẫn **không** phải cách tốt nhất tiêu ngân sách — nó chỉ **không còn có hại** khi
+> dùng làm ứng viên thay vì làm mỏ neo.
+
+### Chi tiết đáng chú ý
+`mẫu 2` của 7B ở **T=0.8** đạt **.6580**, **cao hơn** greedy `.6400`. Lấy mẫu có nhiệt độ
+hơn greedy trên MBPP ở model này — nhỏ nhưng nhất quán với việc trần `I_pass2` cao.
+
+### Prior của tôi ĐÚNG (hàng 1, ~45%)
+Nhưng phần dự đoán `SEL_self` vs `SEL_weak` tôi ghi "~60% nghiêng SEL_self" — đúng chiều,
+và biên độ (+.0120) nhỏ hơn ngưỡng tôi đặt. Tỉ lệ prior đúng: **12/24**.
