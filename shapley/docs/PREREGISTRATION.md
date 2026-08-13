@@ -3085,3 +3085,18 @@ Tái lập H66: `V_review − I` ∈ [−.12,−.03] ⇒ ngoài thì HUỶ. Biê
 khoảng cách .118 quá lớn để không thấy gì), **nhưng** khó vượt `I` đủ +.02, vì H56 chỉ thu được
 **42–46%** khoảng trống oracle bằng test tự sinh — áp vào đây là ~+.019, **ngay dưới ngưỡng**.
 Hàng 1 ~30%. Hàng 3 ~15%, hàng 4 ~10%. Tỉ lệ prior đúng: **10/20**.
+
+## BỔ SUNG #74-b — chạy lại H69 sau khi HUỶ (viết TRƯỚC khi chạy lại, chưa có số nào của H69b)
+H69 **HUỶ** vì `test_soundness` = **.0523**. Nguyên nhân: chốt chống rò rỉ bỏ `test_list`,
+mà đó là **nơi duy nhất chứa TÊN HÀM** ⇒ model bịa tên ⇒ mọi assert `NameError`.
+
+**Sửa duy nhất:** đưa **TÊN HÀM** vào lượt viết test, trích tự động bằng
+`re.search(r"assert\s+\(?\s*([A-Za-z_]\w*)\s*\(", a)` — **đã kiểm offline: 500/500 bài trích đúng**
+(`remove_Occ`, `sort_matrix`, `count_common`, …). **KHÔNG** đưa giá trị kỳ vọng.
+
+**Vì sao đây KHÔNG phải nới lỏng chống rò rỉ:** bộ chấm là *cặp (đầu vào → đầu ra kỳ vọng)*.
+Tên hàm chỉ là **giao diện gọi**, model phải tự nghĩ ra ca kiểm thử và kết quả đúng.
+Cổng `test_copy_rate` ≤ .20 **giữ nguyên** và sẽ bắt được nếu model chép nguyên assert.
+Thêm: **phải kiểm `test_soundness` ≥ .50 TRƯỚC khi đọc bất kỳ con số nào.**
+
+Bảng khoá #74 giữ **NGUYÊN**, không sửa một chữ. Prior giữ nguyên (hàng 2, ~45%).
