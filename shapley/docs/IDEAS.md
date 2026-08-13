@@ -4203,3 +4203,56 @@ Dưới ngưỡng của chính H69c thì **+.0151 sẽ KHÔNG kích hoạt hàng
 ### Prior của tôi ĐÚNG
 Ghi trước: tái lập ~70%, biên độ **+.01..+.03**. Thực tế **+.0151** — trúng cả hai.
 Tỉ lệ prior đúng: **13/25**.
+
+---
+
+## Vòng #113 — H72: **AGENT YẾU CÓ ĐÓNG GÓP BIÊN THẬT — và SỬA LẠI kết luận của chính tôi ở #111**
+*(đăng ký trước #78, khoá tại `bb51694` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: `soundness` .7214 · `copy_rate` .0258 · `acc(I)` .6400 ∈ [.60,.68] · biên dịch .9967 · n=500
+Một kernel, **sinh MỘT lần**, so **mọi tập con** ⇒ ghép cặp hoàn hảo.
+acc riêng: `I` .6400 · `I2` (7B, T=.8) **.6320** · `S` (1.5B) .4400
+
+| pool | acc | vs `I` | trần | thu | chi phí |
+|---|---|---|---|---|---|
+| {I} | .6400 | — | .6400 | — | 5.07 |
+| **{I, S}** | **.6620** | +.0220 | .6740 | 65% | **6.07** |
+| **{I, I2}** | **.6620** | +.0220 | .6660 | 85% | **10.14** |
+| **{I, I2, S}** | **.6800** | **+.0400** | .6960 | 71% | 11.14 |
+
+**PHÁN QUYẾT: HÀNG 1.** Đóng góp biên của `S` = **+.0180** ≥ +.01.
+Hàng phụ cũng khớp: **15 bài chỉ MÌNH `S` giải được** (cả hai mẫu 7B trượt) ⇒ **đa dạng THẬT**.
+
+### ĐỐI XỨNG ĐẸP, và nó lật ngược khuyến nghị thực dụng
+- đóng góp biên của **S** thêm vào {I,I2} = **+.0180** (chi phí thêm **1.00**)
+- đóng góp biên của **I2** thêm vào {I,S} = **+.0180** (chi phí thêm **5.07**)
+
+**Hai nguồn ứng viên đóng góp BẰNG NHAU. Nhưng `S` rẻ hơn 5.07 lần.**
+> **Trên mỗi đơn vị chi phí, 1.5B hiệu quả gấp 5.1× so với một mẫu 7B nữa.**
+Và `SEL{I,S}` = `SEL{I,I2}` = **.6620** — y hệt nhau, ở **6.07** vs **10.14** chi phí.
+
+### PHẢI SỬA LẠI #111
+Ở #111 tôi viết: *"`SEL_self` +.0340 hơn `SEL_weak` +.0220 ⇒ ngân sách nên tiêu vào mẫu của chính
+model mạnh"*. **So sánh đó là GIỮA HAI LẦN CHẠY, và mẫu `I2` khác nhau:**
+| | `I2` acc | `SEL{I,I2}` |
+|---|---|---|
+| H71b | **.6580** | .6740 |
+| H72 | **.6320** | .6620 |
+
+Chênh **.0260** chỉ do **rút một mẫu T=0.8 khác**. Nghĩa là **+.0340 của #111 phần lớn là
+MAY MẮN của lần rút đó**, không phải ưu thế giao thức.
+**H72 đo trong CÙNG một lần chạy, ghép cặp** ⇒ đáng tin hơn, và cho **bằng nhau**.
+
+> **SỬA LẠI: khuyến nghị "tiêu ngân sách vào mẫu của chính model mạnh" ở #111 KHÔNG đứng vững.**
+> Đúng hơn: **hai nguồn tương đương về lợi ích, và nguồn YẾU rẻ hơn 5×.**
+> Đây là bài học lặp lại của chính dự án: **so sánh giữa các lần chạy là không đáng tin;
+> chỉ so sánh GHÉP CẶP trong cùng một lần chạy.** (Đã dính ở #70 với `MAXNEW`, nay dính lại.)
+
+### Bức tranh cuối cho vai "agent yếu" trên code — ĐÃ CẬP NHẬT
+1. làm **mỏ neo** (review) → **−.069..−.108** ❌
+2. làm **ứng viên** trong pool → **+.0220**, và **+.0180 biên** kể cả khi đã có mẫu 7B thứ hai ✓
+3. **rẻ nhất trong mọi cách mở rộng pool** — hiệu quả/chi phí gấp **5.1×** một mẫu 7B ✓✓
+
+### Prior của tôi SAI
+Đoán hàng 2 (~55%): "đóng góp biên ≈ 0", lý do là *"22 bài 1.5B giải được thì mẫu 7B thứ hai
+chắc cũng bắt được"*. Thực tế **15 bài vẫn chỉ mình 1.5B giải được**. Tỉ lệ prior đúng: **13/26**.
