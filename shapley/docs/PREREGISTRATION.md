@@ -3364,3 +3364,49 @@ thêm mẫu 1.5B (chất lượng .44) sẽ tạo thêm ứng viên **sai**, mà
 nên dễ bị đánh lừa hơn. Hàng 1 ~30% (nếu đa dạng thắng nhiễu), hàng 3 ~15%, hàng 4 ~15%.
 **Tôi vừa sai ở #113 khi đoán "đóng góp biên ≈ 0"**, nên lần này không tự tin về phía âm.
 Tỉ lệ prior đúng: **13/26**.
+
+
+# Đăng ký trước #81 — H75: **SỬA BỘ CHỌN — đồng thuận THỰC THI thay vì đếm test ĐẠT**
+**Viết TRƯỚC khi chạy.** Suy thẳng từ #115.
+
+## Vì sao
+#115: trần tăng đều theo số ứng viên (.6400 → .7260) nhưng **tỉ lệ thu được sụt 86% → 41%**.
+Ứng viên đúng **có ở đó**; bộ chọn **không nhặt được**. Nguyên nhân đã biết: `test_soundness` = .7214,
+tức **28% bộ test có GIÁ TRỊ KỲ VỌNG SAI** — càng nhiều ứng viên, càng nhiều cơ hội chấm nhầm.
+
+**Điểm mấu chốt: cái SAI là giá trị kỳ vọng, KHÔNG phải đầu vào.**
+Lời gọi hàm trong assert tự sinh vẫn hợp lệ. Vậy thì đừng dùng kỳ vọng — **chạy MỌI ứng viên
+trên CÙNG đầu vào và so đầu ra VỚI NHAU**. Cụm lớn nhất thắng. Không cần biết đáp án đúng.
+(Dự án đã có nguyên hàm này ở H56: `route_consensus`, và `split_assert` tách được **498/500**.)
+
+## Thiết kế — MỘT kernel, pool 7 ứng viên như #115, ba BỘ CHỌN trên CÙNG dữ liệu
+MBPP 11–510, giao thức #74-c. Sinh: `I`, `I2` (7B), `S1..S5` (1.5B), `TESTS` (7B).
+Tách **đầu vào** khỏi assert bằng AST (`split_assert`), bỏ vế kỳ vọng.
+| bộ chọn | tín hiệu |
+|---|---|
+| `SEL_test` | đếm assert tự sinh ĐẠT (như #115 — mốc so sánh) |
+| **`SEL_cons`** | chạy mọi ứng viên trên **đầu vào**, gom cụm theo **đầu ra**, chọn cụm LỚN NHẤT |
+| `SEL_hyb` | `SEL_cons`, hoà thì phân giải bằng `SEL_test` |
+
+Hoà tuyệt đối ⇒ giữ `I`. Chấm bằng `assert[1..2]`. Báo `captured_pct` của cả ba trên **cùng trần**.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`split_assert` tách được ≥ **.80** số assert · `test_soundness` ≥ .50 · `copy_rate` ≤ .20 ·
+n = 500 · `acc(I)` ∈ [.60,.68] · tái lập #115: `SEL_test` trên pool 7 phải ∈ [.66, .71].
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL_cons − SEL_test` ≥ **+.02** | **ĐỒNG THUẬN THỰC THI HƠN HẲN.** Bỏ được phụ thuộc vào giá trị kỳ vọng ⇒ bộ chọn hết là nút thắt. Đây là bản sửa trực tiếp cho #115 và là giao thức nên dùng khi k lớn. |
+| +.005 ≤ chênh < +.02 | Hơn nhưng **khiêm tốn**; nút thắt vẫn còn. Báo `captured_pct` để định lượng phần còn thiếu. |
+| \|chênh\| < .005 | **Đồng thuận KHÔNG hơn đếm test.** Nghĩa là các ứng viên **sai theo cùng một kiểu** (lỗi tương quan), nên cụm lớn nhất cũng sai. Kết quả âm quan trọng: đa dạng ở #115 là đa dạng *bề mặt*. |
+| chênh ≤ **−.02** | Đồng thuận **tệ hơn**: đa số sai nhấn chìm thiểu số đúng. Ghi rõ, giữ `SEL_test`. |
+| `SEL_hyb` > cả hai + .005 | Hai tín hiệu **bổ sung** nhau; nêu kèm. |
+| `split_assert` < .80 hoặc cổng khác trượt | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~40%)**: hơn một chút. Lý do đối nghịch nhau: đồng thuận **thoát** được lỗi
+giá trị kỳ vọng (điểm mạnh thật), **nhưng** 5/7 ứng viên là 1.5B với acc ~.42, nên **đa số
+có thể SAI** ở nhiều bài — cụm lớn nhất khi đó là cụm sai. Hàng 1 ~20%, hàng 3 ~25%, hàng 4 ~15%.
+**Đây chính là rủi ro tôi phải nêu trước:** đồng thuận chỉ tốt khi đa số đúng, mà pool này
+đa số là model yếu. Tỉ lệ prior đúng: **14/27**.
