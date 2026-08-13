@@ -3976,3 +3976,36 @@ H56 cho model thấy *ngữ nghĩa mong đợi* trông thế nào; tôi chỉ ch
 `assert[0]` vào prompt (cả lượt giải lẫn lượt viết test) · **chấm CHỈ bằng `assert[1..2]`**.
 Lưu ý phải ghi: **thang điểm đổi** so với H66 (vốn chấm bằng cả ba), nên `acc` tuyệt đối
 không so trực tiếp giữa hai vòng; **mọi so sánh trong H69c là nội bộ, cùng bộ chấm.**
+
+### Phụ lục #105-b — **THĂM DÒ: "thuế sửa chữa" là NGHI NGỜ VÔ CỚ, và nó nối liền cả phiên**
+> ⚠️ Phân tích hậu kiểm trên trace H68, **không đăng ký trước**. Sinh giả thuyết, không xác nhận.
+
+24 ca 7B **tự phá code ĐÚNG của chính nó** (`V_self`). Đọc hết:
+- **0/24** giữ nguyên văn ⇒ mọi thiệt hại đều là **sửa thật sự**, không phải lỗi trích xuất.
+- độ dài: trung vị **+3 ký tự**, 15 dài ra / 4 ngắn đi ⇒ **không phải xu hướng rút gọn**, mà là **VIẾT LẠI**.
+
+```
+task 35 — "find the n-th rectangular number"
+I      (ĐÚNG) : return n * (n + 1)
+V_self (SAI)  : return n * (n + 1) // 2      <- biến thành số TAM GIÁC
+```
+```
+task 30 — đếm chuỗi con có ký tự đầu = cuối
+I      (ĐÚNG) : đếm bằng bảng tần suất, O(n)
+V_self (SAI)  : viết lại thành hai vòng lặp lồng nhau, sai
+```
+
+### Nối liền với đầu phiên: **CÙNG MỘT BỆNH, hai miền**
+Ở trace Carol (#98, toán), verifier gốc mở đầu bằng *"The proposed solution is incorrect"*,
+**tính lại ra đúng 20%**, rồi **tự bịa ra một phân biệt** để đổi thành 25%.
+Ở đây, 7B nhìn công thức **đúng** của chính mình rồi "sửa" thành công thức khác.
+
+> **Thuế của lượt sửa chữa KHÔNG phải lười biếng — nó là NGHI NGỜ VÔ CỚ.**
+> Được lệnh "xem lại", model coi việc **tìm ra thứ để đổi** là hoàn thành nhiệm vụ.
+> Đó là lý do `V_self` mất **−.0280** dù không có agent yếu nào, và là lý do
+> `V_cons` ("đừng đụng vào") **đảo sang cực kia** rồi chết theo kiểu khác (#107).
+
+Giả thuyết sinh ra (phải đăng ký trước rồi mới kiểm): **prompt review nào cũng hàm ý
+"đáng lẽ phải có gì đó để sửa"; một prompt nêu rõ "phần lớn code đưa vào là ĐÚNG,
+không đổi là kết quả bình thường và được chấp nhận" có thể cắt được phần thuế này** —
+nhưng #107 cảnh báo: đẩy quá tay sang phía phục tùng thì bị chặn trần ở độ chính xác của nguồn.
