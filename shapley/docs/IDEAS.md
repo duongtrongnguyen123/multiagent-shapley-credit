@@ -4580,3 +4580,51 @@ Nếu đúng thì chẩn đoán #118 (*"đồng thuận hỏng vì pool đa số
 nó hỏng vì **lỗi tương quan**, và 8 mẫu cùng một model cũng tương quan y như 5 mẫu model yếu.
 Prior ở #83 (hàng 1, 45%) tôi đặt **quá cao** — lần thứ hai liên tiếp để "ý tưởng hay" kéo prior lên,
 dù lần này tôi đã tự cảnh báo. **Với dữ liệu này tôi hạ xuống: hàng 3 ~70%, hàng 2 ~20%, hàng 1 ~10%.**
+
+---
+
+## Vòng #119 — H65c: **HUỶ theo cổng đã khoá — và tôi phát hiện một CONFOUND làm hỏng MỌI kết quả MATH**
+*(đăng ký trước #70, khoá tại `85b7ef2`)*
+
+### Phần cứng ĐÚNG như thiết kế
+`NVIDIA RTX PRO 6000 Blackwell | 95.0 GB | sm_120` · **bf16 cả ba model, KHÔNG lượng tử hoá**.
+Cổng ba trường và cơ chế tự chọn độ chính xác đều hoạt động. `bitsandbytes` không cài được
+(competition cấm internet) nhưng **không cần** — đúng như thiết kế.
+
+### HUỶ: cổng `acc(I_14B) − acc(I_7B) ≥ .05` TRƯỢT
+`I_7B` = **.5760** · `I_14B` = **.5480** ⇒ **−.0280**. **14B YẾU HƠN 7B** trên MATH-500 ở thiết lập này.
+Cổng này tôi khoá chính xác để chặn trường hợp "thêm năng lực **không xảy ra**".
+⇒ **KHÔNG ĐỌC** quét năng lực. (Các số bị niêm phong, chỉ ghi để đối chiếu:
+poisoning 1.5B +.0640 · 7B −.0220 · 14B +.0540 — **không đơn điệu**, nhưng **không được diễn giải**.)
+
+### CONFOUND — nghiêm trọng hơn cả việc HUỶ, và nó đánh vào phát hiện của CHÍNH TÔI
+Chẩn đoán tiếp: đếm đầu ra **không có `\boxed`** (dấu hiệu bị cắt ở `MAXNEW=640`):
+| nhánh | thiếu `\boxed` | | nhánh | thiếu | **lệch** |
+|---|---|---|---|---|---|
+| `I_1.5B` | **45.8%** | | `V_1.5B` | 20.8% | **−125 bài** |
+| `I_7B` | **39.8%** | | `V_7B` | 25.4% | **−72 bài** |
+| `I_14B` | **43.0%** | | `V_14B` | 24.6% | **−92 bài** |
+
+**Nhánh `I` bị cắt NHIỀU HƠN HẲN nhánh `V`** — và lý do thì hiển nhiên khi đã thấy:
+`V` **được đưa sẵn một lời giải**, nó chỉ cần kiểm rồi chốt đáp án; `I` phải **tự dẫn từ đầu**
+nên tốn token hơn và đụng trần `MAXNEW` thường xuyên hơn.
+
+> **Mọi phép đo `V − I` trên MATH đều THIÊN LỆCH CÓ HỆ THỐNG THEO HƯỚNG CÓ LỢI CHO `V`.**
+
+### Hệ quả: PHẢI ĐÌNH CHỈ phát hiện đầu bảng của vòng #116
+#116 báo `V_self − I` = **+.1080** trên MATH và tôi đã dùng nó để nói *"thuế sửa chữa là đặc thù task"*.
+**Con số đó dùng đúng kernel này, đúng `MAXNEW=640`** ⇒ **bị confound đúng chiều làm nó DƯƠNG hơn thực tế.**
+- **#116 (+.1080) — ĐÌNH CHỈ, chưa được trích dẫn** cho tới khi đo lại.
+- **#114 (+.0460 và −.0120) — ĐÌNH CHỈ** vì cùng kernel, cùng `MAXNEW`.
+- H70b (đang chạy, tái lập #116) **đã XOÁ** — nó chỉ tái lập cái confound, không tái lập phát hiện.
+
+### Kết quả CODE **KHÔNG** bị ảnh hưởng — đã kiểm
+MBPP: chỉ **3/500** ứng viên thiếu `def` (0.6%), `S` **0/500**; tỉ lệ biên dịch .99+.
+⇒ Toàn bộ chuỗi code (#103, #105, #107, #110, #112, #113, #115, #117, #118) **VẪN ĐỨNG**.
+
+### Bài học
+> **Một giới hạn sinh (`MAXNEW`) là một CAN THIỆP, không phải tham số vô hại — và nó tác động
+> KHÔNG ĐỀU lên các nhánh có độ dài đầu ra khác nhau.** Cùng loại lỗi với "chốt chống rò rỉ"
+> ở #106/#108: thứ tôi tưởng là chi tiết kỹ thuật lại là biến gây nhiễu.
+> **Cổng mới bắt buộc cho mọi thí nghiệm MATH: tỉ lệ có `\boxed` ≥ .80 ở MỌI nhánh,
+> và chênh lệch tỉ lệ đó giữa hai nhánh < .05.**
