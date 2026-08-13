@@ -1,13 +1,15 @@
 # H65 (dang ky truoc #70) — DAU DOC CO TAN BIEN THEO NANG LUC KHONG?
-# Solver CO DINH = 1.5B. Verifier chay o BA muc: 1.5B / 7B / 14B, tat ca bf16 tren RTX 6000 Pro 102 GB.
+# Solver CO DINH = 1.5B. Verifier chay o BA muc: 1.5B(fp16) / 7B(nf4) / 14B(nf4), 2x T4,
+# MOI GPU mot ban sao (data parallel). RTX 6000 Pro het hieu luc — xem #70-b.
 # poisoning(M) = acc(V_M) - acc(I_M): M xem loi giai cua S so voi M tu giai.
 # MATH-500 (GSM8K da bao hoa o 7B: .908-.934). Gold lay tu \boxed trong cot Answer (da kiem 500/500).
-import os, re, csv, json, glob, time, torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import os, re, csv, json, glob, time, threading, subprocess, sys, gc, torch
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "bitsandbytes>=0.46.1"], check=False)
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
 MAXNEW = 640
-BSZ = {"1.5B": 64, "7B": 48, "14B": 24}
+BSZ = {"1.5B": 32, "7B": 16, "14B": 8}   # 2x T4 16 GB, moi the MOT ban sao (data parallel)
 
 def find_model(*needles):
     """tim thu muc model theo TEN THU MUC, khong theo pattern file — vi ca ba model
@@ -89,16 +91,29 @@ TAIL   = "Put the final answer in \\boxed{}."
 SOLVE  = f"Solve step by step. {TAIL}"
 VERIFY = f"Check the proposed solution step by step; if wrong, correct it. {TAIL}"
 
+QUANT = {}
+NG = torch.cuda.device_count()
+DEVS = [f"cuda:{i}" for i in range(NG)]
+BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                         bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 def load(tag):
+    """MOT ban sao moi GPU -> data parallel that su (KHONG device_map='auto' = pipeline)."""
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
-    mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
-    print(f"nap {tag}: VRAM tong {torch.cuda.memory_allocated()/2**30:.1f} GB", flush=True)
-    return mo, tk
+    if tag == "1.5B":
+        mos = [AutoModelForCausalLM.from_pretrained(p, dtype=torch.float16).to(d).eval() for d in DEVS]
+        q = "fp16"
+    else:
+        mos = [AutoModelForCausalLM.from_pretrained(p, quantization_config=BNB,
+                                                    device_map={"": d}).eval() for d in DEVS]
+        q = "nf4"
+    QUANT[tag] = q
+    print(f"nap {tag}: {len(mos)} ban sao {q} | VRAM {torch.cuda.memory_allocated()/2**30:.1f} GB", flush=True)
+    return mos, tk
 
 @torch.no_grad()
-def gen(mo, tk, sysm, usrs, bs):
+def _gen1(mo, tk, sysm, usrs, bs):
     outs, i = [], 0
     while i < len(usrs):
         ch = usrs[i:i+bs]
@@ -116,13 +131,33 @@ def gen(mo, tk, sysm, usrs, bs):
         del e, o; torch.cuda.empty_cache(); i += bs
     return outs
 
+def gen(mos, tk, sysm, usrs, bs):
+    """chia deu cho cac ban sao, chay song song, ghep lai dung thu tu"""
+    if len(mos) == 1: return _gen1(mos[0], tk, sysm, usrs, bs)
+    parts = [list(range(j, len(usrs), len(mos))) for j in range(len(mos))]
+    store, errs, lock = {}, [], threading.Lock()
+    def work(mo, idxs):
+        try:
+            r = _gen1(mo, tk, sysm, [usrs[i] for i in idxs], bs)
+            with lock: store.update(dict(zip(idxs, r)))
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            with lock: errs.append(e)
+    ths = [threading.Thread(target=work, args=(mos[j], parts[j])) for j in range(len(mos)) if parts[j]]
+    for t in ths: t.start()
+    for t in ths: t.join()
+    if errs: raise RuntimeError(f"luong sinh that bai: {errs[0]!r}")
+    if len(store) != len(usrs): raise RuntimeError(f"thieu {len(usrs)-len(store)} dau ra")
+    return [store[i] for i in range(len(usrs))]
+
 t0 = time.time()
 # ---- S = 1.5B tu giai. DONG THOI la I cho muc 1.5B (cung model, cung prompt, cung greedy) ----
 m15, tk15 = load("1.5B")
 SOLS = gen(m15, tk15, SOLVE, Q, BSZ["1.5B"])
 VP   = [f"{q}\n\nProposed solution:\n{s}" for q, s in zip(Q, SOLS)]
 V15  = gen(m15, tk15, VERIFY, VP, BSZ["1.5B"])
-del m15; torch.cuda.empty_cache()
+for _m in m15: del _m
+del m15; gc.collect(); torch.cuda.empty_cache()
 print(f"1.5B xong ({time.time()-t0:.0f}s)", flush=True)
 
 OUT = {"S": SOLS, "I_1.5B": SOLS, "V_1.5B": V15}
@@ -132,7 +167,9 @@ for tag in ["7B", "14B"]:
     print(f"I_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
     OUT[f"V_{tag}"] = gen(mo, tk, VERIFY, VP, BSZ[tag])
     print(f"V_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
-    del mo; torch.cuda.empty_cache()
+    for _m in mo: del _m
+    del mo; gc.collect(); torch.cuda.empty_cache()
+    print(f'  VRAM sau khi giai phong {tag}: {torch.cuda.memory_allocated()/2**30:.2f} GB', flush=True)
 
 A = {k: [_bx(t) or (re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I) or [None])[-1]
          for t in v] for k, v in OUT.items()}
@@ -141,7 +178,7 @@ def acc(k, lo=0, hi=None):
     return round(sum(eq(A[k][i], GOLD[i]) for i in range(lo, hi)) / (hi - lo), 4)
 
 FOLD = N // 5
-res = {"tag": RUN, "n": N, "acc": {k: acc(k) for k in A}, "caps": {}}
+res = {"tag": RUN, "n": N, "quant": QUANT, "n_gpu": NG, "acc": {k: acc(k) for k in A}, "caps": {}}
 for tag in ["1.5B", "7B", "14B"]:
     I, V = A[f"I_{tag}"], A[f"V_{tag}"]
     pois = [i for i in range(N) if eq(I[i], GOLD[i]) and not eq(V[i], GOLD[i])]
@@ -160,7 +197,7 @@ json.dump([{"q": Q[i][:600], "gold": GOLD[i], **{k: (OUT[k][i] or "")[:1500] for
           open(f"/kaggle/working/traces_{RUN}.json", "w"))
 
 print("\n==== H65 TONG KET ====")
-print(f"  n = {N} | S (1.5B giai) = {res['acc']['S']:.4f}")
+print(f"  n = {N} | S (1.5B giai) = {res['acc']['S']:.4f} | quant {QUANT} | {NG} GPU")
 print(f"  {'nang luc':9s} {'I (tu giai)':>12s} {'V (xem S)':>11s} {'poisoning':>11s}  {'doc/cuu':>9s}  {'nhai/thu ba':>12s}")
 for tag in ["1.5B", "7B", "14B"]:
     c = res["caps"][tag]
