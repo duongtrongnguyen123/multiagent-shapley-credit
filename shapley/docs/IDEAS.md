@@ -4289,3 +4289,44 @@ mà **không sửa nổi**. Khớp với #93 (*oracle chỉ đáng giá khi mode
 Giả thuyết sinh ra (phải đăng ký trước rồi mới kiểm): H73 (k=8, đang chạy) sẽ **không** vượt
 được nhiều so với k=2, vì trần chỉ nhích lên khi có ứng viên đúng MỚI, mà 30% bài thì
 không mẫu nào của model này đúng.
+
+---
+
+## Vòng #114 — H65T2: **HỎNG Ở BƯỚC 14B, NHƯNG CỨU ĐƯỢC DỮ LIỆU — và nó THU HẸP phát hiện chính**
+*(đăng ký trước #70 + #70-b. **Bảng khoá KHÔNG thể kích hoạt**: thiếu nhánh 14B ⇒ cổng
+`acc(I_14B) − acc(I_7B) ≥ .05` không đánh giá được. Phần dưới là **DỮ LIỆU MỘT PHẦN**, không phải phán quyết.)*
+
+### Bản sửa "lưu từng phần" ĐÃ CÓ TÁC DỤNG
+H65T mất sạch 2.7h khi sập ở bước 14B. H65T2 sập **cùng chỗ** nhưng `partial_H65T2.json`
+giữ được **cả 5 nhánh** của 1.5B và 7B (~2.5h). **Bài học #H65T đã trả công.**
+
+### Nguyên nhân OOM lần này — một lỗi API thật, không phải ước lượng sai
+`torch.cuda.empty_cache()` và `torch.cuda.memory_allocated()` **chỉ tác dụng lên THIẾT BỊ HIỆN TẠI**.
+Tôi in "VRAM sau khi giải phóng 7B: 0.01 GB" — nhưng đó **chỉ là GPU 0**.
+Bản sao 7B trên **GPU 1 vẫn còn nguyên** (5.2 GB), nên 14B `device_map="auto"` tràn GPU 1:
+**5.2 + 9.3 = 14.5 GB** — khớp đúng thông báo lỗi.
+**Sửa:** lặp `for d in range(NG): with torch.cuda.device(d): torch.cuda.empty_cache()`
+và **báo VRAM theo TỪNG GPU**. (Chỉ số chẩn đoán của tôi đã nói dối vì cùng lỗi API đó.)
+
+### DỮ LIỆU MỘT PHẦN — MATH-500 (cổng của phần này ĐẠT: `acc(S)` .3980 ∈ [.10,.55]; `I_7B − S` = +.1640)
+| nhánh | acc |
+|---|---|
+| `S` = `I_1.5B` (1.5B tự giải) | .3980 |
+| `V_1.5B` (1.5B xem lời giải của chính nó) | **.4440** |
+| `I_7B` | .5620 |
+| `V_7B` (7B xem lời giải 1.5B) | .5500 |
+
+| | MATH (đây) | GSM8K (#100) | MBPP code (#103) |
+|---|---|---|---|
+| `poisoning(7B)` | **−.0120** | −.0740 | −.0740 |
+| `poisoning(1.5B, tự xem)` | **+.0460** | — | −.0280 (7B, #105) |
+
+### Hai điều PHẢI ghi, và cả hai đều thu hẹp phát biểu cũ
+1. **Trên MATH, đầu độc gần như BIẾN MẤT** (−.0120 so với −.0740 ở hai miền kia).
+   Phát biểu "đọc sản phẩm agent yếu hại ròng" **KHÔNG phổ quát theo task** như tôi đã ngụ ý ở #103.
+2. **Ở 1.5B, tự xem lại lời giải của chính mình LÀM TỐT LÊN +.0460** — ngược dấu với `V_self`
+   của 7B trên code (−.0280, #105). ⇒ "thuế của lượt sửa chữa" **không** áp dụng đồng đều;
+   ở model yếu trên toán, lượt thứ hai **có ích thật**.
+
+> **Chưa được kết luận gì thêm cho tới khi H65T3 (đã phóng, đã sửa lỗi GPU) cho đủ ba điểm.**
+> Đặc biệt **không** được vẽ xu hướng năng lực từ hai điểm này.

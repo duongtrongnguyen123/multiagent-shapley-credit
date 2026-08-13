@@ -177,7 +177,9 @@ SOLS = gen(m15, tk15, SOLVE, Q, BSZ["1.5B"])
 VP   = [f"{q}\n\nProposed solution:\n{s}" for q, s in zip(Q, SOLS)]
 V15  = gen(m15, tk15, VERIFY, VP, BSZ["1.5B"])
 for _m in m15: del _m
-del m15; gc.collect(); torch.cuda.empty_cache()
+del m15; gc.collect()
+for _d in range(NG):
+    with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"1.5B xong ({time.time()-t0:.0f}s)", flush=True)
 
 OUT = {"S": SOLS, "I_1.5B": SOLS, "V_1.5B": V15}
@@ -193,8 +195,13 @@ for tag in ["7B", "14B"]:
               open(f"/kaggle/working/partial_{RUN}.json", "w"))
     print(f"  da luu partial_{RUN}.json ({len(OUT)} nhanh)", flush=True)
     for _m in mo: del _m
-    del mo; gc.collect(); torch.cuda.empty_cache()
-    print(f'  VRAM sau khi giai phong {tag}: {torch.cuda.memory_allocated()/2**30:.2f} GB', flush=True)
+    del mo; gc.collect()
+    # empty_cache()/memory_allocated() CHI tac dung len thiet bi HIEN TAI -> phai lap qua TUNG GPU.
+    # Khong lam vay thi ban sao tren GPU 1 van chiem cho va 14B se OOM (loi cua H65T2).
+    for _d in range(NG):
+        with torch.cuda.device(_d): torch.cuda.empty_cache()
+    free = " | ".join(f"gpu{_d} {torch.cuda.memory_allocated(_d)/2**30:.2f} GB" for _d in range(NG))
+    print(f'  VRAM sau khi giai phong {tag}: {free}', flush=True)
 
 A = {k: [_bx(t) or (re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I) or [None])[-1]
          for t in v] for k, v in OUT.items()}
