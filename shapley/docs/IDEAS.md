@@ -3882,3 +3882,59 @@ Giữ nguyên cổng `test_copy_rate` ≤ .20 và thêm cổng `test_soundness` 
 
 > **Bài học: một chốt chống rò rỉ cũng là một CAN THIỆP — phải kiểm nó có phá phép đo không.**
 > Ở đây "bỏ test_list" tưởng chỉ chặn rò rỉ, thực ra còn cắt luôn thông tin cần thiết.
+
+---
+
+## Vòng #107 — H67: **BẢO NÓ "ĐỪNG VIẾT LẠI" LÀM MỌI THỨ TỆ HƠN GẤP ĐÔI — và tôi đã đoán SAI**
+*(đăng ký trước #72, khoá tại `31765ac` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: tái lập H66 **−.0740** · biên dịch **.9960** · `unchanged_rate(V_cons)` = **.7500** ≥ .20
+(cổng can thiệp ĐẠT nghĩa là model **CÓ nghe lời** — nó thật sự giữ nguyên code. Không phải lỗi thực thi.)
+
+| nhánh | acc | `− I` | `− V_std` | bị đầu độc | **giữ code S** / bản thứ ba | `unchanged` |
+|---|---|---|---|---|---|---|
+| `I` | **.6400** | — | — | — | — | — |
+| `V_std` | .5660 | −.0740 | — | 69 | 15 / 54 | .3820 |
+| `V_first` (cam kết trước) | **.5880** | −.0520 | **+.0220** | 64 | 14 / 50 | .3500 |
+| **`V_cons`** ("đừng đụng vào") | **.4840** | **−.1560** | **−.0820** | **102** | **75** / 27 | **.7500** |
+
+fold `V_cons`: −.23 −.09 −.15 −.18 −.13 → **5/5 âm và âm rất sâu.**
+
+### PHÁN QUYẾT: HÀNG 3 — nhưng phải nói rõ bảng của tôi **không lường hết ĐỘ LỚN**
+Hàng 3 khoá trước là *"`V_cons − V_std` < +.02 ⇒ trình bày KHÔNG cứu được đầu độc trên code"*.
+Nó **khớp về dấu**. Nhưng bảng của tôi **không có hàng nào** cho việc can thiệp làm hại
+**gấp đôi** (−.1560 so với −.0740). Ghi nhận là **thiếu sót của bảng**, không bịa hàng mới.
+
+### VÌ SAO — và đây là chỗ nó nối liền với H59
+Tôi bảo model *"nếu code đúng thì giữ NGUYÊN VĂN"*. Nó **nghe lời**: giữ nguyên **75%** (so với 38%).
+Nhưng code của S chỉ đúng **.4280**. **Giữ nguyên code của S = thừa hưởng độ chính xác của S.**
+Số ca "giữ nguyên bản SAI" nhảy **15 → 75**, gấp **5 lần**.
+
+> **Model không phân biệt được đúng/sai — đó CHÍNH LÀ bài toán.**
+> Bảo nó "chỉ sửa cái chắc chắn sai" là giao cho nó đúng việc nó không làm được.
+
+**Đây là ĐỐI XỨNG GƯƠNG của vòng #98 (H59).** Ở đó GRPO dạy verifier **NHẠI LẠI** solver,
+và tôi đã chỉ ra: nhại lại ghi điểm **đúng bằng** độ chính xác của solver, nên không thể vượt.
+Ở đây prompt "bảo thủ" **ép** đúng hành vi nhại lại đó — và kết quả rơi về phía `S` y như dự đoán số học.
+
+| | cơ chế | hệ quả |
+|---|---|---|
+| quá **PHỤC TÙNG** (`V_cons`, GRPO ở #98) | giữ nguyên đầu vào | bị chặn trần ở **độ chính xác của nguồn** (.4280) |
+| quá **CHỦ ĐỘNG** (`V_std`) | viết lại | **hỏng bản đang đúng** (54 bản thứ ba) |
+
+**Không có điểm ngọt nào ở tầng prompt**, vì cả hai cực đều hỏng và model không có tín hiệu
+để chọn giữa chúng. Khớp với kết luận #98: *không có lợi thế thông tin thì không có hàm thưởng
+(hay prompt) nào cứu được.*
+
+### Phần tôi đoán ĐÚNG, và phần tôi đoán SAI
+- **ĐÚNG**: `V_first` giúp **ÍT hơn** trên code so với toán — **+.0220** (code) vs **+.0380** (toán).
+  Lý do ghi trước cũng đúng: `V_first` chữa *nhại lại*, mà code chỉ có 22% là nhại.
+- **SAI NẶNG**: tôi đoán hàng 1 (~55%) rằng `V_cons` sẽ **hơn** `V_std` ≥ +.04.
+  Thực tế **−.0820**. Tôi đã suy từ cơ chế "78% là viết lại" ra "vậy chặn viết lại là chữa" —
+  **bỏ qua** rằng chặn viết lại thì phải GIỮ, mà giữ cái sai cũng chết y hệt.
+  Tỉ lệ prior đúng: **11/22**.
+
+### Phát biểu dùng được
+> Trên code, **`V_first` là biện pháp trình bày TỐT NHẤT đo được (+.0220)** nhưng vẫn để lại
+> **−.0520** so với chỉ gọi thẳng model mạnh. **Không cách trình bày nào cứu được.**
+> Và biện pháp "an toàn" trực giác nhất — *đừng đụng vào nếu không chắc* — **là tệ nhất trong ba**.
