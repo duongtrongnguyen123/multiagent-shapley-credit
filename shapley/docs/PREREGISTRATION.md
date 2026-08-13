@@ -2813,3 +2813,68 @@ và **chỉ tính điểm trên những method mà lời giải chuẩn ĐẠT**
   nếu không ⇒ HUỶ. Nhóm ba theo độ dài chia trên tập ĐÃ LỌC.
 
 Mọi phần còn lại của #69 giữ NGUYÊN, không sửa một chữ.
+
+
+# Đăng ký trước #70 — H65: **ĐẦU ĐỘC CÓ TAN BIẾN THEO NĂNG LỰC KHÔNG?** (14B)
+**Viết TRƯỚC khi chạy.** Nguyên đề nghị lên 14B; chạy trên Kaggle RTX 6000 Pro (102 GB).
+
+## Câu hỏi — điểm thứ BA của một đường đã có hai điểm
+| verifier ← solver | tỉ lệ năng lực | `V − I` | nguồn |
+|---|---|---|---|
+| 1.5B ← 0.5B | 3× | **−.1040** | H60 (#99) |
+| 7B ← 1.5B | 4.7× | **−.0740** | H61 (#100) |
+| **14B ← 1.5B** | **9.3×** | **?** | H65 |
+
+Hai điểm đã có đều **n=500, hiệu ứng .07–.10**, 5/5 fold — **KHÔNG** phải loại nhiễu như
+đáp ứng-theo-liều hỏng ở #102 (5 method/354). Điểm thứ ba phân định hai thế giới rất khác nhau:
+**đầu độc là hiện tượng của model YẾU và tan dần theo năng lực**, hay **nội tại của việc đọc
+văn xuôi model khác và chững lại quanh −.07**.
+
+## VÌ SAO ĐỔI SANG MATH-500, KHÔNG DÙNG GSM8K
+7B **một mình** đã đạt **.908–.934** trên GSM8K (H61/H62). 14B sẽ ~.95 ⇒ **mọi nhánh bị nén vào trần**,
+đo được là TRẦN chứ không phải hiệu ứng. MATH-500: 7B ≈ .49 (H45) ⇒ còn dư địa thật.
+**Hệ quả phải chấp nhận:** điểm 7B sẽ được đo LẠI trên MATH nên **không so trực tiếp** với −.0740
+của GSM8K. Trong H65, cả ba điểm nằm trên **CÙNG một benchmark** ⇒ so sánh nội bộ là hợp lệ.
+Điểm 7B trên MATH cũng là **tái lập trên benchmark khác** của chính hiện tượng.
+
+## Thiết kế — Solver CỐ ĐỊNH, chỉ đổi năng lực Verifier
+Ba model cùng nạp bf16 trên một card 102 GB (1.5B 3 GB + 7B 15 GB + 14B 29 GB = 47 GB).
+**Không lượng tử hoá** ⇒ tránh đúng chuỗi lỗi gói đã giết H54 (`autoawq`/`gptqmodel`/numpy ABI).
+
+- `S` = **1.5B** giải, greedy — dùng CHUNG cho mọi nhánh V (so sánh CẶP)
+- với mỗi M ∈ {1.5B, 7B, 14B}: `I_M` = M **tự giải** · `V_M` = M **xem lời giải của S** rồi kiểm/sửa
+- `poisoning(M)` = `acc(V_M) − acc(I_M)`
+- `I_1.5B` ≡ `S` (cùng model, cùng prompt, cùng greedy) — **dùng lại, không sinh hai lần**
+
+Chấm: lấy `\boxed{}`. **Gold lấy từ `\boxed{}` trong cột `Answer` của CSV Kaggle — đã kiểm tại chỗ:
+500/500 bài có `\boxed`, gold trung vị 3 ký tự, 0 rỗng.** (Lỗi cũ ở vòng trước là so cả chuỗi
+lời giải với đáp án ⇒ 0/500; nay so `\boxed` với `\boxed`.)
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- `acc(S)` ∈ **[.10, .55]**.
+- **`acc(I_14B) − acc(I_7B)` ≥ .05** — 14B phải THẬT SỰ mạnh hơn trên benchmark này, nếu không
+  thì "thêm năng lực" không xảy ra ⇒ **HUỶ, không đọc**.
+- `acc(I_7B) − acc(S)` ≥ .05.
+- n = 500 · báo 5 fold · lưu toàn văn cả ba nhánh.
+
+## Bắt buộc báo KÈM (bất kể hàng nào) — cho TỪNG mức năng lực
+số **bị đầu độc** (I đúng→V sai) vs **được cứu**; trong số bị đầu độc, bao nhiêu **nhại đáp án
+sai của S** vs bao nhiêu ra **đáp án THỨ BA** (H60: 46/54 · H61: 55/45).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `poisoning(14B)` ≥ **−.02** VÀ \|đầu độc\| giảm đều theo 1.5B→7B→14B | **ĐẦU ĐỘC TAN THEO NĂNG LỰC.** Là hiện tượng của model yếu. Thực tiễn: định tuyến lên model đủ mạnh là AN TOÀN. Nêu rõ 14B vẫn là model nhỏ, không suy ra được cho model biên. |
+| `poisoning(14B)` ∈ [−.05, −.02) VÀ giảm đều | Co lại theo năng lực nhưng **CHƯA hết**. Ngoại suy tuyến tính cho ra mức năng lực hoà vốn; ghi rõ đó là ngoại suy, không phải đo. |
+| \|`poisoning(14B)`\| ≥ **.05** HOẶC không giảm đều | **ĐẦU ĐỘC LÀ NỘI TẠI, không rửa được bằng năng lực.** Bản mạnh nhất của #99–#101: đọc văn xuôi của agent yếu hại ròng ở mọi thang đã đo. |
+| `poisoning(14B)` > **+.02** | Đảo dấu: ở 14B việc đọc lời giải yếu **có ích**. Ghi rõ và tìm ngưỡng năng lực đảo dấu. |
+| `acc(I_14B) − acc(I_7B)` < .05 | HUỶ, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~45%)**: co lại còn khoảng −.03..−.04, chưa về 0 — vì hai điểm đã có
+(−.104 → −.074) giảm **chậm** so với mức tăng năng lực (3×→4.7×), và vì **54%/45% thiệt hại là
+"đáp án thứ ba"**, tức nhiễu lập luận chứ không phải bắt chước, thứ mà năng lực khó xoá hẳn.
+Hàng 1 ~20%, hàng 3 ~30%, hàng 4 ~5%.
+**Cảnh báo về chính tôi:** ở #102 tôi đã khoá một phép thử đáp ứng-theo-liều **thiếu lực**.
+Lần này hiệu ứng lớn gấp ~15 lần và n=500/điểm, nhưng vẫn chỉ có **BA điểm** — không được
+vẽ đường xu hướng rồi ngoại suy như thể đó là phép đo. Tỉ lệ prior đúng: **9/19**.
