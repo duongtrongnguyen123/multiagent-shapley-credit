@@ -4548,3 +4548,35 @@ Bài học: khi đã viết ra được cơ chế thất bại, phải **cân nh
 ### Câu hỏi bật ra ngay (đã phóng H76)
 Nếu chẩn đoán đúng thì đồng thuận phải **hoạt động tốt khi đa số ĐÚNG**.
 Pool 8×7B của #117 (mỗi mẫu ~.64) là phép thử sạch cho điều đó.
+
+### Phụ lục #117-b — **THĂM DÒ: 8 mẫu cùng model TƯƠNG QUAN cực mạnh — dự đoán H76 TRƯỚC khi có số**
+> ⚠️ Hậu kiểm trên trace H73, **không đăng ký trước**. Nhưng nó **dự đoán H76 đang chạy**,
+> nên ghi lại **NGAY BÂY GIỜ** để dấu thời gian git chứng minh là dự đoán, không phải hồi tố.
+
+### Phân bố số ứng viên ĐÚNG trong 8 mẫu (tất cả đều là 7B, T=0.8)
+| số đúng | số bài | % |
+|---|---|---|
+| **0/8** | **125** | **25.0%** |
+| 1–7/8 | 111 | **22.2%** |
+| **8/8** | **264** | **52.8%** |
+
+**Cực kỳ LƯỠNG CỰC.** 8 mẫu **đồng ý về tính đúng/sai ở 77.8% số bài**.
+Đây là **lỗi tương quan** đo trực tiếp — không phải suy đoán.
+
+### Và đây là chỗ chết của bỏ phiếu đa số
+Bỏ phiếu chỉ có việc làm ở **111 bài hỗn hợp**. Trong đó **đa số ĐÚNG chỉ ở 52 bài (46.8%)**
+— tức **đa số SAI thường xuyên hơn đúng**, đúng ở những bài mà việc bỏ phiếu mới quan trọng.
+
+> **Nghịch lý: model đúng 64% tổng thể, nhưng ở những bài CÓ BẤT ĐỒNG thì đa số chỉ đúng 46.8%.**
+> Bất đồng **chọn lọc ra** đúng những bài khó, nơi câu trả lời phổ biến nhất của model là SAI.
+
+**Ước lượng bỏ phiếu đa số = (264 + 52)/500 = .6320 — THẤP HƠN greedy .6400.**
+
+### DỰ ĐOÁN CHO H76 (ghi trước khi có kết quả)
+> **Đoán H76 ra HÀNG 3** (*"đồng thuận hại KỂ CẢ khi đa số đúng ⇒ RÚT LẠI chẩn đoán #118"*),
+> với `SEL_cons` ≈ **.63**, kém `SEL_test` khoảng **−.06**.
+
+Nếu đúng thì chẩn đoán #118 (*"đồng thuận hỏng vì pool đa số YẾU"*) là **CHƯA ĐỦ**:
+nó hỏng vì **lỗi tương quan**, và 8 mẫu cùng một model cũng tương quan y như 5 mẫu model yếu.
+Prior ở #83 (hàng 1, 45%) tôi đặt **quá cao** — lần thứ hai liên tiếp để "ý tưởng hay" kéo prior lên,
+dù lần này tôi đã tự cảnh báo. **Với dữ liệu này tôi hạ xuống: hàng 3 ~70%, hàng 2 ~20%, hàng 1 ~10%.**
