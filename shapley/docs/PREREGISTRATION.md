@@ -3205,3 +3205,38 @@ và thay bằng: **`V_review − I` phải ÂM** (cùng dấu với H66), nếu 
 kiểm lại trước khi đọc gì thêm. Mọi so sánh khác là **nội bộ, cùng bộ chấm** nên hợp lệ.
 
 Bảng khoá #74 giữ NGUYÊN. Prior giữ nguyên (hàng 2, ~45%).
+
+
+# Đăng ký trước #77 — H69d: **TÁI LẬP H69c trên dải bài TÁCH RỜI**
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+H69c là **kết quả dương đầu tiên cho hợp tác yếu→mạnh** (`SEL − I` = +.0220, 5/5 fold).
+Quy tắc của dự án: **phát biểu mạnh nhất là phát biểu TÁI LẬP ĐƯỢC** (H56 +.0401 → H57 +.0388,
+lệch .0013). Một kết quả dương chưa tái lập thì chưa được đưa vào README.
+
+Thêm lý do phải cẩn thận: H69c là **lần thử THỨ BA** (hai lần trước HUỶ). Càng nhiều lần chạy
+trên cùng ý tưởng thì càng dễ vô tình chọn cấu hình hợp với nhiễu. **Dải bài tách rời là cách kiểm.**
+
+## Thiết kế — Y HỆT H69c, đổi DUY NHẤT dải task_id
+MBPP **511–974** (H69c dùng 11–510, **không giao nhau**). Mọi thứ khác giữ nguyên tuyệt đối:
+`assert[0]` vào prompt, chấm bằng `assert[1..2]`, loại bài < 3 assert, 1.5B fp16 + 7B nf4, greedy.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` ≥ .50 · `test_copy_rate` ≤ .20 · biên dịch ≥ .50 · n ≥ 400 ·
+`V_review − I` phải ÂM (cùng dấu H69c).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL − I` ≥ **+.01** | **TÁI LẬP.** Hợp tác yếu→mạnh qua CHỌN LỌC là kết quả thật. Được đưa vào README kèm cả hai con số và chi phí 2.2×. Vẫn phải đối chiếu H71b trước khi khuyến nghị dùng. |
+| \|`SEL − I`\| < .01 | **KHÔNG tái lập.** +.0220 của H69c phải bị **hạ cấp** xuống "chưa xác lập"; ghi rõ đó là lần thử thứ ba nên rủi ro nhiễu cao. |
+| `SEL − I` ≤ **−.01** | **ĐẢO DẤU ⇒ RÚT LẠI H69c.** Chọn lọc không đáng tin trên dải khác. |
+| `SEL − V_review` ≥ +.05 (bất kể ô trên) | Phần **"chọn hơn review"** tái lập kể cả khi biên độ so với `I` không tái lập. Đây là phát biểu yếu hơn nhưng vẫn dùng được. |
+| cổng nào trượt | HUỶ, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **tái lập (~70%)**: cơ chế rõ ràng (loại oan 4, lấy nhầm 2 — rất sạch, không giống nhiễu),
+và `SEL − V_review` = +.1300 quá lớn để là ngẫu nhiên. Nhưng biên độ `+.0220` thì **nhỏ**
+so với trần `+.0340`, nên con số cụ thể có thể dao động đáng kể. Đoán khoảng **+.01..+.03**.
+Tỉ lệ prior đúng: **11/23**.

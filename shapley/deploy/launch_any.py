@@ -30,6 +30,8 @@ def main():
     COMP    = [c for c in os.environ.get("COMP", "").split(",") if c]
     DATASETS = [d for d in os.environ.get("DATASETS", "").split(",") if d]
     SIZE    = os.environ.get("SIZE", "7")
+    LO      = os.environ.get("LO", "11")
+    HI      = os.environ.get("HI", "510")
     INTERNET = os.environ.get("INTERNET", "1" if MACHINE == "NvidiaTeslaT4" else "0") == "1"
 
     if MACHINE == "NvidiaRtxPro6000":
@@ -39,8 +41,9 @@ def main():
     elif USER == "zhongzhing":
         sys.exit("zhongzhing DE DANH cho viec can RTX 6000 Pro — dung tai khoan khac cho T4")
 
-    src = (ROOT / kernel).read_text().replace("@@RUN@@", RUN).replace("@@SIZE@@", SIZE)
-    for ph in ["@@RUN@@", "@@SIZE@@"]:
+    src = ((ROOT / kernel).read_text().replace("@@RUN@@", RUN).replace("@@SIZE@@", SIZE)
+           .replace("@@LO@@", LO).replace("@@HI@@", HI))
+    for ph in ["@@RUN@@", "@@SIZE@@", "@@LO@@", "@@HI@@"]:
         if ph in src: sys.exit(f"con placeholder: {ph}")
     if "@@" in src: sys.exit(f"con placeholder chua thay: {[l for l in src.splitlines() if '@@' in l][:2]}")
 
