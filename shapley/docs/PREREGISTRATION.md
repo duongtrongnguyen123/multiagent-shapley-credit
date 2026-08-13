@@ -3319,3 +3319,48 @@ Báo cho mỗi k: `SEL@k` · `trần@k` (hợp) · **`tie_rate@k`** (tỉ lệ b
 Rủi ro thấy trước: `tie_rate` **.898 ở k=2 là rất cao**; nếu 8 mẫu greedy-ish của cùng model
 vẫn hoà ở ~80% thì ra hàng 2. Hàng 2 ~25%, hàng 3 ~15%, hàng 4 ~5%.
 Tỉ lệ prior đúng: **13/25**.
+
+
+# Đăng ký trước #80 — H74: **CÙNG CHI PHÍ — NHIỀU ứng viên RẺ hay ÍT ứng viên ĐẮT?**
+**Viết TRƯỚC khi chạy.** Suy thẳng từ #113.
+
+## Vì sao
+#113 (ghép cặp, cùng lần chạy): đóng góp biên của **một mẫu 1.5B** = **+.0180**, **BẰNG** đóng góp
+của **một mẫu 7B nữa** (+.0180) — nhưng rẻ hơn **5.07 lần**. Nếu quan hệ đó còn giữ khi thêm mẫu,
+thì với **cùng ngân sách**, một pool gồm **nhiều mẫu 1.5B** phải **thắng** pool ít mẫu 7B.
+Đây là dạng thực dụng nhất của toàn bộ chuỗi #99–#113.
+
+## Thiết kế — MỘT kernel, sinh MỘT lần, so mọi pool (ghép cặp hoàn hảo)
+MBPP 11–510, giao thức #74-c. Sinh: `I` = 7B greedy · `I2` = 7B T=0.8 ·
+`S1..S5` = 5 mẫu 1.5B (1 greedy + 4 T=0.8) · `TESTS` = 7B viết test (một lần, dùng chung).
+
+| pool | chi phí sinh (1.5B-eq) | +test | TỔNG |
+|---|---|---|---|
+| {I} | 5.07 | 5.07 | 10.14 |
+| {I, S1} | 6.07 | 5.07 | 11.14 |
+| **{I, I2}** | **10.14** | 5.07 | **15.21** |
+| **{I, S1..S5}** | **10.07** | 5.07 | **15.14** |
+| {I, I2, S1..S5} | 15.14 | 5.07 | 20.21 |
+
+**{I, I2} và {I, S1..S5} khớp chi phí tới 0.5%** ⇒ đây là **so sánh cùng ngân sách thật sự**.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` ≥ .50 · `test_copy_rate` ≤ .20 · n = 500 · `acc(I)` ∈ [.60,.68] ·
+tái lập #113: `SEL{I,S1}` và `SEL{I,I2}` đều phải **dương** so với `I`.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL{I,S1..S5} − SEL{I,I2}` ≥ **+.02** | **NHIỀU ỨNG VIÊN RẺ THẮNG.** Ở cùng ngân sách, năm mẫu 1.5B hơn một mẫu 7B. Khuyến nghị thực dụng rõ ràng và **đảo ngược trực giác "dùng model tốt nhất có thể"**. |
+| \|chênh\| < **.02** | **HOÀ ở cùng ngân sách.** Nguồn ứng viên không quan trọng bằng **tổng ngân sách**; chọn nguồn nào là tuỳ tiện. Vẫn là phát biểu dùng được. |
+| chênh ≤ **−.02** | **ÍT ứng viên ĐẮT thắng.** Chất lượng ứng viên quan trọng hơn số lượng; #113 không ngoại suy được lên nhiều mẫu. |
+| `SEL{I,S1..S5} − SEL{I,S1}` < **+.01** | **Bão hoà ngay sau mẫu 1.5B ĐẦU TIÊN.** Đa dạng của 1.5B là *một lần*, không cộng dồn — hạn chế quan trọng của #113. |
+| trần{I,S1..S5} ≥ trần{I,I2} + .03 | Pool rẻ có **trần cao hơn** ngay cả khi bộ chọn không khai thác hết ⇒ đa dạng thật, nút thắt quay lại bộ chọn. |
+| cổng trượt | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~40%)** — hoà. Lý do: #111-b cho thấy **89.8% bài HOÀ điểm test** ở k=2;
+thêm mẫu 1.5B (chất lượng .44) sẽ tạo thêm ứng viên **sai**, mà bộ chọn có `soundness` .72
+nên dễ bị đánh lừa hơn. Hàng 1 ~30% (nếu đa dạng thắng nhiễu), hàng 3 ~15%, hàng 4 ~15%.
+**Tôi vừa sai ở #113 khi đoán "đóng góp biên ≈ 0"**, nên lần này không tự tin về phía âm.
+Tỉ lệ prior đúng: **13/26**.
