@@ -4256,3 +4256,36 @@ MAY MẮN của lần rút đó**, không phải ưu thế giao thức.
 ### Prior của tôi SAI
 Đoán hàng 2 (~55%): "đóng góp biên ≈ 0", lý do là *"22 bài 1.5B giải được thì mẫu 7B thứ hai
 chắc cũng bắt được"*. Thực tế **15 bài vẫn chỉ mình 1.5B giải được**. Tỉ lệ prior đúng: **13/26**.
+
+### Phụ lục #113-b — **THĂM DÒ: điểm test tự sinh BÁO ĐƯỢC độ khó, nhưng KHÔNG dùng làm cổng định tuyến được**
+> ⚠️ Hậu kiểm trên trace H72, **không đăng ký trước**. Sinh giả thuyết. Miễn phí.
+
+### Điểm test tự sinh mà nhánh `I` (7B greedy) đạt được, tách theo kết cục
+| nhóm | n | `c_I` trung bình |
+|---|---|---|
+| **chỉ 1.5B giải được** (cả hai mẫu 7B trượt) | 15 | **0.53** |
+| 7B giải được (ít nhất một mẫu) | 333 | **2.33** |
+| **cả ba đều trượt** | **152** | 0.84 |
+
+Tín hiệu **phân tách rõ**: 0.53 vs 2.33. Điểm test thấp ⇒ 7B đang chật vật.
+
+### Nhưng làm CỔNG định tuyến thì hỏng vì TỈ LỆ NỀN
+Lấy ngưỡng `c_I ≤ 2`: bắt được **14/15** ca chỉ-1.5B-thắng (**recall 93%**),
+nhưng kích hoạt trên **347/500 bài** ⇒ **precision 4%**.
+=> Không dùng để **tiết kiệm** được gì đáng kể. *Nhưng* vì ứng viên 1.5B chỉ tốn **1.00**,
+kích hoạt thừa cũng rẻ — giá trung bình 0.69 thay vì 1.00. Lợi ích nhỏ, không đáng phức tạp hoá.
+
+### Con số ĐÁNG LO nhất, và nó chặn mọi thứ phía trên
+**152/500 = 30.4% số bài mà CẢ BA ứng viên đều sai.** Ở đó mở rộng pool không cứu được gì.
+Và trên nhóm đó `c_I` = 0.84 — **test tự sinh CŨNG trượt**, tức model "biết" có gì đó sai
+mà **không sửa nổi**. Khớp với #93 (*oracle chỉ đáng giá khi model CÓ THỂ hành động theo tín hiệu*).
+
+> **Trần thật của toàn bộ hướng "chọn trong pool" ở thang model này là ~.70**
+> (500 − 152 = 348 bài có ít nhất một ứng viên đúng ⇒ **.696**).
+> `SEL{I,I2,S}` đã đạt **.6800**, tức **97.7%** của trần đó.
+> **Hướng này gần như CẠN.** Muốn hơn nữa phải làm cho ứng viên **đúng nhiều hơn** — tức
+> quay lại bài toán SINH, không phải bài toán CHỌN.
+
+Giả thuyết sinh ra (phải đăng ký trước rồi mới kiểm): H73 (k=8, đang chạy) sẽ **không** vượt
+được nhiều so với k=2, vì trần chỉ nhích lên khi có ứng viên đúng MỚI, mà 30% bài thì
+không mẫu nào của model này đúng.
