@@ -16,7 +16,7 @@ def find_model(*needles):
         if any(n in p.lower() for n in needles) and os.path.exists(os.path.join(p, "config.json")):
             return p.rstrip("/")
     raise RuntimeError(f"khong thay {needles}")
-M15, M7 = find_model("1-5b", "1_5b", "1.5b"), find_model("7b")
+M7 = find_model("7b")   # H71 KHONG dung 1.5B -> khong tra cuu, va khong mount dataset do
 print(f"GPU={torch.cuda.get_device_name(0)} x{torch.cuda.device_count()}", flush=True)
 
 DS = load_dataset("mbpp", "full", split="test+train+validation")
