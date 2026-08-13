@@ -28,8 +28,8 @@ assert N >= 400
 SOLVE  = "Write the Python function. Return ONLY code inside a ```python block. No explanation."
 REVIEW = ("Review the code below against the task. If it is wrong or incomplete, fix it. "
           "Return ONLY the complete corrected code inside a ```python block.")
-WTEST  = ("Write 5 Python assert statements that test a function for the task described. "
-          "Use the exact function name given in the task. Return ONLY the assert lines inside a "
+WTEST  = ("Write 5 Python assert statements that test the function described. "
+          "Use EXACTLY the function name given. Return ONLY the assert lines inside a "
           "```python block, one per line, no function definition, no explanation.")
 
 def extract(t):
@@ -117,7 +117,18 @@ def gen(mos, tk, sysm, usrs, bs):
     return [store[i] for i in range(len(usrs))]
 
 PR   = [f"{r['text']}\n\nYour code must satisfy:\n" + "\n".join(r["test_list"]) for r in ALL]
-PRNT = [r["text"] for r in ALL]           # KHONG co test_list — dung cho luot VIET TEST
+# #106: bo test_list lam MAT TEN HAM -> model bia ten -> soundness .0523 -> HUY.
+# Nay dua TEN HAM (trich tu test_list) nhung KHONG dua gia tri ky vong (do moi la bo cham).
+def fname(r):
+    for a in r["test_list"]:
+        m = re.search(r"assert\s+\(?\s*([A-Za-z_]\w*)\s*\(", a)
+        if m: return m.group(1)
+    return None
+FN = [fname(r) for r in ALL]
+n_noname = sum(1 for f in FN if not f)
+print(f"trich ten ham: {N-n_noname}/{N} bai (thieu {n_noname})", flush=True)
+PRNT = [f"{ALL[i]['text']}\n\nThe function is named exactly: {FN[i]}" if FN[i] else ALL[i]["text"]
+        for i in range(N)]
 t0 = time.time()
 
 m15, tk15 = load(M15, False)
@@ -160,7 +171,7 @@ res = {"tag": RUN, "n": N, "S": A(PS), "I": A(PI), "V_review": A(PV), "SEL": A(P
        "SEL_minus_I": round(A(PSEL)-A(PI), 4), "SEL_minus_Vreview": round(A(PSEL)-A(PV), 4),
        "Vreview_minus_I": round(A(PV)-A(PI), 4),
        "test_copy_rate": copy_rate, "test_soundness": soundness,
-       "n_tests_gen": ngen, "n_picked_S": n_pick_S,
+       "n_tests_gen": ngen, "n_picked_S": n_pick_S, "n_no_fname": n_noname,
        "wrongly_dropped": sum(1 for i in range(N) if PS[i] and not PI[i] and SEL[i] is I[i]),
        "wrongly_taken": sum(1 for i in range(N) if PI[i] and not PS[i] and SEL[i] is S[i]),
        "compile_rate": round(comp, 4),
