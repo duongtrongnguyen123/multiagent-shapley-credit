@@ -3775,3 +3775,44 @@ lỗi khi BIẾN ĐỔI là trôi ngữ nghĩa tinh vi* — và với H52 (`ref_
 ### Prior của tôi ĐÚNG
 Ghi trước: hàng 1, ~65%, và lý do ghi trước cũng đúng — mỏ neo trên code đã đo là **có hại**
 (−.08/−.098) trong khi trên toán ≈0. Tỉ lệ prior đúng: **10/20**.
+
+---
+
+## Vòng #104 — **THĂM DÒ (KHÔNG đăng ký trước): đầu độc là hiệu ứng CÓ ĐIỀU KIỆN**
+> ⚠️ **ĐÂY LÀ PHÂN TÍCH HẬU KIỂM trên dữ liệu H66 đã có, KHÔNG phải phép thử khoá trước.**
+> Không được coi là xác nhận. Nó **sinh giả thuyết**, phải kiểm bằng một đăng ký trước riêng.
+> Không tốn thêm một giây GPU nào.
+
+### Tách `V − I` = −.0740 theo việc code của S ĐÚNG hay SAI
+| nhóm | n | `I` (7B tự viết) | `V` (7B xem code S) | chênh |
+|---|---|---|---|---|
+| **S ĐÚNG** | 214 | .8972 | **.9393** | **+.0421** |
+| **S SAI** | 286 | .4476 | **.2867** | **−.1608** |
+
+| | bị đầu độc | được cứu | đóng góp vào tổng |
+|---|---|---|---|
+| khi S đúng | 6 | 15 | **+.0180** |
+| khi S sai | 63 | 17 | **−.0920** |
+| | | | **−.0740** ✓ |
+
+### Ba điều đọc được
+1. **Tiếp xúc KHÔNG xấu tự thân — nó xấu CÓ ĐIỀU KIỆN.** Cho xem code **đúng** của model yếu
+   thì model mạnh **TỐT LÊN +.0421**. Cho xem code **sai** thì **TỆ ĐI −.1608**. Gần **4 lần**.
+   => Nói "đọc sản phẩm agent yếu là độc" là **nói quá**. Đúng hơn: **đọc sản phẩm SAI là độc.**
+2. **Thiệt hại rơi đúng vào chỗ đã khó.** Nhóm S sai cũng là nhóm `I` chỉ đạt **.4476**
+   (so với .8972 ở nhóm kia). Lời giải kém xuất hiện đúng những bài model mạnh vốn đã chật vật,
+   nên nó đẩy ngã người đang đứng không vững.
+3. **Biến điều kiện lại chính là thứ KHÔNG quan sát được.** Muốn hưởng +.0421 và tránh −.1608
+   thì phải biết code của S đúng hay sai — **mà đó chính là bài toán cần giải.**
+   Triage hoàn hảo (chỉ cho xem khi S đúng) cho `V` = **.6580**, tức **chỉ +.0180** so với `I`.
+
+### Vì sao +.0180 (triage) < +.0440 (hợp oracle của H69)
+Triage chỉ trả lời *"có cho xem không"*. **CHỌN** trả lời *"lấy bản nào"* — nên còn vớt được
+**22 bài mà 1.5B giải được và 7B trượt**. Đây là lý do H69 (đang chạy) nhắm **chọn**, không nhắm triage.
+
+### Giả thuyết sinh ra (phải đăng ký trước rồi mới kiểm)
+> Nếu đưa cho model mạnh một lời giải yếu **đã được lọc để chỉ còn bản ĐÚNG**, nó sẽ hơn
+> `I` khoảng **+.04**; nếu không lọc được thì mọi giao thức "cho xem rồi review" đều thua `I`.
+
+Điều này **khớp** với quy tắc đã tái lập của dự án: **oracle nên LỌC, đừng SỬA.**
+Ở đây oracle lọc *ứng viên nào được nhìn thấy*, chứ không sửa gì cả.
