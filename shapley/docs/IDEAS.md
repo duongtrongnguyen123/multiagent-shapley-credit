@@ -3938,3 +3938,41 @@ và tôi đã chỉ ra: nhại lại ghi điểm **đúng bằng** độ chính 
 > Trên code, **`V_first` là biện pháp trình bày TỐT NHẤT đo được (+.0220)** nhưng vẫn để lại
 > **−.0520** so với chỉ gọi thẳng model mạnh. **Không cách trình bày nào cứu được.**
 > Và biện pháp "an toàn" trực giác nhất — *đừng đụng vào nếu không chắc* — **là tệ nhất trong ba**.
+
+---
+
+## Vòng #108 — H69b: **HUỶ LẦN HAI — nhưng truy nguyên nó đã CỨU kết quả dương của dự án**
+*(đăng ký trước #74 + #74-b)*
+
+### Vẫn HUỶ: `test_soundness` = **.2580** < .50
+Sửa "đưa tên hàm" **có tác dụng đúng hướng** — soundness **.0523 → .2580** (gấp 5), số lần chọn
+bản của S **3 → 46**, `test_copy_rate` = .0190 (không rò rỉ). Nhưng vẫn dưới cổng ⇒ **KHÔNG ĐỌC**
+`SEL − I` = −.0100.
+
+### Vì sao vẫn hỏng: biết TÊN chưa đủ, phải biết NGỮ NGHĨA
+Có tên hàm rồi thì assert chạy được, nhưng 7B vẫn **đặt sai giá trị kỳ vọng** — mà muốn đặt đúng
+thì phải **giải được bài**. Đây đúng là nút thắt năng lực, không phải lỗi kỹ thuật.
+
+### Truy nguyên dẫn tới một kiểm tra QUAN TRỌNG: **H56 có rò rỉ không?**
+H56 báo `test_soundness` = **.8712** trên cùng benchmark. Chênh quá lớn (.87 vs .26) nên tôi
+nghi **chính H56 đã rò rỉ** — tức kết quả dương **DUY NHẤT tái lập được** của dự án (+.0401/+.0388)
+có thể hỏng. **Đã kiểm trực tiếp mã nguồn `mbpp_select_kernel.py`:**
+
+```
+# KHONG RO RI: assert[0] vao prompt va dung dinh tuyen; assert[1..2] CHI de cham diem.
+TQ = {i: f"{text}\n\nExample test (for the function name):\n{a0}" ...}
+```
+=> H56 đưa **một** assert làm **ví dụ**, và **chấm bằng hai assert CÒN LẠI**. Đây là thiết kế
+**giữ lại (held-out) hợp lệ**, đã ghi rõ trong header từ đầu. **Kết quả +.0401 KHÔNG rò rỉ — VẪN ĐỨNG.**
+
+### Và đó cũng chính là lời giải cho H69
+Khác biệt duy nhất giữa .8712 và .2580 là **một ví dụ đầu-vào→đầu-ra**.
+H56 cho model thấy *ngữ nghĩa mong đợi* trông thế nào; tôi chỉ cho **tên hàm**.
+> **Bài học: "chống rò rỉ" không phải là cắt càng nhiều càng tốt.**
+> Đúng ranh giới là: **được thấy VÍ DỤ, bị chấm trên phần GIỮ LẠI.**
+> Tôi đã cắt quá tay hai lần liên tiếp (#106 cắt tên hàm, nay cắt ví dụ) và **tự phá phép đo hai lần**.
+
+### Chạy lại H69c theo đúng giao thức đã hoạt động của H56
+`assert[0]` vào prompt (cả lượt giải lẫn lượt viết test) · **chấm CHỈ bằng `assert[1..2]`**.
+Lưu ý phải ghi: **thang điểm đổi** so với H66 (vốn chấm bằng cả ba), nên `acc` tuyệt đối
+không so trực tiếp giữa hai vòng; **mọi so sánh trong H69c là nội bộ, cùng bộ chấm.**
