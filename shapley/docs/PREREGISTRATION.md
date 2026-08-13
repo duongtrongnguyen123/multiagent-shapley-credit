@@ -2944,3 +2944,44 @@ Báo KÈM: `poisoned`/`rescued`, và trong số bị đầu độc bao nhiêu **
 Đoán **hàng 1 (~65%)** — mạnh hơn mọi prior gần đây, vì mỏ neo trên code đã đo là **có hại**
 (−.08/−.098) trong khi trên toán là ≈0, nên `V−I` trên code có lẽ **ÂM HƠN** toán, không nhẹ hơn.
 Hàng 2 ~25%, hàng 3 ~10%. Tỉ lệ prior đúng: **9/19**.
+
+
+# Đăng ký trước #72 — H67: **TRÊN CODE, THUỐC CHỮA PHẢI KHÁC** — vì bệnh khác
+**Viết TRƯỚC khi chạy.** Suy ra thẳng từ cơ chế đo được ở #103.
+
+## Lập luận (ghi trước, để có thể SAI công khai)
+H62 trên **toán**: `V_first` (tự giải & cam kết TRƯỚC khi đọc) gỡ **40.4%** thiệt hại —
+nhưng phân tích cơ chế cho thấy nó **giết NHẠI LẠI** (36→15) mà **không đụng** được "đáp án thứ ba" (21→23).
+H66 trên **code**: thiệt hại **78% là bản THỨ BA**, chỉ **22%** là giữ code sai.
+=> **`V_first` phải KÉM hiệu quả trên code**, vì nó chữa đúng cái phần code hầu như không có.
+
+Thứ code cần là chặn **VIẾT LẠI**: model mạnh bị đẩy vào *chế độ sửa chữa* và sửa kém hơn tự viết
+(`I` .6400 vs `V` .5660). Nên thuốc phải là **"đừng đụng vào nếu không chắc chắn sai"**.
+
+## Nhánh — MBPP 11–510, 1.5B viết, 7B nf4 kiểm, greedy, cùng một bộ code của S
+| nhánh | prompt | chi phí |
+|---|---|---|
+| `I` | 7B tự viết, không xem gì | 1×7B |
+| `V_std` | "Proposed code: …" + kiểm/sửa (tái lập H66) | 1×1.5B+1×7B |
+| `V_first` | tự viết lời giải của mình TRƯỚC, rồi mới đọc code kia và chốt | 1×1.5B+1×7B |
+| **`V_cons`** | **"Chạy thử code trong đầu với các test đã cho. Nếu nó ĐÚNG, trả về NGUYÊN VĂN không đổi một ký tự. CHỈ sửa phần chứng minh được là sai."** | 1×1.5B+1×7B |
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+Tái lập H66: `V_std − I` ∈ **[−.12, −.03]**, ngoài khoảng ⇒ HUỶ. Biên dịch ≥ .50. n = 500.
+Báo KÈM cho mỗi nhánh: `poisoned`/`rescued`, **tỉ lệ trả về NGUYÊN VĂN code của S** (`unchanged_rate`),
+và tách nhại/bản-thứ-ba.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V_cons − V_std` ≥ **+.04** VÀ `V_cons − V_first` ≥ **+.02** | **CƠ CHẾ ĐƯỢC XÁC NHẬN: bệnh khác thì thuốc khác.** Trên toán chữa bằng *cam kết trước khi đọc*; trên code chữa bằng *đừng viết lại*. Suy luận từ #103 đúng. |
+| cả hai nhánh gỡ ≥ +.04, chênh nhau < .02 | Hai can thiệp **không phân biệt được**; thiệt hại không đặc thù "viết lại". Lập luận của tôi SAI ở phần cơ chế dù kết quả vẫn dương. |
+| `V_cons − V_std` < +.02 | **Trình bày KHÔNG cứu được đầu độc trên code** (trái với toán, gỡ 40–49%). Code nặng hơn: phải bỏ hẳn kiểu định tuyến này trên code. |
+| `V_cons` ≥ `I` − .02 | Chữa được **gần hết**: bảo model đừng đụng vào là đủ. Nêu rõ khi đó `V` chỉ còn *bằng* `I` mà vẫn **đắt hơn** ⇒ vẫn nên gọi thẳng model mạnh. |
+| `unchanged_rate(V_cons)` < .20 | Can thiệp **KHÔNG xảy ra** (model vẫn viết lại dù bị bảo đừng) ⇒ nhánh không hợp lệ, không đọc như bằng chứng về cơ chế. |
+| `V_std − I` ngoài [−.12,−.03] | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~55%)**. Lý do: cơ chế ở #103 rất rõ (78% là viết lại) và can thiệp nhắm đúng nó.
+Rủi ro thấy trước: model có thể **không nghe lời** — bảo "đừng đổi" nhưng vẫn đổi (nên có cổng
+`unchanged_rate`). Hàng 2 ~15%, hàng 3 ~25%, hàng 4 ~5%. Tỉ lệ prior đúng: **10/20**.
