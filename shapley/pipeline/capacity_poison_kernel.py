@@ -9,7 +9,7 @@ if os.environ.get("NEED_BNB", "1") == "1":
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
-MAXNEW = 640
+MAXNEW = 1280   # #119: 640 cat nhanh I nhieu hon nhanh V (39.8% vs 25.4%) -> confound
 BSZ_SMALL = {"1.5B": 32, "7B": 16, "14B": 8}    # T4 16 GB
 BSZ_BIG   = {"1.5B": 96, "7B": 64, "14B": 32}   # RTX 6000 Pro 102 GB — tinh lai theo VRAM, khong chep
 

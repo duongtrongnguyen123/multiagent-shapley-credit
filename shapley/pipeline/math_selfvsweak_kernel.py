@@ -9,7 +9,7 @@ if os.environ.get("NEED_BNB", "1") == "1":
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
-MAXNEW = 640
+MAXNEW = 1280   # #119: 640 cat nhanh I nhieu hon nhanh V (39.8% vs 25.4%) -> confound
 BSZ_SMALL = {"1.5B": 32, "7B": 16, "14B": 8}    # T4 16 GB
 BSZ_BIG   = {"1.5B": 96, "7B": 64, "14B": 32}   # RTX 6000 Pro 102 GB — tinh lai theo VRAM, khong chep
 
@@ -206,7 +206,13 @@ json.dump([{"q": Q[i][:500], "gold": GOLD[i], **{k: (OUT[k][i] or "")[:1200] for
           open(f"/kaggle/working/traces_{RUN}.json", "w"))
 
 ds = res["arms"]["V_self"]["minus_I"]; dw = res["arms"]["V_weak"]["minus_I"]
+BOXR = {k: round(sum(1 for t in OUT[k] if "\\boxed" in (t or "")) / N, 4) for k in OUT}
+res["boxed_rate"] = BOXR
+bmin = min(BOXR.values()); bspread = max(BOXR.values()) - bmin
 print("\n==== H70 TONG KET ====")
+print(f"  ti le co \\boxed: {BOXR}")
+print(f"  cong cat ngan: min {bmin:.4f} (can >= .80) | chenh {bspread:.4f} (can < .05) -> "
+      f"{'DAT' if bmin >= .80 and bspread < .05 else 'HUY — KHONG DOC'}")
 print(f"  n={N} | quant={QUANT} | S={accS:.4f} | I={accI:.4f}")
 for k in ["V_self", "V_weak"]:
     r = res["arms"][k]
@@ -219,7 +225,10 @@ if ds < 0 and dw < 0 and abs(ds+ (dw-ds)) > 1e-9:
     print(f"  phan CHE DO = {ds:+.4f} ({abs(ds/tot)*100:.0f}%) | phan THEM cua NGUON = {dw-ds:+.4f} ({abs((dw-ds)/tot)*100:.0f}%)   [code: 38%/62%]")
 print(f"\n  cong I-S = {accI-accS:+.4f} ({'DAT' if accI-accS>=.05 else 'HUY'})")
 print(f"  cong acc(S) = {accS:.4f} ({'DAT' if .10 <= accS <= .55 else 'HUY'})")
-print("\n-- bang khoa #75 --")
+print("\n-- bang khoa #84 --")
+if bmin < .80 or bspread >= .05:
+    print("  -> HUY: cong cat ngan truot, khong doc so nao")
+    print("XONG", flush=True); raise SystemExit(0)
 if accI-accS < .05 or not (.10 <= accS <= .55): print("  -> HUY: cong khong dat")
 elif ds <= -.02 and (res["arms"]["V_self"]["acc"] - res["arms"]["V_weak"]["acc"]) >= .02:
     print("  -> HANG 1: PHEP TACH LAP LAI tren toan. Cau truc chung, khong dac thu code.")

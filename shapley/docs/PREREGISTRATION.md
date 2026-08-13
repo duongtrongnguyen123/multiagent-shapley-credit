@@ -3479,3 +3479,37 @@ tái lập #117: `SEL_test` trên 8 ứng viên phải ∈ **[.69, .75]**.
 mạnh** (chúng chia sẻ cùng thiên lệch), nên "đa số đúng" có thể vẫn không phải phiếu độc lập.
 Hàng 2 ~35% (đó là kịch bản bi quan và tôi thấy nó rất khả dĩ), hàng 3 ~15%.
 Tỉ lệ prior đúng: **15/30**.
+
+
+# Đăng ký trước #84 — H70c: **ĐO LẠI `V_self` trên MATH sau khi SỬA CONFOUND CẮT NGẮN**
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+#119: nhánh `I` bị cắt ở `MAXNEW=640` **nhiều hơn hẳn** nhánh `V` (thiếu `\boxed`:
+`I_7B` 39.8% vs `V_7B` 25.4%), vì `V` được đưa sẵn lời giải nên tốn ít token hơn.
+⇒ Mọi `V − I` trên MATH **thiên lệch có lợi cho `V`**. Phát hiện đầu bảng #116
+(`V_self − I` = **+.1080**) đã bị **ĐÌNH CHỈ**.
+
+## Thay đổi so với H70
+1. **`MAXNEW` 640 → 1280** (gấp đôi).
+2. **Cổng cắt ngắn MỚI (khoá trước):** tỉ lệ đầu ra có `\boxed` ≥ **.80** ở **MỌI** nhánh,
+   **VÀ** chênh lệch tỉ lệ đó giữa hai nhánh bất kỳ < **.05**. Trượt ⇒ **HUỶ, không đọc**.
+3. Báo tỉ lệ `\boxed` của từng nhánh trong tổng kết.
+Mọi thứ khác giữ nguyên: MATH-500, 1.5B fp16 giải, 7B nf4, greedy, `I`/`V_self`/`V_weak`.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V_self − I` ≥ **+.05** (cổng cắt ngắn ĐẠT) | **#116 SỐNG SÓT.** Tự xem lại trên toán thật sự có ích lớn; confound chỉ phóng đại chứ không tạo ra hiệu ứng. Ghi lại cả hai số (+.1080 cũ, số mới) và dùng **số MỚI**. |
+| +.02 ≤ `V_self − I` < +.05 | **#116 ĐÚNG CHIỀU nhưng PHÓNG ĐẠI ĐÁNG KỂ.** Phải thay số cũ bằng số mới ở mọi chỗ trích dẫn. |
+| \|`V_self − I`\| < .02 | **#116 PHẦN LỚN LÀ ARTIFACT CẮT NGẮN ⇒ RÚT LẠI.** "Thuế sửa chữa đặc thù task" không được xác lập trên toán. |
+| `V_self − I` ≤ −.02 | **ĐẢO DẤU:** tự xem lại HẠI trên toán, giống code. Rút lại #116 hoàn toàn và ghi rõ hướng ngược. |
+| `V_weak − I` khác đáng kể −.0120 (cũ) | Ghi rõ: số cũ cũng bị confound; dùng số mới. |
+| cổng cắt ngắn TRƯỢT lần nữa | HUỶ; tăng `MAXNEW` tiếp và ghi rõ rằng MATH-500 cần ngân sách token lớn hơn tôi tưởng. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~45%)**: đúng chiều nhưng nhỏ hơn nhiều — vì lệch cắt ngắn (−72 bài trên 500
+= **14.4 điểm phần trăm**) đủ lớn để giải thích **phần lớn** +.1080, nhưng `V_self` cứu 58 phá 4
+(#116) là một cấu trúc khó tạo ra hoàn toàn bằng artifact. Hàng 1 ~15%, hàng 3 ~30%, hàng 4 ~10%.
+**Tôi đang đặt cược chống lại phát hiện của chính mình, và đó là điều đúng phải làm.**
+Tỉ lệ prior đúng: **15/30**.
