@@ -3410,3 +3410,36 @@ giá trị kỳ vọng (điểm mạnh thật), **nhưng** 5/7 ứng viên là 1
 có thể SAI** ở nhiều bài — cụm lớn nhất khi đó là cụm sai. Hàng 1 ~20%, hàng 3 ~25%, hàng 4 ~15%.
 **Đây chính là rủi ro tôi phải nêu trước:** đồng thuận chỉ tốt khi đa số đúng, mà pool này
 đa số là model yếu. Tỉ lệ prior đúng: **14/27**.
+
+
+# Đăng ký trước #82 — H73b: **TÁI LẬP k-scaling trên dải TÁCH RỜI**
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+#117 là **hiệu ứng dương LỚN NHẤT** của dự án (`SEL@8` = .7200, **+.0800** so với greedy).
+Quy tắc dự án: phát biểu mạnh nhất là phát biểu **TÁI LẬP ĐƯỢC**. Chưa tái lập thì chưa vào README.
+Thêm nữa, #117 vừa cho thấy **chênh .0160 chỉ do rút mẫu khác** giữa H73 và H74 — biên độ nhiễu
+của một lần rút là **đáng kể**, nên một dải bài khác là phép kiểm cần thiết.
+
+## Thiết kế — Y HỆT H73, đổi DUY NHẤT dải task_id
+MBPP **511–974** (H73 dùng 11–510). 8 ứng viên 7B, test sinh một lần, k = 1/2/4/8, tiền tố.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` ≥ .50 · `copy_rate` ≤ .20 · n ≥ 400 · `acc(SEL@1)` phải nằm trong
+**[.66, .76]** (H69d đo `I` = .7069 trên dải này; cho biên rộng vì mẫu khác).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL@8 − SEL@2` ≥ **+.02** VÀ tăng đều theo k | **TÁI LẬP.** k-scaling là kết quả thật, đưa vào README kèm **cả chi phí 4.5×** và kèm ghi chú lợi ích/đơn vị giảm dần. |
+| +.01 ≤ chênh < +.02 | Tái lập **yếu**; hiệu ứng thật nhưng biên độ nhỏ hơn #117 rõ rệt. Báo cả hai số, không lấy số lớn hơn làm đại diện. |
+| \|chênh\| < .01 | **KHÔNG tái lập** ⇒ hạ cấp #117 xuống "chưa xác lập". |
+| chênh ≤ −.01 | **ĐẢO DẤU ⇒ RÚT LẠI #117.** |
+| `tie_rate` KHÔNG giảm theo k | Cơ chế nêu ở #111-b/#117 sai trên dải này; ghi rõ dù biên độ acc có tái lập. |
+| **`SEL@8` ≥ `SEL@4` + .04** (tăng TĂNG TỐC thay vì giảm dần) | Ngược hẳn dự đoán "lợi ích giảm dần" của tôi ⇒ phải kiểm k > 8 trước khi khuyến nghị k=2 làm điểm ngọt. |
+| cổng trượt | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **tái lập (~75%)** với biên độ **+.025..+.045**: cơ chế (tie_rate giảm) rất rõ và đơn điệu
+qua bốn mức k, khó là nhiễu. Nhưng dải 511–974 có `I` cao hơn (.7069 vs .6400) ⇒ **ít dư địa hơn**,
+nên biên độ có thể **nhỏ hơn** #117. Tỉ lệ prior đúng: **15/29**.
