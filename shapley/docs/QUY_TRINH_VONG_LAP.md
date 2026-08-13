@@ -243,3 +243,15 @@ không đợi tới cuối. Một lần crash ở giai đoạn N khi đó chỉ 
 Với thẻ nhỏ phải `device_map="auto"` trải một bản trên cả hai thẻ (mất data-parallel, chấp nhận),
 **không** một bản mỗi thẻ. Nhắc lại bài học đã có: **tính lại ngân sách VRAM mỗi lần đổi phần cứng
 HOẶC đổi cỡ model — đừng chép con số cũ.**
+
+---
+
+## Bài học #109: **bản sửa phải LAN sang mọi kernel dẫn xuất**
+
+`mbpp_budget_kernel.py` (H71) được sao từ `mbpp_select_vs_review_kernel.py` **trước** khi
+bản sửa #74-c vào. Tôi sửa bản gốc, quên bản sao ⇒ **đốt một phiên GPU đầy đủ** cho một lỗi
+đã biết chính xác cách chữa (soundness .2580, y hệt lần trước).
+
+**Quy tắc:** khi sửa một kernel, `grep` đoạn mã bị lỗi trên **toàn thư mục `pipeline/`**
+và sửa mọi bản sao **trước khi** phóng bất cứ thứ gì. Kernel trong dự án này được sinh ra bằng
+cách sao chép nhau, nên **mỗi bản sửa là một bản sửa cho cả HỌ kernel**, không phải một file.

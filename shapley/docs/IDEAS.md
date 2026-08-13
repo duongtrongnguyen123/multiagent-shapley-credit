@@ -4009,3 +4009,27 @@ Giả thuyết sinh ra (phải đăng ký trước rồi mới kiểm): **prompt
 "đáng lẽ phải có gì đó để sửa"; một prompt nêu rõ "phần lớn code đưa vào là ĐÚNG,
 không đổi là kết quả bình thường và được chấp nhận" có thể cắt được phần thuế này** —
 nhưng #107 cảnh báo: đẩy quá tay sang phía phục tùng thì bị chặn trần ở độ chính xác của nguồn.
+
+---
+
+## Vòng #109 — H71: **HUỶ — tôi mang lỗi đã biết sang kernel dẫn xuất**
+*(đăng ký trước #76, khoá tại `32afad3`)*
+
+### HUỶ: `test_soundness` = **.2580** < .50 — **y hệt H69b**
+Không phải trùng hợp: H71 được **dựng từ kernel H69 ở thời điểm CHƯA có bản sửa #74-c**
+(đưa `assert[0]` làm ví dụ). Nó thừa hưởng đúng cái prompt viết-test đã biết là hỏng.
+`test_copy_rate` .0190 (không rò rỉ), biên dịch .9980, `acc(I)` = .6400 (cổng tái lập ĐẠT).
+
+**Số KHÔNG ĐƯỢC ĐỌC** (ghi lại chỉ để đối chiếu khi chạy lại):
+`I` = .6400 [chi phí 5.07] · mẫu 2 (T=.8) = .6360 · `SEL_self` = .6500 [chi phí **15.21**] ·
+trần `I_pass2` = .6760 · `SEL−I` = +.0100 (5/5 fold dương, **lấy nhầm = 0**).
+
+### Bài học QUY TRÌNH (đã thêm vào QUY_TRINH_VONG_LAP.md)
+> **Khi một bản sửa được xác nhận, phải LAN sang MỌI kernel dẫn xuất ngay lập tức.**
+Tôi sửa `mbpp_select_vs_review_kernel.py` (#74-c) nhưng quên `mbpp_budget_kernel.py` vốn
+được sao ra từ nó trước đó ⇒ **đốt một phiên GPU cho một lỗi đã biết cách chữa.**
+Đây là lần thứ hai trong phiên tôi để lỗi đã biết đi tiếp (lần trước: kiểm AST trước khi sửa).
+
+### Chạy lại H71b với đúng giao thức #74-c
+`assert[0]` vào cả prompt giải lẫn prompt viết test · chấm CHỈ bằng `assert[1..2]` ·
+loại bài < 3 assert. Bảng khoá #76 giữ NGUYÊN.
