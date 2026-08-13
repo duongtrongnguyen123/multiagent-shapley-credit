@@ -3240,3 +3240,42 @@ MBPP **511–974** (H69c dùng 11–510, **không giao nhau**). Mọi thứ khá
 và `SEL − V_review` = +.1300 quá lớn để là ngẫu nhiên. Nhưng biên độ `+.0220` thì **nhỏ**
 so với trần `+.0340`, nên con số cụ thể có thể dao động đáng kể. Đoán khoảng **+.01..+.03**.
 Tỉ lệ prior đúng: **11/23**.
+
+
+# Đăng ký trước #78 — H72: **ĐÓNG GÓP BIÊN của agent yếu khi pool ĐÃ đa dạng**
+**Viết TRƯỚC khi chạy.** Đây là câu hỏi Shapley nguyên thuỷ của dự án, đặt đúng chỗ cuối cùng.
+
+## Vì sao
+#110/#111: chọn giữa {1.5B, 7B} cho **+.0220**; chọn giữa {7B, 7B'} cho **+.0340**.
+Nhưng hai cái đó là **pool KHÁC NHAU**, chưa trả lời được câu hỏi biên:
+> **Thêm 1.5B vào một pool ĐÃ CÓ hai mẫu 7B thì được thêm bao nhiêu?**
+
+Đây chính là **giá trị Shapley của vai "agent yếu"** trong liên minh — mục tiêu ban đầu của dự án,
+nhưng nay đo bằng **độ chính xác cuối cùng dưới oracle chọn**, không bằng bảng 2⁴ tổ hợp.
+
+## Thiết kế — MỘT kernel, sinh MỘT lần, so MỌI tập con (ghép cặp hoàn hảo)
+MBPP 11–510, giao thức #74-c (`assert[0]` vào prompt, chấm `assert[1..2]`).
+Sinh: `I` = 7B greedy · `I2` = 7B T=0.8 · `S` = 1.5B greedy · `TESTS` = 7B viết test.
+Rồi tính CHỌN trên các pool: **{I}** · **{I,S}** · **{I,I2}** · **{I,I2,S}**.
+Mọi pool dùng **cùng bộ test, cùng bộ code** ⇒ khác biệt duy nhất là **thành phần pool**.
+
+Báo kèm **trần hợp** của từng pool, và `n_picked` từng nguồn.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` ≥ .50 · `test_copy_rate` ≤ .20 · n = 500 · `acc(I)` ∈ [.60,.68] ·
+tái lập: `SEL{I,S} − I` và `SEL{I,I2} − I` phải **dương** (H69c/H71b đã cho +.0220/+.0340).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL{I,I2,S} − SEL{I,I2}` ≥ **+.01** | **Agent yếu CÓ đóng góp biên thật** kể cả khi pool đã đa dạng. Vai "model yếu như nguồn ứng viên" được xác lập — nêu kèm chi phí (+1.00 đơn vị, rẻ nhất trong mọi cách mở rộng pool). |
+| \|chênh\| < **.01** | **Đóng góp biên ≈ 0.** 1.5B không thêm gì mà hai mẫu 7B chưa có. Kết luận cuối cho vai agent yếu: **không có giá trị biên**, kể cả ở dạng dùng tốt nhất (ứng viên + chọn). |
+| chênh ≤ **−.01** | Thêm 1.5B **làm hại** pool: bộ chọn bị đánh lừa bởi ứng viên kém. Báo số lần chọn nhầm sang S. |
+| `SEL{I,I2,S}` ≥ trần của `{I,I2}` | 1.5B giải được bài mà **cả hai** mẫu 7B trượt ⇒ đa dạng thật, dù bộ chọn có bắt được hay không. Báo riêng con số này. |
+| cổng trượt | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~55%)**: đóng góp biên ≈ 0. Lý do: ở #104, 1.5B giải được **22/500** bài mà 7B
+trượt — nhưng phần lớn trong số đó là bài **dễ-với-1.5B** mà mẫu 7B thứ hai (T=0.8) nhiều khả năng
+cũng bắt được. Hàng 1 ~25%, hàng 3 ~20% (bộ chọn có `soundness` .72, tức **28% test sai**,
+nên thêm một ứng viên kém là thêm cơ hội bị đánh lừa). Tỉ lệ prior đúng: **12/24**.
