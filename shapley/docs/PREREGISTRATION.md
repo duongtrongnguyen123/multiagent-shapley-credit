@@ -2878,3 +2878,28 @@ Hàng 1 ~20%, hàng 3 ~30%, hàng 4 ~5%.
 **Cảnh báo về chính tôi:** ở #102 tôi đã khoá một phép thử đáp ứng-theo-liều **thiếu lực**.
 Lần này hiệu ứng lớn gấp ~15 lần và n=500/điểm, nhưng vẫn chỉ có **BA điểm** — không được
 vẽ đường xu hướng rồi ngoại suy như thể đó là phép đo. Tỉ lệ prior đúng: **9/19**.
+
+## BỔ SUNG #70-b — RTX 6000 Pro KHÔNG CÒN; chuyển 2×T4 + nf4 (viết TRƯỚC khi chạy lại, chưa có số nào)
+Lần chạy đầu **HỎNG VÌ HẠ TẦNG, không phải vì khoa học**: kernel nhận **Tesla P100 sm_60**
+-> `no kernel image available` (torch hỗ trợ sm_70+).
+
+**Nguyên nhân — KHÔNG phải metadata của tôi.** Kaggle ghi nhận đủ cả ba trường
+(`machine_shape` / `enable_gpu` / `competition_sources`), và `zhongzhing` **đã tham gia** competition.
+Nhưng **competition `nvidia-nemotron-model-reasoning-challenge` đã ĐÓNG hạn 2026-06-15**, tức
+**hai tháng trước**. Suất tính toán RTX 6000 Pro đi kèm competition đó **đã hết hiệu lực**:
+Kaggle vẫn nhận liên kết nhưng **âm thầm cấp P100**. Cổng ba trường trong `KAGGLE_RTX6000.md`
+đúng khi competition còn mở; **nay KHÔNG còn đúng**. Không có competition đang mở nào cấp lại.
+
+## Thay đổi: 1.5B fp16 · 7B nf4 · 14B nf4, hai bản sao trên 2×T4 (data parallel)
+**Vì sao lượng tử hoá KHÔNG phá phép đo chính:** `poisoning(M) = acc(V_M) − acc(I_M)` là đại lượng
+**GHÉP CẶP TRONG CÙNG MỘT MODEL** — hai nhánh dùng **y hệt** bộ trọng số. nf4 hạ **mức tuyệt đối**
+của cả `I_M` lẫn `V_M` như nhau nên **triệt tiêu trong hiệu**. Đây khác hẳn việc so giữa các model.
+
+**Hạn chế PHẢI ghi rõ (bất lợi cho chính giả thuyết của tôi):** nf4-14B có năng lực hữu hiệu
+thấp hơn bf16-14B (ước lượng thô: ~bf16-13B). Trục năng lực vì thế bị **NÉN NHẸ**, nên nếu
+kết quả ra "đầu độc chưa tan" thì một phần có thể do 14B-nf4 chưa đủ mạnh. **Không được kết luận
+"năng lực không cứu được" một cách tuyệt đối từ dữ liệu này** — chỉ được nói tới mức năng lực ĐÃ ĐO.
+Ngược lại nếu ra hàng 1 (đầu độc tan) thì kết luận **mạnh hơn**, vì đạt được dù model bị nén.
+
+Cổng `acc(I_14B) − acc(I_7B)` ≥ .05 **giữ nguyên** và chính là cái bắt lỗi này: nếu nf4 nén 14B
+tới mức không hơn 7B đủ .05 thì **HUỶ**, không đọc. Mọi phần còn lại của #70 giữ NGUYÊN.
