@@ -4505,3 +4505,46 @@ k=2 **+.00113/đơn vị** · k=4 **+.00042** · k=8 **+.00023**.
 Đoán `SEL@8 − SEL@2` ≈ +.025; thực tế **+.0400** — đúng hướng, **đánh giá thấp biên độ**.
 Rủi ro tôi nêu trước (*"tie_rate .898 quá cao, có thể ra hàng 2"*) **không xảy ra**: tie giảm mạnh.
 Tỉ lệ prior đúng: **15/29**.
+
+---
+
+## Vòng #118 — H75: **ĐỒNG THUẬN THỰC THI TỆ HƠN HẲN (−.0840) — đa số SAI nhấn chìm thiểu số ĐÚNG**
+*(đăng ký trước #81, khoá tại `80667a9` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: tách lời gọi **.9986** · `soundness` .7214 · `copy_rate` .0258 · `acc(I)` .6400 · `SEL_test` .6900 ∈ [.66,.71]
+Pool 7 ứng viên: `I` .6400 · `I2` .6420 · `S1..S5` .440/.406/.410/.414/.424 (**5/7 là 1.5B**)
+
+| bộ chọn | acc | `− I` | trần | thu | chọn `S1` bao nhiêu lần |
+|---|---|---|---|---|---|
+| **`SEL_test`** (đếm assert đạt) | **.6900** | **+.0500** | .7340 | 53% | 29 |
+| **`SEL_cons`** (đồng thuận thực thi) | **.6060** | **−.0340** | .7340 | **−36%** | **65** |
+| `SEL_hyb` | .6060 | −.0340 | .7340 | −36% | 71 |
+
+**PHÁN QUYẾT: HÀNG 4.** `SEL_cons − SEL_test` = **−.0840**. Đồng thuận **tệ hơn cả việc chỉ dùng `I`**.
+
+### Cơ chế — đúng như tôi đã NÊU TRƯỚC, chỉ là tôi đặt cược sai
+Đăng ký trước #81 tôi viết: *"đồng thuận chỉ tốt khi đa số đúng, mà pool này đa số là model yếu"*.
+Đó chính xác là điều xảy ra: đồng thuận chọn `S1` **65 lần** (so với 29 của `SEL_test`),
+mà `S1` chỉ đúng **.44**.
+> **Năm mẫu 1.5B KHÔNG phải năm phiếu độc lập.** Chúng đến từ **cùng một model**, nên chúng
+> **sai theo cùng một kiểu** và tạo ra một "đa số" thống nhất **quanh câu trả lời sai**.
+> Đồng thuận nhầm **lỗi tương quan** thành **bằng chứng**.
+
+**Đây là cùng một sai lầm với "đầu độc" ở #103, nhìn từ góc khác:** thêm tiếng nói từ một
+model yếu không thêm **thông tin**, nó chỉ thêm **trọng số cho phân phối lỗi của model đó**.
+
+### Tại sao `SEL_test` vẫn thắng dù test chỉ đúng .72
+Test tự sinh **sai độc lập với** lỗi của ứng viên (nó do 7B viết, từ mô tả bài).
+Đồng thuận thì **không độc lập** với lỗi ứng viên — nó CHÍNH LÀ lỗi ứng viên.
+> **Một tín hiệu yếu nhưng ĐỘC LẬP hơn hẳn một tín hiệu mạnh nhưng TƯƠNG QUAN.**
+
+### Prior của tôi SAI — nhưng cơ chế thì ĐÚNG
+Đoán hàng 2 (~40%), hàng 4 chỉ ~15%. Ra **hàng 4** với biên độ lớn.
+Ở #115-b tôi còn sắc hoá thành *"hàng 2 hoặc 3"* — cũng sai.
+**Nhưng lý do tôi ghi trước cho rủi ro lại chính là nguyên nhân thật.**
+Bài học: khi đã viết ra được cơ chế thất bại, phải **cân nhắc nó nặng hơn** trong prior,
+đừng để "ý tưởng hay" kéo prior lên. Tỉ lệ prior đúng: **15/30**.
+
+### Câu hỏi bật ra ngay (đã phóng H76)
+Nếu chẩn đoán đúng thì đồng thuận phải **hoạt động tốt khi đa số ĐÚNG**.
+Pool 8×7B của #117 (mỗi mẫu ~.64) là phép thử sạch cho điều đó.
