@@ -3031,3 +3031,57 @@ thấy 78% thiệt hại là **viết lại**, mà code của chính mình thì 
 Hàng 1 ~25%, hàng 2 ~25%, hàng 4 ~5%.
 **Tôi sẽ phải rút lại cách diễn giải của bốn vòng nếu ra hàng 1 — và đó là lý do PHẢI chạy.**
 Tỉ lệ prior đúng: **10/20**.
+
+
+# Đăng ký trước #74 — H69: **CÙNG HAI BẢN CODE — CHỌN thay vì REVIEW**
+**Viết TRƯỚC khi chạy.** Đây là phép thử **tổng hợp** hai kết quả lớn của dự án.
+
+## Vì sao — đã tính sẵn TRẦN từ trace H66 (miễn phí, trước khi chạy)
+Trên đúng 500 bài của H66:
+| | số bài |
+|---|---|
+| chỉ `I` (7B) đúng | 128 |
+| **chỉ `S` (1.5B) đúng — 7B TRƯỢT** | **22** |
+| cả hai đúng | 192 |
+| cả hai sai | 158 |
+
+`acc(I)` = .6400 · `acc(S)` = .4280 · **HỢP = .6840** · `acc(V_review)` = .5660.
+=> Code của agent yếu **CÓ giá trị thật**: nó giải được **22 bài** mà 7B trượt.
+**Trần của việc CHỌN = +.0440 so với `I`, và +.1180 so với REVIEW.**
+Giao thức review đang **phá** đúng cái nó lẽ ra phải thu.
+
+## Thiết kế — MBPP 11–510, cùng bộ `S`/`I`, 7B nf4
+| nhánh | là gì | chi phí |
+|---|---|---|
+| `I` | 7B tự viết | 1×7B |
+| `V_review` | 7B review code của S (tái lập H66) | 1×1.5B+1×7B |
+| **`SEL`** | 7B **tự viết test**, chạy test lên **CẢ HAI** bản (`I` và `S`), **CHỌN** bản qua nhiều test hơn (hoà → giữ `I`) | 1×1.5B+2×7B |
+| `ORACLE2` | chọn đúng bằng test chính thức (chỉ để báo TRẦN, **không** phải nhánh cạnh tranh) | — |
+
+## CHỐNG RÒ RỈ — bắt buộc, đây là chỗ tôi đã sai một lần và phải rút lại
+MBPP đưa `test_list` **ngay trong đề**, và `test_list` **chính là bộ chấm**. Dùng nó để chọn là
+**RÒ RỈ** (đúng lỗi `maj3` trên BigCodeBench đã phải rút lại ở vòng trước).
+- Lượt **viết test** chỉ nhận `text` (mô tả), **KHÔNG** nhận `test_list`.
+- Chấm **luôn luôn** bằng `test_list` chính thức.
+- **Cổng `test_copy_rate`** = tỉ lệ assert tự sinh trùng **nguyên văn** (sau chuẩn hoá khoảng trắng)
+  với `test_list`. **> .20 ⇒ HUỶ nhánh SEL**, coi như rò rỉ, không đọc.
+- Báo `test_soundness` = tỉ lệ test tự sinh mà **lời giải chuẩn** MBPP vượt qua.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+Tái lập H66: `V_review − I` ∈ [−.12,−.03] ⇒ ngoài thì HUỶ. Biên dịch ≥ .50. n = 500.
+`test_soundness` ≥ .50 (test quá sai thì chọn vô nghĩa).
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL − I` ≥ **+.02** | **CHỌN thu được giá trị mà REVIEW phá.** Cùng hai bản code, cùng chi phí một lượt thêm: chọn hơn review ~.10. Đây là **giao thức thay thế dùng được ngay** cho định tuyến yếu→mạnh. |
+| `SEL − V_review` ≥ **+.05** nhưng `SEL − I` < +.02 | Chọn **hơn hẳn** review nhưng **không hơn** việc chỉ gọi model mạnh. Kết luận: sản phẩm agent yếu vẫn không đáng lấy — nhưng nếu buộc phải dùng thì CHỌN, đừng REVIEW. |
+| \|`SEL − V_review`\| < .05 | Chọn **không** hơn review ⇒ vấn đề không nằm ở giao thức mà ở **chất lượng phân biệt** của test tự sinh. Đối chiếu `test_soundness`. |
+| `SEL` < `I` − .02 | Chọn bằng test tự sinh **có hại**: test sai loại oan bản đúng. Báo kèm số bài bị loại oan. |
+| `test_copy_rate` > .20 | **HUỶ nhánh SEL** — rò rỉ, không đọc như kết quả. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~45%)**: chọn sẽ hơn review rõ rệt (vì review đang −.074 và trần chọn là +.044,
+khoảng cách .118 quá lớn để không thấy gì), **nhưng** khó vượt `I` đủ +.02, vì H56 chỉ thu được
+**42–46%** khoảng trống oracle bằng test tự sinh — áp vào đây là ~+.019, **ngay dưới ngưỡng**.
+Hàng 1 ~30%. Hàng 3 ~15%, hàng 4 ~10%. Tỉ lệ prior đúng: **10/20**.
