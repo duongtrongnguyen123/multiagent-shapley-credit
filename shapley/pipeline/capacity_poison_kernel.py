@@ -228,7 +228,13 @@ json.dump([{"q": Q[i][:600], "gold": GOLD[i], **{k: (OUT[k][i] or "")[:1500] for
             **{k+"_ans": A[k][i] for k in A}} for i in range(N)],
           open(f"/kaggle/working/traces_{RUN}.json", "w"))
 
+BOXR = {k: round(sum(1 for t in OUT[k] if "\\boxed" in (t or "")) / N, 4) for k in OUT}
+res["boxed_rate"] = BOXR
+bmin = min(BOXR.values()); bspread = max(BOXR.values()) - bmin
 print("\n==== H65 TONG KET ====")
+print(f"  ti le co \\boxed: {BOXR}")
+print(f"  CONG CAT NGAN: min {bmin:.4f} (>= .80) | chenh {bspread:.4f} (< .05) -> "
+      f"{'DAT' if bmin >= .80 and bspread < .05 else 'HUY — KHONG DOC'}")
 print(f"  n = {N} | S (1.5B giai) = {res['acc']['S']:.4f} | quant {QUANT} | {NG} GPU")
 print(f"  {'nang luc':9s} {'I (tu giai)':>12s} {'V (xem S)':>11s} {'poisoning':>11s}  {'doc/cuu':>9s}  {'nhai/thu ba':>12s}")
 for tag in ["1.5B", "7B", "14B"]:
@@ -246,7 +252,10 @@ print(f"\n  giam deu |poisoning| 1.5B->7B->14B? {'CO' if mono else 'KHONG'}"
 print(f"  cong: acc(S) = {res['acc']['S']:.4f} ({'DAT' if .10 <= res['acc']['S'] <= .55 else 'HUY'})")
 print(f"  cong: I_14B - I_7B = {g1:+.4f} ({'DAT' if g1 >= .05 else 'HUY — 14B khong manh hon that su'})")
 print(f"  cong: I_7B - S     = {g2:+.4f} ({'DAT' if g2 >= .05 else 'HUY'})")
-print("\n-- bang khoa #70 --")
+print("\n-- bang khoa #85 --")
+if bmin < .80 or bspread >= .05:
+    print("  -> HUY: cong cat ngan truot, khong doc so nao")
+    print("XONG", flush=True); raise SystemExit(0)
 if g1 < .05: print("  -> HUY: 14B khong manh hon 7B du .05 tren benchmark nay")
 elif not (.10 <= res["acc"]["S"] <= .55): print("  -> HUY: acc(S) ngoai [.10,.55]")
 elif p14 > .02:   print("  -> HANG 4: DAO DAU — o 14B doc loi giai yeu CO ICH.")

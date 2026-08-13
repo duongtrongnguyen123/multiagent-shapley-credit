@@ -3513,3 +3513,38 @@ Mọi thứ khác giữ nguyên: MATH-500, 1.5B fp16 giải, 7B nf4, greedy, `I`
 (#116) là một cấu trúc khó tạo ra hoàn toàn bằng artifact. Hàng 1 ~15%, hàng 3 ~30%, hàng 4 ~10%.
 **Tôi đang đặt cược chống lại phát hiện của chính mình, và đó là điều đúng phải làm.**
 Tỉ lệ prior đúng: **15/30**.
+
+
+# Đăng ký trước #85 — H65d: **QUÉT NĂNG LỰC LÀM LẠI trên RTX 6000, `MAXNEW`=1280**
+**Viết TRƯỚC khi chạy.** Cần card lớn thật sự: ba model bf16 + sinh dài.
+
+## Vì sao chạy lại
+H65c **HUỶ** vì cổng `acc(I_14B) − acc(I_7B) ≥ .05` trượt (**−.0280**, 14B YẾU HƠN 7B).
+Nhưng #119 phát hiện **`MAXNEW`=640 cắt nhánh `I` rất nặng** (39.8–45.8% mất `\boxed`),
+và **14B bị cắt nhiều hơn 7B** (43.0% vs 39.8%).
+> **Giả thuyết: chính cổng đó trượt VÌ confound.** Model lớn viết dài hơn ⇒ bị cắt nhiều hơn ⇒
+> **đo ra yếu hơn**. Với `MAXNEW`=1280, 14B có thể vượt 7B và quét năng lực trở nên đọc được.
+
+**Đây là lý do phải dùng zhongzhing/RTX 6000:** ba model **bf16** (3+15+29 = 47 GB) **cộng**
+sinh 1280 token cho lô lớn — T4 không chứa nổi, và nf4 sẽ thêm một confound khác.
+
+## Thiết kế
+Y hệt #70, đổi **hai** thứ: `MAXNEW` 640 → **1280**, và thêm **cổng cắt ngắn**.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- **cổng cắt ngắn MỚI:** tỉ lệ có `\boxed` ≥ **.80** ở MỌI nhánh **VÀ** chênh giữa hai nhánh bất kỳ < **.05**.
+- `acc(I_14B) − acc(I_7B)` ≥ **.05** · `acc(I_7B) − acc(S)` ≥ .05 · `acc(S)` ∈ [.10,.55] · n=500.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| cổng cắt ngắn ĐẠT **và** `I_14B − I_7B` ≥ .05 | **Cổng ở H65c trượt VÌ CONFOUND, không phải vì 14B kém.** Đọc quét năng lực theo bảng #70. Ghi rõ: một tham số sinh đã suýt tạo ra kết luận sai về năng lực model. |
+| cổng cắt ngắn ĐẠT nhưng `I_14B − I_7B` < .05 | **14B THẬT SỰ không mạnh hơn 7B trên MATH-500 ở thiết lập này** (không phải artifact). HUỶ quét năng lực **lần cuối**; ngừng theo đuổi hướng 14B trên benchmark này và ghi rõ lý do. |
+| cổng cắt ngắn TRƯỢT lần nữa | HUỶ; MATH-500 cần ngân sách token lớn hơn 1280 — báo tỉ lệ để chọn mức tiếp theo. |
+| `I_14B − I_7B` ≥ .05 nhưng **poisoning KHÔNG đơn điệu** theo năng lực | Ghi đúng như đo được; **không** vẽ xu hướng từ ba điểm. |
+| poisoning(14B) ≥ **+.02** (V TỐT HƠN I ở 14B) | Hàng cho chiều tôi cho là khó: ở năng lực cao, **được xem lời giải yếu lại CÓ ÍCH**. Nếu ra thế này phải kiểm ngay xem cổng cắt ngắn có thật sự cân bằng không trước khi tin. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **50/50** giữa hai hàng đầu. Lệch cắt ngắn 14B−7B chỉ **3.2 đpt**, khó lấp hết khoảng
+**−.0280**, nên nghiêng nhẹ về *"14B thật sự không hơn"*. Nhưng `MAXNEW` dài hơn cũng nâng
+**tất cả** các nhánh và có thể đổi thứ hạng. Tỉ lệ prior đúng: **15/30**.
