@@ -4381,3 +4381,50 @@ Cấu hình tốt nhất đo được: **{I,I2,S1..S5} = .6840 (+.0440)** ở ch
 Lý do ghi trước cũng đúng: *"thêm mẫu 1.5B sẽ tạo thêm ứng viên sai, bộ chọn soundness .72
 dễ bị đánh lừa hơn"* — đúng là thế, thể hiện ở tỉ lệ thu được tụt còn 41%.
 Tỉ lệ prior đúng: **14/27**.
+
+---
+
+## Vòng #116 — H70: **TRÊN TOÁN, 7B TỰ XEM LẠI LỜI GIẢI CỦA MÌNH ĐƯỢC +.1080 — không hàng nào khớp**
+*(đăng ký trước #75, khoá tại `d096473` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: `I − S` = +.1640 · `acc(S)` = .3980 ∈ [.10,.55] · n=500 · MATH-500
+| nhánh | 7B xem gì | acc | `− I` | 5 fold | sửa/phá | `unchanged` |
+|---|---|---|---|---|---|---|
+| `I` | không gì | .5620 | — | — | — | — |
+| **`V_self`** | **lời giải CỦA CHÍNH NÓ** | **.6700** | **+.1080** | .13 .09 .10 .10 .12 | **cứu 58 / phá 4** | .6820 |
+| `V_weak` | lời giải của 1.5B | .5500 | −.0120 | .01 −.06 .02 −.05 .02 | cứu 47 / phá 53 | .5260 |
+
+`V_self − V_weak` = **+.1200**.
+
+### BẢNG KHOÁ #75 KHÔNG CÓ HÀNG NÀO KHỚP — lỗi thiết kế của tôi, lần thứ HAI
+Bốn hàng của #75 đều giả định `V_self` **≤ 0 hoặc ≈ `I`**. Thực tế **+.1080**, mạnh và 5/5 fold.
+Tôi đã khoá bảng với niềm tin ngầm rằng "thuế sửa chữa" (#105, −.0280 trên code) là **phổ quát**.
+**Không bịa hàng mới. Ghi nhận là thiếu sót.**
+> Đây là **lần thứ hai** (sau #99/H60) tôi khoá bảng thiếu hàng cho *"hiệu ứng đi mạnh theo
+> chiều tôi cho là không thể"*. Quy tắc ở QUY_TRINH đã có; tôi **vẫn** vi phạm. Phải áp dụng
+> máy móc: **mọi bảng phải có hàng cho cả hai chiều, biên độ LỚN.**
+
+### Nội dung khoa học: **"thuế sửa chữa" là ĐẶC THÙ TASK, không phổ quát**
+| | `V_self − I` |
+|---|---|
+| **MATH** (đây) | **+.1080** ✓ |
+| **MBPP code** (#105) | **−.0280** ❌ |
+
+Trên **toán**, lượt thứ hai **cứu 58 phá 4** — model bắt được lỗi số học của chính nó.
+Trên **code**, cùng thao tác **cứu 10 phá 24** — nó viết lại và làm hỏng chương trình đang chạy.
+> **Khác biệt: sửa một phép tính là CỤC BỘ; sửa một chương trình là TOÀN CỤC.**
+> Khớp với #93 (*lỗi khi SINH thì thô, lỗi khi BIẾN ĐỔI là trôi ngữ nghĩa*) và #103 (78% thiệt hại
+> trên code là **viết lại**).
+
+### Tái lập được một con số
+`V_weak − I` = **−.0120** trên MATH — **trùng khớp** dữ liệu một phần cứu từ H65T2 (#114),
+cùng thiết lập, hai lần chạy độc lập. Đầu độc trên toán **thật sự yếu** (so với −.0740 ở GSM8K/MBPP).
+
+### Phải sửa lại phát biểu ở #105
+#105 viết: *"`V − I` = (thuế THÊM LƯỢT SỬA) + (thiệt hại RIÊNG của nguồn ngoại lai)"*, với
+thuế = −.0280. **Trên toán thuế đó là DƯƠNG +.1080.** Phân tách hai thành phần **vẫn đúng về
+cấu trúc**, nhưng **dấu và độ lớn của từng phần phụ thuộc TASK** — không được mang số của code sang toán.
+
+### Prior của tôi SAI
+Đoán hàng 1 (~50%): *"phép tách lặp lại trên toán"*. Thực tế thành phần "chế độ" **đổi dấu**.
+Tỉ lệ prior đúng: **14/28**.
