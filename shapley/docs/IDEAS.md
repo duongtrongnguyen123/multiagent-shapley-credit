@@ -4330,3 +4330,54 @@ và **báo VRAM theo TỪNG GPU**. (Chỉ số chẩn đoán của tôi đã nó
 
 > **Chưa được kết luận gì thêm cho tới khi H65T3 (đã phóng, đã sửa lỗi GPU) cho đủ ba điểm.**
 > Đặc biệt **không** được vẽ xu hướng năng lực từ hai điểm này.
+
+---
+
+## Vòng #115 — H74: **HOÀ ở cùng ngân sách — và tôi phải SỬA HAI kết luận thăm dò gần đây**
+*(đăng ký trước #80, khoá tại `72d6985` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: `soundness` .7214 · `copy_rate` .0258 · `acc(I)` .6400 · biên dịch .9869 · n=500
+acc riêng: `I` .6400 · `I2` .6260 · `S1..S5` .4400/.4280/.3860/.4160/.4160
+
+| pool | acc | vs `I` | **trần** | **thu được** | chi phí |
+|---|---|---|---|---|---|
+| {I} | .6400 | — | .6400 | — | 10.14 |
+| {I,S1} | .6620 | +.0220 | .6740 | **65%** | 11.14 |
+| **{I,I2}** | **.6640** | +.0240 | .6680 | **86%** | **15.21** |
+| **{I,S1..S5}** | **.6660** | +.0260 | **.7040** | **41%** | **15.14** |
+| {I,I2,S1..S5} | **.6840** | +.0440 | **.7260** | 51% | 20.21 |
+
+**PHÁN QUYẾT: HÀNG 2 — HOÀ.** `SEL{I,S1..S5} − SEL{I,I2}` = **+.0020** ở chi phí khớp 0.5%.
+Hai hàng phụ cũng kích hoạt: **bão hoà** (+.0040 từ S2..S5) và **pool rẻ có trần cao hơn** (+.036).
+
+### ĐÂY LÀ ĐIỀU QUAN TRỌNG, và nó SỬA #111-b
+**Trần tăng đều theo số ứng viên: .6400 → .6680 → .7040 → .7260.**
+**Nhưng tỉ lệ thu được SỤT: 86% → 41% → 51%.**
+
+Ở #111-b tôi kết luận (thăm dò, k=2): *"bộ chọn không còn là nút thắt, nút thắt là trần pool"*.
+**Đúng ở k=2** (thu 86%), **SAI khi pool giàu hơn**. Với 6 ứng viên, trần lên .7040 mà bộ chọn
+chỉ lấy được **41%** — **bộ chọn TRỞ LẠI làm nút thắt.**
+> **Phát biểu đã sửa: nút thắt CHUYỂN theo k.** k nhỏ ⇒ pool là giới hạn; k lớn ⇒ bộ chọn là giới hạn.
+> Không có một câu trả lời duy nhất, và tôi đã tổng quát hoá từ **một điểm k=2**.
+
+### Và nó cũng SỬA #113-b
+#113-b viết: *"trần thật của hướng này là .696, `SEL` đã đạt 97.7% ⇒ hướng gần CẠN"*.
+Con số .696 tính trên pool **ba** ứng viên. Với **bảy** ứng viên trần là **.7260**.
+**Trần KHÔNG cố định — nó tăng theo số ứng viên.** Phát biểu "gần cạn" là **quá sớm**;
+cái cạn là *khả năng KHAI THÁC* của bộ chọn, không phải trần.
+
+### Bão hoà: đa dạng của 1.5B là MỘT LẦN đối với BỘ CHỌN, không phải đối với POOL
+`S1` một mình cho +.0220. Thêm `S2..S5` chỉ cho **+.0040** nữa.
+Nhưng trần vẫn nhảy .6740 → .7040, và số bài **chỉ 1.5B giải được** tăng **15 → 29**.
+=> Ứng viên đúng **có ở đó**, bộ chọn **không nhặt được**. Test `soundness` .72 không đủ
+phân biệt khi số ứng viên tăng — càng nhiều ứng viên, càng nhiều cơ hội test chấm nhầm.
+
+### Trả lời câu hỏi thực dụng
+**Ở cùng ngân sách, nguồn ứng viên gần như KHÔNG quan trọng** (+.0020).
+Cái quan trọng là **tổng ngân sách** — và cả hai cách đều bị chặn bởi **chất lượng bộ chọn**.
+Cấu hình tốt nhất đo được: **{I,I2,S1..S5} = .6840 (+.0440)** ở chi phí 20.21 (2× cấu hình rẻ).
+
+### Prior của tôi ĐÚNG (hàng 2, ~40%)
+Lý do ghi trước cũng đúng: *"thêm mẫu 1.5B sẽ tạo thêm ứng viên sai, bộ chọn soundness .72
+dễ bị đánh lừa hơn"* — đúng là thế, thể hiện ở tỉ lệ thu được tụt còn 41%.
+Tỉ lệ prior đúng: **14/27**.
