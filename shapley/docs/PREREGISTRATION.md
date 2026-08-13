@@ -3443,3 +3443,39 @@ MBPP **511–974** (H73 dùng 11–510). 8 ứng viên 7B, test sinh một lần
 Đoán **tái lập (~75%)** với biên độ **+.025..+.045**: cơ chế (tie_rate giảm) rất rõ và đơn điệu
 qua bốn mức k, khó là nhiễu. Nhưng dải 511–974 có `I` cao hơn (.7069 vs .6400) ⇒ **ít dư địa hơn**,
 nên biên độ có thể **nhỏ hơn** #117. Tỉ lệ prior đúng: **15/29**.
+
+
+# Đăng ký trước #83 — H76: **ĐỒNG THUẬN CÓ HOẠT ĐỘNG KHI ĐA SỐ ĐÚNG KHÔNG?**
+**Viết TRƯỚC khi chạy.** Kiểm thẳng chẩn đoán của #118.
+
+## Vì sao
+#118: đồng thuận thực thi **−.0840** trên pool **5/7 là 1.5B** (acc ~.42).
+Chẩn đoán tôi đưa ra: *"đa số SAI nhấn chìm thiểu số ĐÚNG; năm mẫu cùng một model là lỗi
+TƯƠNG QUAN, không phải năm phiếu độc lập."*
+**Nếu chẩn đoán đó đúng thì trên pool mà đa số ĐÚNG, đồng thuận phải hoạt động tốt.**
+Pool 8 mẫu 7B của #117 (mỗi mẫu **.624–.662**) là phép thử sạch: đa số đúng ở phần lớn bài.
+
+## Thiết kế — pool 8×7B của H73, ba bộ chọn trên CÙNG dữ liệu (ghép cặp hoàn hảo)
+MBPP 11–510, giao thức #74-c. Sinh 8 ứng viên 7B (1 greedy + 7 T=0.8) + test (7B, một lần).
+`SEL_test` (đếm assert đạt) · `SEL_cons` (gom cụm đầu ra) · `SEL_hyb` (cons, hoà thì dùng test).
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+tách lời gọi ≥ .80 · `soundness` ≥ .50 · `copy_rate` ≤ .20 · n=500 ·
+tái lập #117: `SEL_test` trên 8 ứng viên phải ∈ **[.69, .75]**.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL_cons − SEL_test` ≥ **+.02** | **CHẨN ĐOÁN #118 ĐƯỢC XÁC NHẬN.** Đồng thuận tốt khi đa số đúng, hại khi đa số sai. Quy tắc dùng được: **chỉ bỏ phiếu giữa các ứng viên CÙNG mức năng lực cao**; đừng trộn model yếu vào phiếu bầu. |
+| \|chênh\| < .02 | Đồng thuận **không hơn** ngay cả khi đa số đúng ⇒ chẩn đoán #118 **chưa đủ**: vấn đề không chỉ là "đa số sai" mà là **lỗi tương quan nói chung** (8 mẫu cùng model cũng tương quan). Phát biểu mạnh hơn và bi quan hơn. |
+| `SEL_cons` < `SEL_test` − .02 | **Đồng thuận hại kể cả khi đa số đúng** ⇒ **RÚT LẠI chẩn đoán #118**; nguyên nhân thật nằm ở chỗ khác (ví dụ: gom cụm theo `repr` quá nhạy với khác biệt vô hại). |
+| `SEL_hyb` > cả hai + .005 | Hai tín hiệu bổ sung nhau; đây là bộ chọn nên dùng. |
+| `SEL_cons` ≥ trần − .01 | Đồng thuận gần như khai thác hết pool ⇒ nút thắt chuyển hẳn về SINH. |
+| cổng trượt | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~45%)** — nhưng **thận trọng hơn lần trước**, vì bài học #118 là tôi đã để
+"ý tưởng hay" kéo prior lên. Lý do nghi ngờ, ghi rõ: **8 mẫu từ CÙNG một model 7B vẫn tương quan
+mạnh** (chúng chia sẻ cùng thiên lệch), nên "đa số đúng" có thể vẫn không phải phiếu độc lập.
+Hàng 2 ~35% (đó là kịch bản bi quan và tôi thấy nó rất khả dĩ), hàng 3 ~15%.
+Tỉ lệ prior đúng: **15/30**.
