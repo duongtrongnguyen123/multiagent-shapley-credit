@@ -3279,3 +3279,43 @@ tái lập: `SEL{I,S} − I` và `SEL{I,I2} − I` phải **dương** (H69c/H71b
 trượt — nhưng phần lớn trong số đó là bài **dễ-với-1.5B** mà mẫu 7B thứ hai (T=0.8) nhiều khả năng
 cũng bắt được. Hàng 1 ~25%, hàng 3 ~20% (bộ chọn có `soundness` .72, tức **28% test sai**,
 nên thêm một ứng viên kém là thêm cơ hội bị đánh lừa). Tỉ lệ prior đúng: **12/24**.
+
+
+# Đăng ký trước #79 — H73: **LỢI ÍCH CỦA CHỌN CÓ TĂNG THEO SỐ ỨNG VIÊN k KHÔNG?**
+**Viết TRƯỚC khi chạy.** Suy thẳng từ phụ lục thăm dò #111-b.
+
+## Vì sao
+#111-b (hậu kiểm H71b): trên 500 bài, **chỉ 4 bài** có bản đúng trong pool mà bộ chọn bỏ lỡ
+(mất .0080). **89.8% số bài HOÀ điểm test** ⇒ bộ chọn **không còn là nút thắt**;
+cải thiện test tối đa còn **< +.01**. Nút thắt đã chuyển sang **TRẦN CỦA POOL**.
+Nếu đúng thì **thêm ứng viên** phải là đòn bẩy, và **tỉ lệ hoà phải giảm khi k tăng**.
+Đây cũng là lời giải thích hậu kiểm cho H58 (*"số lượng test không phải nút thắt"*, +.0101) —
+nay phải kiểm bằng một phép thử khoá trước.
+
+## Thiết kế — MỘT kernel, sinh MỘT lần, cắt theo k (ghép cặp hoàn hảo)
+MBPP 11–510, 7B nf4, giao thức #74-c (`assert[0]` vào prompt, chấm `assert[1..2]`).
+Sinh **8 ứng viên**: 1 greedy + 7 mẫu T=0.8. Sinh test **một lần** (7B, greedy).
+Tính `SEL@k` cho **k = 1, 2, 4, 8** trên **đúng cùng** bộ ứng viên và **cùng** bộ test
+(k nhỏ = tiền tố của k lớn) ⇒ khác biệt duy nhất là **số ứng viên**.
+
+Báo cho mỗi k: `SEL@k` · `trần@k` (hợp) · **`tie_rate@k`** (tỉ lệ bài mà mọi ứng viên hoà điểm test)
+· % khoảng trống thu được · chi phí (1.5B-eq, 7B = 5.07×; k ứng viên + 1 lượt test).
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` ≥ .50 · `test_copy_rate` ≤ .20 · n = 500 · `acc(SEL@1)` = `acc(I)` ∈ [.60,.68].
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL@8 − SEL@2` ≥ **+.02** VÀ `SEL@k` tăng đều theo k | **k LÀ ĐÒN BẨY.** #111-b được xác nhận: nút thắt là trần pool. Khuyến nghị thực dụng: tiêu ngân sách vào **thêm mẫu**, không vào test tốt hơn. Nêu kèm chi phí tăng tuyến tính theo k. |
+| \|`SEL@8 − SEL@2`\| < **.02** | **k KHÔNG phải đòn bẩy.** Cả bộ chọn lẫn pool đều bão hoà ⇒ nút thắt nằm ở **bản thân việc SINH** (8 mẫu không đa dạng hơn 2 một cách hữu ích). Kết quả âm rộng: không cách tiêu ngân sách nào ăn thua ở thang model này. |
+| `trần@8 − trần@2` ≥ +.04 **nhưng** `SEL@8 − SEL@2` < +.02 | **ĐẢO LẠI #111-b: ở k lớn, BỘ CHỌN mới là nút thắt.** Pool có nhiều bản đúng hơn nhưng test tự sinh không phân biệt nổi. Khi đó quay lại hướng cải thiện test — và tôi phải **rút lại** kết luận của #111-b. |
+| `tie_rate@8` KHÔNG giảm rõ so với `tie_rate@2` | Cơ chế tôi nêu ở #111-b SAI: thêm ứng viên không tạo thêm khác biệt quan sát được qua test. Ghi rõ. |
+| cổng trượt | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~55%)** nhưng với **lợi ích giảm dần**: `SEL@2` +.034 (đã đo ở H71b),
+đoán `SEL@4` ≈ +.05, `SEL@8` ≈ +.06 ⇒ `SEL@8 − SEL@2` ≈ **+.025**, vừa qua ngưỡng.
+Rủi ro thấy trước: `tie_rate` **.898 ở k=2 là rất cao**; nếu 8 mẫu greedy-ish của cùng model
+vẫn hoà ở ~80% thì ra hàng 2. Hàng 2 ~25%, hàng 3 ~15%, hàng 4 ~5%.
+Tỉ lệ prior đúng: **13/25**.
