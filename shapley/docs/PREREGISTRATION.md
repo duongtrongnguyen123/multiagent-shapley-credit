@@ -2903,3 +2903,44 @@ Ngược lại nếu ra hàng 1 (đầu độc tan) thì kết luận **mạnh h
 
 Cổng `acc(I_14B) − acc(I_7B)` ≥ .05 **giữ nguyên** và chính là cái bắt lỗi này: nếu nf4 nén 14B
 tới mức không hơn 7B đủ .05 thì **HUỶ**, không đọc. Mọi phần còn lại của #70 giữ NGUYÊN.
+
+
+# Đăng ký trước #71 — H66: **ĐẦU ĐỘC CÓ XẢY RA TRÊN CODE KHÔNG?**
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+#99–#101 đo đầu độc **chỉ trên TOÁN** (GSM8K). Chưa biết nó có phải hiện tượng riêng của toán
+hay của **giao tiếp bằng ngôn ngữ** nói chung. Code là phép thử tốt nhất vì **có oracle thật**
+(chạy test) nên không phụ thuộc bộ chấm.
+
+Manh mối cũ, **KHÁC câu hỏi**: H44/H47 đo *mỏ neo-có vs mỏ neo-không* trên code = **−.0800 / −.0981**
+— nhưng cả hai nhánh đều là pipeline nhiều lượt của **cùng** model. **Chưa ai đo `V − I` trên code.**
+
+## Thiết kế — y hệt H61, đổi task
+MBPP 11–510 (498 bài, có test). 7B nf4, greedy.
+| nhánh | là gì | chi phí |
+|---|---|---|
+| `S` | **1.5B** viết code | 1×1.5B |
+| **`I`** | **7B tự viết, KHÔNG xem gì** | **1×7B** ← RẺ HƠN V |
+| `V` | 7B xem code của S rồi kiểm/sửa | 1×1.5B + 1×7B |
+
+Chấm: `pass` = qua toàn bộ assert đi kèm. **`I` rẻ hơn `V`** ⇒ `I ≥ V` là **áp đảo hoàn toàn**.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`acc(I) − acc(S)` ≥ .05 · tỉ lệ biên dịch được ≥ .50 · n ≥ 400.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V − I` ≤ **−.02** | **ĐẦU ĐỘC TỔNG QUÁT SANG CODE.** Không phải hiện tượng của toán mà của **việc đọc sản phẩm agent yếu**. Cùng với #99/#100 thành ba task, ba cặp model. |
+| \|`V − I`\| < .02 | **Đầu độc KHÔNG tổng quát sang code.** Phải thu hẹp #99–#101 về "trên toán". Tìm cái gì khác nhau: code có oracle nội tại (chạy được), văn xuôi toán thì không. |
+| `V − I` ≥ **+.02** | Trên code, đọc code yếu **CÓ ÍCH** — ngược dấu với toán. Kết quả mạnh, phải nêu vì sao code khác. |
+| `acc(I) − acc(S)` < .05 | HUỶ. |
+
+Báo KÈM: `poisoned`/`rescued`, và trong số bị đầu độc bao nhiêu **giữ nguyên code sai của S**
+(tương đương "nhại") vs bao nhiêu **viết ra bản thứ ba vẫn sai**.
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~65%)** — mạnh hơn mọi prior gần đây, vì mỏ neo trên code đã đo là **có hại**
+(−.08/−.098) trong khi trên toán là ≈0, nên `V−I` trên code có lẽ **ÂM HƠN** toán, không nhẹ hơn.
+Hàng 2 ~25%, hàng 3 ~10%. Tỉ lệ prior đúng: **9/19**.
