@@ -4,12 +4,14 @@
 # poisoning(M) = acc(V_M) - acc(I_M): M xem loi giai cua S so voi M tu giai.
 # MATH-500 (GSM8K da bao hoa o 7B: .908-.934). Gold lay tu \boxed trong cot Answer (da kiem 500/500).
 import os, re, csv, json, glob, time, threading, subprocess, sys, gc, torch
-subprocess.run([sys.executable, "-m", "pip", "install", "-q", "bitsandbytes>=0.46.1"], check=False)
+if os.environ.get("NEED_BNB", "1") == "1":
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "bitsandbytes>=0.46.1"], check=False)
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
 MAXNEW = 640
-BSZ = {"1.5B": 32, "7B": 16, "14B": 8}   # 2x T4 16 GB, moi the MOT ban sao (data parallel)
+BSZ_SMALL = {"1.5B": 32, "7B": 16, "14B": 8}    # T4 16 GB
+BSZ_BIG   = {"1.5B": 96, "7B": 64, "14B": 32}   # RTX 6000 Pro 102 GB — tinh lai theo VRAM, khong chep
 
 def find_model(*needles):
     """tim thu muc model theo TEN THU MUC, khong theo pattern file — vi ca ba model
@@ -94,16 +96,27 @@ VERIFY = f"Check the proposed solution step by step; if wrong, correct it. {TAIL
 QUANT = {}
 NG = torch.cuda.device_count()
 DEVS = [f"cuda:{i}" for i in range(NG)]
-BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+CC = torch.cuda.get_device_capability(0)
+VRAM = torch.cuda.get_device_properties(0).total_memory / 2**30
+if CC[0] < 7:
+    raise SystemExit(f"HUY: sm_{CC[0]}{CC[1]} (P100) — torch khong co kernel image. Cong GPU hong.")
+# TU CHON do chinh xac theo phan cung (khuyen cao trong ghi chu Kaggle cua chinh minh):
+#   card lon (>=40 GB, sm_80+) -> bf16 het, KHONG luong tu hoa -> khong con caveat #70-b
+#   card nho (T4 16 GB)        -> nf4 cho 7B/14B, moi GPU mot ban sao
+BIG = (VRAM >= 40 and CC[0] >= 8)
+DT = torch.bfloat16 if CC[0] >= 8 else torch.float16
+print(f"CHE DO: {'CARD LON -> bf16 khong luong tu hoa' if BIG else 'CARD NHO -> nf4 cho 7B/14B'}"
+      f" | {NG} GPU | sm_{CC[0]}{CC[1]} | {VRAM:.1f} GB", flush=True)
+BNB = None if BIG else BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                          bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 def load(tag):
     """MOT ban sao moi GPU -> data parallel that su (KHONG device_map='auto' = pipeline)."""
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
-    if tag == "1.5B":
-        mos = [AutoModelForCausalLM.from_pretrained(p, dtype=torch.float16).to(d).eval() for d in DEVS]
-        q = "fp16"
+    if BIG or tag == "1.5B":
+        mos = [AutoModelForCausalLM.from_pretrained(p, dtype=DT).to(d).eval() for d in DEVS]
+        q = "bf16" if DT is torch.bfloat16 else "fp16"
     else:
         mos = [AutoModelForCausalLM.from_pretrained(p, quantization_config=BNB,
                                                     device_map={"": d}).eval() for d in DEVS]
@@ -150,6 +163,7 @@ def gen(mos, tk, sysm, usrs, bs):
     if len(store) != len(usrs): raise RuntimeError(f"thieu {len(usrs)-len(store)} dau ra")
     return [store[i] for i in range(len(usrs))]
 
+BSZ = BSZ_BIG if BIG else BSZ_SMALL
 t0 = time.time()
 # ---- S = 1.5B tu giai. DONG THOI la I cho muc 1.5B (cung model, cung prompt, cung greedy) ----
 m15, tk15 = load("1.5B")

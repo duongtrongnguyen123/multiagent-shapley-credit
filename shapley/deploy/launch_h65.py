@@ -22,7 +22,14 @@ DATASETS = ["xatri007/qwen2-5-1-5b-instruct",
             "ragnar123/qwen2-5-7b-instruct",
             "syzong/qwen2-5-14b-instruct",
             "open-benchmarks/math-500-measuring-mathematical-problem-solving"]
-COMP = []   # #70-b: competition nemotron da dong han 2026-06-15 -> lien ket VO HIEU, Kaggle cap P100
+# CHON PHAN CUNG qua bien moi truong:
+#   MACHINE=NvidiaRtxPro6000 COMP=arc-prize-2026-arc-agi-3   -> 102 GB, bf16, KHONG internet
+#   MACHINE=NvidiaTeslaT4                                    -> 2x16 GB, nf4, CAN internet
+# LUU Y: nemotron da dong han 2026-06-15 -> lien ket VO HIEU (Kaggle am tham cap P100).
+#        arc-prize-2026-arc-agi-3 con mo den 2026-11-02 va VAN cap RTX 6000 Pro.
+MACHINE = os.environ.get("MACHINE", "NvidiaTeslaT4")
+COMP = [c for c in os.environ.get("COMP", "").split(",") if c]
+INTERNET = MACHINE == "NvidiaTeslaT4"   # competition ARC/Nemotron CAM internet (push tra HTTP 400)
 
 def main():
     tok = os.environ.get("KAGGLE_API_TOKEN")
@@ -36,13 +43,16 @@ def main():
     (KDIR / "kernel.py").write_text(src)
     meta = {"id": f"{USER}/{slug}", "title": slug, "code_file": "kernel.py",
             "language": "python", "kernel_type": "script", "is_private": True,
-            "enable_gpu": True, "enable_internet": True,   # can internet cho bitsandbytes (nf4)
-            "machine_shape": "NvidiaTeslaT4",
+            "enable_gpu": True, "enable_internet": INTERNET,
+            "machine_shape": MACHINE,
             "dataset_sources": DATASETS, "competition_sources": COMP, "kernel_sources": []}
     (KDIR / "kernel-metadata.json").write_text(json.dumps(meta, indent=2))
 
-    assert meta["machine_shape"] == "NvidiaTeslaT4", "machine_shape phai la ten enum hop le"
-    assert meta["enable_gpu"] is True and meta["enable_internet"] is True
+    assert meta["machine_shape"] in ("NvidiaTeslaT4", "NvidiaRtxPro6000"), "ten enum khong hop le"
+    assert meta["enable_gpu"] is True
+    if MACHINE == "NvidiaRtxPro6000":
+        assert COMP, "RTX 6000 Pro CAN competition_sources con hieu luc, neu khong se tut ve P100"
+        assert not INTERNET, "competition cam internet -> push se tra HTTP 400"
 
     env = dict(os.environ, KAGGLE_API_TOKEN=tok)
     r = subprocess.run(["kaggle", "kernels", "push", "-p", str(KDIR)],
@@ -52,8 +62,8 @@ def main():
     if "successfully pushed" not in out:
         sys.exit("PUSH THAT BAI — khong doc ket qua")
     print(f"\nda day: {USER}/{slug}")
-    print("KIEM TRA NGAY khi chay: log phai in 'Tesla T4' va 'sm_75', va 2 GPU.")
-    print("Neu in Tesla P100 (sm_60) -> torch khong chay duoc, HUY.")
+    print(f"machine={MACHINE} comp={COMP} internet={INTERNET}")
+    print("Kernel TU HUY neu nhan sm_60 (P100) — xem dong 'CHE DO:' dau log.")
 
 if __name__ == "__main__":
     main()
