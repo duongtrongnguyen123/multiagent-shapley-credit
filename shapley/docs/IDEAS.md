@@ -4119,3 +4119,37 @@ hơn greedy trên MBPP ở model này — nhỏ nhưng nhất quán với việc
 ### Prior của tôi ĐÚNG (hàng 1, ~45%)
 Nhưng phần dự đoán `SEL_self` vs `SEL_weak` tôi ghi "~60% nghiêng SEL_self" — đúng chiều,
 và biên độ (+.0120) nhỏ hơn ngưỡng tôi đặt. Tỉ lệ prior đúng: **12/24**.
+
+### Phụ lục #111-b — **THĂM DÒ: nút thắt KHÔNG còn là bộ chọn, mà là TRẦN CỦA POOL**
+> ⚠️ Hậu kiểm trên trace H71b, **không đăng ký trước**. Sinh giả thuyết, không xác nhận. Miễn phí.
+
+Phân tích mọi bài mà pool **CÓ** bản đúng nhưng `SEL` chọn trượt:
+
+| | số bài / 500 |
+|---|---|
+| có bản đúng nhưng chọn trượt | **4** |
+| — vì không sinh được test nào | 0 |
+| — vì **hoà điểm** test | 1 |
+| — vì test **chấm ngược** (ưu tiên bản sai) | 3 |
+
+`trần (hợp)` = .6820 · `SEL` = .6740 ⇒ **chỉ mất .0080**.
+**Bộ chọn đã khai thác gần như TOÀN BỘ những gì pool có.**
+
+### Hệ quả: cải thiện TEST gần như hết đường
+- sửa hết test chấm ngược: tối đa **+.0060**
+- phá hết thế hoà đúng cách: tối đa **+.0020**
+=> Cộng lại **< +.01**. Trong khi khoảng cách từ `SEL` .6740 tới **1.0** vẫn còn **.326**.
+
+### Vì sao: **89.8% số bài (449/500) HOÀ điểm test**
+Hai ứng viên chạy **giống hệt nhau** trên test tự sinh ở gần 9/10 bài. Ở đó bộ chọn
+**không có việc gì để làm** (mặc định giữ `I`, và đó là hành vi đúng).
+Toàn bộ lợi ích đến từ **~10% bài mà hai bản KHÁC nhau**.
+
+> **Đổi hướng: muốn hơn nữa thì phải NÂNG TRẦN (thêm/đa dạng hoá ứng viên),
+> KHÔNG phải làm bộ chọn thông minh hơn.** Hướng "cải thiện chất lượng test" (H55/H58)
+> gần như cạn ở k=2 — H58 đã đo *"số lượng test không phải nút thắt"* (+.0101), nay hiểu vì sao:
+> **test không phải nút thắt vì bộ chọn không phải nút thắt.**
+
+Giả thuyết sinh ra (phải đăng ký trước rồi mới kiểm): **lợi ích của `SEL` tăng theo k**
+(số ứng viên) chứ không theo chất lượng test; và tỉ lệ hoà giảm khi k tăng.
+H72 (đang chạy) cho một điểm dữ liệu: thêm 1.5B vào pool có nâng trần không.
