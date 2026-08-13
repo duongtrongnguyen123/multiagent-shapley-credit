@@ -3138,3 +3138,48 @@ Bảng khoá #74 giữ **NGUYÊN**, không sửa một chữ. Prior giữ nguyê
 Đoán **hàng 1 (~50%)** nhưng với **tỉ lệ khác**: trên toán, mỏ neo đo ở #87 là **≈ 0**, còn trên
 code là **−.08/−.098**. Nên phần "nguồn" trên toán có thể **nhỏ hơn** 62%, và phần "chế độ"
 chiếm tỉ trọng lớn hơn. Hàng 2 ~25%, hàng 3 ~15%, hàng 4 ~10%. Tỉ lệ prior đúng: **11/21**.
+
+
+# Đăng ký trước #76 — H71: **CÙNG NGÂN SÁCH — tiêu vào AGENT YẾU hay vào THÊM MẪU CỦA CHÍNH MODEL MẠNH?**
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao — đây là câu hỏi THỰC DỤNG còn lại
+#103/#105/#107: mọi giao thức "cho 7B xem sản phẩm 1.5B" đều **thua** việc gọi thẳng 7B
+(−.0520 tốt nhất, −.1560 tệ nhất). Nhưng các nhánh đó **tốn thêm một lượt 1.5B**.
+Câu hỏi đúng của người dùng không phải *"review có hại không"* mà:
+> **Có thêm ngân sách X — tiêu vào chạy một model YẾU rồi hợp tác, hay vào LẤY THÊM MẪU của model MẠNH?**
+
+## Thiết kế — MBPP 11–510, 7B nf4, chấm bằng assert đi kèm
+| nhánh | gồm | chi phí (quy 1.5B-eq, 7B = 5.07×) |
+|---|---|---|
+| `I` | 1 mẫu 7B greedy | **5.07** |
+| `V_weak` | 1.5B viết + 7B review *(đã đo: .5660)* | 6.07 |
+| `SEL_weak` | 1.5B viết + 7B viết + 7B viết test → chọn *(H69b đang chạy)* | 11.14 |
+| **`SEL_self`** | **7B greedy + 7B mẫu T=0.8 + 7B viết test → chọn giữa HAI mẫu của CHÍNH NÓ** | **15.21** |
+| `I_pass2` | *(báo kèm)* có ít nhất một trong hai mẫu 7B đúng = trần của `SEL_self` | — |
+
+**Không nhánh nào khớp chi phí chính xác** — vì thế **BẮT BUỘC báo cả acc lẫn chi phí**,
+và kết luận phải nói rõ *"hơn/kém bao nhiêu, ở chi phí bao nhiêu"*, không được nói suông "tốt hơn".
+
+Dùng lại đúng bộ sinh test và cổng chống rò rỉ của #74-b (tên hàm CÓ, giá trị kỳ vọng KHÔNG).
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_copy_rate` ≤ .20 · `test_soundness` ≥ .50 · biên dịch ≥ .50 · n = 500 ·
+`acc(I)` phải nằm trong **[.60, .68]** (tái lập .6400 của H66/H68/H69), ngoài khoảng ⇒ HUỶ.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL_self − I` ≥ **+.02** | **Ngân sách thêm nên tiêu vào MẪU CỦA CHÍNH MODEL MẠNH.** Kết hợp với #103–#107: agent yếu không những vô ích mà còn là **lựa chọn tệ hơn** cho cùng số tiền. Phát biểu thực dụng rõ ràng. |
+| \|`SEL_self − I`\| < .02 | Lấy thêm mẫu của chính nó **cũng không** giúp ⇒ nút thắt là **SINH**, không phải chọn hay hợp tác. Khi đó **không có** cách tiêu ngân sách nào ăn thua ở thang này — kết quả âm rộng, phải nói thẳng. |
+| `SEL_self` < `I` − .02 | Chọn bằng test tự sinh **có hại** ngay cả trên hai mẫu của chính nó ⇒ vấn đề nằm ở **chất lượng test**, không ở nguồn. Đối chiếu `test_soundness`. |
+| `SEL_self − SEL_weak` ≥ +.02 *(khi H69b có số)* | Với **cùng cơ chế chọn**, mẫu của chính model mạnh **hơn** mẫu của agent yếu ⇒ agent yếu không đóng góp ứng viên có giá trị. |
+| `SEL_weak − SEL_self` ≥ +.02 *(khi H69b có số)* | **Agent yếu CÓ đóng góp đa dạng thật** — nó giải được bài model mạnh trượt (22 bài ở #104), và chọn khai thác được. Đây sẽ là lần đầu hợp tác yếu→mạnh THẮNG. |
+| `acc(I)` ngoài [.60,.68] | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~45%)**: `SEL_self` hơn `I` khoảng +.02..+.04, vì `I_pass2` (trần) chắc chắn
+cao hơn `I` đáng kể và H56 thu được 42–46% khoảng trống oracle bằng test tự sinh.
+Hàng 2 ~25%, hàng 3 ~20%. Về cặp `SEL_self` vs `SEL_weak`: đoán `SEL_self` hơn (~60%),
+nhưng #104 cho thấy 1.5B giải được **22 bài** 7B trượt — đa dạng là thật, nên không chắc.
+Tỉ lệ prior đúng: **11/22**.
