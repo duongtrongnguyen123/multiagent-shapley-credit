@@ -3100,3 +3100,41 @@ Cổng `test_copy_rate` ≤ .20 **giữ nguyên** và sẽ bắt được nếu 
 Thêm: **phải kiểm `test_soundness` ≥ .50 TRƯỚC khi đọc bất kỳ con số nào.**
 
 Bảng khoá #74 giữ **NGUYÊN**, không sửa một chữ. Prior giữ nguyên (hàng 2, ~45%).
+
+
+# Đăng ký trước #75 — H70: **TÁCH CHẾ ĐỘ / NGUỒN có lặp lại trên TOÁN không?**
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+#105 (H68) tách được `V − I` trên **code** thành **hai** phần:
+**chế độ sửa chữa −.0280 (38%)** + **nguồn ngoại lai −.0460 (62%)**.
+Đó là **phép tách MỚI, chưa tái lập**, và tôi đã dùng nó để **thu hẹp cách gọi "đầu độc"** ở
+#99–#103. Một kết luận đã sửa lại lời văn của bốn vòng thì **phải được kiểm trên task thứ hai**.
+
+## Thiết kế — MATH-500, y hệt H68, đổi task
+1.5B fp16 giải (`S`) · 7B nf4 · greedy · chấm `\boxed` bằng bộ chuẩn hoá đã kiểm offline ở #70
+(500/500 gold tự khớp, 10/10 biến thể, 0 dương tính giả).
+| nhánh | 7B xem gì | chế độ |
+|---|---|---|
+| `I` | không gì | sáng tác |
+| `V_self` | **lời giải của CHÍNH NÓ** | sửa chữa |
+| `V_weak` | lời giải của **1.5B** | sửa chữa |
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`acc(I) − acc(S)` ≥ .05 · n ≥ 450 · `acc(S)` ∈ [.10,.55] (MATH không bão hoà).
+**KHÔNG** đặt cổng tái lập theo giá trị `V_weak − I` của code (−.074) — đây là **task khác**,
+ép cổng đó sẽ là áp đặt hậu kiểm.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V_self − I` ≤ −.02 **và** `V_weak` thấp hơn `V_self` ≥ .02 | **PHÉP TÁCH LẶP LẠI trên toán.** "Thuế một lượt sửa" + "thiệt hại riêng của nguồn ngoại lai" là cấu trúc chung, không phải đặc thù code. Báo tỉ lệ % của hai phần và so với 38/62 của code. |
+| `V_self ≈ I` (\|Δ\| < .02) **và** `V_weak − I` ≤ −.02 | Trên **toán**, chế độ sửa chữa **KHÔNG** tốn gì; toàn bộ thiệt hại là do **nguồn**. ⇒ phép tách 38/62 **đặc thù CODE**, phải nói rõ phạm vi ở #105. |
+| cả hai ≈ `I` (\|Δ\| < .02) | Không có thiệt hại nào trên toán ở cặp 1.5B→7B này ⇒ mâu thuẫn H61 (−.0740 trên GSM8K). Phải kiểm khác biệt GSM8K vs MATH trước khi kết luận gì. |
+| `V_self` thấp hơn `V_weak` ≥ .02 | Đảo ngược: sửa lời giải **của chính mình** hại **hơn** sửa của model yếu. Bất ngờ, phải tái lập trước khi tin. |
+| `acc(I) − acc(S)` < .05 | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~50%)** nhưng với **tỉ lệ khác**: trên toán, mỏ neo đo ở #87 là **≈ 0**, còn trên
+code là **−.08/−.098**. Nên phần "nguồn" trên toán có thể **nhỏ hơn** 62%, và phần "chế độ"
+chiếm tỉ trọng lớn hơn. Hàng 2 ~25%, hàng 3 ~15%, hàng 4 ~10%. Tỉ lệ prior đúng: **11/21**.
