@@ -2985,3 +2985,49 @@ và tách nhại/bản-thứ-ba.
 Đoán **hàng 1 (~55%)**. Lý do: cơ chế ở #103 rất rõ (78% là viết lại) và can thiệp nhắm đúng nó.
 Rủi ro thấy trước: model có thể **không nghe lời** — bảo "đừng đổi" nhưng vẫn đổi (nên có cổng
 `unchanged_rate`). Hàng 2 ~15%, hàng 3 ~25%, hàng 4 ~5%. Tỉ lệ prior đúng: **10/20**.
+
+
+# Đăng ký trước #73 — H68: **ĐỘC VÌ LÀ CỦA AGENT YẾU, HAY ĐỘC VÌ Ở CHẾ ĐỘ SỬA CHỮA?**
+**Viết TRƯỚC khi chạy.** Đây là **ĐỐI CHỨNG CÒN THIẾU của chính câu chuyện đầu độc.**
+
+## Lỗ hổng trong lập luận của tôi
+#99–#103 đều so `V` (model mạnh **xem sản phẩm của agent YẾU**) với `I` (model mạnh **tự làm**).
+Tôi đã diễn giải hiệu số âm là *"đọc văn xuôi của agent yếu gây hại"*.
+**Nhưng hai nhánh khác NHAU HAI THỨ cùng lúc:**
+1. có/không **được xem sản phẩm của MODEL KHÁC**, và
+2. ở **chế độ SỬA CHỮA** vs chế độ **SÁNG TÁC**.
+
+Ở #103 tôi còn tự viết: *"bị cho xem lời giải kém đẩy model vào chế độ sửa chữa, và nó sửa kém hơn
+sáng tác"*. **Nếu điều đó đúng thì thủ phạm là CHẾ ĐỘ, không phải NGUỒN** — và toàn bộ cách gọi
+"đầu độc" (ngụ ý lỗi ở agent yếu) là **SAI TÊN**. Phải tách ra.
+
+## Thiết kế — MBPP 11–510, 7B nf4, greedy, tách ĐÚNG một biến
+| nhánh | 7B được xem gì | chế độ | lượt |
+|---|---|---|---|
+| `I` | không xem gì | sáng tác | 1×7B |
+| **`V_self`** | **code của CHÍNH NÓ** (sinh ở lượt 1) | **sửa chữa** | 2×7B |
+| `V_weak` | code của **1.5B** (tái lập H66) | sửa chữa | 1×1.5B + 1×7B |
+
+`V_self` và `V_weak` **cùng chế độ sửa chữa, cùng prompt REVIEW**, khác **đúng một điều**:
+code đem vào là **của chính nó** hay **của model yếu**.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+Tái lập H66: `V_weak − I` ∈ **[−.12, −.03]** ⇒ ngoài khoảng thì HUỶ. Biên dịch ≥ .50. n = 500.
+Báo KÈM: `poisoned`/`rescued` và `unchanged_rate` cho **cả hai** nhánh V.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `V_self − I` ≤ −.03 VÀ \|`V_self − V_weak`\| < .03 | **THỦ PHẠM LÀ CHẾ ĐỘ SỬA CHỮA, KHÔNG PHẢI NGUỒN.** Tên gọi "đầu độc" SAI và phải **RÚT LẠI cách diễn giải** ở #99–#103 (số giữ nguyên). Phát biểu đúng: *bất kỳ lượt sửa chữa nào cũng hại, dù sửa code của chính mình.* Hệ quả thực tiễn còn MẠNH HƠN: đừng thêm lượt review, chấm hết. |
+| `V_self` ≈ `I` (\|Δ\| < .02) VÀ `V_weak − I` ≤ −.03 | **NGUỒN mới là thủ phạm.** Sửa code của chính mình thì vô hại; sửa code model yếu thì hại. Câu chuyện đầu độc ở #99–#103 **ĐỨNG VỮNG** và nay có đối chứng chặt. |
+| cả hai âm nhưng `V_weak` âm hơn `V_self` ≥ .03 | **CẢ HAI đều góp**: chế độ sửa chữa hại một phần, nguồn ngoại lai hại thêm. Báo tách phần đóng góp của từng cái. |
+| `V_self − I` ≥ +.02 | Tự review CÓ ÍCH trên code (trái #92 `ref_seq`). Kết quả bất ngờ, phải tái lập trước khi tin. |
+| `V_weak − I` ngoài [−.12,−.03] | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 3 (~45%)**: cả hai đều âm, `V_weak` âm hơn. Vì (a) #92 đã đo `ref_seq` (tự nhận xét)
+**làm refactor tệ đi**, và H35 `llm3` ≈ 0 — nên chế độ sửa chữa tự nó đã hại; nhưng (b) H66 cho
+thấy 78% thiệt hại là **viết lại**, mà code của chính mình thì ít lý do viết lại hơn.
+Hàng 1 ~25%, hàng 2 ~25%, hàng 4 ~5%.
+**Tôi sẽ phải rút lại cách diễn giải của bốn vòng nếu ra hàng 1 — và đó là lý do PHẢI chạy.**
+Tỉ lệ prior đúng: **10/20**.
