@@ -4428,3 +4428,38 @@ cấu trúc**, nhưng **dấu và độ lớn của từng phần phụ thuộc 
 ### Prior của tôi SAI
 Đoán hàng 1 (~50%): *"phép tách lặp lại trên toán"*. Thực tế thành phần "chế độ" **đổi dấu**.
 Tỉ lệ prior đúng: **14/28**.
+
+### Phụ lục #115-b — **THĂM DÒ: "thu được 41%" nghe tệ hơn thực tế — và chỗ hỏng là XẾP HẠNG SAI, không phải HOÀ**
+> ⚠️ Hậu kiểm trên trace H74, **không đăng ký trước**. Miễn phí.
+
+### Hai cách đo cùng một bộ chọn, và tôi đã báo cách nghe tệ hơn
+Pool đầy đủ 7 ứng viên:
+- **363/500** bài có ít nhất một ứng viên ĐÚNG (= trần .7260)
+- `SEL` chọn trượt ở **21** bài ⇒ **chọn đúng 342/363 = 94.2%**
+- Nhưng `I` một mình đã đúng **320** bài. Phần *có thể thêm* chỉ là **43** bài;
+  `SEL` cứu **22** ⇒ **51%** — đây là con số tôi đã báo ở #115.
+
+Cả hai đều đúng, nhưng **ý nghĩa khác nhau**:
+> **94.2%** = bộ chọn hầu như không làm hỏng gì.
+> **51%** = trong số bài **`I` đã sai mà pool có bản đúng**, nó chỉ vớt được một nửa.
+> Con số **51%** mới là con số cho *giá trị biên*, và đó là lý do nó nhỏ — **những bài `I` đã sai
+> chính là những bài KHÓ, nơi test tự sinh kém tin cậy nhất.** Không phải bộ chọn "hỏng".
+
+### Chỗ hỏng cụ thể: **XẾP HẠNG SAI**, gần như không phải HOÀ
+| nguyên nhân trượt | số bài |
+|---|---|
+| **test chấm NGƯỢC** (bản đúng không đạt điểm cao nhất) | **19** |
+| tất cả hoà điểm | 2 |
+
+Và bản **ĐÚNG** thua bản được chọn trung bình **1.00 điểm test** (trung vị 1) — tức test
+**ưu tiên nhầm với biên độ nhỏ**, đúng như `soundness` .7214 dự đoán.
+
+### Điều này SẮC HOÁ dự đoán cho H75 (đang chạy)
+Đồng thuận thực thi nhắm vào việc **không dùng giá trị kỳ vọng**. Nhưng:
+- nhóm **HOÀ** (2 bài) — đồng thuận có thể phá hoà ⇒ **tối đa +.004**
+- nhóm **XẾP HẠNG SAI** (19 bài) — đồng thuận chỉ cứu được **nếu đa số ứng viên ĐÚNG**.
+  Pool có **5/7 là 1.5B** (acc ~.42) ⇒ ở bài khó, **đa số nhiều khả năng SAI**.
+
+> **Dự đoán sắc hơn (ghi trước khi H75 có số): đồng thuận sẽ KHÔNG hơn nhiều — hàng 2 hoặc hàng 3
+> của bảng #81.** Trần tuyệt đối nếu sửa được cả 21 bài là **+.042**, nhưng phần khả thi thực tế
+> nhỏ hơn nhiều. Nếu H75 ra hàng 1 (≥ +.02) thì tôi đã đánh giá thấp đồng thuận và phải ghi nhận.
