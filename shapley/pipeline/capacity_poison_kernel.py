@@ -117,6 +117,12 @@ def load(tag):
     if BIG or tag == "1.5B":
         mos = [AutoModelForCausalLM.from_pretrained(p, dtype=DT).to(d).eval() for d in DEVS]
         q = "bf16" if DT is torch.bfloat16 else "fp16"
+    elif tag == "14B":
+        # 14B nf4 KHONG vua MOT the T4 14.6 GB: 7.4 GB trong so 4-bit + embed/lm_head fp16
+        # (152k x 5120 x 2 byte x 2 = ~3.1 GB) + dem nap -> cham tran. Trai MOT ban tren CA HAI the.
+        mos = [AutoModelForCausalLM.from_pretrained(p, quantization_config=BNB,
+                                                    device_map="auto").eval()]
+        q = "nf4-auto"
     else:
         mos = [AutoModelForCausalLM.from_pretrained(p, quantization_config=BNB,
                                                     device_map={"": d}).eval() for d in DEVS]
@@ -181,6 +187,11 @@ for tag in ["7B", "14B"]:
     print(f"I_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
     OUT[f"V_{tag}"] = gen(mo, tk, VERIFY, VP, BSZ[tag])
     print(f"V_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
+    # LUU TUNG PHAN: H65T sap o buoc 14B sau 2.7h va mat sach ket qua 1.5B/7B
+    json.dump({"partial": True, "done": sorted(OUT.keys()), "quant": QUANT,
+               "raw": {k: v for k, v in OUT.items()}},
+              open(f"/kaggle/working/partial_{RUN}.json", "w"))
+    print(f"  da luu partial_{RUN}.json ({len(OUT)} nhanh)", flush=True)
     for _m in mo: del _m
     del mo; gc.collect(); torch.cuda.empty_cache()
     print(f'  VRAM sau khi giai phong {tag}: {torch.cuda.memory_allocated()/2**30:.2f} GB', flush=True)

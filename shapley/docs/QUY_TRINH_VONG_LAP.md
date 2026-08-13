@@ -227,3 +227,19 @@ Ba lỗi liên tiếp trong một vòng, cùng một gốc: **kiểm tra một l
 
 **Điểm sáng:** cả ba đều **chết NHANH và RÕ** (giây thứ 20, hoặc trước khi chạy), không âm thầm
 sinh số sai. Kernel in cấu hình + tự huỷ sớm là thứ giữ cho lỗi hạ tầng không biến thành lỗi khoa học.
+
+---
+
+## Bài học H65T: **LƯU TỪNG PHẦN — đừng để bước cuối xoá sạch công của bước đầu**
+
+H65T chạy **2.7 giờ**, xong sạch nhánh 1.5B và 7B, rồi **OOM lúc nạp 14B** và **mất toàn bộ**.
+Không có gì được ghi ra đĩa cho tới cuối kernel.
+
+**Quy tắc:** mọi kernel nhiều giai đoạn phải `json.dump` kết quả thô **sau MỖI giai đoạn**,
+không đợi tới cuối. Một lần crash ở giai đoạn N khi đó chỉ mất giai đoạn N.
+
+**Và về bộ nhớ:** 14B nf4 **KHÔNG vừa một thẻ T4 14.6 GB** — 7.4 GB trọng số 4-bit
+**cộng** embed + `lm_head` giữ fp16 (152k × 5120 × 2 byte × 2 ≈ 3.1 GB) **cộng** đệm nạp.
+Với thẻ nhỏ phải `device_map="auto"` trải một bản trên cả hai thẻ (mất data-parallel, chấp nhận),
+**không** một bản mỗi thẻ. Nhắc lại bài học đã có: **tính lại ngân sách VRAM mỗi lần đổi phần cứng
+HOẶC đổi cỡ model — đừng chép con số cũ.**
