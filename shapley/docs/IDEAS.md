@@ -3719,3 +3719,59 @@ KHÔNG đóng "tác vụ dài" nói chung.**
 
 ### Prior của tôi ĐÚNG
 Ghi trước: hàng 3 ~50%. Ra hàng 3. Tỉ lệ prior đúng: **9/19**.
+
+---
+
+## Vòng #103 — H66: **ĐẦU ĐỘC TỔNG QUÁT SANG CODE — và trên code nó gần như TOÀN LÀ VIẾT LẠI HỎNG**
+*(đăng ký trước #71, khoá tại `166bb16` TRƯỚC khi chạy)*
+
+### Cổng ĐẠT: `I − S` = **+.2120** ≥ .05 · tỉ lệ biên dịch **.9940** ≥ .50 · n = **500**
+MBPP 11–510 · 1.5B fp16 viết code · 7B nf4 kiểm · greedy · chấm bằng **assert đi kèm** (oracle thật).
+
+| nhánh | acc | chi phí |
+|---|---|---|
+| `S` (1.5B viết) | .4280 | 1×1.5B |
+| **`I` (7B TỰ viết)** | **.6400** | **1×7B** ← RẺ HƠN |
+| `V` (7B xem code của S) | .5660 | 1×1.5B + 1×7B |
+
+| đại lượng | giá trị | 5 fold |
+|---|---|---|
+| `V − S` (con số ai cũng báo) | **+.1380** | dương |
+| **`V − I`** (khoá trước là CHÍNH) | **−.0740** | −.10 −.04 −.09 −.09 −.05 → **5/5 ÂM** |
+
+**PHÁN QUYẾT: HÀNG 1.** Đầu độc **KHÔNG** phải hiện tượng của toán.
+
+### Con số trùng đến mức phải nói rõ là TRÙNG
+`V − I` = **−.0740** trên MBPP, và H61 đo **−.0740** trên GSM8K. **Giống hệt tới 4 chữ số.**
+Hai task khác hẳn nhau (toán văn xuôi vs code), hai bộ chấm khác hẳn (so `\boxed` vs **chạy test**).
+**Đây là TRÙNG HỢP, không phải quy luật** — n=500 nên sai số chuẩn ~.02; tôi **không** được nói
+"đầu độc luôn bằng −.074". Điều nói được: **cùng ĐỘ LỚN, cùng DẤU, ở hai miền không liên quan.**
+
+### Khác biệt THẬT so với toán: trên code, thiệt hại gần như toàn là VIẾT LẠI HỎNG
+**69 bị đầu độc** vs **32 được cứu**, ròng −37/500 = −.0740 (khớp đúng).
+| | giữ nguyên code sai của S ("nhại") | **viết ra bản THỨ BA vẫn sai** |
+|---|---|---|
+| H60 (toán, 0.5B→1.5B) | 46% | 54% |
+| H61 (toán, 1.5B→7B) | 55% | 45% |
+| **H66 (code, 1.5B→7B)** | **22%** (15/69) | **78%** (54/69) |
+
+Trên code, 7B **hầu như không chép** code sai — nó **viết lại và làm hỏng**. Tỉ lệ biên dịch .9940
+nên **không phải lỗi cú pháp**: là **trôi ngữ nghĩa**. Khớp thẳng với #93: *lỗi khi SINH thì thô,
+lỗi khi BIẾN ĐỔI là trôi ngữ nghĩa tinh vi* — và với H52 (`ref_seq` làm refactor tệ đi).
+
+> **Việc bị cho xem một lời giải kém đẩy model mạnh vào chế độ SỬA CHỮA thay vì chế độ SÁNG TÁC —
+> và với model này, sửa chữa kém hơn sáng tác.** `I` sáng tác đạt .6400; cùng model đó ở chế độ
+> sửa chữa chỉ đạt .5660.
+
+### Ba miền, ba cặp model, cùng một dấu
+| | task | cặp | `V − S` | **`V − I`** |
+|---|---|---|---|---|
+| H60 | GSM8K | 0.5B→1.5B | +.1700 | **−.1040** |
+| H61 | GSM8K | 1.5B→7B | +.1620 | **−.0740** |
+| **H66** | **MBPP (code)** | 1.5B→7B | **+.1380** | **−.0740** |
+
+**Mọi lần `V − S` dương và `V − I` âm.** Con số hay được báo cáo sai dấu ở **cả ba**.
+
+### Prior của tôi ĐÚNG
+Ghi trước: hàng 1, ~65%, và lý do ghi trước cũng đúng — mỏ neo trên code đã đo là **có hại**
+(−.08/−.098) trong khi trên toán ≈0. Tỉ lệ prior đúng: **10/20**.
