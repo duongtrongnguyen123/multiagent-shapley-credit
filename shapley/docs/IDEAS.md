@@ -4707,3 +4707,71 @@ chỉ phần **chẩn đoán nguyên nhân** phải sửa.
 **Sửa bắt buộc trước khi chạy lại:** tham số hoá dải trong `mbpp_kscale_kernel.py`, và thêm vào
 `launch_any.py` phép kiểm **"nếu truyền LO/HI thì kernel PHẢI chứa `@@LO@@`"** — im lặng bỏ qua
 tham số là kiểu lỗi tệ nhất vì nó tạo ra một "bản tái lập" giả.
+
+---
+
+## Vòng #122 — H70c: **RÚT LẠI #116. `V_self` = +.0020, KHÔNG phải +.1080 — gần như TOÀN BỘ là artifact cắt ngắn**
+*(đăng ký trước #84, khoá tại `3c86654` TRƯỚC khi chạy)*
+
+### Cổng cắt ngắn ĐẠT: tỉ lệ có `\boxed` = `S` .956 · `I` .976 · `V_weak` .978 · `V_self` .996
+min .9560 ≥ .80 ✓ · chênh .0400 < .05 ✓ ⇒ **dữ liệu SẠCH**, đọc được.
+
+| | H70 (`MAXNEW`=640, **confound**) | **H70c** (`MAXNEW`=1280, sạch) |
+|---|---|---|
+| `I` | .5620 | **.7000** |
+| `V_self − I` | **+.1080** | **+.0020** |
+| `V_weak − I` | −.0120 | **−.1260** |
+
+**PHÁN QUYẾT theo bảng #84: HÀNG 3 — `\|V_self − I\| < .02` ⇒ RÚT LẠI #116.**
+*(Kernel in "HÀNG 2" vì nó dùng logic bảng #75 cũ; bảng chi phối H70c là **#84**.)*
+
+### Hai điều, và cả hai đều đi cùng một hướng
+1. **`V_self` = +.1080 → +.0020.** Phát hiện đầu bảng của #116 (*"trên toán tự xem lại được +.1080"*)
+   **gần như hoàn toàn là artifact**: nhánh `I` bị cắt 39.8% còn `V_self` chỉ 24.6%, và khi cho đủ
+   token thì hiệu ứng **biến mất**. **#116 RÚT LẠI HOÀN TOÀN.**
+2. **`V_weak` = −.0120 → −.1260.** Đầu độc trên MATH **KHÔNG yếu như tôi tưởng** — nó bị
+   **CHE** bởi chính confound đó. **−.1260 là hiệu ứng đầu độc LỚN NHẤT đo được ở mọi miền**
+   (GSM8K −.0740 · MBPP −.0740), 5/5 fold từ −.05 tới −.18.
+
+⇒ Phát biểu ở #114/#119 rằng *"trên MATH đầu độc gần như biến mất"* cũng **SAI và bị rút lại**.
+Sự thật ngược lại: **MATH là nơi đầu độc MẠNH NHẤT.**
+
+### Phân tách chế độ/nguồn trên toán, nay đo SẠCH
+`V_self − I` = **+.0020** (chế độ sửa chữa: **không tốn gì**) · `V_weak − I` = **−.1260** (nguồn: **toàn bộ thiệt hại**).
+| | phần CHẾ ĐỘ | phần NGUỒN |
+|---|---|---|
+| **code** (#105) | −.0280 (38%) | −.0460 (62%) |
+| **toán** (đây) | **+.0020 (0%)** | **−.1260 (100%)** |
+⇒ **Phép tách vẫn đúng về cấu trúc, nhưng tỉ lệ hoàn toàn khác theo task** — như #116 đã nói,
+chỉ là **con số của #116 sai**. Trên toán, xem lại việc của mình **vô hại**; xem lời giải của
+agent yếu **rất hại**.
+
+### Prior của tôi SAI, nhưng tôi đã đặt cược ĐÚNG HƯỚNG
+#84 tôi đoán hàng 2 (~45%, "đúng chiều nhưng nhỏ hơn"), hàng 3 (rút lại) ~30%.
+Ra **hàng 3**. **Tôi đã cố tình đặt cược chống lại phát hiện của chính mình và điều đó là đúng.**
+Tỉ lệ prior đúng: **15/31**.
+
+---
+
+## Vòng #123 — H65d: **HUỶ lần hai — cổng cắt ngắn trượt SÁT NÚT (.0500 vs ngưỡng <.05)**
+*(đăng ký trước #85)* · RTX PRO 6000, bf16 cả ba model, `MAXNEW`=1280.
+`min(boxed)` = .9400 ✓ nhưng **chênh = .0500**, ngưỡng là **< .05** ⇒ **TRƯỢT, không đọc.**
+Cổng `I_14B − I_7B` = **+.0180** cũng dưới .05.
+
+**Điều đọc được (chỉ về hạ tầng, không phải kết luận khoa học):** `I_14B − I_7B` đi từ
+**−.0280** (H65c, `MAXNEW`=640) lên **+.0180** (đây, 1280) ⇒ **confound cắt ngắn ĐÚNG LÀ
+một phần nguyên nhân** khiến 14B trông yếu hơn 7B. Nhưng ngay cả khi sửa, **14B vẫn không
+hơn 7B đủ .05** trên MATH-500. ⇒ Hướng quét năng lực 14B **dừng lại** — hai lần HUỶ,
+và lần này lý do là năng lực thật, không phải hạ tầng.
+
+---
+
+## Vòng #124 — H63: **MẤT TRẮNG ~15 giờ GPU — đụng tường 12h, KHÔNG có lưu từng phần**
+Kernel bị `CANCEL_ACKNOWLEDGED`. Đầu ra chỉ có log; **không có `res_H63.json`, không có trace.**
+Kịp in: `ref1` preserve **.7681** (5113s) · `ref_exec3` preserve **.8669** (9850s),
+rồi **chết trong lúc sinh 8 mẫu cho nhánh `ref_sel8`** — tức **đúng nhánh là mục đích của thí nghiệm**.
+
+> H63 được port **trước** khi tôi rút ra bài học "lưu từng phần" (H65T, vòng #114).
+> H65T2 sập y hệt nhưng **cứu được** nhờ bản sửa đó. H63 thì không.
+> **Câu hỏi refactor CHỌN-vs-SỬA vẫn CHƯA có câu trả lời** sau ~15 giờ GPU.
+Muốn chạy lại thì **bắt buộc**: lưu từng phần sau mỗi nhánh, và giảm k từ 8 xuống 4 để lọt 12h.
