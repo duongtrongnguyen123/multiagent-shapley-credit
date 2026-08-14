@@ -274,3 +274,26 @@ kernel dài, và coi lỗi push này là tín hiệu đổi tài khoản chứ k
 
 **Điểm sáng:** bản sửa *lưu từng phần* (bài học H65T) đã **cứu 2.5 giờ** dữ liệu 1.5B + 7B
 trong đúng lần sập này. Chi phí thêm gần bằng 0, giá trị rất lớn.
+
+---
+
+## Bài học #121: **tham số bị BỎ QUA IM LẶNG tạo ra "bản tái lập" GIẢ**
+
+`launch_any.py` chỉ kiểm *"còn placeholder chưa thay"* — **không** kiểm *"placeholder có tồn tại"*.
+`mbpp_kscale_kernel.py` hardcode `TIDLO, TIDHI = 11, 510`, nên `LO=511 HI=974` **bị bỏ qua không báo lỗi**.
+Kết quả: H73b chạy **đúng dải cũ**, và tôi suýt ghi nó vào README như một **bản tái lập trên dải giữ lại**.
+
+> **Đây là kiểu lỗi tệ nhất trong dự án này:** nó không làm chương trình chết, không làm cổng trượt,
+> mà **sản xuất ra một kết quả TRÔNG HỢP LỆ và SAI Ý NGHĨA**. Mọi lỗi hạ tầng trước đó đều
+> chết to và rõ; lỗi này im lặng.
+
+**Đã sửa:**
+1. Tham số hoá dải trong **cả 9** kernel MBPP (trước đó chỉ 1/10 có `@@LO@@`) — lỗi #109 lặp lại.
+2. Thêm **kiểm xuôi** vào launcher: nếu truyền `LO`/`HI`/`SIZE` mà kernel **không chứa** placeholder
+   tương ứng thì **TỪ CHỐI PHÓNG**, không chạy.
+3. Sau khi push, **xác minh trực tiếp trong `kernels_<run>/kernel.py`** rằng dải đã thay đúng —
+   đừng tin vào tham số đã truyền.
+
+**Quy tắc chung:** với mọi tham số ảnh hưởng tới *dữ liệu nào được dùng*, phải **xác minh ở đầu ra**
+(ví dụ in `task_id` min/max trong kết quả), không chỉ ở đầu vào. H73b lộ ra chính nhờ so
+`task_id 11..510` trong trace — nếu tôi không kiểm trace thì kết quả giả đã vào README.

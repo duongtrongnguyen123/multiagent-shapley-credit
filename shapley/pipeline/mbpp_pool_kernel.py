@@ -8,7 +8,7 @@ from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
-TIDLO, TIDHI = 11, 510
+TIDLO, TIDHI = int("@@LO@@"), int("@@HI@@")
 MAXNEW, TIMEOUT = 512, 20
 
 def find_model(*needles):

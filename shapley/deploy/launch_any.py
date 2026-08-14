@@ -41,7 +41,15 @@ def main():
     elif USER == "zhongzhing":
         sys.exit("zhongzhing DE DANH cho viec can RTX 6000 Pro — dung tai khoan khac cho T4")
 
-    src = ((ROOT / kernel).read_text().replace("@@RUN@@", RUN).replace("@@SIZE@@", SIZE)
+    raw = (ROOT / kernel).read_text()
+    # #121: launcher CHI kiem "con placeholder chua thay", KHONG kiem "placeholder co ton tai".
+    # Vi the LO=511 HI=974 bi BO QUA IM LANG khi kernel hardcode dai -> tao ra mot ban
+    # "tai lap" GIA chay tren dung du lieu cu. Kiem xuoi: da truyen thi PHAI co cho de thay.
+    for var, ph in (("LO", "@@LO@@"), ("HI", "@@HI@@"), ("SIZE", "@@SIZE@@")):
+        if os.environ.get(var) and ph not in raw:
+            sys.exit(f"{var}={os.environ[var]} duoc truyen nhung kernel KHONG co {ph} "
+                     f"-> se bi bo qua im lang. Tham so hoa kernel truoc.")
+    src = (raw.replace("@@RUN@@", RUN).replace("@@SIZE@@", SIZE)
            .replace("@@LO@@", LO).replace("@@HI@@", HI))
     for ph in ["@@RUN@@", "@@SIZE@@", "@@LO@@", "@@HI@@"]:
         if ph in src: sys.exit(f"con placeholder: {ph}")
