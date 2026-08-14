@@ -4775,3 +4775,127 @@ rồi **chết trong lúc sinh 8 mẫu cho nhánh `ref_sel8`** — tức **đún
 > H65T2 sập y hệt nhưng **cứu được** nhờ bản sửa đó. H63 thì không.
 > **Câu hỏi refactor CHỌN-vs-SỬA vẫn CHƯA có câu trả lời** sau ~15 giờ GPU.
 Muốn chạy lại thì **bắt buộc**: lưu từng phần sau mỗi nhánh, và giảm k từ 8 xuống 4 để lọt 12h.
+
+---
+
+# Vòng #125 — **KIỂM ĐỘC LẬP: ba tác nhân trung lập soi lại code, số liệu và lập luận**
+*(ba agent chạy song song, KHÔNG được cho biết tôi đã kết luận gì, được yêu cầu giả định tôi sai)*
+**Đây là mục quan trọng nhất trong toàn bộ log. Nhiều kết luận của tôi KHÔNG sống sót.**
+
+## A. LỖI CODE — nghiêm trọng, tôi đã bỏ sót hoàn toàn
+
+### A1. `tie_rate` ở #117 ĐO NHẦM SỰ KIỆN — **tôi đã tự kiểm chứng, ĐÚNG là lỗi**
+`mbpp_kscale_kernel.py:168` đếm **tất cả k ứng viên bằng nhau**, nhưng sự kiện thật sự ép về
+`cand0` là **hoà TẠI MAX**. Tự đo lại trên trace H73:
+| k | `tie_rate` tôi báo cáo | **hoà-tại-MAX (sự kiện thật)** |
+|---|---|---|
+| 2 | .9080 | .9080 |
+| 4 | .7980 | **.9220** |
+| 8 | **.7240** | **.9440** |
+Con số tôi báo **GIẢM** thuần do tổ hợp; đại lượng vận hành **TĂNG**.
+⇒ **Phát biểu cơ chế ở #117 (*"tie_rate giảm .908→.724 đúng như #111-b dự đoán"*) SAI, RÚT LẠI.**
+Tệ hơn: dòng chẩn đoán `:225` lẽ ra để **bác bỏ** #111-b **không bao giờ có thể kích hoạt**.
+Tôi đã tự viết một phép thử không thể thất bại rồi coi việc nó không thất bại là bằng chứng.
+
+### A2. Quét năng lực đo **hai đại lượng khác nhau** (`capacity_poison_kernel.py:176-185`)
+`poisoning(1.5B)` = **tự xem lại** (`I_1.5B is SOLS`), còn `poisoning(7B/14B)` = **xem model khác**.
+⇒ Trục "năng lực" trộn **chế độ** với **nguồn** — đúng cái confound mà `math_selfvsweak` sinh ra để tách.
+**Cả H65c lẫn H65d hỏng về THIẾT KẾ, không chỉ trượt cổng.** Hệ quả: `poisoned_echo` ở 1.5B
+**luôn bằng 0 theo định nghĩa** (đã xác nhận trong cả hai file kết quả) — bảng mời người đọc
+hiểu nhầm là *"1.5B không bao giờ nhại lại"*.
+
+### A3. Đồng thuận gom **CÙNG MỘT KIỂU CRASH** thành "đồng ý" (`mbpp_cons8_kernel.py:56,209`)
+Khoá gom cụm là `'ERR:'+type(e).__name__`. Tám ứng viên cùng ném `TypeError` tạo thành
+**một khối nhất trí 8 phiếu** và thắng ứng viên duy nhất chạy được. `SEL_test` **không thể** mắc
+lỗi này (crash = 0 điểm). ⇒ **Một cơ chế MỘT CHIỀU đẩy `SEL_cons` xuống**, tức chính đại lượng
+đầu bảng của #118/#120 (−.0840, −.0640). **Lời giải thích "lỗi tương quan" của tôi bị nhiễm bởi
+một lỗi lập trình**, và `OUTS` không được lưu nên **không thể tách ra từ dữ liệu đã có**.
+
+### A4. `mbpp_poison_kernel.py:110` + `:43` — **assert dùng để CHẤM nằm trong PROMPT**
+H66 hiển thị **toàn bộ** `test_list` trong đề **và** chấm bằng **chính** chúng. Bốn kernel MBPP
+khác đã được sửa (`#74-c`: đề chỉ có `assert[0]`, chấm bằng `[1:3]`), **kernel này chưa bao giờ được lan**.
+⇒ **H66 và H69c không cùng mặt bằng dù cùng báo −.0740.** Đây là **lỗi #109 lần thứ ba**.
+
+### A5. Quy tắc hoà thiên vị **chống lại** giả thuyết đang kiểm (`mbpp_pool_kernel.py:167-176`)
+Hoà → `pool[0]` = `I`, và `S` luôn đứng cuối. 297/500 bài hoà ba chiều; 4 bài ở max mà **chỉ `S` đúng**
+thì `S` **không bao giờ** được chọn. ⇒ `marginal_S` = +.0180 là **cận DƯỚI** (thiên lệch bảo thủ).
+
+### A6. Trích đáp án MATH: nhánh `I` được **thêm cơ hội đoán** (`math_selfvsweak_kernel.py:184`)
+Fallback `(?:answer is|=)` chỉ chạy khi `\boxed` hỏng, mà tỉ lệ hỏng **khác nhau theo nhánh**
+(H70c: `I` 2.4% vs `V_self` 0.4%). ⇒ **thổi `I` lên, làm `poisoning` trông ÂM HƠN thực tế** (~2 đpt).
+Ngoài ra `[^\n.$]+` loại dấu `.` nên `answer is 3.5` → `3`. Và **`boxed_rate` không bao giờ được lưu**
+(`res[...] = BOXR` chạy SAU `json.dump`) — đã xác nhận thiếu trong cả `res_H70c.json` lẫn `res_H65d.json`.
+
+## B. THỐNG KÊ — nhiều kết luận KHÔNG phân biệt được với nhiễu (McNemar ghép cặp, n=500)
+
+| kết luận của tôi | delta | CI 95% | p | phán quyết |
+|---|---|---|---|---|
+| `SEL_self − SEL_weak` (#111) | +.0120 | [−.009, +.033] | **.34** | **KHÔNG ĐỨNG** |
+| `cheap_vs_dear` (#115) | +.0020 | [−.022, +.026] | 1.00 | **KHÔNG ĐỨNG** (null hai lần) |
+| bão hoà S1→S5 (#115) | +.0040 | [−.012, +.020] | .80 | **KHÔNG ĐỨNG** |
+| `V_self − I` MATH (#122) | +.0020 | [−.008, +.012] | 1.00 | **KHÔNG ĐỨNG** (7 bài tín hiệu) |
+| `(I+S) − (I+I2)` (#113) | .0000 | [−.020, +.020] | 1.00 | **KHÔNG ĐỨNG** |
+| thu 65% vs 81% (#111) | — | [31,89] vs [60,96] | — | **KHÔNG ĐỨNG** (CI chồng hoàn toàn) |
+| `marginal_S` (#113) | +.0180 | [+.004, +.032] | .022 | biên |
+| `SEL−I` H69c / H69d | +.0220 / +.0151 | [+.008,+.038] / [+.002,+.028] | .0074 / .039 | biên (gộp Fisher .0026) |
+| `V_weak−I` mọi miền · `SEL−V_review` +.1300 · `I−S` · k-scaling từng bước | — | — | ≤1e-3 | **VỮNG** |
+
+### B1. **"5/5 fold" của tôi vừa VÔ NGHĨA vừa SAI SỰ THẬT**
+- Tự kiểm: H69c folds = `[.04 .01 **.00** .01 .05]`, H69d = `[**.000** .011 .033 .022 .011]`.
+  **Fold bằng 0 KHÔNG phải fold dương. Hai chỗ tôi viết "5/5" thực ra là 4/5. SAI SỰ THẬT.**
+- Và nó gần như không mang thông tin: cho trước biên độ đã quan sát, P(5/5) = **.15–.84**.
+  Phép thử dấu 5 fold **chặn trên ở p = .031**, yếu hơn McNemar mà tôi **chưa từng chạy** (.0074).
+
+### B2. **k=2 "điểm ngọt" — độ cong KHÔNG tồn tại, và có thiên lệch chọn mẫu**
+`k4→k8` **không nhỏ hơn** `k2→k4` ở 2/3 lần chạy. Và nhánh k=2 **luôn dùng ứng viên số 1** —
+tự kiểm: trong 7 lựa chọn có thể, số 1 xếp **2/7 (H73)** và **1/7 (H73b)**, tức **gần MAX**.
+Thổi k=2 lên ~+.005..+.011 — **đúng chiều tạo ra "điểm ngọt"**. ⇒ **RÚT LẠI khuyến nghị k=2.**
+Chỉ còn phát biểu được: **k=1 là lựa chọn tệ nhất**.
+
+### B3. H73/H73b/H76 là **ba lần rút mẫu trên CÙNG 500 bài** ⇒ **n hiệu dụng = 500, không phải 1500**.
+
+### B4. ~40 so sánh, **không kiểm soát đa phép thử**. Ở α=.05 kỳ vọng ~2 dương tính giả —
+đúng vùng p≈.02–.04 nơi `marginal_S`, `V_self−I` (#105), H69d nằm.
+
+## C. LẬP LUẬN — đọc số sau khi cổng đã trượt (lỗi nặng nhất về kỷ luật)
+
+1. **#123**: cổng cắt ngắn TRƯỢT, tôi viết *"không đọc"* — **rồi đọc `I_14B − I_7B` = +.0180 và
+   dùng nó để ĐÓNG hướng 14B**. Đúng loại sai phạm mà đăng ký trước sinh ra để chặn. **RÚT LẠI.**
+2. **#114**: cổng `#70` không đánh giá được, tôi **tự chế ra "cổng của phần này"** từ hai cổng phụ
+   rồi rút hai kết luận. **RÚT LẠI cả hai.**
+3. **#121**: tuyên VOID rồi vẫn đọc +.0460 là *"tái lập theo lần rút mẫu"*; cổng `#82`
+   (`acc(SEL@1)` ∈ [.66,.76]) **trượt ở .6400 và tôi không hề báo cáo**. **RÚT LẠI.**
+4. **#122**: *"−.1260 là đầu độc LỚN NHẤT mọi miền"* — **SAI**: #99 đã đo `V0−I` = **−.1680** trên GSM8K
+   (tự kiểm, `IDEAS.md:3501`). Tôi **bỏ sót số của chính mình**. Và xếp hạng MATH>GSM8K>MBPP là
+   **so chéo lần chạy** với headroom và `MAXNEW` khác nhau. **RÚT LẠI xếp hạng.**
+5. **#120**: tôi tự chấm dự đoán #117-b là *"trúng cả hàng lẫn biên độ"*. Thực tế phần **số** SAI:
+   dự đoán `SEL_cons` ≈ .63 **dưới** greedy .6400; thực tế **.6640, TRÊN** greedy. Chỉ **khoảng cách**
+   (−.06 vs −.0640) là trúng. **Sửa: trúng hàng và khoảng cách, SAI mức và SAI dấu so với greedy.**
+6. **#113** chi phí thiếu 5.07 (lượt sinh test) ⇒ tỉ lệ đúng là 11.14 vs 15.21 = **1.37×**, không phải 1.67×.
+7. **#117** con số "lợi ích/đơn vị" (.00113/.00042/.00023) **không tái tạo được** từ chính bảng của nó
+   (đúng phải là .00789/.00421/.00225).
+8. **#103/#100**: *"ba miền, ba cặp model"* thực ra là **hai benchmark, hai cặp**; #100 ghi
+   *"benchmark khác"* trong khi H60 và H61 **đều là GSM8K**.
+9. **#101**: `V_label > V_first` = **+.0080 = 4 bài** — tôi rút ra cơ chế (*"hoài nghi nguồn quan trọng hơn"*)
+   từ 4 bài, trong dự án dùng ngưỡng .02 ở mọi nơi khác. **RÚT LẠI cơ chế đó.**
+10. **#102**: *"cấp lớp sửa lại LÀM HẠI"* là chênh **1 lớp và 4 lớp** trên n=88, không có phép thử —
+    **trong đúng vòng tôi tuyên bố 5 method/354 là nhiễu**. Tiêu chuẩn kép. **RÚT LẠI.**
+11. **#124**: báo `preserve` một mình — **đăng ký #68 cấm rõ ràng**.
+12. **#115-b**: tiêu đề nói "41%" nhưng toàn bộ phân tích bên trong là pool 7 ứng viên (**51%**).
+
+## D. Cái gì CÒN SỐNG sau kiểm định
+- **Đầu độc `V − I` ÂM** ở mọi miền đã đo: GSM8K −.0740, MBPP −.0740, MATH −.1260, và
+  #99 −.1680 — **tất cả p ≤ 1e-3**. Đây là kết quả vững nhất của dự án.
+- **`SEL − V_review` = +.1300 / +.0841** (p 9e-13) — **CHỌN hơn REVIEW**, vững.
+- **`I − S`**, **k-scaling từng bước dương** (mỗi bước p ≤ .02), **`SEL_test` hơn `SEL_cons`** (dấu vững,
+  dù biên độ nhiễm lỗi A3).
+- `SEL−I` ~+.02 [+.008,+.038] với **tái lập độc lập** H69c+H69d — giữ, nhưng **nêu kèm CI**,
+  và nêu rõ **lật 6 bài là xoá sạch** hiệu ứng ở H69c.
+
+## E. Bài học lớn nhất
+> **Tôi đã bắt được rất nhiều lỗi hạ tầng của chính mình, nhưng KHÔNG bắt được lỗi nào
+> trong nhóm A và B — vì đó là những lỗi khiến kết quả TRÔNG ĐÚNG.**
+> Ba tác nhân trung lập tìm ra chúng trong ~10 phút. **Kiểm định độc lập không phải thủ tục;
+> nó tìm ra một lớp lỗi mà tự kiểm về nguyên tắc không tìm được.**
+> Cụ thể nhất: ở A1 tôi **tự viết một phép thử không thể thất bại** rồi coi việc nó không
+> thất bại là bằng chứng ủng hộ giả thuyết của mình.
