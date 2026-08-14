@@ -4943,3 +4943,19 @@ phải hiệu ứng**, và củng cố việc **rút lại "k=2 là điểm ng�
 > Chi phí **4.5×**. **KHÔNG** phát biểu gì về hình dạng đường cong (từng bước không đủ lực),
 > **KHÔNG** phát biểu "k=2 là điểm ngọt".
 Vẫn cần nói rõ: đây là **best-of-n có verifier** (Cobbe et al. 2021) áp dụng lại, không phải kỹ thuật mới.
+
+---
+
+## Vòng #127 — H79: **HUỶ theo cổng — mẫu thô quá ít, KHÔNG nới ngưỡng**
+*(đăng ký trước #88)* · RTX PRO 6000 Blackwell 95 GB, sm_120 — phần cứng đúng.
+Lọc theo lời giải chuẩn: **267/300** bài đạt (tỉ lệ giữ **.89**), cổng #88 yêu cầu **n ≥ 280** ⇒ **HUỶ**.
+
+**Không đọc số nào.** Nguyên nhân là tôi ước lượng tỉ lệ giữ từ **40 bài** (32/40 = .80) rồi lấy
+`N_TASK=300`; thực tế .89 nhưng vẫn không đủ vì tôi lấy mẫu thô quá sát ngưỡng.
+
+> **Sửa đúng cách: TĂNG MẪU THÔ (300 → 340), KHÔNG hạ ngưỡng.**
+> Hạ ngưỡng sau khi thấy số chính là sai phạm tôi đã ghi ở #123 (đọc `I_14B − I_7B` sau khi
+> cổng trượt). Lần này làm ngược lại — giữ nguyên cổng, sửa thiết kế lấy mẫu.
+Cũng ghi nhận: **kiểm bộ chấm offline TRƯỚC khi chạy đã cứu một phiên** — lần thử đầu cho
+lời giải chuẩn **0/40** vì `canonical_solution` chỉ là **thân hàm**, phải ghép `complete_prompt`
+(sau khi ghép: 32/40). Nếu không kiểm, mọi nhánh sẽ gần 0 và tôi sẽ có một kết quả **giả hoàn toàn**.

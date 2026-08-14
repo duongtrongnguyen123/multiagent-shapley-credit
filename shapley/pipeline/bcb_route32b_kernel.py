@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 RUN = "@@RUN@@"
-N_TASK, MAXNEW, TIMEOUT = 300, 768, 60
+N_TASK, MAXNEW, TIMEOUT = 340, 768, 60   # #88: loc giu ~.89 (267/300) -> 340 raw ~ 303 sau loc, du cong n>=280
 BSZ = {"7B": 24, "32B": 8}
 COST = {"7B": 5.07, "32B": 21.3}
 
