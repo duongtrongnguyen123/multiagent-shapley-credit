@@ -4899,3 +4899,47 @@ Chỉ còn phát biểu được: **k=1 là lựa chọn tệ nhất**.
 > nó tìm ra một lớp lỗi mà tự kiểm về nguyên tắc không tìm được.**
 > Cụ thể nhất: ở A1 tôi **tự viết một phép thử không thể thất bại** rồi coi việc nó không
 > thất bại là bằng chứng ủng hộ giả thuyết của mình.
+
+---
+
+## Vòng #126 — H73c: **k-scaling TÁI LẬP THẬT trên dải tách rời** (lần này dải đúng)
+*(đăng ký trước #82, khoá tại `2ef8593`; kernel + launcher đã sửa theo bài học #121)*
+
+### Xác minh dải TRƯỚC khi đọc số (đúng quy tắc #121)
+`n = 464` · `task_id 511..974` · **giao với dải cũ = 0 bài**. Lần này là tái lập THẬT.
+
+| k | `SEL@k` | so với k=1 | trần | thu | `tie_rate` báo cáo | chi phí |
+|---|---|---|---|---|---|---|
+| 1 | .7069 | — | .7069 | — | 1.000 | 10.14 |
+| 2 | .7198 | +.0129 | .7392 | 40% | .9246 | 15.21 |
+| 4 | .7414 | +.0345 | .7716 | 53% | .8254 | 25.35 |
+| 8 | **.7565** | **+.0496** | .7996 | 54% | .7414 | 45.63 |
+
+### Hai cách đọc cổng — phải nêu cả hai (như #112)
+Kernel in **"HUỶ: `acc(SEL@1)` ngoài [.60,.68]"** vì nó nhúng cổng của bảng **#79** (dải 11–510).
+Bảng **CHI PHỐI H73c là #82**, cổng là **[.66, .76]** — `.7069` **NẰM TRONG** ⇒ **cổng ĐẠT**.
+`SEL@8 − SEL@2` = **+.0367 ≥ +.02**, tăng đều ⇒ **HÀNG 1 của #82: TÁI LẬP.**
+
+### Tái lập trên **bài khác nhau**, không phải mẫu khác nhau
+| | dải | `SEL@8 − SEL@2` | `SEL@8 − SEL@1` |
+|---|---|---|---|
+| H73 | 11–510 | +.0400 | +.0800 |
+| **H73c** | **511–974 (tách rời)** | **+.0367** | **+.0496** |
+
+McNemar ghép cặp trên H73c: `SEL@1→SEL@8` = **+.0496, thắng 27 / thua 4, p = 3.4e-5**.
+Từng bước: `1→2` +.0129 (p .11, **không đạt**) · `2→4` +.0216 (p .0064) · `4→8` +.0151 (p .065).
+⇒ **Hiệu ứng TỔNG (k=1→8) vững; từng bước riêng lẻ thì KHÔNG** ở dải này.
+
+### Cảnh báo #125-B2 KHÔNG tái diễn ở đây — và điều đó lại củng cố cảnh báo
+Kiểm thiên lệch chọn ứng viên cho k=2: `cand1` xếp **6/7** trong các lựa chọn có thể
+(.7198 so với trung bình .7250) ⇒ **thiên lệch −.0052**, tức lần này ngược chiều.
+Ở H73/H73b nó xếp 2/7 và 1/7 (**+.005..+.011**). ⇒ **Xác nhận đây là nhiễu rút mẫu chứ không
+phải hiệu ứng**, và củng cố việc **rút lại "k=2 là điểm ngọt"** ở #125: biên độ k=2 dao động
+±.005 chỉ do chọn bạn đồng hành nào.
+
+### Phát biểu được phép dùng
+> **Lấy thêm mẫu rồi CHỌN bằng test tự sinh giúp +.0496 (k=1→8) trên dải giữ lại,
+> tái lập +.0800 của dải gốc về DẤU và về tính đơn điệu, biên độ nhỏ hơn.**
+> Chi phí **4.5×**. **KHÔNG** phát biểu gì về hình dạng đường cong (từng bước không đủ lực),
+> **KHÔNG** phát biểu "k=2 là điểm ngọt".
+Vẫn cần nói rõ: đây là **best-of-n có verifier** (Cobbe et al. 2021) áp dụng lại, không phải kỹ thuật mới.
