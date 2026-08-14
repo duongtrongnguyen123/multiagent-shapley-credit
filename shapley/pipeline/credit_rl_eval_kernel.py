@@ -4,6 +4,8 @@
 #   - per-role (P/S/V/A): kernel mount ĐÚNG 1 adapter của role đó, so pipeline CHỨA
 #     role đó chạy BASE (adapter tắt) vs TRAINED (adapter bật). Các vai khác luôn base.
 #   - FULL: mount CẢ 4 adapter (P,S,V,A), so pipeline P->S->V->A BASE vs TRAINED.
+#   - PSVA: mount 3 adapter (S,V,A) KHÔNG P, so pipeline P(base)->S->V->A với
+#     S,V,A trained vs toàn bộ base (P luôn base vì plan-inspect cho KL=0).
 #
 # Chỉ số chính (per-role): gain = acc(pipeline chứa role R, trained) − acc(cùng pipeline, base).
 #   P:  P->S   (plan base vs trained; solver base)
@@ -16,12 +18,12 @@ import os, sys, re, csv, json, glob, statistics, subprocess
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-ROLE = __ROLE__  # "P"|"S"|"V"|"A"|"FULL"
+ROLE = __ROLE__  # "P"|"S"|"V"|"A"|"FULL"|"PSVA"
 N  = __N__       # số bài eval (multiple of NF)
 NF = __NF__      # số fold
 BS = __BS__
 
-assert ROLE in ("P", "S", "V", "A", "FULL"), f"ROLE={ROLE}"
+assert ROLE in ("P", "S", "V", "A", "FULL", "PSVA"), f"ROLE={ROLE}"
 
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", "peft>=0.13,<0.15"], check=False)
 
@@ -59,6 +61,11 @@ if ROLE == "FULL":
     missing = need - set(ADAPTERS)
     if missing:
         raise FileNotFoundError(f"FULL can day du adapter, thieu {missing} :: {list(ADAPTERS)}")
+elif ROLE == "PSVA":
+    need = {"S", "V", "A"}
+    missing = need - set(ADAPTERS)
+    if missing:
+        raise FileNotFoundError(f"PSVA can S,V,A, thieu {missing} :: {list(ADAPTERS)}")
 else:
     if ROLE not in ADAPTERS:
         raise FileNotFoundError(f"ROLE={ROLE} khong co adapter matching :: {list(ADAPTERS)}")
@@ -169,14 +176,21 @@ for f in range(NF):
         sols_base = gen(SOLVE_SYS, [with_plan(q, p) for q, p in zip(qs, plans)], MX_S, None)
         sols_t    = gen(SOLVE_SYS, [with_plan(q, p) for q, p in zip(qs, plans)], MX_S, "S")
         sols_ref = sols_base
+    elif ROLE == "PSVA":  # P base; S trained trên plan base
+        sols_base = gen(SOLVE_SYS, [with_plan(q, p) for q, p in zip(qs, plans)], MX_S, None)
+        sols_t    = gen(SOLVE_SYS, [with_plan(q, p) for q, p in zip(qs, plans)], MX_S, "S")
+        sols_ref = sols_base
     else:  # V | A
         sols_base = gen(SOLVE_SYS, [with_plan(q, p) for q, p in zip(qs, plans)], MX_S, None)
         sols_t = sols_base
 
-    if ROLE in ("V", "FULL", "A"):
+    if ROLE in ("V", "FULL", "A", "PSVA"):
         if ROLE == "V":
             v_ref  = gen(VERIFY_SYS, [verify_user(q, s) for q, s in zip(qs, sols_base)], MX_V, None)
             v_full = gen(VERIFY_SYS, [verify_user(q, s) for q, s in zip(qs, sols_base)], MX_V, "V")
+        elif ROLE == "PSVA":
+            v_ref  = gen(VERIFY_SYS, [verify_user(q, s) for q, s in zip(qs, sols_base)], MX_V, None)
+            v_full = gen(VERIFY_SYS, [verify_user(q, s) for q, s in zip(qs, sols_t)], MX_V, "V")
         else:  # FULL | A: V base
             v_ref = gen(VERIFY_SYS, [verify_user(q, s) for q, s in zip(qs, sols_base)], MX_V, None)
             if ROLE == "FULL":
@@ -184,9 +198,11 @@ for f in range(NF):
             else:
                 v_full = v_ref
 
-    if ROLE in ("A", "FULL"):
+    if ROLE in ("A", "FULL", "PSVA"):
         a_ref = gen(AGG_SYS, [agg_user(q, [s, v]) for q, s, v in zip(qs, sols_base, v_ref)], MX_A, None)
         if ROLE == "FULL":
+            a_full = gen(AGG_SYS, [agg_user(q, [s, v]) for q, s, v in zip(qs, sols_t, v_full)], MX_A, "A")
+        elif ROLE == "PSVA":
             a_full = gen(AGG_SYS, [agg_user(q, [s, v]) for q, s, v in zip(qs, sols_t, v_full)], MX_A, "A")
         else:
             a_full = gen(AGG_SYS, [agg_user(q, [s, v]) for q, s, v in zip(qs, sols_base, v_ref)], MX_A, "A")
@@ -198,7 +214,7 @@ for f in range(NF):
         ref_out, full_out = sols_ref, sols_t
     elif ROLE == "V":
         ref_out, full_out = v_ref, v_full
-    else:  # A | FULL
+    else:  # A | FULL | PSVA
         ref_out, full_out = a_ref, a_full
 
     ok_ref  = [eq(pred(t), g) for t, g in zip(ref_out, gs)]
@@ -228,6 +244,13 @@ for f in range(NF):
             "PSV_base": sum(eq(pred(t), g) for t, g in zip(v_ref, gs)) / n,
             "PSV_full": sum(eq(pred(t), g) for t, g in zip(v_full, gs)) / n,
         }
+    if ROLE == "PSVA":
+        d["stage"] = {
+            "PS_base": sum(eq(pred(s), g) for s, g in zip(sols_base, gs)) / n,
+            "PS_full": sum(eq(pred(s), g) for s, g in zip(sols_t, gs)) / n,
+            "PSV_base": sum(eq(pred(t), g) for t, g in zip(v_ref, gs)) / n,
+            "PSV_full": sum(eq(pred(t), g) for t, g in zip(v_full, gs)) / n,
+        }
 
     fold_stats.append(d)
     print(f"  ref {d['acc_ref']:.3f} -> full {d['acc_full']:.3f} "
@@ -237,7 +260,7 @@ for f in range(NF):
               f"fix {d['V_ref']['fix']:.3f}->{d['V_full']['fix']:.3f} | "
               f"break {d['V_ref']['break']:.3f}->{d['V_full']['break']:.3f} | "
               f"copy {d['V_ref']['copy']:.3f}->{d['V_full']['copy']:.3f}", flush=True)
-    if ROLE == "FULL":
+    if ROLE in ("FULL", "PSVA"):
         print(f"  PS {d['stage']['PS_base']:.3f}->{d['stage']['PS_full']:.3f} | "
               f"PSV {d['stage']['PSV_base']:.3f}->{d['stage']['PSV_full']:.3f}", flush=True)
 
