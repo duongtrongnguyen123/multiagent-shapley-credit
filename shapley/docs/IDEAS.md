@@ -4982,3 +4982,39 @@ partial < 1 KB cho một kernel sinh 500 bài là dấu hiệu hỏng, thấy đ
 
 **Câu hỏi của H77 (CHỌN có hơn REVIEW trên TOÁN không) vẫn CHƯA có câu trả lời.**
 Muốn chạy lại thì phải: giảm k từ 8 xuống 4 (để lọt 12h), và lưu `raw` thật sau mỗi mẫu.
+
+---
+
+## Vòng #129 — H79b: **BỊ CHIẾM CHỖ khi nạp 32B — nhưng con số quyết định ĐÃ ĐO XONG**
+*(đăng ký trước #88)* · RTX PRO 6000. H78 **vẫn chạy**, nên đây không phải huỷ toàn cục:
+**pool RTX 6000 đuổi job THỨ HAI** của cùng tài khoản (H79b chết ở 43% quá trình nạp 32B).
+
+### Đã kịp đo, và nó đủ để kết luận NỬA CHI PHÍ
+```
+NHAN 34/301  |  leo thang 267  |  p_esc = 0.887
+```
+Code của **7B đạt test do CHÍNH NÓ viết chỉ ở 11.3%** số bài BigCodeBench.
+⇒ Bộ định tuyến "chấp nhận-hoặc-leo-thang" **leo thang 88.7% số bài**.
+
+| nhánh | chi phí (1.5B-eq) |
+|---|---|
+| `I` — gọi thẳng 32B | **21.30** |
+| `ROUTE` — 7B code + 7B test + .887 × 32B | **29.00** |
+
+> **Định tuyến "hợp lý" ĐẮT HƠN 1.36× so với gọi thẳng model mạnh — trước khi bàn tới độ chính xác.**
+> Nó **không thể** tiết kiệm ở bất kỳ mức chính xác nào. Nửa chi phí của bảng khoá #88 đã xong.
+
+**Chưa được kết luận:** `ROUTE − I` về **độ chính xác** (cần nhánh 32B chạy xong) ⇒ **chưa kích hoạt hàng nào**.
+
+### Vì sao điều này quan trọng (trả lời phản biện "định tuyến của anh là kiểu rơm")
+H39 (#78) — kết quả dương DUY NHẤT về định tuyến — chạy trên **MATH**, nơi tầng rẻ (1.5B)
+**tự đồng thuận** ở **37.5%** số bài. Ở đây trên **code khó**, tầng rẻ chỉ tự tin ở **11.3%**.
+> **Định tuyến có điều kiện sống nhờ việc tầng rẻ THƯỜNG XUYÊN tự tin ĐÚNG.**
+> Trên tác vụ đủ khó để cần model mạnh, tầng rẻ gần như không bao giờ tự tin —
+> nên định tuyến **suy biến thành "luôn leo thang" CỘNG một lượt rẻ lãng phí**.
+Đây là **giới hạn cấu trúc**, không phải lỗi cấu hình: cùng cái làm bài khó (tầng rẻ hay sai)
+cũng là cái làm cổng định tuyến luôn mở.
+
+### Hạ tầng: pool RTX 6000 chỉ cho **MỘT** job mỗi tài khoản
+Hai job 32B song song trên `zhongzhing` ⇒ job thứ hai bị đuổi giữa lúc nạp.
+**Quy tắc mới: mỗi tài khoản CHỈ MỘT kernel RTX 6000 tại một thời điểm**, xếp hàng tuần tự.
