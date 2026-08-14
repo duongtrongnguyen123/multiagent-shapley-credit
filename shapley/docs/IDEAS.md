@@ -4653,3 +4653,57 @@ Cùng lập luận cho **MBPP** (#103, `V − I` = −.0740, lệch ~0) và cho 
 > Vì thế: **#114/#116 (V trông TỐT trên MATH) bị đình chỉ; #100/#103 (V trông XẤU) không bị đụng.**
 
 Điều này thu hẹp đúng phạm vi thiệt hại của #119: **chỉ các kết quả MATH có dấu DƯƠNG cho `V`.**
+
+---
+
+## Vòng #120 — H76: **DỰ ĐOÁN #117-b ĐÚNG — đồng thuận hại KỂ CẢ khi đa số đúng ⇒ RÚT LẠI chẩn đoán #118**
+*(đăng ký trước #83, khoá tại `18659c5`; dự đoán ghi trước tại `abad54f`)*
+
+| bộ chọn | acc | so với cand0 | trần | thu |
+|---|---|---|---|---|
+| **`SEL_test`** | **.7280** | +.0880 | .7620 | 72% |
+| `SEL_cons` | .6640 | +.0240 | .7620 | 20% |
+| `SEL_hyb` | .6700 | +.0300 | .7620 | 25% |
+
+**PHÁN QUYẾT: HÀNG 3.** `SEL_cons − SEL_test` = **−.0640**.
+
+### Dự đoán ghi trước ở #117-b: **TRÚNG**
+Tôi ghi (trước khi có số): *"hàng 3, `SEL_cons` ≈ .63, kém `SEL_test` khoảng −.06"*.
+Thực tế **−.0640**, `SEL_cons` = .6640. **Trúng cả hàng lẫn biên độ.**
+Cơ sở là phân bố lưỡng cực đo được ở #117-b (25% cùng sai / 52.8% cùng đúng / 22.2% hỗn hợp,
+và trong nhóm hỗn hợp đa số chỉ đúng 46.8%).
+
+### RÚT LẠI chẩn đoán #118
+#118 giải thích đồng thuận thất bại là vì *"pool đa số YẾU"*. **Sai — chưa đủ.**
+Ở đây pool là **8 mẫu 7B, đa số ĐÚNG tổng thể**, mà đồng thuận vẫn **−.0640**.
+> **Nguyên nhân thật: LỖI TƯƠNG QUAN, không phải năng lực của đa số.**
+> Mẫu từ cùng một model sai theo cùng một kiểu; "đa số" không phải bằng chứng độc lập.
+> Bất đồng **chọn lọc ra** đúng những bài khó, nơi câu trả lời phổ biến nhất là SAI.
+
+Phát biểu ở #118 (*"tín hiệu yếu nhưng ĐỘC LẬP thắng tín hiệu mạnh nhưng TƯƠNG QUAN"*) **vẫn đúng**;
+chỉ phần **chẩn đoán nguyên nhân** phải sửa.
+
+---
+
+## Vòng #121 — H73b: **VÔ HIỆU LÀM TÁI LẬP — kernel chạy nhầm CÙNG dải bài**
+*(đăng ký trước #82)*
+
+`res_h73b` có `task_id 11..510` — **y hệt H73**, không phải dải giữ lại 511–974.
+**Nguyên nhân:** tôi chỉ tham số hoá `@@LO@@/@@HI@@` cho `mbpp_select_vs_review_kernel.py`,
+**quên `mbpp_kscale_kernel.py`** (vẫn hardcode `TIDLO, TIDHI = 11, 510`). Bộ phóng chỉ kiểm
+*"còn placeholder chưa thay"*, **không kiểm "placeholder có tồn tại không"** ⇒ `LO=511 HI=974` bị **bỏ qua im lặng**.
+**Đây là lỗi #109 lặp lại: bản sửa không lan sang mọi kernel dẫn xuất.**
+
+### Vẫn đọc được gì
+| | dải | `SEL@8 − SEL@2` | `tie_rate` k=2→8 |
+|---|---|---|---|
+| H73 | 11–510 | +.0400 | .908 → .724 |
+| H73b | **11–510 (trùng)** | +.0460 | .886 → .730 |
+
+⇒ **Tái lập theo LẦN RÚT MẪU** (cùng bài, mẫu khác): +.0400 vs +.0460, cùng chiều, cùng cỡ.
+⇒ **KHÔNG phải tái lập theo BÀI.** Phát biểu k-scaling vẫn **chưa được kiểm trên dải giữ lại**,
+**không được đưa vào README** cho tới khi chạy đúng.
+
+**Sửa bắt buộc trước khi chạy lại:** tham số hoá dải trong `mbpp_kscale_kernel.py`, và thêm vào
+`launch_any.py` phép kiểm **"nếu truyền LO/HI thì kernel PHẢI chứa `@@LO@@`"** — im lặng bỏ qua
+tham số là kiểu lỗi tệ nhất vì nó tạo ra một "bản tái lập" giả.
