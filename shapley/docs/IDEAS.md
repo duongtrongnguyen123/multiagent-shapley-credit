@@ -5018,3 +5018,47 @@ cũng là cái làm cổng định tuyến luôn mở.
 ### Hạ tầng: pool RTX 6000 chỉ cho **MỘT** job mỗi tài khoản
 Hai job 32B song song trên `zhongzhing` ⇒ job thứ hai bị đuổi giữa lúc nạp.
 **Quy tắc mới: mỗi tài khoản CHỈ MỘT kernel RTX 6000 tại một thời điểm**, xếp hàng tuần tự.
+
+---
+
+## Vòng #130 — H78: **HUỶ — và cổng cắt ngắn vừa chặn một phát hiện GIẢ ngoạn mục**
+*(đăng ký trước #87 + #87-b)* · RTX PRO 6000, bf16, thiết kế đã sửa (mọi hàng cross-model).
+
+### Cổng cắt ngắn TRƯỢT rất nặng
+| nhánh | tỉ lệ có `\boxed` |
+|---|---|
+| `S` .940 · `I_7B` .966 · `V_7B` .974 · `I_14B` .968 · `V_14B` .990 | bình thường |
+| **`I_32B` .316** · **`V_32B` .524** | **thảm hoạ** |
+min **.3160** (cần ≥ .80) · chênh **.6740** (cần < .05) ⇒ **HUỶ, không đọc số nào.**
+
+### Vì sao: **32B lý luận DÀI HƠN NHIỀU** và bị `MAXNEW`=1280 chặt cụt
+| nhánh | độ dài trung vị | % chạm trần |
+|---|---|---|
+| `I_7B` | 1332 | 39.6% |
+| `I_14B` | 1331 | 41.2% |
+| **`I_32B`** | **1500 (kịch trần)** | **99.8%** |
+
+**32B gần như KHÔNG BAO GIỜ kịp viết xong.** Nó mất **68%** số đáp án chỉ vì hết token.
+
+### Con số mà cổng đã chặn — và đáng lẽ tôi đã báo cáo nó
+Nếu đọc bừa, bảng sẽ nói:
+- `I_32B` = **.2880** so với `I_7B` = .7000 ⇒ *"32B tệ hơn 7B 41 điểm ở toán"* — **vô lý hiển nhiên**.
+- `poisoning(32B)` = **+.2080**, 5/5 fold từ +.16 tới +.27 ⇒ *"ở 32B, được xem lời giải yếu
+  giúp TĂNG 21 điểm!"* — một **đảo chiều ngoạn mục** của phát hiện chính, và **hoàn toàn là artifact**:
+  `V_32B` giữ được `\boxed` ở **.524** còn `I_32B` chỉ **.316**, vì `V` được đưa sẵn lời giải
+  nên tốn ít token hơn để đi tới đáp án. **Đúng confound #119, nay khuếch đại gấp 5 lần.**
+
+> **Đây là lần cổng hiệu lực trả công lớn nhất.** Không có nó, tôi đã có một bảng số
+> "5/5 fold, +.2080" trông cực kỳ thuyết phục và **sai hoàn toàn**.
+
+### Bài học tổng quát (mới, và nó áp ngược lên các vòng trước)
+> **Model càng mạnh càng lý luận DÀI. Một `MAXNEW` cố định vì thế PHẠT model mạnh NẶNG NHẤT —
+> và phạt nhánh `I` nặng hơn nhánh `V`.** Hai thiên lệch cùng chiều, cùng nhân lên theo cỡ model.
+Điều này **giải thích hồi tố** vì sao 14B trông yếu hơn 7B ở H65c (−.0280) và chỉ nhỉnh hơn
+ở H65d (+.0180): **cùng một cơ chế, biên độ nhỏ hơn**. Ở 32B nó bùng thành .674 chênh lệch.
+**Mọi so sánh giữa các cỡ model phải kiểm tỉ lệ hoàn thành TRƯỚC, không phải sau.**
+
+### Chạy lại cần gì
+`MAXNEW` ≥ **3072** cho 32B (trung vị 7B là 1332 token-tương-đương ⇒ 32B cần ~2.3×).
+Nhưng H78 đã mất **5.2 giờ** ở 1280; ×2.4 sẽ vượt tường 12h ⇒ phải **giảm n xuống ~250**
+hoặc **bỏ nhánh 14B**. Ghi rõ: đây là đánh đổi bắt buộc, không phải lựa chọn tuỳ tiện.
