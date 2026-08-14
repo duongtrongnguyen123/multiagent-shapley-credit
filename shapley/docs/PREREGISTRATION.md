@@ -3586,3 +3586,51 @@ Nhánh: `I` · `V_review` · **`maj@2/4/8`** (bỏ phiếu đáp án đã chuẩ
 chỉ ≈ −.012, nên khoảng cách dễ vượt +.05. Về `maj@8 − I`: đoán **+.05..+.09**.
 Rủi ro ghi trước: nếu 8 mẫu toán cũng lưỡng cực như code (#117-b) thì ra hàng 6 và **lời giải thích
 #118 phải đổi từ "đặc thù code" sang "chung"**. Tỉ lệ prior đúng: **15/30**.
+
+
+# Đăng ký trước #87 — H78: **32B — ĐẦU ĐỘC CÓ TAN THEO NĂNG LỰC KHÔNG?** (thiết kế ĐÃ SỬA)
+**Viết TRƯỚC khi chạy.** Cần RTX 6000 Pro thật sự: Qwen2.5-32B **bf16 = 68 GB**.
+
+## Vì sao chạy, và vì sao THIẾT KẾ CŨ PHẢI BỎ
+Phát hiện chính của dự án (`V − I` ÂM ở mọi miền: −.074 / −.074 / −.126 / −.168) có **một phản
+biện hiển nhiên**: *"chỉ đúng vì model của anh đều nhỏ"*. 32B là phép thử rẻ nhất cho phản biện đó.
+
+**Nhưng thiết kế cũ (#70/#85) HỎNG** — kiểm định độc lập #125-A2 chỉ ra:
+`poisoning(1.5B)` là **TỰ xem lại** (`I_1.5B is SOLS`) trong khi `poisoning(7B/14B)` là **xem model KHÁC**.
+Trục "năng lực" trộn **chế độ** với **nguồn**. Thêm 32B vào bảng đó = thêm một hàng vô nghĩa.
+
+**Sửa: BỎ hàng 1.5B.** Solver **cố định = 1.5B**; chỉ đổi **năng lực VERIFIER** qua **7B / 14B / 32B**.
+Mọi hàng đều là **cross-model review trên CÙNG một bộ lời giải của 1.5B** ⇒ so sánh thuần một biến.
+
+## Thiết kế
+MATH-500 · **bf16 toàn bộ, KHÔNG lượng tử hoá** · `MAXNEW`=1280 · greedy ·
+nạp **tuần tự** (15+29+68 = 112 GB > 95 GB nên không thể giữ cùng lúc) · **lưu từng phần sau mỗi model**.
+Với mỗi M ∈ {7B, 14B, 32B}: `I_M` = M tự giải · `V_M` = M xem lời giải của 1.5B rồi kiểm/sửa.
+`poisoning(M)` = `acc(V_M) − acc(I_M)`.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- **Cổng cắt ngắn (#84):** tỉ lệ có `\boxed` ≥ **.80** ở MỌI nhánh **VÀ** chênh giữa hai nhánh bất kỳ < **.05**.
+  *(H65d trượt đúng cổng này ở .0500 — không được nới.)*
+- **Cổng năng lực:** `acc(I_32B) − acc(I_7B)` ≥ **.05**. Nếu 32B không thật sự mạnh hơn 7B thì
+  "thêm năng lực" **không xảy ra** ⇒ HUỶ. *(14B chỉ hơn 7B .0180 nên cổng này rất có thể trượt lần nữa —
+  tôi chấp nhận rủi ro đó thay vì nới ngưỡng.)*
+- `acc(S)` ∈ [.10,.55] · n = 500 · lưu toàn văn.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `poisoning(32B)` ≥ **−.02** VÀ \|poisoning\| giảm đều 7B→14B→32B | **ĐẦU ĐỘC TAN THEO NĂNG LỰC.** Phản biện "model quá nhỏ" ĐÚNG; phát hiện chính phải thu hẹp về "model nhỏ". Nêu rõ 32B vẫn chưa phải model biên. |
+| `poisoning(32B)` ∈ [−.05, −.02) VÀ giảm đều | Co lại theo năng lực nhưng **chưa hết** ở 32B. Ngoại suy điểm hoà vốn, ghi rõ là ngoại suy. |
+| \|`poisoning(32B)`\| ≥ **.05** HOẶC không giảm đều | **ĐẦU ĐỘC KHÔNG RỬA ĐƯỢC BẰNG NĂNG LỰC** trong dải 7B–32B (hơn **4.5×** tham số). Đây là bản mạnh nhất của phát hiện chính và là câu trả lời trực tiếp cho phản biện. |
+| `poisoning(32B)` > **+.02** | **ĐẢO DẤU ở năng lực cao:** 32B được xem lời giải yếu lại TỐT LÊN. Nếu vậy phải kiểm cổng cắt ngắn cực kỹ trước khi tin, và kiểm xem 32B có đang bỏ qua hoàn toàn lời giải kia không (`unchanged_rate`). |
+| `acc(I_32B) − acc(I_7B)` < .05 | **HUỶ**, không đọc. Kết luận: MATH-500 ở greedy **không phân giải được** năng lực trong dải này — và đó là lý do phải dừng hướng quét năng lực, không phải vì đầu độc. |
+| cổng cắt ngắn trượt | HUỶ; báo tỉ lệ để chọn `MAXNEW` tiếp theo. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 3 (~45%)**: đầu độc còn ≥ .05 ở 32B. Lý do: cơ chế đo được không phải "thiếu năng lực"
+mà là **được đưa một lời giải sai thì bị kéo vào chế độ sửa chữa**, và #122 cho thấy trên toán
+**100% thiệt hại đến từ NGUỒN** chứ không phải chế độ — năng lực không rõ chữa được cái đó.
+Hàng 2 ~30% · hàng 1 ~15% · hàng 4 ~5% · HUỶ vì cổng năng lực ~**thực tế cao**, có thể 30–40%
+(14B chỉ hơn 7B .0180).
+**Tôi đang chạy một phép thử mà kết cục khả dĩ nhất là HUỶ** — nhưng đây là phản biện mạnh nhất
+với kết quả chính, nên đáng chạy. Tỉ lệ prior đúng: **15/31**.
