@@ -297,3 +297,23 @@ Kết quả: H73b chạy **đúng dải cũ**, và tôi suýt ghi nó vào READM
 **Quy tắc chung:** với mọi tham số ảnh hưởng tới *dữ liệu nào được dùng*, phải **xác minh ở đầu ra**
 (ví dụ in `task_id` min/max trong kết quả), không chỉ ở đầu vào. H73b lộ ra chính nhờ so
 `task_id 11..510` trong trace — nếu tôi không kiểm trace thì kết quả giả đã vào README.
+
+---
+
+## Bài học #128: lưu-từng-phần phải LƯU DỮ LIỆU, không phải lưu TIẾN ĐỘ
+
+H63 (#124) mất ~15h vì **không có** lưu-từng-phần. Tôi ghi bài học. Rồi H77 mất ~12h vì
+lưu-từng-phần **có tồn tại nhưng rỗng**: `{"partial": true, "n": 4}` — 25 byte.
+
+**Phép thử một câu, áp dụng trước khi phóng:**
+> *"Nếu kernel chết NGAY SAU dòng lưu này, tôi có chấm điểm được từ file đó không?"*
+
+**Phép thử rẻ hơn nữa, áp dụng sau khi chạy:** `ls -la partial_*.json`.
+Một kernel sinh 500 bài mà partial < 1 KB thì chắc chắn hỏng — không cần đọc mã.
+
+**Mẫu đúng (từ H65T2, đã cứu được 2.5h):**
+```python
+json.dump({"partial": True, "done": sorted(OUT.keys()), "raw": OUT},
+          open(f"/kaggle/working/partial_{RUN}.json", "w"))
+```
+**Mẫu sai (H77):** `json.dump({"partial": True, "n": kk+1}, ...)`

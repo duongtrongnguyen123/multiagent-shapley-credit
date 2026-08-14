@@ -4959,3 +4959,26 @@ Lọc theo lời giải chuẩn: **267/300** bài đạt (tỉ lệ giữ **.89*
 Cũng ghi nhận: **kiểm bộ chấm offline TRƯỚC khi chạy đã cứu một phiên** — lần thử đầu cho
 lời giải chuẩn **0/40** vì `canonical_solution` chỉ là **thân hàm**, phải ghép `complete_prompt`
 (sau khi ghép: 32/40). Nếu không kiểm, mọi nhánh sẽ gần 0 và tôi sẽ có một kết quả **giả hoàn toàn**.
+
+---
+
+## Vòng #128 — H77: **MẤT 12 GIỜ vì tôi áp dụng CÁI TÊN của bài học, không phải NỘI DUNG**
+Kernel bị `CANCEL_ACKNOWLEDGED` ở tường 12h. Kịp xong `S`, `I`, `V_review` và **4/8 mẫu** maj@k
+(mẫu cuối ở 41977s). Nhưng file lưu-từng-phần chỉ có:
+```
+partial_H77.json  =  25 byte  =  {"partial": true, "n": 4}
+```
+so với bản làm ĐÚNG ở H65T2: **3.1 MB**, khoá `{partial, done, quant, raw}` với **toàn bộ đầu ra 5 nhánh**.
+
+> **Tôi đã ghi bài học "lưu từng phần" ở #114, rồi khi viết kernel mới lại lưu một BỘ ĐẾM
+> TIẾN ĐỘ thay vì DỮ LIỆU.** Cái tên của bài học được áp dụng; nội dung thì không.
+> Đây là **lần thứ hai** mất >12 giờ vì đúng một nguyên nhân (lần đầu: H63, #124).
+
+**Quy tắc thay thế, cụ thể hơn (đã thêm vào QUY_TRINH):** file lưu-từng-phần phải **CHỨA ĐỦ
+để tái dựng kết quả mà không cần chạy lại GPU**. Kiểm bằng một câu hỏi duy nhất:
+> *"Nếu kernel chết ngay sau dòng này, tôi có chấm điểm được từ file đã lưu không?"*
+Nếu không — nó không phải lưu-từng-phần, nó là log. **Kích thước file là phép thử rẻ nhất:**
+partial < 1 KB cho một kernel sinh 500 bài là dấu hiệu hỏng, thấy được ngay mà không cần đọc mã.
+
+**Câu hỏi của H77 (CHỌN có hơn REVIEW trên TOÁN không) vẫn CHƯA có câu trả lời.**
+Muốn chạy lại thì phải: giảm k từ 8 xuống 4 (để lọt 12h), và lưu `raw` thật sau mỗi mẫu.
