@@ -3548,3 +3548,41 @@ Y hệt #70, đổi **hai** thứ: `MAXNEW` 640 → **1280**, và thêm **cổng
 Đoán **50/50** giữa hai hàng đầu. Lệch cắt ngắn 14B−7B chỉ **3.2 đpt**, khó lấp hết khoảng
 **−.0280**, nên nghiêng nhẹ về *"14B thật sự không hơn"*. Nhưng `MAXNEW` dài hơn cũng nâng
 **tất cả** các nhánh và có thể đổi thứ hạng. Tỉ lệ prior đúng: **15/30**.
+
+
+# Đăng ký trước #86 — H77: **"CHỌN hơn REVIEW" có đúng trên TOÁN không?**
+**Viết TRƯỚC khi chạy.**
+
+## Vì sao
+Phát biểu vững nhất của chuỗi #99–#118 là **"CHỌN hơn REVIEW"** (+.0841..+.1300 trên MBPP),
+nhưng **toàn bộ bằng chứng đến từ CODE**, nơi có oracle chạy được. Trên toán không có test,
+nhưng có **bỏ phiếu đa số đáp án** (`maj@k`) — cũng là **chọn**, chỉ khác tín hiệu.
+Nếu nguyên tắc đúng thì `maj@k` phải hơn `V_review` trên MATH.
+
+**Và nó kiểm luôn lời giải thích ở #118.** Ở đó đồng thuận **thất bại trên code** vì lỗi tương quan
+(8 mẫu 7B: 25% cùng sai, 52.8% cùng đúng). Trên **toán**, đáp án là **một con số ngắn**,
+lỗi đa dạng hơn nhiều ⇒ đồng thuận **phải** hoạt động. Đây là phép thử phân biệt sạch.
+
+## Thiết kế — MATH-500, `MAXNEW`=1280, 7B nf4, cùng một bộ sinh
+`S` = 1.5B giải · `I` = 7B greedy · `C1..C8` = 8 mẫu 7B (T=0.8) · `V_review` = 7B xem lời giải của `S`.
+Nhánh: `I` · `V_review` · **`maj@2/4/8`** (bỏ phiếu đáp án đã chuẩn hoá, hoà → giữ `I`).
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+**Cổng cắt ngắn (#84):** tỉ lệ có `\boxed` ≥ .80 mọi nhánh, chênh giữa hai nhánh < .05 ⇒ nếu không, HUỶ.
+`acc(I) − acc(S)` ≥ .05 · n = 500.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `maj@8 − V_review` ≥ **+.05** | **"CHỌN hơn REVIEW" TỔNG QUÁT SANG TOÁN.** Nguyên tắc không phụ thuộc oracle chạy được; nó đúng với bất kỳ tín hiệu chọn nào. Phát biểu trung tâm của dự án mạnh lên rõ rệt. |
+| +.02 ≤ chênh < +.05 | Đúng chiều nhưng **yếu hơn code** rõ rệt; nêu cả hai biên độ, không gộp. |
+| \|chênh\| < .02 | **KHÔNG tổng quát.** "Chọn hơn review" là phát biểu **về CODE**, không phải về hợp tác nói chung. Thu hẹp mọi chỗ đã viết. |
+| `maj@8` < `V_review` − .02 | **ĐẢO DẤU trên toán** — review hơn chọn. Bất ngờ lớn, phải kiểm cổng cắt ngắn kỹ trước khi tin. |
+| `maj@8 − I` ≥ +.05 **và** `maj@8` tăng đều theo k | k-scaling (#117) tổng quát sang toán bằng tín hiệu KHÁC (đáp án thay vì test). |
+| `maj@8 − I` < +.02 | Bỏ phiếu đa số **không giúp** trên toán ⇒ lỗi tương quan là hiện tượng **chung**, không đặc thù code ⇒ củng cố #117-b và làm yếu lời giải thích ở #118. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~60%)**: `maj@k` trên toán là kỹ thuật đã biết là mạnh, và `V_review` trên MATH
+chỉ ≈ −.012, nên khoảng cách dễ vượt +.05. Về `maj@8 − I`: đoán **+.05..+.09**.
+Rủi ro ghi trước: nếu 8 mẫu toán cũng lưỡng cực như code (#117-b) thì ra hàng 6 và **lời giải thích
+#118 phải đổi từ "đặc thù code" sang "chung"**. Tỉ lệ prior đúng: **15/30**.
