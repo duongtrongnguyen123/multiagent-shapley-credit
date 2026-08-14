@@ -47,50 +47,73 @@ chính bảng Shapley ban đầu:
 > ⚠️ **DIỄN GIẢI CỦA "+14.0đ" ĐÃ BỊ RÚT LẠI ở vòng #100 — xem mục ngay dưới.**
 > Con số đúng, nhưng nó so với **1.5B**. So với **7B chạy một mình** (rẻ hơn) thì nó **ÂM**.
 
-## ⭐ Kết quả mới nhất (vòng #99–#100) — **NHÁNH ĐỐI CHỨNG CÒN THIẾU**
+## ⭐ Kết quả mới nhất (vòng #99–#125) — **ĐÃ QUA KIỂM ĐỊNH ĐỘC LẬP**
 
-Hai thí nghiệm liên tiếp, đăng ký trước, cùng chỉ ra một lỗi phương pháp **trong chính công trình
-này** — và trong cách gần như mọi báo cáo multi-agent tính điểm.
+> **Mọi con số dưới đây đã qua kiểm định bởi ba tác nhân độc lập (vòng #125)** — kiểm mã nguồn,
+> kiểm số liệu bằng McNemar/bootstrap ghép cặp, và kiểm lập luận so với bảng khoá trước.
+> **Nhiều kết luận trung gian của chúng tôi KHÔNG sống sót và đã bị rút** (liệt kê ở cuối mục).
+> Chỉ những phát biểu có p ≤ 1e-3 và/hoặc tái lập trên tập bài tách rời mới được nêu ở đây.
 
-Khi bạn cho agent **mạnh** đọc lời giải của agent **yếu** rồi kiểm/sửa, con số hầu như ai cũng
-báo cáo là `V − S`: verifier hơn **solver yếu** bao nhiêu. Nhưng lựa chọn thay thế thật sự
-không phải là solver yếu — mà là **cứ để agent mạnh tự giải một mình**, và nó thường **RẺ HƠN**
-(một lượt thay vì hai). Gọi đó là `I`.
+### 1. Con số ai cũng báo cáo có DẤU NGƯỢC với con số đúng
 
-| | S (yếu giải) | **I (mạnh TỰ giải)** | V (mạnh kiểm lời giải của yếu) | `V − S` | **`V − I`** |
-|---|---|---|---|---|---|
-| **H60** 0.5B→1.5B | .3700 | **.6440** | .5400 | **+.1700** (5/5) | **−.1040** (5/5) |
-| **H61** 1.5B→7B | .6720 | **.9080** | .8340 | **+.1620** (5/5) | **−.0740** (5/5) |
+Khi cho model **mạnh** xem lời giải của model **yếu** rồi kiểm/sửa, hầu hết báo cáo dùng
+`V − S` (verifier so với **solver yếu**). Nhưng lựa chọn thay thế thật sự là
+**gọi thẳng model mạnh** (`I`) — và nó **RẺ HƠN** (một lượt thay vì hai).
 
-**Cùng thí nghiệm. Hai con số. Ngược dấu.** Ở H61, verifier trông xuất sắc theo mọi cách đo
-thông thường — sửa **85** lỗi của solver, chỉ phá **4**, precision **.955** — mà vẫn thấp hơn
-việc chỉ gọi thẳng 7B **7.4 điểm**, với chi phí **cao hơn**. `fix/break` đo so với **S**,
-nên precision cao hoàn toàn tương thích với việc cả pipeline **bị áp đảo**.
+| bộ | cặp model | `V − S` (hay được báo) | **`V − I`** (đúng) | p (McNemar) |
+|---|---|---|---|---|
+| GSM8K | 0.5B → 1.5B | +.1700 | **−.1040** | — |
+| GSM8K | 1.5B → 7B | +.1620 | **−.0740** | 3e-4 |
+| MBPP (code) | 1.5B → 7B | +.1380 | **−.0740** | 3e-4 |
+| MATH-500 | 1.5B → 7B | — | **−.1260** | 2.7e-10 |
 
-### Vì sao: *đọc* một lời giải kém là ĐỘC, chứ không chỉ vô ích
-Tách từng bài (I đúng → V sai) so với (I sai → V đúng): **56 bị đầu độc vs 24 được cứu** (H60),
-**56 vs 19** (H61) — ròng đúng bằng `V − I`. Trong số bị đầu độc:
+**Bốn lần đo, hai benchmark, ba cặp model — `V − I` ÂM mọi lần.**
+Định tuyến sản phẩm của agent yếu vào agent mạnh **tốn thêm tiền để có kết quả TỆ HƠN**.
 
-| | nhại đáp án SAI của S | ra **đáp án THỨ BA**, không theo ai |
+*Liên hệ tài liệu:* điều này trùng hướng với Huang et al. 2023 (*LLMs Cannot Self-Correct
+Reasoning Yet*); đóng góp của chúng tôi là **định lượng khoảng cách `V−S` vs `V−I`** và
+tách cơ chế bên dưới, **không phải** phát hiện hiện tượng.
+
+### 2. Cùng hai sản phẩm, cùng chi phí: **CHỌN hơn REVIEW +.13**
+
+| giao thức | acc | so với `I` |
 |---|---|---|
-| H60 | 46% | **54%** |
-| H61 | 55% | **45%** |
+| `I` — 7B tự viết | .6400 | — |
+| `V_review` — 7B **sửa** code của 1.5B | .5320 | −.1080 |
+| **`SEL`** — 7B **chọn** giữa bản của nó và của 1.5B | **.6620** | **+.0220** |
 
-Gần một nửa thiệt hại **không phải bắt chước**. Nhìn thấy một lời giải kém **làm hỏng lập luận
-vốn đã đúng** của chính model mạnh. Ở H60 chúng tôi còn huấn luyện verifier bằng GRPO cho đúng
-mục tiêu này: nó thành verifier **tốt hơn thật** (dài gấp đôi, `agree_wrong` .441→.274,
-sửa 11.6→19.4) nhưng chỉ gỡ lại **38%** thiệt hại. **Tổn thất nằm ở lần TIẾP XÚC, không nằm ở
-chính sách — nên không hàm thưởng nào sửa được.**
+`SEL − V_review` = **+.1300** (p 9e-13), tái lập **+.0841** trên dải bài tách rời (MBPP 511–974).
+**Cùng hai bản code, cùng ngân sách — chỉ đổi GIAO THỨC.**
 
-### Cái gì SỐNG
-- **Định tuyến CÓ ĐIỀU KIỆN vẫn sống.** H39: `escalate_seq` .6450 vs **7B chạy một mình**
-  (`big_maj3` .5050 / `big_maj8` .5400) — thắng **và** rẻ hơn. Nó chỉ gọi 7B ở những bài
-  1.5B **không tự đồng thuận**. Khác hẳn định tuyến **vô điều kiện** mà H61 giết.
-- **Test chạy được vẫn sống** (+.0401, tái lập +.0388) — oracle mang thông tin model KHÔNG có.
+**Cơ chế (đọc từ trace):** được bảo *"review"*, model **VIẾT LẠI code đang chạy và làm hỏng** —
+**78%** thiệt hại trên code là một **bản thứ ba** chứ không phải chép bản sai. Được bảo *"chọn"*,
+nó để nguyên bản tốt.
 
-> **Quy tắc rút ra: `V − S` là con số sai. Luôn báo `V − I`.**
-> Baseline đúng của một pipeline multi-agent không phải agent **yếu nhất** trong đó,
-> mà là **agent mạnh nhất chạy một mình** — thường là lựa chọn rẻ hơn.
+### 3. Nghịch lý phục tùng / chủ động — **không có điểm ngọt ở tầng prompt**
+| prompt | acc | vs `I` | cơ chế hỏng |
+|---|---|---|---|
+| `V_std` "kiểm và sửa nếu sai" | .5660 | −.0740 | viết lại → phá bản đúng |
+| `V_first` "tự giải trước rồi mới đọc" | .5880 | −.0520 | tốt nhất đo được, vẫn âm |
+| **`V_cons`** "đừng đụng nếu không chắc sai" | **.4840** | **−.1560** | **giữ nguyên 75% → thừa hưởng acc .428 của nguồn** |
+
+Bảo nó **bớt** can thiệp thì nó **thừa hưởng lỗi của nguồn**; bảo nó **can thiệp** thì nó **phá bản đúng**.
+Chọn giữa hai cực đòi hỏi biết đâu đúng đâu sai — **chính là bài toán cần giải**.
+
+### 4. Thứ DUY NHẤT từng thắng: **oracle mang thông tin model KHÔNG có**
+| bộ kiểm | có lợi thế thông tin gì | kết quả |
+|---|---|---|
+| 7B kiểm 1.5B | model lớn hơn | **−.074** ❌ |
+| LLM cùng cỡ tự nhận xét | không có | ≈0 hoặc hại (5 lần) ❌ |
+| GRPO huấn luyện verifier | không có | +.018, dưới ngưỡng ❌ |
+| **test CHẠY ĐƯỢC** | **thực thi được** | **+.0401, tái lập +.0388** ✓ |
+
+### ⚠️ Đã RÚT LẠI sau kiểm định #125 — đừng trích dẫn
+- **"k=2 là điểm ngọt"** — độ cong không tồn tại; nhánh k=2 còn dính **thiên lệch chọn mẫu** trong code của chúng tôi.
+- **"tự xem lại giúp trên toán +.108"** — **artifact cắt ngắn**; đo lại còn **+.002** (p = 1.00).
+- **"agent yếu thua mẫu của chính model mạnh (+.012)"** — **nhiễu hạt giống** (p = .34).
+- **"tie_rate giảm theo k"** — đo nhầm sự kiện; đại lượng thật **TĂNG** .908 → .944.
+- **"5/5 fold"** — hai chỗ thực ra là **4/5**, và phép thử này yếu hơn McNemar mà chúng tôi chưa chạy.
+- Mọi chênh lệch **≤ .02** ở n=500 — **không phân biệt được với nhiễu**.
 
 ## Kết quả vòng #78–#93 — 16 đăng ký trước, **5 phát biểu bị rút lại**
 

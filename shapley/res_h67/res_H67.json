@@ -1,0 +1,61 @@
+{
+  "tag": "H67",
+  "n": 500,
+  "S": 0.428,
+  "I": 0.64,
+  "I_minus_S": 0.212,
+  "compile_rate": 0.996,
+  "arms": {
+    "V_std": {
+      "acc": 0.566,
+      "minus_I": -0.074,
+      "minus_Vstd": 0.0,
+      "poisoned": 69,
+      "rescued": 32,
+      "poisoned_kept_S": 15,
+      "poisoned_third": 54,
+      "unchanged_rate": 0.382,
+      "folds": [
+        -0.1,
+        -0.04,
+        -0.09,
+        -0.09,
+        -0.05
+      ]
+    },
+    "V_first": {
+      "acc": 0.588,
+      "minus_I": -0.052,
+      "minus_Vstd": 0.022,
+      "poisoned": 64,
+      "rescued": 38,
+      "poisoned_kept_S": 14,
+      "poisoned_third": 50,
+      "unchanged_rate": 0.35,
+      "folds": [
+        -0.09,
+        -0.05,
+        -0.04,
+        -0.03,
+        -0.05
+      ]
+    },
+    "V_cons": {
+      "acc": 0.484,
+      "minus_I": -0.156,
+      "minus_Vstd": -0.082,
+      "poisoned": 102,
+      "rescued": 24,
+      "poisoned_kept_S": 75,
+      "poisoned_third": 27,
+      "unchanged_rate": 0.75,
+      "folds": [
+        -0.23,
+        -0.09,
+        -0.15,
+        -0.18,
+        -0.13
+      ]
+    }
+  }
+}

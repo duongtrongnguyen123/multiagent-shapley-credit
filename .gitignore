@@ -22,3 +22,8 @@ __pycache__/
 # thư mục tạm để upload Kaggle dataset (dữ liệu tái sinh được)
 ds_pairs/
 ds_adapter/
+
+# ket qua: commit res_*.json (tom tat, nho) nhung KHONG commit traces (hang chuc MB)
+shapley/res_*/traces_*.json
+shapley/res_*/*_traces.json
+shapley/res_*/partial_*.json

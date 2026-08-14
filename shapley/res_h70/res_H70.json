@@ -1,0 +1,45 @@
+{
+  "tag": "H70",
+  "n": 500,
+  "quant": {
+    "1.5B": "fp16",
+    "7B": "nf4"
+  },
+  "S": 0.398,
+  "I": 0.562,
+  "I_minus_S": 0.164,
+  "arms": {
+    "V_self": {
+      "acc": 0.67,
+      "minus_I": 0.108,
+      "poisoned": 4,
+      "rescued": 58,
+      "kept_same": 0,
+      "third": 4,
+      "unchanged_rate": 0.682,
+      "folds": [
+        0.13,
+        0.09,
+        0.1,
+        0.1,
+        0.12
+      ]
+    },
+    "V_weak": {
+      "acc": 0.55,
+      "minus_I": -0.012,
+      "poisoned": 53,
+      "rescued": 47,
+      "kept_same": 27,
+      "third": 26,
+      "unchanged_rate": 0.526,
+      "folds": [
+        0.01,
+        -0.06,
+        0.02,
+        -0.05,
+        0.02
+      ]
+    }
+  }
+}

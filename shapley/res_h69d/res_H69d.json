@@ -1,0 +1,27 @@
+{
+  "tag": "H69d",
+  "n": 464,
+  "S": 0.5172,
+  "I": 0.7069,
+  "V_review": 0.6379,
+  "SEL": 0.722,
+  "ORACLE2_union": 0.75,
+  "SEL_minus_I": 0.0151,
+  "SEL_minus_Vreview": 0.0841,
+  "Vreview_minus_I": -0.069,
+  "test_copy_rate": 0.0218,
+  "test_soundness": 0.7084,
+  "n_tests_gen": 1238,
+  "n_picked_S": 28,
+  "n_no_fname": 0,
+  "wrongly_dropped": 12,
+  "wrongly_taken": 1,
+  "compile_rate": 0.9973,
+  "folds_SEL_minus_I": [
+    0.0,
+    0.0109,
+    0.0326,
+    0.0217,
+    0.0109
+  ]
+}
