@@ -3661,3 +3661,55 @@ so với trùng đáp án của **`S`**, tính theo từng bài.
 **Hệ quả thực dụng nếu ra (b):** khuyến nghị không đổi — vẫn **gọi thẳng model mạnh**, vì
 `V ≈ I` mà `V` **đắt hơn** (tốn thêm lượt 1.5B). "Hết hại" không có nghĩa là "có ích".
 Ngưỡng và bảng #87 giữ NGUYÊN, đây chỉ là chỉ số chẩn đoán thêm.
+
+
+# Đăng ký trước #88 — H79: **CẤU HÌNH ĐỊNH TUYẾN HỢP LÝ, trên tác vụ ĐỦ KHÓ cho 32B**
+**Viết TRƯỚC khi chạy.** Hai phản biện của Nguyên, gộp thành một phép thử.
+
+## Vì sao
+1. **MATH-500 quá dễ cho 32B.** 7B đã đạt `.700` (#122) ⇒ cổng năng lực của H78 rất có thể trượt
+   vì **trần**, không phải vì 32B kém. Cần tác vụ khó hơn: **BigCodeBench** (7B greedy ~.35 ở các
+   vòng trước, lời giải chuẩn 466 ký tự, prompt 663 — khó hơn MBPP nhiều).
+2. **Định tuyến của tôi tới giờ đều là kiểu rơm.** Mọi nhánh `V` là *"luôn luôn đưa cho model mạnh xem"* —
+   không ai triển khai như thế. Cấu hình **thật** là **CHẤP NHẬN-hoặc-LEO THANG có điều kiện**,
+   và đó cũng là kết quả dương DUY NHẤT về định tuyến của dự án (H39, vòng #78).
+
+## Thiết kế — BigCodeBench (300 bài đầu), cheap = **7B**, strong = **32B**, bf16, RTX 6000
+*(1.5B vô dụng trên BCB nên tầng rẻ phải là 7B — định tuyến chỉ hợp lý khi tầng rẻ dùng được)*
+
+| nhánh | giao thức | chi phí (1.5B-eq; 7B=5.07, 32B=21.3) |
+|---|---|---|
+| `S` | 7B viết code | 5.07 |
+| `I` | **32B viết code** (mốc đắt) | 21.3 |
+| `V` | 32B **xem code 7B** rồi sửa (giao thức đã biết là hại) | 26.4 |
+| **`ROUTE`** | 7B viết code **+ 7B tự viết test**; **ĐẠT test của chính nó → NHẬN**; **trượt → leo thang 32B** | 10.14 + `p_esc`×21.3 |
+| `SEL` | 7B và 32B cùng viết; chọn bằng test tự sinh của 7B | 31.4 |
+
+**Đại lượng CHÍNH: `ROUTE` so với `I`, KÈM chi phí.** Định tuyến chỉ có nghĩa nếu
+**gần bằng `I` mà RẺ HƠN**. Báo `p_esc` (tỉ lệ leo thang) — nếu `p_esc` → 1 thì định tuyến
+**suy biến thành "luôn gọi 32B"** và không tiết kiệm gì.
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+- **Cổng năng lực: `acc(I) − acc(S)` ≥ .05.** Nếu 32B không hơn 7B trên BCB thì tác vụ vẫn
+  không phân giải được năng lực ⇒ HUỶ (và khi đó phản biện "MATH quá dễ" là **chưa đủ** —
+  vấn đề nằm ở chỗ khác).
+- `test_soundness` (lời giải chuẩn vượt test tự sinh của 7B) ≥ .50 · tỉ lệ biên dịch ≥ .50 · n ≥ 280.
+- **Chống rò rỉ:** lượt viết test **KHÔNG** thấy `test` chính thức; chấm **chỉ** bằng `test` chính thức.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `ROUTE ≥ I − .02` **và** chi phí `ROUTE` < **0.80×** chi phí `I` | **ĐỊNH TUYẾN CÓ ĐIỀU KIỆN HOẠT ĐỘNG trên code khó.** H39 tổng quát từ toán sang code và lên tới 32B. Đây sẽ là kết quả **thực dụng** mạnh nhất của dự án. |
+| `ROUTE ≥ I − .02` nhưng chi phí ≥ 0.80× `I` | **SUY BIẾN**: gần như luôn leo thang. Định tuyến "đúng" nhưng **không tiết kiệm** — trên tác vụ khó, tầng rẻ hiếm khi tự tin đúng. Báo `p_esc`. |
+| `ROUTE < I − .02` | Định tuyến **mất chính xác**: test tự sinh của 7B **nhận nhầm** code sai. Báo số bài nhận nhầm. |
+| `V − I` ≤ −.02 (lặp lại phát hiện chính ở 32B trên code khó) | Đầu độc **không rửa được bằng năng lực** ngay cả ở 32B trên tác vụ khó — bản mạnh nhất của kết quả chính. |
+| `V − I` ≥ −.02 | Ở 32B trên code khó, đầu độc **biến mất** ⇒ kiểm ngay `agree(V,I)` vs `agree(V,S)` theo #87-b để tách **chữa được** khỏi **lờ đi**. |
+| `SEL > I + .02` | Chọn vẫn thắng ở thang 32B. |
+| cổng năng lực trượt | HUỶ, không đọc. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 2 (~45%)**: `ROUTE` ≈ `I` nhưng `p_esc` cao (≈.6–.75) nên **không tiết kiệm**.
+Lý do: BCB khó, 7B chỉ ~.35, nên code của nó **trượt test của chính nó** ở phần lớn bài ⇒ leo thang gần như luôn.
+Hàng 1 ~20% · hàng 3 ~20% · HUỶ vì cổng năng lực ~15%.
+**Dự đoán phụ:** `V − I` vẫn ÂM ở 32B (~70%), vì cơ chế là *bị kéo vào chế độ sửa chữa*,
+không phải thiếu năng lực. Tỉ lệ prior đúng: **15/31**.
