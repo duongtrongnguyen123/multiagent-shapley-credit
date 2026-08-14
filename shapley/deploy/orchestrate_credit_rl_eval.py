@@ -17,6 +17,8 @@ ROLE = os.environ.get("ROLE", "V").upper()
 N = int(os.environ.get("N", "200"))
 NF = int(os.environ.get("NF", "5"))
 BS = int(os.environ.get("BS", "4"))
+ADAPTER_DS = os.environ.get("ADAPTER_DS", "")   # override adapter dataset (vd: V-cond)
+SLUG = os.environ.get("SLUG", "")               # override kernel slug (vd: credit-rl-eval-vcond-gsm8k)
 ACCOUNT = os.environ.get("ACCOUNT", "")
 KDIR = ROOT / "kernels_credit_rl_eval"
 MODEL_DS = "xatri007/qwen2-5-1-5b-instruct"
@@ -60,8 +62,11 @@ def main():
     user, token = pick()
     if ROLE not in (*ROLE_DATASETS, "FULL"):
         raise SystemExit(f"ROLE={ROLE} invalid (P|S|V|A|FULL)")
+    role_ds = ROLE_DATASETS.get(ROLE, "")
+    if ADAPTER_DS:
+        role_ds = ADAPTER_DS
     datasets = [MODEL_DS, GSM_DS] + (FULL_DATASETS if ROLE == "FULL"
-                                     else [ROLE_DATASETS[ROLE]])
+                                     else [role_ds])
     src = (SRC.read_text(encoding="utf-8")
               .replace("__ROLE__", repr(ROLE)).replace("__N__", str(N))
               .replace("__NF__", str(NF)).replace("__BS__", str(BS)))
@@ -69,7 +74,7 @@ def main():
     if left:
         raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")
-    slug = f"credit-rl-eval-{ROLE.lower()}-gsm8k"
+    slug = os.environ.get("SLUG", f"credit-rl-eval-{ROLE.lower()}-gsm8k")
     shutil.rmtree(KDIR, ignore_errors=True)
     d = KDIR / "eval"
     d.mkdir(parents=True)

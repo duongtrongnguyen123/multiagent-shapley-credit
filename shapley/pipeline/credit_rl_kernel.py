@@ -35,8 +35,18 @@ BS         = __BS__            # batch sinh
 MB         = __MB__            # mini-batch PPO (số sample/step)
 MAXLEN     = __MAXLEN__
 ONLY_VERIFY = __ONLY_VERIFY__  # (chỉ áp dụng cho V) 1: chỉ train context KIỂM (S có mặt)
+COND        = __COND__         # (chỉ áp dụng cho V) 1: reward có điều kiện (fix/keep/break) thay vì marginal
+PLAN_MINLEN = __PLAN_MINLEN__  # (chỉ áp dụng cho P) plan tối thiểu (char), 0 = tắt penalty
+PLAN_LAMBDA = __PLAN_LAMBDA__  # (chỉ áp dụng cho P) phạt mỗi char thiếu hụt so với MINLEN
+A_SELECT    = __A_SELECT__     # (chỉ áp dụng cho A) 1: selection constraint (trả chỉ số) + reward conditional
 
 assert ROLE in ("P", "S", "V", "A"), f"ROLE={ROLE} khong hop le"
+if COND:
+    assert ROLE == "V", "COND chi ap dung cho V"
+if PLAN_MINLEN:
+    assert ROLE == "P", "PLAN_MINLEN chi ap dung cho P"
+if A_SELECT:
+    assert ROLE == "A", "A_SELECT chi ap dung cho A"
 
 # ---- debug: in cây /kaggle/input sớm nhất có thể (log rỗng = crash ở đây) ----
 print("DEBUG input tree:", flush=True)
@@ -95,6 +105,10 @@ VERIFY_SYS = ("You are a math verifier. You are given a problem and a proposed s
 AGG_SYS    = ("You are given a math problem and one or more candidate solutions. Decide the "
               "correct final answer by re-checking and majority. End with 'The answer is "
               "<number>'.")
+# Selection constraint: A chỉ được trả về CHỈ SỐ của ứng viên đúng, không viết tự do
+AGG_SYS_SEL = ("You are given a math problem and two candidate solutions. Determine which "
+               "candidate gives the correct final answer. Output ONLY the number of the "
+               "correct candidate: '1' or '2'. No explanation.")
 
 def chat(system, user):
     return tok.apply_chat_template(
@@ -110,6 +124,17 @@ def verify_user(q, sol):
 def agg_user(q, cands):
     body = "\n\n".join(f"Candidate {j+1}:\n{c}" for j, c in enumerate(cands))
     return f"{q}\n\n{body}"
+
+def agg_sel_user(q, c1, c2):
+    return agg_user(q, [c1, c2])
+
+SEL_RE = re.compile(r"\b([12])\b")
+def select_idx(text):
+    """Trích chỉ số ứng viên A chọn từ output selection constraint."""
+    if not text:
+        return None
+    m = SEL_RE.search(text)
+    return int(m.group(1)) if m else None
 
 NUM_RE = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 def pred_answer(text):
@@ -211,8 +236,8 @@ def a_snp(q, sol): return chat(AGG_SYS, agg_user(q, [sol]))
 def a_swp(q, sol): return chat(AGG_SYS, agg_user(q, [sol]))
 def a_vfnp(q, v):  return chat(AGG_SYS, agg_user(q, [v]))
 def a_vfwp(q, v):  return chat(AGG_SYS, agg_user(q, [v]))
-def a_svnp(q, sol, v): return chat(AGG_SYS, agg_user(q, [sol, v]))
-def a_svwp(q, sol, v): return chat(AGG_SYS, agg_user(q, [sol, v]))
+def a_svnp(q, sol, v): return chat(AGG_SYS_SEL if A_SELECT else AGG_SYS, agg_sel_user(q, sol, v))
+def a_svwp(q, sol, v): return chat(AGG_SYS_SEL if A_SELECT else AGG_SYS, agg_sel_user(q, sol, v))
 
 MX_P, MX_S, MX_V, MX_A = 256, 512, 512, 256
 
@@ -320,137 +345,234 @@ for outer in range(OUTER):
         ST["v_fwp"], TR["pid1"], TR["rid1"] = v1, v1p, v1r
         ST["v_vnp"], TR["pid2"], TR["rid2"] = v2, v2p, v2r
         ST["v_vwp"], TR["pid3"], TR["rid3"] = v3, v3p, v3r
-        # downstream phụ thuộc V
-        ST["a_vfnp"] = text_only(gen([a_vfnp(qs[i], v0[j]) for j, i in enumerate(idxs)],
-                                     MX_A, False))
-        ST["a_vfwp"] = text_only(gen([a_vfwp(qs[i], v1[j]) for j, i in enumerate(idxs)],
-                                     MX_A, False))
-        ST["a_svnp"] = text_only(gen([a_svnp(qs[i], S_(i), v2[j]) for j, i in enumerate(idxs)],
-                                     MX_A, False))
-        ST["a_svwp"] = text_only(gen([a_svwp(qs[i], W_(i), v3[j]) for j, i in enumerate(idxs)],
-                                     MX_A, False))
+        # downstream phụ thuộc V (chỉ cần khi reward là marginal)
+        if not COND:
+            ST["a_vfnp"] = text_only(gen([a_vfnp(qs[i], v0[j]) for j, i in enumerate(idxs)],
+                                         MX_A, False))
+            ST["a_vfwp"] = text_only(gen([a_vfwp(qs[i], v1[j]) for j, i in enumerate(idxs)],
+                                         MX_A, False))
+            ST["a_svnp"] = text_only(gen([a_svnp(qs[i], S_(i), v2[j]) for j, i in enumerate(idxs)],
+                                         MX_A, False))
+            ST["a_svwp"] = text_only(gen([a_svwp(qs[i], W_(i), v3[j]) for j, i in enumerate(idxs)],
+                                         MX_A, False))
     elif ROLE == "A":
-        # 8 trace A (LoRA) — A là vai cuối nên không có downstream
-        a0, a0p, a0r = gen([a_f(qs[i]) for i in idxs], MX_A, True, do_sample=TEMP > 0, temp=TEMP)
-        a1, a1p, a1r = gen([a_fp(qs[i], PRE["plan"][i]) for i in idxs], MX_A, True,
-                           do_sample=TEMP > 0, temp=TEMP)
-        a2, a2p, a2r = gen([a_snp(qs[i], S_(i)) for i in idxs], MX_A, True, do_sample=TEMP > 0, temp=TEMP)
-        a3, a3p, a3r = gen([a_swp(qs[i], W_(i)) for i in idxs], MX_A, True, do_sample=TEMP > 0, temp=TEMP)
-        a4, a4p, a4r = gen([a_vfnp(qs[i], PRE["v_fnp"][i]) for i in idxs], MX_A, True,
-                           do_sample=TEMP > 0, temp=TEMP)
-        a5, a5p, a5r = gen([a_vfwp(qs[i], PRE["v_fwp"][i]) for i in idxs], MX_A, True,
-                           do_sample=TEMP > 0, temp=TEMP)
-        a6, a6p, a6r = gen([a_svnp(qs[i], S_(i), PRE["v_vnp"][i]) for i in idxs], MX_A, True,
-                           do_sample=TEMP > 0, temp=TEMP)
-        a7, a7p, a7r = gen([a_svwp(qs[i], W_(i), PRE["v_vwp"][i]) for i in idxs], MX_A, True,
-                           do_sample=TEMP > 0, temp=TEMP)
-        for j, (t, pid, rid) in enumerate(
-                [(a0, a0p, a0r), (a1, a1p, a1r), (a2, a2p, a2r), (a3, a3p, a3r),
-                 (a4, a4p, a4r), (a5, a5p, a5r), (a6, a6p, a6r), (a7, a7p, a7r)]):
-            ST[f"a{j}"] = t
-            TR[f"pid{j}"], TR[f"rid{j}"] = pid, rid
-        ST["a_f"], ST["a_fp"] = a0, a1
-        ST["a_snp"], ST["a_swp"] = a2, a3
-        ST["a_vfnp"], ST["a_vfwp"] = a4, a5
-        ST["a_svnp"], ST["a_svwp"] = a6, a7
+        if A_SELECT:
+            # A_SELECT: chỉ train 2 trace selection thật sự (2 candidate: sol + verifier).
+            # a_f/a_fp/a_snp/a_swp/a_vfnp/a_vfwp chỉ có 1 candidate -> selection vô nghĩa.
+            a6, a6p, a6r = gen([a_svnp(qs[i], S_(i), PRE["v_vnp"][i]) for i in idxs], MX_A, True,
+                               do_sample=TEMP > 0, temp=TEMP)
+            a7, a7p, a7r = gen([a_svwp(qs[i], W_(i), PRE["v_vwp"][i]) for i in idxs], MX_A, True,
+                               do_sample=TEMP > 0, temp=TEMP)
+            ST["a_svnp"], TR["pid6"], TR["rid6"] = a6, a6p, a6r
+            ST["a_svwp"], TR["pid7"], TR["rid7"] = a7, a7p, a7r
+        else:
+            # 8 trace A (LoRA) — A là vai cuối nên không có downstream
+            a0, a0p, a0r = gen([a_f(qs[i]) for i in idxs], MX_A, True, do_sample=TEMP > 0, temp=TEMP)
+            a1, a1p, a1r = gen([a_fp(qs[i], PRE["plan"][i]) for i in idxs], MX_A, True,
+                               do_sample=TEMP > 0, temp=TEMP)
+            a2, a2p, a2r = gen([a_snp(qs[i], S_(i)) for i in idxs], MX_A, True, do_sample=TEMP > 0, temp=TEMP)
+            a3, a3p, a3r = gen([a_swp(qs[i], W_(i)) for i in idxs], MX_A, True, do_sample=TEMP > 0, temp=TEMP)
+            a4, a4p, a4r = gen([a_vfnp(qs[i], PRE["v_fnp"][i]) for i in idxs], MX_A, True,
+                               do_sample=TEMP > 0, temp=TEMP)
+            a5, a5p, a5r = gen([a_vfwp(qs[i], PRE["v_fwp"][i]) for i in idxs], MX_A, True,
+                               do_sample=TEMP > 0, temp=TEMP)
+            a6, a6p, a6r = gen([a_svnp(qs[i], S_(i), PRE["v_vnp"][i]) for i in idxs], MX_A, True,
+                               do_sample=TEMP > 0, temp=TEMP)
+            a7, a7p, a7r = gen([a_svwp(qs[i], W_(i), PRE["v_vwp"][i]) for i in idxs], MX_A, True,
+                               do_sample=TEMP > 0, temp=TEMP)
+            for j, (t, pid, rid) in enumerate(
+                    [(a0, a0p, a0r), (a1, a1p, a1r), (a2, a2p, a2r), (a3, a3p, a3r),
+                     (a4, a4p, a4r), (a5, a5p, a5r), (a6, a6p, a6r), (a7, a7p, a7r)]):
+                ST[f"a{j}"] = t
+                TR[f"pid{j}"], TR[f"rid{j}"] = pid, rid
+            ST["a_f"], ST["a_fp"] = a0, a1
+            ST["a_snp"], ST["a_swp"] = a2, a3
+            ST["a_vfnp"], ST["a_vfwp"] = a4, a5
+            ST["a_svnp"], ST["a_svwp"] = a6, a7
 
     G = lambda name, i: ST[name][i]
 
-    # ---- 16 giá trị v(S) cho mỗi câu (0/1) ----
-    vP   = [0.0] * len(idxs)                      # v({P}) = 0 (plan không ra đáp án)
-    vS   = [ok(G("sol_np", j), gs[i]) for j, i in enumerate(idxs)]
-    vV   = [ok(G("v_fnp", j), gs[i]) for j, i in enumerate(idxs)]
-    vA   = [ok(G("a_f", j), gs[i]) for j, i in enumerate(idxs)]
-    vPS  = [ok(G("sol_wp", j), gs[i]) for j, i in enumerate(idxs)]
-    vPV  = [ok(G("v_fwp", j), gs[i]) for j, i in enumerate(idxs)]
-    vPA  = [ok(G("a_fp", j), gs[i]) for j, i in enumerate(idxs)]
-    vSV  = [ok(G("v_vnp", j), gs[i]) for j, i in enumerate(idxs)]
-    vSA  = [ok(G("a_snp", j), gs[i]) for j, i in enumerate(idxs)]
-    vVA  = [ok(G("a_vfnp", j), gs[i]) for j, i in enumerate(idxs)]
-    vPSV = [ok(G("v_vwp", j), gs[i]) for j, i in enumerate(idxs)]
-    vPSA = [ok(G("a_swp", j), gs[i]) for j, i in enumerate(idxs)]
-    vPVA = [ok(G("a_vfwp", j), gs[i]) for j, i in enumerate(idxs)]
-    vSVA = [ok(G("a_svnp", j), gs[i]) for j, i in enumerate(idxs)]
-    vPSVA = [ok(G("a_svwp", j), gs[i]) for j, i in enumerate(idxs)]
+    # ---- reward: COND (có điều kiện) nếu bật, ngược lại Shapley marginal ----
+    if ROLE == "V" and COND:
+        # reward có điều kiện cho V (mã hóa "sửa khi sai, giữ khi đúng"):
+        #   fix : base sai & V đúng  -> +1.0
+        #   noop: base sai & V sai   ->  0.0
+        #   copy: base đúng & V đúng -> +0.1  (không can thiệp thừa)
+        #   break: base đúng & V sai -> −2.0  (phạt nặng)
+        def cond_r(base_ok, v_ok):
+            if not base_ok and v_ok:   return 1.0
+            if not base_ok and not v_ok: return 0.0
+            if base_ok and v_ok:        return 0.1
+            return -2.0
+        REW = {
+            # v_fnp / v_fwp: base = ∅ / {P} (không ra đáp án) -> luôn base sai
+            "pid0": [cond_r(False, ok(G("v_fnp", j), gs[i])) for j, i in enumerate(idxs)],
+            "pid1": [cond_r(False, ok(G("v_fwp", j), gs[i])) for j, i in enumerate(idxs)],
+            # v_vnp / v_vwp: base = sol_np / sol_wp
+            "pid2": [cond_r(ok(G("sol_np", j), gs[i]), ok(G("v_vnp", j), gs[i])) for j, i in enumerate(idxs)],
+            "pid3": [cond_r(ok(G("sol_wp", j), gs[i]), ok(G("v_vwp", j), gs[i])) for j, i in enumerate(idxs)],
+        }
+        samples = []
+        for t in range(len(idxs)):
+            keys = ["pid0", "pid1", "pid2", "pid3"] if not ONLY_VERIFY else ["pid2", "pid3"]
+            grp = [REW[k][t] for k in keys]
+            mean = sum(grp) / len(grp)
+            std = (sum((x - mean) ** 2 for x in grp) / len(grp)) ** 0.5
+            sd = max(std, 1e-4)
+            for k in keys:
+                samples.append({"pid": TR[k][t], "rid": TR[k.replace("pid", "rid")][t],
+                                "advs": [(REW[k][t] - mean) / sd]})
+        # stats cho log: mean reward + phân loại fix/copy/noop/break của 2 trace verify
+        _r2, _r3 = REW["pid2"], REW["pid3"]
+        _n_fix = sum(1 for x, y in zip(_r2, _r3) if x == 1.0 or y == 1.0)
+        _n_break = sum(1 for x, y in zip(_r2, _r3) if x == -2.0 or y == -2.0)
+        _n_copy = sum(1 for x, y in zip(_r2, _r3) if x == 0.1 or y == 0.1)
+        _n_noop = sum(1 for x, y in zip(_r2, _r3) if x == 0.0 and y == 0.0)
+    elif ROLE == "A" and A_SELECT:
+        # reward selection constraint cho A: trả CHỈ SỐ ứng viên đúng (1 hoặc 2).
+        #   có ứng viên đúng trong 2?  A chọn đúng?    reward
+        #   yes                        yes             +1.0
+        #   yes                        no              −1.0
+        #   no                         (bất kỳ)         0.0
+        # Ứng viên: a_svnp = (sol_np, v_vnp); a_svwp = (sol_wp, v_vwp).
+        def sel_reward(c1, c2, sel_text, g):
+            has = ok(c1, g) or ok(c2, g)
+            if not has:
+                return 0.0
+            idx = select_idx(sel_text)
+            if idx is None:
+                return -1.0
+            return 1.0 if (idx == 1 and ok(c1, g)) or (idx == 2 and ok(c2, g)) else -1.0
+        REW = {
+            "pid6": [sel_reward(G("sol_np", j), G("v_vnp", j), G("a_svnp", j), gs[i])
+                     for j, i in enumerate(idxs)],
+            "pid7": [sel_reward(G("sol_wp", j), G("v_vwp", j), G("a_svwp", j), gs[i])
+                     for j, i in enumerate(idxs)],
+        }
+        samples = []
+        for t in range(len(idxs)):
+            keys = ["pid6", "pid7"]
+            grp = [REW[k][t] for k in keys]
+            mean = sum(grp) / len(grp)
+            std = (sum((x - mean) ** 2 for x in grp) / len(grp)) ** 0.5
+            sd = max(std, 1e-4)
+            for k in keys:
+                samples.append({"pid": TR[k][t], "rid": TR[k.replace("pid", "rid")][t],
+                                "advs": [(REW[k][t] - mean) / sd]})
+        _r6, _r7 = REW["pid6"], REW["pid7"]
+        _n_sel_ok = sum(1 for x in _r6 + _r7 if x == 1.0)
+        _n_sel_bad = sum(1 for x in _r6 + _r7 if x == -1.0)
+        _n_sel_none = sum(1 for x in _r6 + _r7 if x == 0.0)
+        _n_sel_parse = sum(1 for x, c1, c2, g in
+                           ((G("a_svnp", j), G("sol_np", j), G("v_vnp", j), gs[i])
+                            for j, i in enumerate(idxs)) if select_idx(x) is not None) + \
+                       sum(1 for x, c1, c2, g in
+                           ((G("a_svwp", j), G("sol_wp", j), G("v_vwp", j), gs[i])
+                            for j, i in enumerate(idxs)) if select_idx(x) is not None)
+    else:
+        # ---- 16 giá trị v(S) cho mỗi câu (0/1) ----
+        vP   = [0.0] * len(idxs)                      # v({P}) = 0 (plan không ra đáp án)
+        vS   = [ok(G("sol_np", j), gs[i]) for j, i in enumerate(idxs)]
+        vV   = [ok(G("v_fnp", j), gs[i]) for j, i in enumerate(idxs)]
+        vA   = [ok(G("a_f", j), gs[i]) for j, i in enumerate(idxs)]
+        vPS  = [ok(G("sol_wp", j), gs[i]) for j, i in enumerate(idxs)]
+        vPV  = [ok(G("v_fwp", j), gs[i]) for j, i in enumerate(idxs)]
+        vPA  = [ok(G("a_fp", j), gs[i]) for j, i in enumerate(idxs)]
+        vSV  = [ok(G("v_vnp", j), gs[i]) for j, i in enumerate(idxs)]
+        vSA  = [ok(G("a_snp", j), gs[i]) for j, i in enumerate(idxs)]
+        vVA  = [ok(G("a_vfnp", j), gs[i]) for j, i in enumerate(idxs)]
+        vPSV = [ok(G("v_vwp", j), gs[i]) for j, i in enumerate(idxs)]
+        vPSA = [ok(G("a_swp", j), gs[i]) for j, i in enumerate(idxs)]
+        vPVA = [ok(G("a_vfwp", j), gs[i]) for j, i in enumerate(idxs)]
+        vSVA = [ok(G("a_svnp", j), gs[i]) for j, i in enumerate(idxs)]
+        vPSVA = [ok(G("a_svwp", j), gs[i]) for j, i in enumerate(idxs)]
 
-    # ---- 8 marginal của vai R (theo từng coalition) ----
-    # m_k = v(C_k ∪ {R}) − v(C_k), C_k là 8 subset của 3 vai còn lại
-    if ROLE == "P":
-        # C: {∅},{S},{V},{S,V},{A},{S,A},{V,A},{S,V,A}
-        M = [
-            [vP[j] - 0.0 for j in range(len(idxs))],
-            [vPS[j] - vS[j] for j in range(len(idxs))],
-            [vPV[j] - vV[j] for j in range(len(idxs))],
-            [vPSV[j] - vSV[j] for j in range(len(idxs))],
-            [vPA[j] - vA[j] for j in range(len(idxs))],
-            [vPSA[j] - vSA[j] for j in range(len(idxs))],
-            [vPVA[j] - vVA[j] for j in range(len(idxs))],
-            [vPSVA[j] - vSVA[j] for j in range(len(idxs))],
-        ]
-    elif ROLE == "S":
-        # C: {∅},{P},{V},{P,V},{A},{P,A},{V,A},{P,V,A}
-        M = [
-            [vS[j] - 0.0 for j in range(len(idxs))],
-            [vPS[j] - vP[j] for j in range(len(idxs))],
-            [vSV[j] - vV[j] for j in range(len(idxs))],
-            [vPSV[j] - vPV[j] for j in range(len(idxs))],
-            [vSA[j] - vA[j] for j in range(len(idxs))],
-            [vPSA[j] - vPA[j] for j in range(len(idxs))],
-            [vSVA[j] - vVA[j] for j in range(len(idxs))],
-            [vPSVA[j] - vPVA[j] for j in range(len(idxs))],
-        ]
-    elif ROLE == "V":
-        # C: {∅},{P},{S},{P,S},{A},{P,A},{S,A},{P,S,A}
-        M = [
-            [vV[j] - 0.0 for j in range(len(idxs))],
-            [vPV[j] - vP[j] for j in range(len(idxs))],
-            [vSV[j] - vS[j] for j in range(len(idxs))],
-            [vPSV[j] - vPS[j] for j in range(len(idxs))],
-            [vVA[j] - vA[j] for j in range(len(idxs))],
-            [vPVA[j] - vPA[j] for j in range(len(idxs))],
-            [vSVA[j] - vSA[j] for j in range(len(idxs))],
-            [vPSVA[j] - vPSA[j] for j in range(len(idxs))],
-        ]
-    elif ROLE == "A":
-        # C: {∅},{P},{S},{P,S},{V},{P,V},{S,V},{P,S,V}
-        M = [
-            [vA[j] - 0.0 for j in range(len(idxs))],
-            [vPA[j] - vP[j] for j in range(len(idxs))],
-            [vSA[j] - vS[j] for j in range(len(idxs))],
-            [vPSA[j] - vPS[j] for j in range(len(idxs))],
-            [vVA[j] - vV[j] for j in range(len(idxs))],
-            [vPVA[j] - vPV[j] for j in range(len(idxs))],
-            [vSVA[j] - vSV[j] for j in range(len(idxs))],
-            [vPSVA[j] - vPSV[j] for j in range(len(idxs))],
-        ]
-
-    # ---- group advantage per câu (GRPO); trace vai R gán theo coalition ----
-    samples = []
-    for t in range(len(idxs)):
-        grp = [M[k][t] for k in range(8)] if not (ROLE == "V" and ONLY_VERIFY) \
-              else [M[2][t], M[3][t], M[6][t], M[7][t]]
-        mean = sum(grp) / len(grp)
-        std = (sum((x - mean) ** 2 for x in grp) / len(grp)) ** 0.5
-        sd = max(std, 1e-4)
-        adv = lambda x: (x - mean) / sd
-        a = [adv(M[k][t]) for k in range(8)]
+        # ---- 8 marginal của vai R (theo từng coalition) ----
+        # m_k = v(C_k ∪ {R}) − v(C_k), C_k là 8 subset của 3 vai còn lại
         if ROLE == "P":
-            samples.append({"pid": TR["pid"][t], "rid": TR["rid"][t], "advs": a})
+            # C: {∅},{S},{V},{S,V},{A},{S,A},{V,A},{S,V,A}
+            M = [
+                [vP[j] - 0.0 for j in range(len(idxs))],
+                [vPS[j] - vS[j] for j in range(len(idxs))],
+                [vPV[j] - vV[j] for j in range(len(idxs))],
+                [vPSV[j] - vSV[j] for j in range(len(idxs))],
+                [vPA[j] - vA[j] for j in range(len(idxs))],
+                [vPSA[j] - vSA[j] for j in range(len(idxs))],
+                [vPVA[j] - vVA[j] for j in range(len(idxs))],
+                [vPSVA[j] - vSVA[j] for j in range(len(idxs))],
+            ]
         elif ROLE == "S":
-            samples.append({"pid": TR["pid0"][t], "rid": TR["rid0"][t], "advs": [a[0], a[2], a[4], a[6]]})
-            samples.append({"pid": TR["pid1"][t], "rid": TR["rid1"][t], "advs": [a[1], a[3], a[5], a[7]]})
+            # C: {∅},{P},{V},{P,V},{A},{P,A},{V,A},{P,V,A}
+            M = [
+                [vS[j] - 0.0 for j in range(len(idxs))],
+                [vPS[j] - vP[j] for j in range(len(idxs))],
+                [vSV[j] - vV[j] for j in range(len(idxs))],
+                [vPSV[j] - vPV[j] for j in range(len(idxs))],
+                [vSA[j] - vA[j] for j in range(len(idxs))],
+                [vPSA[j] - vPA[j] for j in range(len(idxs))],
+                [vSVA[j] - vVA[j] for j in range(len(idxs))],
+                [vPSVA[j] - vPVA[j] for j in range(len(idxs))],
+            ]
         elif ROLE == "V":
-            if ONLY_VERIFY:
-                samples.append({"pid": TR["pid2"][t], "rid": TR["rid2"][t], "advs": [a[2], a[6]]})
-                samples.append({"pid": TR["pid3"][t], "rid": TR["rid3"][t], "advs": [a[3], a[7]]})
-            else:
-                samples.append({"pid": TR["pid0"][t], "rid": TR["rid0"][t], "advs": [a[0], a[4]]})
-                samples.append({"pid": TR["pid1"][t], "rid": TR["rid1"][t], "advs": [a[1], a[5]]})
-                samples.append({"pid": TR["pid2"][t], "rid": TR["rid2"][t], "advs": [a[2], a[6]]})
-                samples.append({"pid": TR["pid3"][t], "rid": TR["rid3"][t], "advs": [a[3], a[7]]})
+            # C: {∅},{P},{S},{P,S},{A},{P,A},{S,A},{P,S,A}
+            M = [
+                [vV[j] - 0.0 for j in range(len(idxs))],
+                [vPV[j] - vP[j] for j in range(len(idxs))],
+                [vSV[j] - vS[j] for j in range(len(idxs))],
+                [vPSV[j] - vPS[j] for j in range(len(idxs))],
+                [vVA[j] - vA[j] for j in range(len(idxs))],
+                [vPVA[j] - vPA[j] for j in range(len(idxs))],
+                [vSVA[j] - vSA[j] for j in range(len(idxs))],
+                [vPSVA[j] - vPSA[j] for j in range(len(idxs))],
+            ]
         elif ROLE == "A":
-            for k in range(8):
-                samples.append({"pid": TR[f"pid{k}"][t], "rid": TR[f"rid{k}"][t], "advs": [a[k]]})
+            # C: {∅},{P},{S},{P,S},{V},{P,V},{S,V},{P,S,V}
+            M = [
+                [vA[j] - 0.0 for j in range(len(idxs))],
+                [vPA[j] - vP[j] for j in range(len(idxs))],
+                [vSA[j] - vS[j] for j in range(len(idxs))],
+                [vPSA[j] - vPS[j] for j in range(len(idxs))],
+                [vVA[j] - vV[j] for j in range(len(idxs))],
+                [vPVA[j] - vPV[j] for j in range(len(idxs))],
+                [vSVA[j] - vSV[j] for j in range(len(idxs))],
+                [vPSVA[j] - vPSV[j] for j in range(len(idxs))],
+            ]
+
+        # ---- P: phạt plan quá ngắn/rỗng (chống reward hacking: policy "an toàn" = plan rỗng)
+        #      trừ penalty vào mọi marginal của câu có plan thiếu độ dài MINLEN ----
+        if ROLE == "P" and PLAN_MINLEN:
+            for t in range(len(idxs)):
+                pen = PLAN_LAMBDA * max(0, PLAN_MINLEN - len(ST["plan"][t]))
+                for k in range(8):
+                    M[k][t] = M[k][t] - pen
+
+        # ---- group advantage per câu (GRPO); trace vai R gán theo coalition ----
+        samples = []
+        for t in range(len(idxs)):
+            grp = [M[k][t] for k in range(8)] if not (ROLE == "V" and ONLY_VERIFY) \
+                  else [M[2][t], M[3][t], M[6][t], M[7][t]]
+            mean = sum(grp) / len(grp)
+            std = (sum((x - mean) ** 2 for x in grp) / len(grp)) ** 0.5
+            sd = max(std, 1e-4)
+            adv = lambda x: (x - mean) / sd
+            a = [adv(M[k][t]) for k in range(8)]
+            if ROLE == "P":
+                samples.append({"pid": TR["pid"][t], "rid": TR["rid"][t], "advs": a})
+            elif ROLE == "S":
+                samples.append({"pid": TR["pid0"][t], "rid": TR["rid0"][t], "advs": [a[0], a[2], a[4], a[6]]})
+                samples.append({"pid": TR["pid1"][t], "rid": TR["rid1"][t], "advs": [a[1], a[3], a[5], a[7]]})
+            elif ROLE == "V":
+                if ONLY_VERIFY:
+                    samples.append({"pid": TR["pid2"][t], "rid": TR["rid2"][t], "advs": [a[2], a[6]]})
+                    samples.append({"pid": TR["pid3"][t], "rid": TR["rid3"][t], "advs": [a[3], a[7]]})
+                else:
+                    samples.append({"pid": TR["pid0"][t], "rid": TR["rid0"][t], "advs": [a[0], a[4]]})
+                    samples.append({"pid": TR["pid1"][t], "rid": TR["rid1"][t], "advs": [a[1], a[5]]})
+                    samples.append({"pid": TR["pid2"][t], "rid": TR["rid2"][t], "advs": [a[2], a[6]]})
+                    samples.append({"pid": TR["pid3"][t], "rid": TR["rid3"][t], "advs": [a[3], a[7]]})
+            elif ROLE == "A":
+                for k in range(8):
+                    samples.append({"pid": TR[f"pid{k}"][t], "rid": TR[f"rid{k}"][t], "advs": [a[k]]})
 
     # ---- logp_old (policy rollout) & logp_ref (base) — cache trước update ----
     torch.cuda.empty_cache()
@@ -486,16 +608,41 @@ for outer in range(OUTER):
     model.eval()
 
     # ---- log ----
-    mm = [sum(M[k][t] for k in range(8)) / 8.0 for t in range(len(idxs))]
-    mean_marg = sum(mm) / len(mm)
-    n_pos = sum(1 for x in mm if x > 0.05)
     el = time.time() - t0
-    hist.append({"outer": outer + 1, "mean_marginal": round(mean_marg, 4),
-                 "pct_pos_marginal": round(100 * n_pos / len(mm), 1),
-                 "samples": len(samples), "seconds": round(el, 1)})
-    print(f"[{ROLE} outer {outer+1}/{OUTER}] mean_marginal={mean_marg:+.4f} "
-          f"pos%={100*n_pos/len(mm):.0f} samples={len(samples)} elapsed={el/60:.1f}m",
-          flush=True)
+    if ROLE == "V" and COND:
+        hist.append({"outer": outer + 1, "mean_reward": round(
+            (sum(REW["pid0"]) + sum(REW["pid1"]) + sum(REW["pid2"]) + sum(REW["pid3"]))
+            / (4 * len(idxs)), 4),
+            "n_fix": _n_fix, "n_break": _n_break, "n_copy": _n_copy, "n_noop": _n_noop,
+            "samples": len(samples), "seconds": round(el, 1)})
+        print(f"[{ROLE} outer {outer+1}/{OUTER}] mean_reward={hist[-1]['mean_reward']:+.4f} "
+              f"fix={_n_fix} break={_n_break} copy={_n_copy} noop={_n_noop} "
+              f"samples={len(samples)} elapsed={el/60:.1f}m", flush=True)
+    elif ROLE == "A" and A_SELECT:
+        mean_rew = (sum(REW["pid6"]) + sum(REW["pid7"])) / (2 * len(idxs))
+        hist.append({"outer": outer + 1, "mean_reward": round(mean_rew, 4),
+                     "n_sel_ok": _n_sel_ok, "n_sel_bad": _n_sel_bad, "n_sel_none": _n_sel_none,
+                     "n_sel_parse": _n_sel_parse, "samples": len(samples),
+                     "seconds": round(el, 1)})
+        print(f"[{ROLE} outer {outer+1}/{OUTER}] mean_reward={mean_rew:+.4f} "
+              f"sel_ok={_n_sel_ok} sel_bad={_n_sel_bad} none={_n_sel_none} parse={_n_sel_parse} "
+              f"samples={len(samples)} elapsed={el/60:.1f}m", flush=True)
+    else:
+        mm = [sum(M[k][t] for k in range(8)) / 8.0 for t in range(len(idxs))]
+        mean_marg = sum(mm) / len(mm)
+        n_pos = sum(1 for x in mm if x > 0.05)
+        extra = {}
+        if ROLE == "P":
+            plens = [len(ST["plan"][t]) for t in range(len(idxs))]
+            extra = {"mean_plan_len": round(sum(plens) / len(plens), 1),
+                     "pct_empty_plan": round(100 * sum(1 for p in plens if p == 0) / len(plens), 1)}
+        hist.append({"outer": outer + 1, "mean_marginal": round(mean_marg, 4),
+                     "pct_pos_marginal": round(100 * n_pos / len(mm), 1),
+                     "samples": len(samples), "seconds": round(el, 1), **extra})
+        print(f"[{ROLE} outer {outer+1}/{OUTER}] mean_marginal={mean_marg:+.4f} "
+              f"pos%={100*n_pos/len(mm):.0f} samples={len(samples)}"
+              + (f" plan_len={extra['mean_plan_len']} empty%={extra['pct_empty_plan']}" if ROLE == "P" else "")
+              + f" elapsed={el/60:.1f}m", flush=True)
     if (outer + 1) % 5 == 0 or outer == OUTER - 1:
         with open("/kaggle/working/hist.json", "w") as f:
             json.dump(hist, f)
@@ -525,13 +672,36 @@ def run_pipe():
         return tv, tv_t
     if ROLE == "A":
         tv = text_only(gen([v_vwp(q, s) for q, s in zip(tq, ts1)], MX_V, False))
+        if A_SELECT:
+            ta = text_only(gen([a_svwp(q, s, v) for q, s, v in zip(tq, ts1, tv)], MX_A, False))
+            ta_t = text_only(gen([a_svwp(q, s, v) for q, s, v in zip(tq, ts1, tv)], MX_A, True))
+            return ta, ta_t, ts1, tv
         ta = text_only(gen([a_svwp(q, s, v) for q, s, v in zip(tq, ts1, tv)], MX_A, False))
         ta_t = text_only(gen([a_svwp(q, s, v) for q, s, v in zip(tq, ts1, tv)], MX_A, True))
         return ta, ta_t
 
-t_ref, t_full = run_pipe()
-acc_ref = sum(ok(t, g) for t, g in zip(t_ref, tg)) / len(tg)
-acc_full = sum(ok(t, g) for t, g in zip(t_full, tg)) / len(tg)
+if ROLE == "A" and A_SELECT:
+    _r = run_pipe()
+    t_ref, t_full, t_s1, t_v = _r
+    # selection accuracy: tỷ lệ câu A chọn đúng ứng viên (khi có ≥1 ứng viên đúng)
+    def sel_acc(sel_list, c1s, c2s, gs_):
+        hit = tot = 0
+        for sel, c1, c2, g in zip(sel_list, c1s, c2s, gs_):
+            if not (ok(c1, g) or ok(c2, g)):
+                continue
+            tot += 1
+            idx = select_idx(sel)
+            if idx == 1 and ok(c1, g):
+                hit += 1
+            elif idx == 2 and ok(c2, g):
+                hit += 1
+        return hit / tot if tot else 0.0
+    acc_ref = sel_acc(t_ref, t_s1, t_v, tg)
+    acc_full = sel_acc(t_full, t_s1, t_v, tg)
+else:
+    t_ref, t_full = run_pipe()
+    acc_ref = sum(ok(t, g) for t, g in zip(t_ref, tg)) / len(tg)
+    acc_full = sum(ok(t, g) for t, g in zip(t_full, tg)) / len(tg)
 print(f"  pipeline base acc={acc_ref:.4f} | train({ROLE}) acc={acc_full:.4f} "
       f"gain={acc_full-acc_ref:+.4f}", flush=True)
 
@@ -540,8 +710,11 @@ model.save_pretrained(ADAPTER)
 tok.save_pretrained(ADAPTER)
 out = {"role": ROLE, "n_train": n, "K": K, "OUTER": OUTER, "E": E,
        "lr": LR, "eps": EPS, "beta": BETA, "temp": TEMP, "only_verify": ONLY_VERIFY,
-       "seed": SEED, "hist": hist, "quick_eval": {"acc_ref": acc_ref, "acc_train": acc_full,
-                                                  "gain": acc_full - acc_ref},
+       "cond": COND, "plan_minlen": PLAN_MINLEN, "plan_lambda": PLAN_LAMBDA,
+       "a_select": A_SELECT,
+       "seed": SEED, "hist": hist,
+       "quick_eval": {"acc_ref": acc_ref, "acc_train": acc_full,
+                      "gain": acc_full - acc_ref},
        "seconds": round(time.time() - t0, 1)}
 json.dump(out, open("/kaggle/working/summary.json", "w"), indent=2)
 print("SUMMARY", json.dumps({"quick_eval": out["quick_eval"],

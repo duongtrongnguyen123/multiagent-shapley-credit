@@ -34,7 +34,12 @@ _c = glob.glob("/kaggle/input/**/model.safetensors", recursive=True)
 MODEL = os.path.dirname(sorted(_c, key=len)[0])
 
 ROLE_PAT = re.compile(r"credit-rl-([psva])-adapter", re.I)
+# dataset của thí nghiệm chống collapse/conditional: tên chứa pminlen/vcond/asel
+VARIANT_PAT = re.compile(r"credit-rl-(pminlen|vcond|asel)-adapter", re.I)
 def role_of(path):
+    m = VARIANT_PAT.search(path)
+    if m:
+        return {"pminlen": "P", "vcond": "V", "asel": "A"}[m.group(1).lower()]
     m = ROLE_PAT.search(path)
     return m.group(1).upper() if m else None
 

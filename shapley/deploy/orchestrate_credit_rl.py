@@ -28,7 +28,12 @@ BS = os.environ.get("BS", "8")
 MB = os.environ.get("MB", "4")
 MAXLEN = os.environ.get("MAXLEN", "2048")
 ONLY_VERIFY = os.environ.get("ONLY_VERIFY", "0")
+COND = os.environ.get("COND", "0")
+PLAN_MINLEN = os.environ.get("PLAN_MINLEN", "0")
+PLAN_LAMBDA = os.environ.get("PLAN_LAMBDA", "0.02")
+A_SELECT = os.environ.get("A_SELECT", "0")
 ACCOUNT = os.environ.get("ACCOUNT", "")
+SLUG = os.environ.get("SLUG", "")               # override kernel slug (vd: credit-rl-pminlen-gsm8k)
 KDIR = ROOT / "kernels_credit_rl"
 DATASETS = ["xatri007/qwen2-5-1-5b-instruct", "thedevastator/grade-school-math-8k-q-a"]
 
@@ -69,12 +74,16 @@ def main():
               .replace("__TEMP__", TEMP)  # literal thô: 0.7
               .replace("__SEED__", SEED).replace("__BS__", BS)
               .replace("__MB__", MB).replace("__MAXLEN__", MAXLEN)
-              .replace("__ONLY_VERIFY__", ONLY_VERIFY))
+              .replace("__ONLY_VERIFY__", ONLY_VERIFY)
+              .replace("__COND__", COND)
+              .replace("__PLAN_MINLEN__", PLAN_MINLEN)
+              .replace("__PLAN_LAMBDA__", PLAN_LAMBDA)
+              .replace("__A_SELECT__", A_SELECT))
     left = re.findall(r"__[A-Z_]+__", src)
     if left:
         raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")
-    slug = f"credit-rl-{ROLE.lower()}-gsm8k"
+    slug = os.environ.get("SLUG", f"credit-rl-{ROLE.lower()}-gsm8k")
     shutil.rmtree(KDIR, ignore_errors=True)
     d = KDIR / "train"
     d.mkdir(parents=True)
