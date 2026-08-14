@@ -3634,3 +3634,30 @@ Hàng 2 ~30% · hàng 1 ~15% · hàng 4 ~5% · HUỶ vì cổng năng lực ~**t
 (14B chỉ hơn 7B .0180).
 **Tôi đang chạy một phép thử mà kết cục khả dĩ nhất là HUỶ** — nhưng đây là phản biện mạnh nhất
 với kết quả chính, nên đáng chạy. Tỉ lệ prior đúng: **15/31**.
+
+## BỔ SUNG #87-b — TÁCH "chữa được" khỏi "LỜ ĐI" (viết TRƯỚC khi H78 có số; H78 đang chạy)
+**Phản biện của Nguyên:** *nếu khoảng cách năng lực quá lớn thì model mạnh chỉ tự làm hết,
+nên `V → I` — và đó KHÔNG phải "năng lực chữa được đầu độc".*
+
+**Đúng, và bảng #87 KHÔNG tách được hai cơ chế đó.** Hàng 1 (`poisoning(32B)` ≥ −.02) sẽ kích hoạt
+trong CẢ HAI trường hợp:
+- **(a) CHỮA ĐƯỢC** — model đọc lời giải yếu, không bị lừa, vẫn dùng được phần tốt.
+- **(b) LỜ ĐI** — model bỏ qua đầu vào và tự giải lại, nên `V` trùng `I` theo mặc định.
+
+**Chỉ số phân biệt (thêm vào, KHÔNG đổi ngưỡng nào):** tỉ lệ `V` trùng đáp án của **`I`**
+so với trùng đáp án của **`S`**, tính theo từng bài.
+Đã đo trên dữ liệu CÓ SẴN (H70c, MATH, verifier 7B): **trùng `I` 60.2% · trùng `S` 69.6% ·
+đáp án thứ ba 18.6%** (nền: `I` và `S` tự trùng nhau 49.8%).
+⇒ **Ở 7B model KHÔNG lờ đi — nó bám vào lời giải yếu NHIỀU HƠN bám vào đáp án của chính nó.**
+Đó chính là lý do đầu độc tồn tại.
+
+**Quy tắc đọc BỔ SUNG cho H78 (khoá trước):**
+| nếu hàng 1 kích hoạt (`poisoning(32B)` ≥ −.02) VÀ… | kết luận |
+|---|---|
+| `agree(V,I)` tăng rõ theo năng lực **và** `agree(V,S)` giảm xuống gần nền | **(b) LỜ ĐI** — không phải "chữa được". Phát biểu đúng: *ở khoảng cách đủ lớn, model mạnh bỏ qua đầu vào, nên hợp tác trở nên VÔ NGHĨA chứ không phải có lợi.* |
+| `agree(V,S)` vẫn cao (≥ nền + .10) mà `poisoning` vẫn ≈ 0 | **(a) CHỮA ĐƯỢC** — model vẫn đọc, vẫn bám, nhưng không còn bị kéo sai. Đây mới là "năng lực chữa được". |
+| cả hai chỉ số đi ngang | không kết luận được cơ chế; chỉ báo số. |
+
+**Hệ quả thực dụng nếu ra (b):** khuyến nghị không đổi — vẫn **gọi thẳng model mạnh**, vì
+`V ≈ I` mà `V` **đắt hơn** (tốn thêm lượt 1.5B). "Hết hại" không có nghĩa là "có ích".
+Ngưỡng và bảng #87 giữ NGUYÊN, đây chỉ là chỉ số chẩn đoán thêm.
