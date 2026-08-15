@@ -22,7 +22,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 # ---- config (patched by orchestrate_credit_rl.py) ----------------------------
 ROLE       = __ROLE__          # "P" | "S" | "V" | "A" — vai được LoRA train
-N_TRAIN    = __N_TRAIN__       # số câu GSM8K train làm pool
+TASK       = __TASK__          # "gsm8k" | "math" — tập train/eval
+N_TRAIN    = __N_TRAIN__       # số câu train làm pool
 K          = __K__             # câu/outer loop
 OUTER      = __OUTER__         # số vòng ngoài (rollout + credit recompute)
 E          = __E__             # số epoch inner (multi-epoch PPO)
@@ -41,6 +42,7 @@ PLAN_LAMBDA = __PLAN_LAMBDA__  # (chỉ áp dụng cho P) phạt mỗi char thi�
 A_SELECT    = __A_SELECT__     # (chỉ áp dụng cho A) 1: selection constraint (trả chỉ số) + reward conditional
 
 assert ROLE in ("P", "S", "V", "A"), f"ROLE={ROLE} khong hop le"
+assert TASK in ("gsm8k", "math"), f"TASK={TASK}"
 if COND:
     assert ROLE == "V", "COND chi ap dung cho V"
 if PLAN_MINLEN:
@@ -68,9 +70,13 @@ if not _c:
     raise FileNotFoundError("khong thay model.safetensors :: "
                             + str(glob.glob("/kaggle/input/**", recursive=True)[:40]))
 MODEL_DIR = os.path.dirname(sorted(_c, key=len)[0])
-TRAIN_CSV = find_one("/kaggle/input/**/main_train.csv", "gsm8k train csv")
-TEST_CSV  = find_one("/kaggle/input/**/main_test.csv", "gsm8k test csv")
-print(f"MODEL={MODEL_DIR}\nTRAIN={TRAIN_CSV}\nTEST={TEST_CSV}", flush=True)
+if TASK == "math":
+    TRAIN_CSV = find_one("/kaggle/input/**/MATH/train/**/*.json", "math train json")
+    TEST_CSV  = find_one("/kaggle/input/**/math_500_test.csv", "math-500 test csv")
+else:
+    TRAIN_CSV = find_one("/kaggle/input/**/main_train.csv", "gsm8k train csv")
+    TEST_CSV  = find_one("/kaggle/input/**/main_test.csv", "gsm8k test csv")
+print(f"MODEL={MODEL_DIR}\nTASK={TASK}\nTRAIN={TRAIN_CSV}\nTEST={TEST_CSV}", flush=True)
 
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", "peft>=0.13,<0.15"],
                check=False)
@@ -96,15 +102,26 @@ opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=L
 print(f"LoRA on {ROLE}; trainable tensors: "
       f"{sum(1 for n,p in model.named_parameters() if p.requires_grad)}", flush=True)
 
-PLAN_SYS   = ("You are a math planning assistant. Read the problem and give a concise "
-              "numbered plan of the steps needed. Do NOT compute the final answer.")
-SOLVE_SYS  = ("You are a careful math solver. Solve step by step, showing arithmetic. "
-              "End with a line: 'The answer is <number>'.")
-VERIFY_SYS = ("You are a math verifier. You are given a problem and a proposed solution. "
-              "Check each step; if wrong, correct it. End with 'The answer is <number>'.")
-AGG_SYS    = ("You are given a math problem and one or more candidate solutions. Decide the "
-              "correct final answer by re-checking and majority. End with 'The answer is "
-              "<number>'.")
+if TASK == "math":
+    PLAN_SYS   = ("You are a math planning assistant. Read the competition problem and give a "
+                  "concise numbered plan of the solution steps. Do NOT compute the final answer.")
+    SOLVE_SYS  = ("You are an expert mathematician. Solve the problem step by step. Put the "
+                  "final answer in \\boxed{}.")
+    VERIFY_SYS = ("You are a math verifier. Given a problem and a proposed solution, check each "
+                  "step; if wrong, correct it. Put the final answer in \\boxed{}.")
+    AGG_SYS    = ("You are given a math problem and one or more candidate solutions. Decide the "
+                  "correct final answer by re-checking and majority. Put the final answer in "
+                  "\\boxed{}.")
+else:
+    PLAN_SYS   = ("You are a math planning assistant. Read the problem and give a concise "
+                  "numbered plan of the steps needed. Do NOT compute the final answer.")
+    SOLVE_SYS  = ("You are a careful math solver. Solve step by step, showing arithmetic. "
+                  "End with a line: 'The answer is <number>'.")
+    VERIFY_SYS = ("You are a math verifier. You are given a problem and a proposed solution. "
+                  "Check each step; if wrong, correct it. End with 'The answer is <number>'.")
+    AGG_SYS    = ("You are given a math problem and one or more candidate solutions. Decide the "
+                  "correct final answer by re-checking and majority. End with 'The answer is "
+                  "<number>'.")
 # Selection constraint: A chỉ được trả về CHỈ SỐ của ứng viên đúng, không viết tự do
 AGG_SYS_SEL = ("You are given a math problem and two candidate solutions. Determine which "
                "candidate gives the correct final answer. Output ONLY the number of the "
@@ -154,7 +171,41 @@ def num_eq(a, b):
     except ValueError:
         return a == b
 
-ok = lambda text, gold: num_eq(pred_answer(text), gold)
+if TASK == "math":
+    def boxed(s):
+        i = s.rfind("\\boxed") if s else -1
+        if i < 0: return None
+        i = s.find("{", i)
+        if i < 0: return None
+        d, st = 0, i
+        for j in range(i, len(s)):
+            if s[j] == "{": d += 1
+            elif s[j] == "}":
+                d -= 1
+                if d == 0: return s[st + 1:j]
+        return None
+    def norm(a):
+        if a is None: return None
+        a = str(a).strip()
+        for x in ["\\left", "\\right", "\\!", "\\,", "\\;", "$", " ", ","]:
+            a = a.replace(x, "")
+        for x in ["\\(", "\\)", "\\[", "\\]"]: a = a.replace(x, "")
+        a = re.sub(r"\\text\s*\{([^}]*)\}", r"\1", a)
+        a = a.replace("\\dfrac", "\\frac").replace("\\tfrac", "\\frac")
+        return a.rstrip(".").strip("{}").lower()
+    def eq_math(p, g):
+        p, g = norm(p), norm(g)
+        if not p or not g: return False
+        if p == g: return True
+        try: return abs(float(p) - float(g)) < 1e-6
+        except: return False
+    def extract(text):
+        b = boxed(text) if text else None
+        return b if b is not None else pred_answer(text)
+    gold_answer = lambda sol: extract(sol)
+    ok = lambda text, gold: eq_math(extract(text), gold)
+else:
+    ok = lambda text, gold: num_eq(pred_answer(text), gold)
 
 @contextlib.contextmanager
 def _null():
@@ -213,12 +264,24 @@ def logp(pid, rid, use_lora, grad=False):
     lp = torch.cat(lp)                                   # [T-1]
     return lp[pl - 1: pl - 1 + len(rid)]                 # [len(rid)]
 
-# ---- dữ liệu: pool train (main_train.csv), eval tách rời (main_test.csv) -----
-rows = list(csv.DictReader(open(TRAIN_CSV, newline="")))[:N_TRAIN]
-qs = [r["question"] for r in rows]
-gs = [gold_answer(r["answer"]) for r in rows]
+# ---- dữ liệu: pool train (gsm8k main_train.csv | math MATH/train/**/*.json) -----
+if TASK == "math":
+    import glob as _g
+    files = sorted(_g.glob("/kaggle/input/**/MATH/train/**/*.json", recursive=True))
+    pool = []
+    for fp in files[:N_TRAIN]:
+        d = json.load(open(fp, encoding="utf-8"))
+        pool.append({"problem": d.get("problem", "").strip(),
+                     "solution": d.get("solution", "").strip()})
+    rows = pool
+    qs = [r["problem"] for r in rows]
+    gs = [gold_answer(r["solution"]) for r in rows]
+else:
+    rows = list(csv.DictReader(open(TRAIN_CSV, newline="")))[:N_TRAIN]
+    qs = [r["question"] for r in rows]
+    gs = [gold_answer(r["answer"]) for r in rows]
 n = len(rows)
-print(f"pool train {n} cau | ROLE={ROLE}", flush=True)
+print(f"pool train {n} cau | ROLE={ROLE} TASK={TASK}", flush=True)
 
 # ==============================================================================
 # Stage helper: trả đúng prompt cho từng stage của pipeline chia sẻ
@@ -651,9 +714,14 @@ for outer in range(OUTER):
 # Eval nhẹ cuối kernel: pipeline chứa vai R, so base vs train trên main_test.csv
 # ==============================================================================
 print(f"\n== quick eval [{ROLE}] tren test (tach rong train) ==", flush=True)
-trows = list(csv.DictReader(open(TEST_CSV, newline="")))[:200]
-tq = [r["question"] for r in trows]
-tg = [gold_answer(r["answer"]) for r in trows]
+if TASK == "math":
+    trows = list(csv.DictReader(open(TEST_CSV, encoding="utf-8")))[:200]
+    tq = [r["Question"].strip() for r in trows]
+    tg = [gold_answer(r["Answer"]) for r in trows]
+else:
+    trows = list(csv.DictReader(open(TEST_CSV, newline="")))[:200]
+    tq = [r["question"] for r in trows]
+    tg = [gold_answer(r["answer"]) for r in trows]
 
 # pipeline theo vai: so SỐ pipeline chứa vai R chạy base vs chạy vai R đã train
 def run_pipe():

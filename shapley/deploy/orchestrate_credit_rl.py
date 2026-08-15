@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt")).expanduser()
 SRC = ROOT / "pipeline" / "credit_rl_kernel.py"
 ROLE = os.environ.get("ROLE", "V")
+TASK = os.environ.get("TASK", "gsm8k")
 N_TRAIN = os.environ.get("N_TRAIN", "256")
 K = os.environ.get("K", "32")
 OUTER = os.environ.get("OUTER", "16")
@@ -35,7 +36,9 @@ A_SELECT = os.environ.get("A_SELECT", "0")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 SLUG = os.environ.get("SLUG", "")               # override kernel slug (vd: credit-rl-pminlen-gsm8k)
 KDIR = ROOT / "kernels_credit_rl"
-DATASETS = ["xatri007/qwen2-5-1-5b-instruct", "thedevastator/grade-school-math-8k-q-a"]
+GSM_DS = "thedevastator/grade-school-math-8k-q-a"
+MATH_DS = "angelirodriguez/hendrycks-math-dataset"
+MATH_500_DS = "open-benchmarks/math-500-measuring-mathematical-problem-solving"
 
 def accounts():
     out = []
@@ -66,6 +69,7 @@ def main():
     user, token = pick()
     src = (SRC.read_text(encoding="utf-8")
               .replace("__ROLE__", repr(ROLE))
+              .replace("__TASK__", repr(TASK))
               .replace("__N_TRAIN__", N_TRAIN).replace("__K__", K)
               .replace("__OUTER__", OUTER).replace("__E__", E)
               .replace("__LR__", LR)   # literal thô: 5e-5 (không phải repr -> string)
@@ -83,7 +87,11 @@ def main():
     if left:
         raise SystemExit(f"unreplaced placeholders: {left}")
     compile(src, "<kernel>", "exec")
-    slug = os.environ.get("SLUG", f"credit-rl-{ROLE.lower()}-gsm8k")
+    datasets = (["xatri007/qwen2-5-1-5b-instruct", MATH_DS, MATH_500_DS]
+                if TASK == "math" else
+                ["xatri007/qwen2-5-1-5b-instruct", GSM_DS])
+    suffix = "math" if TASK == "math" else "gsm8k"
+    slug = os.environ.get("SLUG", f"credit-rl-{ROLE.lower()}-{suffix}")
     shutil.rmtree(KDIR, ignore_errors=True)
     d = KDIR / "train"
     d.mkdir(parents=True)
@@ -94,18 +102,18 @@ def main():
          "kernel_type": "script", "is_private": True, "enable_gpu": True,
          # peft cài lúc chạy -> cần internet
          "enable_internet": True, "machine_shape": "NvidiaTeslaT4",
-         "dataset_sources": DATASETS, "competition_sources": [], "kernel_sources": []}, indent=2))
+         "dataset_sources": datasets, "competition_sources": [], "kernel_sources": []}, indent=2))
     r = subprocess.run(["kaggle", "kernels", "push", "-p", str(d)],
                        env=dict(os.environ, KAGGLE_API_TOKEN=token),
                        capture_output=True, text=True)
     ok = "successfully pushed" in (r.stdout or "")
-    print(f"[{slug}] n={N_TRAIN} k={K} outer={OUTER} e={E} lr={LR} eps={EPS} "
-          f"beta={BETA} temp={TEMP} only_verify={ONLY_VERIFY} -> {user} "
+    print(f"[{slug}] task={TASK} n={N_TRAIN} k={K} outer={OUTER} e={E} lr={LR} eps={EPS} "
+          f"beta={BETA} temp={TEMP} only_verify={ONLY_VERIFY} cond={COND} -> {user} "
           f"{'OK' if ok else 'FAIL'} "
           f"{(r.stdout or r.stderr).strip().splitlines()[-1][:70]}", flush=True)
     man = ROOT / "manifest_credit_rl.json"
     man.write_text(json.dumps([{"user": user, "token": token, "slug": slug,
-                                "ref": ref, "pushed": ok}], indent=2))
+                                "ref": ref, "task": TASK, "pushed": ok}], indent=2))
 
 if __name__ == "__main__":
     main()
