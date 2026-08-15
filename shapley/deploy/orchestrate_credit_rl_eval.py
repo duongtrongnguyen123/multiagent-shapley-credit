@@ -20,6 +20,9 @@ N = int(os.environ.get("N", "200"))
 NF = int(os.environ.get("NF", "5"))
 BS = int(os.environ.get("BS", "4"))
 ADAPTER_DS = os.environ.get("ADAPTER_DS", "")   # override adapter dataset (vd: V-cond)
+ADAPTER_S = os.environ.get("ADAPTER_S", "")     # override S adapter trong PSVA
+ADAPTER_V = os.environ.get("ADAPTER_V", "")     # override V adapter trong PSVA
+ADAPTER_A = os.environ.get("ADAPTER_A", "")     # override A adapter trong PSVA (vd: asel)
 SLUG = os.environ.get("SLUG", "")               # override kernel slug (vd: credit-rl-eval-vcond-gsm8k)
 ACCOUNT = os.environ.get("ACCOUNT", "")
 KDIR = ROOT / "kernels_credit_rl_eval"
@@ -68,8 +71,12 @@ def main():
     if ADAPTER_DS:
         role_ds = ADAPTER_DS
     if ROLE == "PSVA":
-        # P base (không mount adapter P): S,V,A trained GRPO cũ
-        datasets = [MODEL_DS, GSM_DS, ROLE_DATASETS["S"], ROLE_DATASETS["V"], ROLE_DATASETS["A"]]
+        # P base (không mount adapter P): S,V,A trained GRPO cũ, có thể override từng vai
+        ds = [ROLE_DATASETS["S"], ROLE_DATASETS["V"], ROLE_DATASETS["A"]]
+        if ADAPTER_S: ds[0] = ADAPTER_S
+        if ADAPTER_V: ds[1] = ADAPTER_V
+        if ADAPTER_A: ds[2] = ADAPTER_A
+        datasets = [MODEL_DS, GSM_DS] + ds
     else:
         datasets = [MODEL_DS, GSM_DS] + (FULL_DATASETS if ROLE == "FULL"
                                          else [role_ds])
@@ -101,7 +108,7 @@ def main():
           f"{(r.stdout or r.stderr).strip().splitlines()[-1][:70]}", flush=True)
     (ROOT / "manifest_credit_rl_eval.json").write_text(json.dumps(
         [{"user": user, "token": token, "slug": slug, "ref": ref, "role": ROLE,
-          "pushed": ok}], indent=2))
+          "adapters": datasets[2:], "pushed": ok}], indent=2))
 
 if __name__ == "__main__":
     main()

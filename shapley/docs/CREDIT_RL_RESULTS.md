@@ -147,3 +147,99 @@ Tất cả trace lưu trong `traces.json`/`traces.jsonl` của từng eval kerne
   `C:\Users\hp\AppData\Local\Temp\opencode\eval_results\`).
 - Kết luận: **thí nghiệm bác bỏ giả thuyết** rằng credit-sharing RL với reward =
   Shapley marginal 0/1 cải thiện được pipeline; không vai nào đạt tiêu chí dương thật.
+
+---
+
+# GIAI ĐOẠN 2 — Anti reward-hacking (P-minlen, V-COND, A-SEL) + eval PSVA trên GSM8K & MATH
+
+Giai đoạn 1 kết luận: marginal 0/1 dễ bị hack (P collapse về rỗng, V sửa cả khi đúng).
+Giai đoạn 2 thử 3 biến thể reward đối phó, eval trên **cả GSM8K test và MATH-500 test**
+qua pipeline PSVA (P base + S/V/A trained). S/V/A trained ở đây = adapter GRPO cũ
+(`credit-rl-s-adapter`, `credit-rl-v-adapter`, `credit-rl-a-adapter`), trừ biến thể riêng.
+
+Mốc MATH-500 1.5B: PS_base ≈ 0.415, base pipeline PSVA ≈ 0.45 (greedy, boxed grading).
+
+## 7. Các biến thể reward chống hack
+
+| biến thể | vai | thay đổi reward | cơ chế chống hack |
+|---|---|---|---|
+| P-minlen | P | penalty mạnh khi plan quá ngắn (PLAN_MINLEN=20, PLAN_LAMBDA) | chặn collapse rỗng |
+| V-COND | V | fix +1.0 / noop 0.0 / copy +0.1 / break −2.0 | phạt mạnh khi V làm hỏng lời giải đúng |
+| A-SEL | A | +1.0 chọn đúng ứng viên, −1.0 chọn sai, 0.0 không có ứng viên đúng; chỉ 2 trace selection | ép A thực sự chọn, không "không làm gì" |
+
+## 8. Kết quả train + quick_eval
+
+| biến thể | quick_eval gain | ghi chú |
+|---|---|---|
+| P-minlen | **0.000** | hết collapse (empty 0%), nhưng plan trained không đổi output |
+| V-COND | **+0.025** (0.685→0.71) | hist fix ~25–31/32; break chỉ 4 lần trong 16 outer |
+| A-SEL | **−0.006** (0.851→0.845) | sel_ok rất thấp (0–4/64), phần lớn câu không có ứng viên đúng |
+
+- **Plan-inspect (KL test)**: adapter P-minlen tạo output **giống hệt base** — plan_diff 0/20,
+  KL(trained‖base) = 0.0 → LoRA P học được **gì cũng không** (mean|w|≈0.008). Giải thích:
+  penalty độ dài vô hiệu với greedy decode vì logits thay đổi không đủ để đổi token đầu.
+
+## 9. Eval 5-fold GSM8K — từng biến thể vs base
+
+| biến thể | ref → full | gain | folds cùng dấu |
+|---|---|---|---|
+| P-minlen (P) | 0.645 → 0.645 | 0.000 | 0/5 |
+| V-COND (V) | 0.670 → 0.700 | **+0.030** | **4/5** |
+| A-SEL (A) | 0.695 → 0.710 | **+0.015** | 4/5 |
+
+> V-COND và A-SEL đọc từ eval kernel riêng (chỉ load adapter biến thể đó trong pipeline
+> P→S→V→A); A-SEL quick_eval đo selection-acc còn eval này đo answer acc pipeline đủ.
+
+## 10. Eval PSVA trên GSM8K & MATH (P base, S/V/A trained vs toàn base)
+
+ref = toàn pipeline base (S/V/A adapter tắt), full = S/V/A trained bật.
+
+### GSM8K (ref 0.695)
+
+| nhánh A | acc_full | gain |
+|---|---|---|
+| A-base (không train) = ref | 0.695 | — |
+| A GRPO cũ | 0.690 | −0.005 |
+| **A asel** | **0.710** | **+0.015** |
+
+### MATH-500 (ref 0.450; boxed grading)
+
+| nhánh | acc_full | gain | folds cùng dấu |
+|---|---|---|---|
+| PSVA base (S/V/A GRPO cũ) | 0.385 | −0.065 | 4/5 (âm) |
+| PSVA asel | 0.390 | −0.060 | 3/5 (âm) |
+| V-COND (chỉ V, S base) | 0.405 | −0.005 | 2/5 |
+
+Stage (MATH, PSVA base): PS 0.415→0.380, PSV 0.410→0.365 → trained **hại** ở mọi stage.
+
+## 11. Kết luận giai đoạn 2
+
+1. **V-COND là biến thể dương thật duy nhất** (+0.030, 4/5 fold) trên GSM8K — phạt break
+   đối xứng làm V học "sửa khi sai, giữ khi đúng" (break giảm mạnh). Nhưng **không tổng
+   quát sang MATH** (gain −0.005, 2/5 fold) → học theo pattern số cuối GSM8K, không phải
+   kỹ năng toán tổng quát.
+2. **A-SEL có gain nhỏ dương** (+0.015, 4/5) trên GSM8K, vượt cả A-base lẫn A GRPO cũ
+   (−0.005) — selection bằng conditional reward có tiến triển nhưng còn yếu (phần lớn câu
+   không có ứng viên đúng trong 2 trace → reward 0, học kém). Trên MATH vẫn âm (−0.06).
+3. **P-minlen vô hiệu với greedy decode** — KL=0, adapter không đổi gì. Penalty độ dài chỉ
+   tác động khi decoding sample; cần ngưỡng cứng (forced length) hoặc reward theo content.
+4. **Không biến thể nào tổng quát sang MATH.** Mọi gain dương trên GSM8K đều tiêu khi eval
+   MATH; trên MATH mọi biến thể trained đều âm hoặc ≈0. GRPO với correctness reward trên
+   GSM8K không sản sinh kỹ năng chuyển dịch được.
+5. **Tổng hợp**: credit-sharing RL vẫn thất bại làm pipeline 1.5B tốt hơn base trên tập lạ
+   (MATH). Hướng còn lại: fine-tune solver (S) thật sự, reward mượt theo likelihood, hoặc
+   nâng cấp model backbone thay vì LoRA trên từng vai.
+
+## 12. Trạng thái giai đoạn 2
+
+- Kernel: `credit_rl_kernel.py` (flags COND/PLAN_MINLEN/PLAN_LAMBDA/A_SELECT),
+  `credit_rl_eval_kernel.py` (ROLE ∈ P/S/V/A/FULL/PSVA), `credit_rl_eval_math_kernel.py`
+  (ROLE ∈ V/PSVA), `ps_plan_inspect_kernel.py`.
+- Deploy: `orchestrate_credit_rl.py`, `orchestrate_credit_rl_eval.py` (ADAPTER_S/V/A override),
+  `orchestrate_credit_rl_eval_math.py`.
+- Adapter datasets (public): `tbmdemi/credit-rl-pminlen-adapter`, `Viettran12/credit-rl-vcond-adapter`,
+  `TrgDinKai/credit-rl-asel-adapter`.
+- Kernel đã chạy: `credit-rl-asel-gsm8k` (A-SEL train v2), `credit-rl-eval-psva-gsm8k`,
+  `credit-rl-eval-psva-math`, `credit-rl-eval-psva-asel-gsm8k`, `credit-rl-eval-psva-asel-math`,
+  `credit-rl-eval-vcond-math`, `credit-rl-eval-vcond-gsm8k`, `credit-rl-eval-ps-minlen-gsm8k`,
+  `credit-rl-plan-inspect-gsm8k`. Output cục bộ: `crl_final\*_pull\summary.json`.

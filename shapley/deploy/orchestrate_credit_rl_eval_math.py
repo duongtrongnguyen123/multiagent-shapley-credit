@@ -19,6 +19,9 @@ N = int(os.environ.get("N", "200"))
 NF = int(os.environ.get("NF", "5"))
 BS = int(os.environ.get("BS", "4"))
 ADAPTER_DS = os.environ.get("ADAPTER_DS", "Viettran12/credit-rl-vcond-adapter")
+ADAPTER_S = os.environ.get("ADAPTER_S", "")     # override S adapter trong PSVA
+ADAPTER_V = os.environ.get("ADAPTER_V", "")     # override V adapter trong PSVA
+ADAPTER_A = os.environ.get("ADAPTER_A", "")     # override A adapter trong PSVA (vd: asel)
 SLUG = os.environ.get("SLUG", "")
 ACCOUNT = os.environ.get("ACCOUNT", "")
 KDIR = ROOT / "kernels_credit_rl_eval_math"
@@ -63,8 +66,11 @@ def main():
     if ROLE not in ("V", "PSVA"):
         raise SystemExit(f"ROLE={ROLE} invalid (V|PSVA)")
     if ROLE == "PSVA":
-        datasets = [MODEL_DS, MATH_DS, ROLE_DATASETS["S"], ROLE_DATASETS["V"],
-                    ROLE_DATASETS["A"]]
+        ds = [ROLE_DATASETS["S"], ROLE_DATASETS["V"], ROLE_DATASETS["A"]]
+        if ADAPTER_S: ds[0] = ADAPTER_S
+        if ADAPTER_V: ds[1] = ADAPTER_V
+        if ADAPTER_A: ds[2] = ADAPTER_A
+        datasets = [MODEL_DS, MATH_DS] + ds
     else:
         datasets = [MODEL_DS, MATH_DS, ADAPTER_DS]
     src = (SRC.read_text(encoding="utf-8")
