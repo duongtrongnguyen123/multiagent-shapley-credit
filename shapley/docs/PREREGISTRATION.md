@@ -4371,3 +4371,40 @@ ngưỡng **bất khả thi về mặt dữ liệu** — giữ nguyên nghĩa l�
 benchmark này. Và tôi đã lập tiền lệ này ở **#97-d**, **trước** khi H92b tồn tại.
 
 ### Bảng khoá #102 giữ nguyên từng chữ. Không đổi gì khác.
+
+---
+
+## #101-c và #103-b — BỊT LỖ HỔNG PHỦ, phát hiện bằng KIỂM PHỦ trước khi có dữ liệu
+
+**Đăng ký lúc:** H91c và H93b **đang chạy**, **chưa có kết quả nào tồn tại**. Đây là áp dụng trực
+tiếp luật rút ra ở #147 (*"sau khi viết bảng khoá phải KIỂM PHỦ"*) — chạy mô phỏng trên các
+giá trị đại diện và xem giá trị nào **không khớp hàng nào**.
+
+### Lỗ hổng tìm thấy ở #101 (H91c)
+| `d_ceil` | p | hàng khớp |
+|---|---|---|
+| +0.010 | .01 | **KHÔNG HÀNG NÀO** |
+| +0.019 | .01 | **KHÔNG HÀNG NÀO** |
+| +0.030 | .50 | **KHÔNG HÀNG NÀO** |
+
+Hàng 1 đòi `d_ceil ≤ 0` **hoặc** (p≥.05 **và** |d|<.02); hàng 2/3 đòi `d_ceil ≥ .02` **và** p<.05.
+⇒ hở đúng hai khoảng: **dương nhưng nhỏ hơn .02 mà CÓ ý nghĩa**, và **≥.02 mà KHÔNG có ý nghĩa**.
+
+**SỬA — hàng 1 viết lại thành mệnh đề bao trùm:**
+> **Hàng 1** ⟺ `d_ceil < .02` **HOẶC** `p ≥ .05`.
+> Nghĩa: **không xác lập được là có dư địa khai thác**. Căn cứ: `.02` là **sàn nhiễu** dự án đã
+> tuyên ở n≈500 (#125-B). Dư địa nhỏ hơn sàn nhiễu thì **không phân biệt được với không có**.
+
+Hàng 2/3/4 giữ nguyên (đều đòi `d_ceil ≥ .02` **và** p<.05), giờ **hàng 1 phủ trọn phần còn lại**.
+
+### Lỗ hổng tìm thấy ở #103 (H93b)
+`H(C)−H(A)` = +.05 (p<.05) **và** `H(B)−H(C)` = +.05 nhưng **p ≥ .05** ⇒ **không hàng nào**.
+Hàng 1 đòi `|H(C)−H(B)| < .03`; hàng 2 đòi `H(B)−H(C) ≥ .03` **và** p<.05.
+
+**SỬA — hàng 1 viết lại:**
+> **Hàng 1** ⟺ `H(C)−H(A) ≥ +.03` với p<.05, **VÀ KHÔNG xác lập được** rằng họ hơn cỡ
+> (tức **không** thoả `H(B)−H(C) ≥ +.03` với p<.05).
+> Nghĩa: cỡ khác đã đủ decorrelate, và **phần thêm của họ chưa được chứng minh**.
+
+**Không đổi ngưỡng hiệu ứng nào, không đổi tiên nghiệm nào.** Chỉ làm cho các hàng **vét cạn**
+trục số. Cả hai sửa đổi commit **trước khi** H91c/H93b trả kết quả — dấu thời gian git kiểm được.
