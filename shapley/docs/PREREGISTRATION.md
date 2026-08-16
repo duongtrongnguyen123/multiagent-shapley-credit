@@ -4032,3 +4032,43 @@ nên **không** áp cho một `z` đã biết trước là tương quan.
 ### TIÊN NGHIỆM
 `Δ_ceil > 0` rõ rệt trên MATH: **~70%** (vì `I − S` trên MATH lớn, còn tập "S đúng mà I sai" thì
 nhỏ — nhưng `acc(S)` thấp nên vẫn còn chỗ). Cổng khả thi cho `κ` gần 0: **~75%**.
+
+---
+
+## #99 — ĐỘ ĐA DẠNG VỀ CHUỖI: cơ chế của M2 ở tầng DƯỚI kết quả
+
+**Đăng ký lúc:** H86c **đang chạy**, tôi **chưa có** bất kỳ số nào của nó. Vòng #136 đo đại lượng
+này trên Pool A của H86b (thăm dò, hậu nghiệm). Đăng ký này khoá nó lại **trước** khi mở H86c,
+để nó trở thành **xác nhận** thay vì kể chuyện.
+
+### Vì sao đáng đăng ký riêng
+M2 nói bộ chọn bị chặn bởi **độ độc lập** của tín hiệu, và lỗi các mẫu cùng model thì **tương quan**.
+#136 (thăm dò) cho thấy phần lớn "tương quan" ấy có thể là dạng cực đoan nhất: **cùng một chuỗi**
+— 3 mẫu Qwen chỉ cho **1.933/3** ứng viên phân biệt, **34.5%** số bài chỉ có **một**.
+Nếu đúng, M2 có một cơ chế **đo được mà không cần chấm điểm** — mạnh hơn nhiều so với chỉ nói
+"lỗi tương quan".
+
+### Đại lượng (đo trên CÙNG bộ bài, CÙNG lần chạy H86c)
+`distinct(P)` = số ứng viên **phân biệt về chuỗi** trung bình trong pool `P`, sau chuẩn hoá
+**đã cố định ở #136**: bỏ chú thích `#...`, gộp mọi khoảng trắng, so khớp chính xác.
+- `dA` = pool **lấy mẫu** (Q1, Q2, Q3 — cùng Qwen-7B)
+- `dB` = pool **khác họ** (Qwen, Llama, DeepSeek)
+- `Δd = dB − dA` · `soloA`, `soloB` = tỉ lệ bài chỉ có **MỘT** ứng viên phân biệt
+
+### BẢNG KHOÁ
+
+| # | điều kiện | KẾT LUẬN ĐƯỢC PHÉP VIẾT |
+|---|---|---|
+| 0 | H86c VOID theo cổng của #89 | **VOID** — không đọc |
+| 1 | `Δd ≥ +0.50` **và** `soloB ≤ soloA − .15` | **M2 có cơ chế ở tầng chuỗi.** Pool cùng model tương quan tới mức **trùng nguyên văn**; pool khác họ mua được ứng viên thật. Ghi vào TONG_HOP như cơ chế của `κ`. |
+| 2 | `+0.20 ≤ Δd < +0.50` | đa dạng khác họ **cao hơn nhưng khiêm tốn**; trùng-nguyên-văn **không** phải lời giải thích chính. Nêu kèm, không nâng thành cơ chế. |
+| 3 | `\|Δd\| < 0.20` | **GIẾT giả thuyết này.** Pool khác họ **không** đa dạng hơn về chuỗi ⇒ nếu H86c vẫn cho `H(B) > H(A)` thì lợi ích đến từ **chất lượng/bổ trợ**, KHÔNG phải từ đa dạng bề mặt. #136 chỉ là chuyện bên lề. |
+| 4 | `Δd ≤ −0.20` | ngược hẳn dự đoán — pool khác họ **kém** đa dạng hơn. Phải điều tra lại chính cách đo. |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 1 **~55%** · hàng 2 **~30%** · hàng 3 **~13%** · hàng 4 **~2%**.
+Ba model khác nhau gần như chắc chắn không sinh ra **cùng một chuỗi**, nên `dB` sát 3.0 là hợp lý
+(⇒ `Δd ≈ +1.0`). **Rủi ro thật nằm ở chỗ khác**: `Δd` lớn có thể **tầm thường** — model khác nhau
+thì code khác nhau, điều đó **không** tự động nghĩa là chúng đúng/sai độc lập. Vì thế hàng 1 chỉ
+được viết khi **kèm** `soloB` giảm rõ; và mọi phát biểu về **`κ`** vẫn phải dựa trên `H` và `SEL`
+của #89, **không** dựa vào riêng `Δd`.
