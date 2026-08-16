@@ -5539,3 +5539,49 @@ Hàng 1 khớp số nhưng bằng chứng không đủ; hàng 2 không khớp s�
 
 > **Quy tắc rút ra: mọi hàng trong bảng khoá phải nêu ĐỒNG THỜI ngưỡng hiệu ứng VÀ ngưỡng
 > ý nghĩa.** Ngưỡng trần trụi biến một kết quả nhiễu thành một kết luận nghe rất chắc.
+
+---
+
+## Vòng #141 — H89e **VOID**, và lần này là VOID CÓ NỘI DUNG KHOA HỌC
+
+Năm cổng trượt. Bốn cổng đầu là **hạ tầng/đo sai** đã biết (cổng trích xuất đo markdown — #138;
+`n`=463 < 480; `test_runnable` .6739). Nhưng cổng thứ năm là **chất**:
+
+### `I − S` = **+.0410** (p = .101) — TRƯỢT cổng năng lực của #98
+
+| lần chạy | model ĐẮT | `I − S` |
+|---|---|---|
+| H83d | Qwen2.5-7B | **+.2004** |
+| H84e | Qwen2.5-7B | **+.2120** |
+| **H89e** | **Llama-3.1-8B** | **+.0410**, p .101 ✗ |
+
+`acc(Qwen2.5-1.5B)` = **.5292** · `acc(Llama-3.1-8B)` = **.5702** trên MBPP 511–974.
+
+> **Llama-3.1-8B gần như KHÔNG mạnh hơn Qwen2.5-1.5B trên code.** Một model **8B** không thắng nổi
+> một model **1.5B** — vì Qwen2.5 mạnh bất thường về code so với kích thước.
+> `V − I` chỉ có nghĩa khi `I` **thật sự** là "gọi thẳng model mạnh". Ở đây không có model mạnh nào cả.
+
+**Hệ quả cho #98:** câu hỏi *"phá hoại có phụ thuộc HỌ không?"* **không thể trả lời bằng Llama-8B
+trên MBPP** — thiếu chênh năng lực thì không có gì để phá. Không phải giả thuyết sai; là **thiết kế
+chọn nhầm model**. #98 có lường trước rủi ro **ngược lại** (DeepSeek quá mạnh) mà **không** lường
+rủi ro này.
+⇒ **H89b (DeepSeek-Coder-6.7B, chuyên code) giờ là nhánh DUY NHẤT còn có thể trả lời #98.**
+
+### Phát hiện phụ đáng lưu ý: hai dải MBPP KHÁC NHAU về độ khó
+
+| dải | `acc` Qwen-1.5B | `acc` Llama-8B | chênh |
+|---|---|---|---|
+| 11–510 (H84e) | **.4280** | **.5600** | +.132 |
+| 511–974 (H89e) | **.5292** | **.5702** | **+.041** |
+
+Dải 511–974 **dễ hơn hẳn** cho model yếu (.4280 → .5292). Nên **"dải tách rời" không chỉ là mẫu
+khác — nó là PHÂN PHỐI ĐỘ KHÓ khác.**
+
+> **Hệ quả cho mọi lần "tái lập" của dự án:** một hiệu ứng nhỏ đi ở 511–974 có thể **không** phải
+> vì nó không tái lập được, mà vì **bài dễ hơn nên còn ít chỗ để cải thiện**.
+> `SEL − I` = +.0220 (11–510) so với +.0151 (511–974) — chênh này **có thể chỉ là độ khó**, không
+> phải hiệu ứng yếu đi. **Từ nay mọi so sánh chéo dải phải báo kèm `acc(S)` của từng dải.**
+
+### H89d (11–510) vẫn chạy — và nó CÓ THỂ đạt cổng
+Trên 11–510, `acc` Llama-8B − `acc` Qwen-1.5B = **+.132** (đọc từ H84e, nơi Llama đóng vai `S_peer`).
+Đủ qua ngưỡng .05. **Không giết H89d.**
