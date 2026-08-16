@@ -22,8 +22,15 @@ CC = torch.cuda.get_device_capability(0); VRAM = torch.cuda.get_device_propertie
 print(f"MODELS={json.dumps(M,indent=1)}\nGPU={torch.cuda.get_device_name(0)} | {VRAM:.1f} GB | sm_{CC[0]}{CC[1]}", flush=True)
 
 # khong internet tren RTX 6000 -> MBPP nap tu dataset JSON da stage
-MB = sorted(glob.glob("/kaggle/input/**/mbpp_full.json", recursive=True), key=len)[0]
-DS = json.load(open(MB))
+# dataset private KHONG mount duoc sang tai khoan khac (push van thanh cong) -> fallback HF.
+_hits = sorted(glob.glob("/kaggle/input/**/mbpp_full.json", recursive=True), key=len)
+if _hits:
+    DS = json.load(open(_hits[0]))
+else:
+    print("khong mount duoc mbpp_full.json -> nap tu HuggingFace", flush=True)
+    from datasets import load_dataset
+    _D = load_dataset("mbpp", "full", split="test+train+validation")
+    DS = [{k: r[k] for k in ["task_id","text","code","test_list"]} for r in _D]
 ALL = sorted([r for r in DS if TIDLO <= r["task_id"] <= TIDHI and len(r["test_list"]) >= 3],
              key=lambda r: r["task_id"])
 N = len(ALL)
