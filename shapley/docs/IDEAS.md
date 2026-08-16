@@ -6152,3 +6152,33 @@ biên 1.6× — **quá sát**, có thể huỷ nhầm lần chạy tốt.)
 > **Quy tắc: mọi thay đổi cơ chế SINH phải (a) mô phỏng ngoại tuyến trên chuỗi ví dụ, và
 > (b) đi kèm một phép kiểm tỉnh táo chạy sau lô ĐẦU TIÊN.**
 > Cổng chất lượng ở cuối là lưới cuối cùng, **không phải** lưới đầu tiên.
+
+---
+
+## Vòng #156 — Kiểm tường 12h: **H82 chỉ có MỘT điểm lưu, và nó nằm ở CUỐI**
+
+Kiểm thời gian chạy các kernel dài nhất:
+
+| lần chạy | đã chạy | điểm lưu |
+|---|---|---|
+| H82 (MATH chọn-vs-sửa) | **6.9h** | **1, đặt SAU cả 7 lượt sinh** |
+| H85b (refactor) | 6.8h | 3 ✓ |
+| H88c (MATH sửa có cổng) | 5.7h | 1, nhưng 5 lần đổ raw ✓ |
+| H81e | 2.2h | — |
+
+H82 lưu ở **dòng 187**, sau vòng lấy mẫu k=4 (dòng 184). Nghĩa là **đụng tường 12h ở bất kỳ đâu
+trong 7 lượt sinh ⇒ mất sạch** — đúng lỗi đã tốn ~15h ở #124 và 12h ở #128.
+
+Nó còn **~5h** đệm nên có thể kịp. **Không sửa được kernel đang chạy** — nhưng sửa được **nguồn**.
+
+### Đã sửa nguồn + quét lớp lỗi
+`math_majk4_kernel.py` (nguồn của H82): thêm **5 điểm lưu**, một sau **mỗi** chặng.
+
+Quét *"chỉ 1 điểm lưu, nằm sau ≥3 lượt sinh"* tìm thêm **3 kernel**: `bcb_route32b`,
+`math_majk`, `mbpp_route`. Cả ba đã thêm lưu theo chặng, dùng bản chụp `globals()` của #134-b
+nên **không cần biết tên biến** của từng kernel.
+
+> **Có `partial_` trong file KHÔNG có nghĩa là được bảo vệ.**
+> Điều quan trọng là **lưu Ở ĐÂU**: một điểm lưu đặt sau toàn bộ phần tốn thời gian thì
+> chỉ bảo vệ đúng phần **không cần bảo vệ**.
+> Quét ở #134-b của tôi hỏi *"có lưu không?"* — lẽ ra phải hỏi *"lưu sau bao nhiêu lượt sinh?"*.

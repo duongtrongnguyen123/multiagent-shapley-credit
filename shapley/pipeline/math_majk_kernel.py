@@ -175,6 +175,15 @@ def gen(mos, tk, sysm, usrs, bs):
 
 BSZ = BSZ_BIG if BIG else BSZ_SMALL
 BSZ = BSZ_BIG if BIG else BSZ_SMALL
+def _snap(**kw):
+    """#156: luu SAU MOI chang. Mot diem luu dat o CUOI = dung tuong 12h giua chung thi mat sach."""
+    try:
+        json.dump({"partial": True, "run": RUN, **kw},
+                  open(f"/kaggle/working/partial_{RUN}.json", "w"))
+        print(f"    [luu] {sorted(kw)}", flush=True)
+    except Exception as _e:
+        print(f"    [luu] LOI: {_e}", flush=True)
+
 t0 = time.time()
 
 m15, tk15 = load("1.5B")
@@ -184,16 +193,20 @@ for _d in range(torch.cuda.device_count()):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 
+_snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
 m7, tk7 = load("7B")
 IND = gen(m7, tk7, SOLVE, Q, BSZ["7B"])
 print(f"I xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
 VW = gen(m7, tk7, VERIFY, [f"{Q[i]}\n\nProposed solution:\n{SOLS[i]}" for i in range(N)], BSZ["7B"])
 print(f"V_review xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
 CS = []
 for kk in range(8):
     CS.append(gen(m7, tk7, SOLVE, Q, BSZ["7B"]) if kk == 0 else
               gen(m7, tk7, SOLVE, Q, BSZ["7B"]))
     print(f"mau {kk} xong ({time.time()-t0:.0f}s)", flush=True)
+    _snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
     json.dump({"partial": True, "n": kk+1}, open(f"/kaggle/working/partial_{RUN}.json", "w"))
 
 OUT = {"S": SOLS, "I": IND, "V_review": VW}

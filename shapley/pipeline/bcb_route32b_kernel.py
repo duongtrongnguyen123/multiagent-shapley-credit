@@ -121,13 +121,24 @@ if N < 280:
     print("XONG", flush=True); raise SystemExit(0)
 
 PR = [r["instruct_prompt"] for r in ALL]
+def _snap(**kw):
+    """#156: luu SAU MOI chang. Mot diem luu dat o CUOI = dung tuong 12h giua chung thi mat sach."""
+    try:
+        json.dump({"partial": True, "run": RUN, **kw},
+                  open(f"/kaggle/working/partial_{RUN}.json", "w"))
+        print(f"    [luu] {sorted(kw)}", flush=True)
+    except Exception as _e:
+        print(f"    [luu] LOI: {_e}", flush=True)
+
 t0 = time.time()
 
 mo, tk = load("7B")
 S = [extract(t) for t in gen(mo, tk, SOLVE, PR, BSZ["7B"])]
 print(f"S (7B) xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
 TESTS = [clean_asserts(t) for t in gen(mo, tk, WTEST, PR, BSZ["7B"])]
 print(f"test tu sinh xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
 mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
 free()
 json.dump({"partial": 1, "S": S, "TESTS": TESTS}, open(f"/kaggle/working/partial_{RUN}.json", "w"))
@@ -141,9 +152,11 @@ print(f"NHAN {sum(ACCEPT)}/{N} | leo thang {len(ESC)} (p_esc={p_esc})", flush=Tr
 mo, tk = load("32B")
 I = [extract(t) for t in gen(mo, tk, SOLVE, PR, BSZ["32B"])]
 print(f"I (32B) xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
 V = [extract(t) for t in gen(mo, tk, REVIEW,
      [f"{PR[i]}\n\nProposed code:\n```python\n{S[i]}\n```" for i in range(N)], BSZ["32B"])]
 print(f"V (32B xem code 7B) xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(**{k: v for k, v in list(globals().items()) if isinstance(v, list) and len(v) >= 10 and isinstance(v[0], (str, list, bool, int, float))})
 mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
 free()
 

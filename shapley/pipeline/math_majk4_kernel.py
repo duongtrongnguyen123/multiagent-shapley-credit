@@ -178,22 +178,33 @@ BSZ = BSZ_BIG if BIG else BSZ_SMALL
 t0 = time.time()
 
 m15, tk15 = load("1.5B")
+def _snap(**kw):
+    """#156: luu SAU MOI chang, khong doi den cuoi. H82 chi co MOT diem luu, dat SAU
+    ca 7 luot sinh — dung tuong 12h giua chung la mat sach (dung loi #124/#128)."""
+    json.dump({"partial": True, "run": RUN, **kw},
+              open(f"/kaggle/working/partial_{RUN}.json", "w"))
+    print(f"    [luu] {sorted(kw)}", flush=True)
+
 SOLS = gen(m15, tk15, SOLVE, Q, BSZ["1.5B"])
 _free_models(m15); m15 = None; gc.collect()
 for _d in range(torch.cuda.device_count()):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(SOLS=SOLS)
 
 m7, tk7 = load("7B")
 IND = gen(m7, tk7, SOLVE, Q, BSZ["7B"])
 print(f"I xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(SOLS=SOLS, IND=IND)
 VW = gen(m7, tk7, VERIFY, [f"{Q[i]}\n\nProposed solution:\n{SOLS[i]}" for i in range(N)], BSZ["7B"])
 print(f"V_review xong ({time.time()-t0:.0f}s)", flush=True)
+_snap(SOLS=SOLS, IND=IND, VW=VW)
 CS = []
 for kk in range(4):
     CS.append(gen(m7, tk7, SOLVE, Q, BSZ["7B"]) if kk == 0 else
               gen(m7, tk7, SOLVE, Q, BSZ["7B"]))
     print(f"mau {kk} xong ({time.time()-t0:.0f}s)", flush=True)
+    _snap(SOLS=SOLS, IND=IND, VW=VW, CS=CS)
     json.dump({"partial": True, "done": kk+1, "raw": {"S": SOLS, "I": IND, "V_review": VW,
                **{f"C{j}": CS[j] for j in range(len(CS))}}},
               open(f"/kaggle/working/partial_{RUN}.json", "w"))   # #128: LUU DU LIEU, khong phai bo dem
