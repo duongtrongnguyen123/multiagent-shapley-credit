@@ -5364,3 +5364,58 @@ Nó cho M2 một cơ chế **định lượng và cụ thể hơn**: TONG_HOP n�
 > Muốn dùng được thì phải **đăng ký trước** như một dự đoán: *nếu M2 đúng, pool khác họ phải có
 > số ứng viên phân biệt cao hơn hẳn 1.93 trên cùng dải bài*. H86c sẽ có sẵn cả hai pool —
 > nhưng đại lượng đó phải được khoá **trước** khi tôi mở kết quả của nó.
+
+---
+
+## Vòng #137 — H83d XONG. **Hàng 4 của #92 khớp: công thức định tuyến bị THỰC TẾ BÁC BỎ**
+
+Lần chạy hoàn tất đầu tiên sau sáu vòng hạ tầng. **Cổng chất lượng ĐẠT** nên được đọc số:
+`I − S` = **+.2004** (p 5.45e-18) · soundness .533 · biên dịch .9947 · chuẩn chạy được 1.0 ·
+n=499, `task_id` 11–510 (đã xác minh trong trace, bài học #121).
+
+### Đọc theo BẢNG KHOÁ #92 — không diễn giải lại
+
+| điều kiện của hàng 1 | đo được | |
+|---|---|---|
+| `p_esc` < .803 | **.7475** | ✓ |
+| `ROUTE ≥ I − .02` | **+.0060** | ✓ |
+| **chi phí `ROUTE` < chi phí `I`** | **5.79 vs 5.07 = 1.142×** | **✗** |
+
+Hàng 1 trượt ở điều kiện thứ ba. Hàng 2 đòi `p_esc ≥ .803` — không. Hàng 3 đòi `ROUTE < I − .02`
+— không. Còn lại **hàng 4: "dự đoán ngược thực tế" ⇒ RÚT LẠI công thức M3.**
+
+Công thức **như đã đăng ký** dự đoán **THẮNG** (`.7475 < .803`); thực tế **THUA** (đắt hơn 1.142×).
+**Ghi nhận đúng như bảng đã khoá.**
+
+### Nguyên nhân — và vì sao đây KHÔNG phải cứu vãn hậu nghiệm
+Ngưỡng `.803 = 1 − 1/5.07` giả định tầng rẻ tốn **1 lượt**. Thiết kế thực tế tốn **2**: một lượt
+**giải** + một lượt **viết test**. Với `c_rẻ = 2`: ngưỡng = `1 − 2/5.07` = **.606**, mà `p_esc = .7475
+> .606` ⇒ **dự đoán THUA, đúng như thực tế**.
+
+Mâu thuẫn này nằm **ngay trong một file, viết TRƯỚC khi chạy**:
+```
+dòng  11:  COST = {...}   # nguong hoa von = 1 - 1/5.07 = .803     <-- 1 luot re
+dòng 174:  cost_route = COST["7B"]*2 + p_esc*COST["32B"]           <-- 2 luot re
+```
+Nên đây là **lỗi ĐẶC TẢ của #92**, chứng minh được bằng artifact tiền-nghiệm — không phải thứ tôi
+nghĩ ra sau khi thấy kết quả. **Nhưng nó KHÔNG cứu công thức**: một dự đoán sai vì đặc tả sai thì
+vẫn là **dự đoán sai**, và tôi không thể chứng minh mình sẽ phát hiện lỗi đó nếu kết quả đi theo
+hướng ủng hộ.
+
+### Hậu quả NẶNG HƠN cho TONG_HOP
+TONG_HOP ghi công thức **"khớp cả hai trường hợp đã có"** (MATH thắng, BCB thua).
+Nếu #92 tính `c_rẻ` sai thì **hai điểm kia phải được kiểm lại bằng CÙNG một quy ước** —
+MATH cũng dùng ngưỡng `.803`, tức cũng giả định 1 lượt rẻ. **Thành tích 2/2 hiện đang NGHI VẤN.**
+
+> **Công thức định tuyến chuyển sang trạng thái ĐÌNH CHỈ**, không phải "đã xác nhận".
+> Không được trích ở dạng hiện tại. Phải: (1) chốt một quy ước chi phí DUY NHẤT, (2) tính lại
+> cả ba điểm bằng quy ước đó, (3) đăng ký trước rồi mới đo điểm thứ tư.
+
+### Kết quả PHỤ — vững, và là bản tái lập sạch
+- **`V − I` = −.0882, p 1.55e-05** (73 bài bị phá / 29 được cứu). Đầu độc **tái lập** trên
+  MBPP 11–510; lần trước đo −.0740. Kết quả vững nhất của dự án tiếp tục đứng.
+- **`agree(V, S)` = .3788 vs `agree(V, I)` = .0902.** Đầu ra của `V` trùng **nguồn yếu** nhiều gấp
+  **4.2 lần** so với trùng thứ mà model mạnh tự viết ra. Cơ chế "nhiễm từ nguồn" có số đo trực tiếp.
+- **`ROUTE − I` = +.0060 (p .648)** và **`SEL − I` = +.0120 (p .146)**: **CẢ HAI KHÔNG CÓ Ý NGHĨA**
+  và đều **dưới ngưỡng .02** mà dự án đã tuyên là nhiễu. **Không được phát biểu là "định tuyến
+  giữ nguyên độ chính xác" hay "chọn có lợi"** — n=499 không phân biệt được chúng với 0.
