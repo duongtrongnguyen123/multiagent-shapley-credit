@@ -5969,3 +5969,31 @@ model mạnh (.4373 → .2473). Thấy code **đúng** thì **giúp**.
 **không tái lập ý nghĩa** (p .0043 vs .263). Và trần của `G_exp` chỉ **+.028/+.013** — nhỏ, lại
 đòi một **oracle không tồn tại**.
 **Phải đăng ký trước rồi đo lại** thì mới được trích.
+
+---
+
+## Vòng #151 — H89b **VOID** vì chạy kernel CŨ; chạy lại H89f
+
+Ba cổng trượt, **cả ba đều là cổng tôi ĐÃ xác định là sai và ĐÃ sửa ở #97-c**:
+`extract_min` (.1383 — đo rào markdown, không đo code chạy được) · `extract_spread` (cùng lỗi) ·
+`test_runnable` .6994 (ngưỡng .70 tôi đã nới về .60 ở #97-c, có nêu rõ là **nới**).
+
+**H89b được PHÓNG trước khi #97-c tồn tại**, nên nó chạy bản kernel cũ.
+
+### Vì sao vẫn VOID thay vì đọc
+Tôi **có thể** tính lại `compiles(extract(·))` ngoại tuyến từ `partial_H89b.json` và gần như chắc
+chắn cổng sẽ đạt (S đạt .998 ở mọi lần chạy khác). **Nhưng ở #138 tôi đã VOID H88/H88b trong
+đúng tình huống này và chạy lại.** Đọc H89b bây giờ là **áp thước đo mới lên đầu ra cũ**, và là
+**tiêu chuẩn kép** so với chính quyết định của mình cách đây vài vòng.
+
+> **Kỷ luật chỉ có giá trị khi nó áp cả vào lần chạy mình ĐANG MUỐN đọc.**
+> H89b là nhánh **DUY NHẤT** còn có thể trả lời #98 — đó chính là lý do phải cẩn thận hơn, không
+> phải lý do để nới tay.
+
+### Tin tốt: cổng NĂNG LỰC đạt
+`I − S` = **+.1523** (p 0.0). Khác hẳn Llama (**+.0410**, p .101, trượt ở #141).
+⇒ **DeepSeek-Coder-6.7B LÀ một model "đắt" hợp lệ trên MBPP**, nên chạy lại **đáng giá** và
+**có khả năng cho kết quả đọc được** — không phải ném tiền vào một thiết kế đã hỏng.
+
+**H89f** phóng lại bằng kernel hiện tại (cổng `compiles(extract)`, `test_runnable ≥ .60`,
+`MAXNEW`=1536, cổng cắt cụt #101-b, nạp lạc quan có đường lui).
