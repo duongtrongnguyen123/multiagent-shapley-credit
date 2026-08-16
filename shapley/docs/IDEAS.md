@@ -5840,3 +5840,38 @@ hàng loại trừ nhau mà **không phủ hết trục số**.
 ### Chờ H92 (11–510, n=499) trước khi kết luận LIỀU vs NGƯỠNG
 `E2` là điểm quyết định và nó **thiếu lực** ở n=463. H92 có n=499 và `acc(S)` thấp hơn (nhiều dư địa
 hơn — #141). **Không gộp hai lần chạy** trừ khi cả hai đạt cổng và tôi đăng ký trước cách gộp.
+
+---
+
+## Vòng #148 — H93 HUỶ, nhưng **canary (#134-g) vừa trả công lần đầu**
+
+Không đọc số nào — chết ở giai đoạn **nạp thử**, chưa sinh gì.
+
+```
+nap Q  (1 card): cap phat 5.17  giu cho 13.66
+L : OOM 1 card -> lui ve TRAI DEU -> nap OK (gpu0 6.95 + gpu1 3.70)
+nap D  (1 card): cap phat 3.60  giu cho 12.31
+nap XS (1 card): cap phat 1.06
+XL: OOM 1 card -> lui ve TRAI DEU -> OOM LAN HAI  ==> dung
+```
+
+### Canary đã làm đúng việc nó sinh ra để làm
+Không có canary, kernel sẽ sinh xong **Q1, Q2, Q3, L, D, XS** (~3–4 giờ) rồi mới chết ở `XL`.
+Có canary: chết sau **vài phút**, và **biết chính xác model nào**. So sánh với **H86b mất 54 phút**
+(#135) đúng vì thiếu thứ này.
+
+### Điều log mới tiết lộ: **transient lúc nạp mới là ràng buộc, không phải cỡ model thường trú**
+`nap Q: cap phat 5.17 / giu cho **13.66**` — Qwen-7B chỉ **chiếm** 5.17 GB nhưng **giữ chỗ** 13.66 GB
+*trong lúc nạp*. Với 14B, transient đó **vượt card** ngay cả khi trọng số nf4 (~8.5 GB) thừa sức vừa.
+
+> **Bài học: "model có vừa card không?" phải hỏi theo ĐỈNH LÚC NẠP, không theo cỡ thường trú.**
+> Đây là thứ mà preflight đọc `index.json` (#134-e) **không** thấy được — nó chỉ biết cỡ checkpoint.
+
+### Sửa cho H93b
+`device_map="auto"` **nhồi đầy card 0 trước** rồi mới tràn. Thêm
+`max_memory={i: "11GiB"}` (78% mỗi card) để **ép chia đều** và **chừa headroom** cho transient.
+
+**Số học nói thẳng rủi ro:** nếu 14B **có** lượng tử hoá (~8.5 GB) thì vừa **một** card 11 GiB.
+Nếu **không** (28 GB fp16) thì **22 GiB cả hai card vẫn thiếu** — và #135 đã cho thấy model
+**ngoài họ Qwen** không lượng tử hoá. Qwen-7B **có** (5.17 GB), nên Qwen-14B **nên** có.
+**Canary sẽ trả lời trong ~10 phút.** Nếu vẫn trượt: chuyển H93 sang RTX 6000 (95 GB) sau khi H91c xong.

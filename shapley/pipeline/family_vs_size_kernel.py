@@ -119,7 +119,13 @@ def load(tag):
         for _d in range(NG):
             with torch.cuda.device(_d): torch.cuda.empty_cache()
         dmap = "auto"
-        mo = _build(dmap)
+        # #148: "auto" nhoi day card 0 truoc roi moi tran sang card 1. Voi 14B thi card 0 day
+        # truoc khi kip chia -> OOM lan hai. max_memory ep chia DEU va chua san headroom cho
+        # buffer luc nap (log H93: "cap phat 5.17 / giu cho 13.66" => phan manh an mat card).
+        _cap = int(torch.cuda.get_device_properties(0).total_memory/2**30 * 0.78)
+        mo = AutoModelForCausalLM.from_pretrained(
+            p, quantization_config=_BNB, device_map="auto",
+            max_memory={i: f"{_cap}GiB" for i in range(NG)}).eval() if not BIG_CARD else _build(dmap)
     print(f"  nap {tag} (device_map={dmap}): " + " | ".join(
         f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(d)/2**30:.2f}"
         for d in range(NG)), flush=True)
