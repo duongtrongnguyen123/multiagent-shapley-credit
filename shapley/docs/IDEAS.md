@@ -5157,3 +5157,34 @@ tức là nhánh mang giả thuyết. Nếu H87 chạy hết và nhánh đa dạ
 
 > **Không có hàng nào trong bảng khoá được đọc ở vòng này** — đây là lỗi hạ tầng, không phải
 > kết quả. H87b và H83d giữ nguyên bảng khoá của #96 và #83.
+
+---
+
+## Vòng #133 — Kiểm tính nhất quán tài liệu: một phát biểu DƯƠNG bị nêu thiếu điều kiện
+
+**Không phải vòng thí nghiệm.** Trong lúc chờ 13 kernel, tôi rà xem có phát biểu nào **đã bị rút
+ở #125** mà vẫn còn sống trong tài liệu tóm tắt (README, TONG_HOP) — nơi người đọc thật sự trích.
+
+**Phần lớn sạch.** Các lần khớp mẫu `k=2` / `tie_rate` / `5/5` trong `IDEAS.md` là **nhật ký
+theo thời gian** — ghi lại một phát biểu **rồi rút nó** đúng là việc phải làm ở đó. Ba file
+`AGG_FORMAT_CHECK` / `FEWSHOT_ROLES` / `DIFFICULTY_STRATA` thuộc **giai đoạn planner/aggregator
+trước**, không thuộc dòng `V/I/SEL`. `README:129` (`H39_m +.140, 5/5 fold`) **không** phải một
+trong hai chỗ sai — #125-B1 chỉ đích danh **H69c và H69d**.
+
+**Nhưng có một chỗ thật.** #125-D ra điều kiện rõ ràng: `SEL − I` *"giữ, nhưng **nêu kèm CI**,
+và nêu rõ **lật 6 bài là xoá sạch** hiệu ứng ở H69c"*. README nêu **`+.0220` trần trụi** làm
+một hàng kết quả nổi bật — **không CI, không ghi chú mong manh** — trong khi **cùng tài liệu đó**,
+cách 33 dòng, rút lại *"mọi chênh lệch ≤ .02 là nhiễu"*. Người đọc gặp `+.0220` ngay cạnh
+`≤ .02 là nhiễu` mà không có gì bắc cầu.
+
+Đây **không** phải lỗi số học — `+.0220` đúng, `p = .0074` đúng. Đây là lỗi **trình bày**, và là
+loại lỗi #125-E cảnh báo: *kết quả TRÔNG ĐÚNG*. Điều kiện của kiểm định độc lập được ghi vào
+`IDEAS.md` rồi **không bao giờ lan tới tài liệu người ta đọc**.
+
+**Đã sửa** ở cả `README.md` lẫn `TONG_HOP.md`: thêm CI `[+.008, +.038]` / `[+.002, +.028]`, Fisher
+`.0026`, ghi chú **lật 6 bài**, và nói thẳng con số thắng lớn là **`SEL − V_review`** (tránh REVIEW),
+còn **`SEL − I` thì nhỏ và mong manh**.
+
+> **Quy tắc rút ra: một điều kiện của kiểm định chỉ được coi là ĐÃ ÁP DỤNG khi nó có mặt trong
+> tài liệu mà người đọc TRÍCH, không phải trong vòng ghi nhận nó.**
+> Kiểm định sinh ra điều kiện; áp dụng điều kiện là **việc riêng, phải làm rõ ràng**.

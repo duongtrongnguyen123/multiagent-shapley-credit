@@ -80,10 +80,16 @@ tách cơ chế bên dưới, **không phải** phát hiện hiện tượng.
 |---|---|---|
 | `I` — 7B tự viết | .6400 | — |
 | `V_review` — 7B **sửa** code của 1.5B | .5320 | −.1080 |
-| **`SEL`** — 7B **chọn** giữa bản của nó và của 1.5B | **.6620** | **+.0220** |
+| **`SEL`** — 7B **chọn** giữa bản của nó và của 1.5B | **.6620** | **+.0220** [+.008, +.038] |
 
 `SEL − V_review` = **+.1300** (p 9e-13), tái lập **+.0841** trên dải bài tách rời (MBPP 511–974).
 **Cùng hai bản code, cùng ngân sách — chỉ đổi GIAO THỨC.**
+
+> **Đọc `SEL − I` cho đúng (bắt buộc theo kiểm định #125-D).** Con số **thắng lớn là `SEL − V_review`**,
+> không phải `SEL − I`. `SEL − I` chỉ **+.0220** [+.008, +.038] (p .0074), tái lập **+.0151**
+> [+.002, +.028] (p .039), gộp Fisher p .0026 — **sát ngay ngưỡng .02 mà chính tài liệu này gọi là
+> nhiễu** ở mục rút lại bên dưới. **Lật 6 bài là xoá sạch** hiệu ứng ở H69c. Nói cách khác:
+> *tránh REVIEW* là kết luận vững; *giá trị thật của agent yếu* thì **nhỏ và mong manh**.
 
 **Cơ chế (đọc từ trace):** được bảo *"review"*, model **VIẾT LẠI code đang chạy và làm hỏng** —
 **78%** thiệt hại trên code là một **bản thứ ba** chứ không phải chép bản sai. Được bảo *"chọn"*,

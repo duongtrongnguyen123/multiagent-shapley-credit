@@ -367,3 +367,12 @@ không về 0, `empty_cache()` sau đó không có gì để trả. Sáu kernel 
 > Caller phải tự gán `mo = None` rồi mới gọi hàm `gc`.**
 > Và: **log giải phóng phải in `torch.cuda.memory_reserved()`, không chỉ `memory_allocated()`** —
 > `allocated` có thể về 0 trong khi model vẫn nằm nguyên trong pool.
+
+7. **#133 — điều kiện của kiểm định không tự lan sang tài liệu tóm tắt**
+
+`SEL − I = +.0220` được nêu trần trụi ở README suốt 8 vòng, dù #125-D đã bắt buộc nêu kèm CI và
+ghi chú mong manh. Số đúng, trình bày sai.
+
+> **Quy tắc cứng: sau MỖI vòng rút lại/kiểm định, phải grep phát biểu bị ảnh hưởng trong
+> `README.md` + `docs/TONG_HOP.md` — KHÔNG chỉ ghi vào `IDEAS.md`.**
+> `IDEAS.md` là nhật ký (ghi rồi rút là đúng); README/TONG_HOP là nơi người ta **trích**.

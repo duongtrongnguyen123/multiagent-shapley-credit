@@ -140,7 +140,10 @@ Muốn `D = 0` thì `M` phải **không sửa**. Nhưng nếu `M` **không sửa
 
 ## 4. KHÔNG được kết luận từ tài liệu này
 - Không có điểm nào ở **32B trở lên** — hai lần HUỶ vì hạ tầng (#123, #130), chưa vì khoa học.
-- `SEL − I` chỉ **+.015…+.022**, biên; giá trị thật của agent yếu **nhỏ**.
+- `SEL − I` chỉ **+.0220** [+.008, +.038] (p .0074) và **+.0151** [+.002, +.028] (p .039),
+  gộp Fisher p .0026 — **sát ngưỡng .02 mà mục 5 gọi là nhiễu**, và **lật 6 bài là xoá sạch**
+  hiệu ứng ở H69c (kiểm định #125-D bắt buộc nêu kèm CI). Kết luận vững là **`SEL − V_review`**
+  (+.1300 / +.0841), tức **tránh REVIEW**; giá trị thật của agent yếu thì **nhỏ và mong manh**.
 - Mọi thứ ở **một họ model (Qwen2.5)**, hai benchmark, greedy.
 - Phần lớn trùng hướng tài liệu đã có: **Huang et al. 2023** (self-correct thất bại),
   **Cobbe et al. 2021** (best-of-n có verifier), **Wang et al. 2022** (self-consistency).
