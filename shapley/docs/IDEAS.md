@@ -5494,3 +5494,48 @@ thuộc vào việc tôi nhắm mắt kịp hay không.
 
 Đây **không** phải nhiễu ngẫu nhiên; đây là đại lượng `κ` phụ thuộc vào, và nó đang **sát đáy**.
 `SEL` chỉ có thể tốt bằng tín hiệu `z`, mà `z` ở đây **đúng chưa tới một nửa**.
+
+---
+
+## Vòng #140 — H84e XONG. **Hàng 1 khớp CON SỐ nhưng KHÔNG khớp BẰNG CHỨNG**
+
+Cổng đạt (biên dịch .994 · n=500 · `I − S` = +.2120). Được đọc số.
+**Chấm lại độc lập tại máy** từ `partial_H84e.json`: tái tạo **CHÍNH XÁC** ba nhánh mà kernel báo
+per-item (S .4280 · I .6400 · V .5660) ⇒ bộ chấm cục bộ được kiểm chứng, rồi mới chấm hai nhánh
+`PEER`/`VPEER` mà trace **không** có.
+
+### Bảng khoá #93
+
+| đại lượng | giá trị | CI95 | p (McNemar) |
+|---|---|---|---|
+| `V(S_weak) − I` | **−.0740** | [−.1140, −.0360] | **.000296** ✓ |
+| `V(S_peer) − I` | **−.0280** | **[−.0680, +.0120]** | **.2108** ✗ |
+
+Hàng 1 đòi `V(S_peer) − I ≤ −.02`. Đo được **−.0280** ⇒ **khớp về SỐ**.
+Nhưng **CI vắt qua 0 và p = .21**: hiệu ứng **không phân biệt được với KHÔNG**.
+
+> **#93 đặt ngưỡng mà QUÊN đòi ý nghĩa thống kê.** Đây là lỗi thiết kế của chính tôi:
+> ngưỡng `−.02` nằm đúng vùng mà dự án đã tuyên là nhiễu ở n=500 (#125-B).
+> **Vì thế tôi KHÔNG viết kết luận của hàng 1.** "Văn bản ngoại lai tự nó gây hại" **chưa được
+> chứng minh** — dữ liệu này không phân biệt được nó với "không gây hại gì".
+
+### Bổ sung — phép thử TRỰC TIẾP mà #93 lẽ ra phải khoá
+Câu hỏi thật của #93 là *"đầu độc có phụ thuộc chênh năng lực không?"*. Phép thử đúng là so
+**hai nhánh V với nhau**, ghép cặp:
+
+**`V_peer − V_weak` = +.0460, CI95 [+.0080, +.0840], p = .0206** — **có ý nghĩa**.
+
+Nguồn **ngang cơ** (Llama-8B, acc .560) phá **ít hơn** nguồn **yếu** (Qwen-1.5B, acc .428).
+Đây là bằng chứng cho **(a): đầu độc CẦN nguồn kém** — tức gần với **hàng 2** hơn hàng 1,
+dù hàng 2 không khớp theo chữ (nó đòi `V(S_peer) − I ≥ −.02`).
+
+**Ghi rõ:** phép thử này **KHÔNG nằm trong bảng khoá** ⇒ **thăm dò**, không phải xác nhận.
+Muốn dùng thì phải đăng ký trước rồi tái lập trên dải tách rời.
+
+### Không hàng nào của #93 được viết ra
+Hàng 1 khớp số nhưng bằng chứng không đủ; hàng 2 không khớp số; hàng 3 (cả hai ≈ 0) sai vì
+`V(S_weak) − I` rõ ràng âm và có ý nghĩa. **Ghi nhận là THẤT BẠI THIẾT KẾ của #93**, giống
+#99 và #116 — lần thứ ba tôi viết bảng khoá bằng ngưỡng trần trụi **không kèm điều kiện p**.
+
+> **Quy tắc rút ra: mọi hàng trong bảng khoá phải nêu ĐỒNG THỜI ngưỡng hiệu ứng VÀ ngưỡng
+> ý nghĩa.** Ngưỡng trần trụi biến một kết quả nhiễu thành một kết luận nghe rất chắc.

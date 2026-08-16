@@ -434,3 +434,13 @@ Không đoán trước được **vì lượng tử hoá có áp dụng hay khô
 > rồi lùi về phương án AN TOÀN. Preflight chỉ để IN ra dự báo, KHÔNG để quyết định.**
 > Chạy thử đường lùi bằng mô phỏng (không cần GPU) trước khi phóng: 1 card OK / OOM→trải đều /
 > 1 GPU→ném lỗi.
+
+12. **#140 — bảng khoá phải khoá CẢ ngưỡng hiệu ứng LẪN ngưỡng ý nghĩa**
+
+`#93` viết hàng 1 là *"`V(S_peer) − I` ≤ −.02"*. Đo được **−.0280** — khớp. Nhưng **p = .21**,
+CI `[−.068, +.012]` **vắt qua 0**. Nếu chỉ đọc theo chữ, tôi đã công bố *"văn bản ngoại lai tự nó
+gây hại"* từ một hiệu ứng **không phân biệt được với 0**.
+
+> **Quy tắc cứng: mỗi hàng phải viết dạng `|Δ| ≥ x VÀ p < .05`.**
+> Đây là lần thứ BA bảng khoá hỏng vì thiếu điều kiện (#99, #116, #140).
+> Và: **ngưỡng hiệu ứng không được đặt trong vùng dự án đã tuyên là nhiễu** (≤ .02 ở n=500).
