@@ -47,7 +47,7 @@ chính bảng Shapley ban đầu:
 > ⚠️ **DIỄN GIẢI CỦA "+14.0đ" ĐÃ BỊ RÚT LẠI ở vòng #100 — xem mục ngay dưới.**
 > Con số đúng, nhưng nó so với **1.5B**. So với **7B chạy một mình** (rẻ hơn) thì nó **ÂM**.
 
-## ⭐ Kết quả mới nhất (vòng #99–#125) — **ĐÃ QUA KIỂM ĐỊNH ĐỘC LẬP**
+## ⭐ Kết quả mới nhất (vòng #99–#142) — **ĐÃ QUA KIỂM ĐỊNH ĐỘC LẬP**
 
 > **Mọi con số dưới đây đã qua kiểm định bởi ba tác nhân độc lập (vòng #125)** — kiểm mã nguồn,
 > kiểm số liệu bằng McNemar/bootstrap ghép cặp, và kiểm lập luận so với bảng khoá trước.
@@ -112,6 +112,39 @@ Chọn giữa hai cực đòi hỏi biết đâu đúng đâu sai — **chính l
 | LLM cùng cỡ tự nhận xét | không có | ≈0 hoặc hại (5 lần) ❌ |
 | GRPO huấn luyện verifier | không có | +.018, dưới ngưỡng ❌ |
 | **test CHẠY ĐƯỢC** | **thực thi được** | **+.0401, tái lập +.0388** ✓ |
+
+### 5. **Sửa có CỔNG cũng chết — kể cả cổng HOÀN HẢO** (#142, tái lập 2/2)
+
+Nếu `V` phá vì nó **ghi đè lên bản vốn đã đúng**, thì chặn ghi đè bằng một cổng phải cứu được.
+Chúng tôi dựng đúng thí nghiệm đó, gồm cả một **cổng ORACLE** (giữ bản của model yếu khi nó
+**thật sự đúng**, sai thì mới cho model mạnh sửa). Không hệ thống nào làm tốt hơn cổng oracle.
+
+| đại lượng | MBPP 11–510 | MBPP 511–974 (dải tách rời) |
+|---|---|---|
+| **cổng ORACLE so với `I`** | **−.0641** (p .0016) | **−.0583** (p .0067) |
+| cổng có cứu được "sửa" không | **+.0040** (p .69) | **+.0000** (p 1.00) |
+| leo thang bằng **giải lại** vs bằng **sửa** | **+.0902** (p 1e−6) | **+.0994** (p 1e−6) |
+
+```
+cong ORACLE = P(yeu dung) + P(yeu sai VA sua dung) = .4409 + .1363 = .5772
+chi goi model manh mot luot                                        = .6413
+                                                        thieu       -.0641
+```
+
+1. **Cổng không làm gì cả** — null ở cả hai dải. Phá hoại **không nằm** ở chỗ cổng với tới:
+   `V` phá 12 bài mà model yếu làm đúng, chỉ **4** bài nằm trong tập cổng-đạt.
+2. **Ngay cả cổng hoàn hảo cũng thua** việc chỉ gọi model mạnh ⇒ **không có gì để khai thác**.
+   Cải thiện tín hiệu cổng là vô ích — đây là **chặn trên**, và nó âm.
+3. **Thiệt hại nằm ở nhánh leo thang:** khi đã quyết định can thiệp, cho model mạnh
+   **giải lại từ đầu** hơn cho nó **sửa** khoảng **+.09**. Cùng ngân sách, cùng bài; khác
+   **duy nhất** ở chỗ model mạnh **có nhìn thấy** bản của model yếu hay không.
+
+> **Vấn đề không phải model mạnh ĐƯỢC PHÉP ghi đè — mà là nó NHÌN THẤY.**
+> Việc nhìn thấy làm hỏng nó **đúng ở những bài model yếu đã sai**, tức đúng chỗ ta cần nó nhất.
+> Cổng vô dụng vì cổng điều khiển *ghi đè*, không điều khiển *nhìn thấy*.
+
+*(Đang kiểm: `H92` tách riêng **NHÌN THẤY** khỏi **ĐƯỢC LỆNH SỬA** — mọi phép đo đầu độc trước
+nay đều trộn hai thứ. Bảng khoá #102 có sẵn một hàng **giết** chính phát biểu ở trên.)*
 
 ### ⚠️ Đã RÚT LẠI sau kiểm định #125 — đừng trích dẫn
 - **"k=2 là điểm ngọt"** — độ cong không tồn tại; nhánh k=2 còn dính **thiên lệch chọn mẫu** trong code của chúng tôi.
