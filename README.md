@@ -146,6 +146,33 @@ chi goi model manh mot luot                                        = .6413
 *(Đang kiểm: `H92` tách riêng **NHÌN THẤY** khỏi **ĐƯỢC LỆNH SỬA** — mọi phép đo đầu độc trước
 nay đều trộn hai thứ. Bảng khoá #102 có sẵn một hàng **giết** chính phát biểu ở trên.)*
 
+### 6. ✅ **Đa dạng HỌ MODEL — kết quả dương DUY NHẤT đã tái lập trên dải tách rời** (#131 + #145)
+
+Giữ **nguyên** bộ chọn và **nguyên** ngân sách; chỉ đổi **nguồn gốc** của các ứng viên.
+
+| | MBPP 11–510 | MBPP 511–974 (**tách rời**) |
+|---|---|---|
+| **trần `H`**: pool khác họ − pool lấy mẫu | **+.0500** (p 6.2e-4) | **+.0690** (p **9.4e-07**) |
+| **`SEL`**: pool khác họ − pool lấy mẫu | **+.0320** (p 7.0e-3) | **+.0453** (p **4.9e-05**) |
+| số bài **có bất đồng** | 57 → 167 | 47 → **176** |
+
+**Cơ chế, đo được mà KHÔNG cần chấm điểm:**
+
+| | 3 mẫu từ **CÙNG** model | 3 model **KHÁC HỌ** |
+|---|---|---|
+| số ứng viên **phân biệt** (trung bình) | **1.91** / 3 | **2.70** / 3 |
+| bài chỉ có **MỘT** ứng viên duy nhất | **36.2%** | **6.5%** |
+
+> **Lấy mẫu lại từ cùng một model, 3 lượt, chỉ mua được ~1.9 ứng viên khác nhau —
+> và 36% số bài chỉ có ĐÚNG MỘT.** Ở những bài ấy, mọi giao thức "sinh nhiều rồi chọn"
+> đều **bất lực về cấu trúc**: không có gì để chọn giữa.
+> Dùng ba model **khác họ** đưa con số đó xuống **6.5%**.
+> Nói cách khác: phần lớn cái ta gọi là "lỗi tương quan" giữa các mẫu cùng model là dạng
+> mạnh nhất có thể — **chúng trả về cùng một chuỗi ký tự**.
+
+**Hệ quả thực dụng:** nếu định trả tiền cho `k` lượt sinh, **k model khác nhau** đáng giá hơn
+**k mẫu từ một model** — rẻ ngang nhau, mà trần cao hơn và bộ chọn mới có việc để làm.
+
 ### ⚠️ Đã RÚT LẠI sau kiểm định #125 — đừng trích dẫn
 - **"k=2 là điểm ngọt"** — độ cong không tồn tại; nhánh k=2 còn dính **thiên lệch chọn mẫu** trong code của chúng tôi.
 - **"tự xem lại giúp trên toán +.108"** — **artifact cắt ngắn**; đo lại còn **+.002** (p = 1.00).

@@ -162,8 +162,19 @@ Muốn `D = 0` thì `M` phải **không sửa**. Nhưng nếu `M` **không sửa
 2. **`D` phải bằng 0 cho mọi giao thức chỉ-chọn**, kể cả với >2 ứng viên và nguồn hỗn hợp — đã đúng ở k≤8.
    > **ĐÃ KIỂM và ĐÃ BÁC (#142):** dự đoán ngầm rằng *"chặn ghi đè bằng cổng ⇒ `D` → 0"* là **SAI**.
    > `Δ_gate` = +.0040 (p .69) và +.0000 (p 1.00). `D` **không** nằm ở chỗ cổng với tới được.
-3. **`H` với ứng viên từ HỌ MODEL KHÁC phải cao hơn** cùng số ứng viên từ một model
-   (lỗi ít tương quan hơn) — hệ quả trực tiếp của M2, chưa đo.
+3. ~~**`H` với ứng viên từ HỌ MODEL KHÁC phải cao hơn** … chưa đo.~~
+   > **ĐÃ KIỂM và ĐÃ XÁC NHẬN, tái lập 2/2 (#131 H80, #145 H86c).**
+   >
+   > | | H80 (11–510) | H86c (511–974, **tách rời**) |
+   > |---|---|---|
+   > | `H(B) − H(A)` | +.0500 (p 6.2e-4) | **+.0690** (p **9.4e-07**) |
+   > | `SEL(B) − SEL(A)` | +.0320 (p 7.0e-3) | **+.0453** (p **4.9e-05**) |
+   > | bài hỗn hợp A→B | 57 → 167 | 47 → **176** |
+   >
+   > **Cơ chế đo được ở TẦNG CHUỖI (#99/#145):** 3 mẫu từ **cùng** model chỉ cho **1.91/3** ứng viên
+   > phân biệt, **36.2%** số bài chỉ có **MỘT** ứng viên duy nhất — ở đó mọi giao thức chỉ-CHỌN
+   > **bất lực về cấu trúc**. Pool **khác họ**: **2.70/3** ứng viên, chỉ **6.5%** số bài đơn-ứng-viên.
+   > ⇒ phần lớn "lỗi tương quan" của mẫu cùng model là dạng mạnh nhất: **trùng nguyên văn**.
 4. ~~**M3 định lượng:** định tuyến hoà vốn khi `p_esc < 1 − (chi phí rẻ)/(chi phí đắt)` …
    **Công thức khớp cả hai trường hợp đã có.**~~
    > **ĐÌNH CHỈ từ #137 — ĐỪNG TRÍCH.** Điểm thứ ba (H83d, MBPP 1.5B→7B) rơi vào **hàng 4** của
