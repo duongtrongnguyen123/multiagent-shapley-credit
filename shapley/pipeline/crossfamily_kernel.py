@@ -214,6 +214,7 @@ def analyse(pool):
     dist = Counter(sum(PASS[k][i] for k in pool) for i in range(N))
     return {"acc_each": {k: A(PASS[k]) for k in pool}, "base": base,
             "H": round(union, 4), "SEL": round(sum(sel)/N, 4),
+            "_H_raw": union, "_SEL_raw": sum(sel)/N,   # #152: tru TRUOC roi moi lam tron
             "H_minus_base": round(g, 4), "SEL_minus_base": round(sum(sel)/N - base, 4),
             "kappa": round((sum(sel)/N - base)/g*100, 1) if g > 1e-9 else None,
             "tie_rate": round(ties/N, 4),
@@ -234,8 +235,8 @@ comp = round(sum(compiles(c) for v in CODE.values() for c in v)/(len(CODE)*N), 4
 
 res = {"tag": RUN, "n": N, "pools": RES, "test_copy_rate": copy_rate,
        "test_soundness": soundness, "compile_rate": comp,
-       "H_diff": round(RES["B_family"]["H"] - RES["A_sampling"]["H"], 4),
-       "SEL_diff": round(RES["B_family"]["SEL"] - RES["A_sampling"]["SEL"], 4)}
+       "H_diff": round(RES["B_family"]["_H_raw"] - RES["A_sampling"]["_H_raw"], 4),
+       "SEL_diff": round(RES["B_family"]["_SEL_raw"] - RES["A_sampling"]["_SEL_raw"], 4)}
 json.dump(res, open(f"/kaggle/working/res_{RUN}.json", "w"), indent=2)
 json.dump([{"task_id": ALL[i]["task_id"], "tests": TESTS[i],
             **{k: CODE[k][i][:800] for k in CODE}, **{"p_"+k: PASS[k][i] for k in PASS},

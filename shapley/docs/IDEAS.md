@@ -5997,3 +5997,31 @@ chắn cổng sẽ đạt (S đạt .998 ở mọi lần chạy khác). **Nhưng
 
 **H89f** phóng lại bằng kernel hiện tại (cổng `compiles(extract)`, `test_runnable ≥ .60`,
 `MAXNEW`=1536, cổng cắt cụt #101-b, nạp lạc quan có đường lui).
+
+---
+
+## Vòng #152 — Rà số README, và một sai lệch **.0001** đáng sửa
+
+Đối chiếu **11 con số** trong README với file kết quả gốc. **10 khớp chính xác**; một lệch:
+
+| | file `res_H86c.json` | README |
+|---|---|---|
+| `SEL(B) − SEL(A)` | **.0452** | **.0453** |
+
+Truy ra: kernel **làm tròn từng giá trị rồi mới trừ** (`.778 − .7328 = .0452`), còn tôi tính lại
+từ trace **trừ trước rồi mới làm tròn** (`(361 − 340)/464 = .045259 → .0453`).
+**README đúng hơn**, nhưng ai tái tạo từ file kết quả sẽ thấy `.0452` và tưởng README sai.
+
+> **Vấn đề không phải .0001 — mà là artifact công khai KHÔNG khớp con số công khai.**
+> Người kiểm chứng gặp lệch sẽ nghi ngờ **mọi** con số khác, và họ có lý.
+
+**Đã sửa ở nguồn:** bốn kernel pool (`crossfamily`, `family_vs_size`, `strong_plus_diverse`,
+`selector_indep`) giờ lưu thêm giá trị **thô** (`_SEL_raw`, `_H_raw`) và tính hiệu **từ thô**,
+làm tròn **một lần** ở cuối. Các lần chạy sau sẽ tự khớp.
+
+> **Quy tắc: mọi HIỆU phải tính từ giá trị THÔ, chỉ làm tròn Ở BƯỚC CUỐI.**
+> Làm tròn rồi trừ có thể sai tới 1 đơn vị chữ số cuối — nhỏ, nhưng đủ để phá niềm tin
+> vào tính tái tạo được.
+
+*(Lưu ý: H86c đã chạy xong nên số của nó giữ nguyên; chênh .0001 này không đổi hàng nào của #95 —
+hàng 1 đòi `SEL(B)−SEL(A)` ≥ +.015, cả hai cách tính đều vượt xa.)*

@@ -199,7 +199,7 @@ def run_sel(TESTS, lab):
     base = A(PASS["Q1"])
     union = sum(1 for i in range(N) if any(PASS[k][i] for k in POOL))/N
     cov = round(sum(1 for t in TESTS if t)/N, 4)
-    return {"lab": lab, "SEL": round(sum(sel)/N, 4), "SEL_minus_base": round(sum(sel)/N-base, 4),
+    return {"lab": lab, "SEL": round(sum(sel)/N, 4), "_SEL_raw": sum(sel)/N, "SEL_minus_base": round(sum(sel)/N-base, 4),
             "soundness": snd, "copy_rate": cr, "n_tests": ng, "coverage": cov, "sel_vec": sel,
             "H": round(union, 4), "kappa": round((sum(sel)/N-base)/(union-base)*100, 1) if union > base else None}
 
@@ -216,7 +216,7 @@ gates = {"coverage>=.90 ca hai": min(RS["coverage"], RO["coverage"]) >= .90,
 VOID = [k for k, v in gates.items() if not v]
 res = {"tag": RUN, "n": N, "acc_each": {k: A(PASS[k]) for k in CODE}, "base": A(PASS["Q1"]),
        "T_self": RS, "T_other": RO, "compile_rate": comp,
-       "diff": round(RO["SEL"] - RS["SEL"], 4),
+       "diff": round(RO["_SEL_raw"] - RS["_SEL_raw"], 4),
        "n_giao": len(BOTH), "SEL_tren_tap_giao": inter,
        "diff_tap_giao": round(inter["T_other"] - inter["T_self"], 4),
        "gates": gates, "VOID": VOID}
