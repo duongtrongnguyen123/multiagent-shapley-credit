@@ -464,3 +464,18 @@ trong khi thực tế nó chọn **hoàn hảo** ở mọi bài nó áp dụng �
 > **Quy tắc cứng: khi so hai TÍN HIỆU, phải báo ĐỘ PHỦ của từng tín hiệu, và so trên
 > TẬP GIAO nếu độ phủ lệch quá 10%.** Một tín hiệu "im lặng" trông y hệt một tín hiệu "sai"
 > ở đại lượng tổng, nhưng hai thứ đó đòi hai kết luận trái ngược.
+
+15. **#147/#149 — KIỂM PHỦ bảng khoá, chạy TRƯỚC khi phóng**
+
+#102 hở vì tôi viết hai hàng loại trừ nhau (`E2` "có ý nghĩa" / `E2` "không đáng kể") mà **không
+phủ hết trục số**; `E2` rơi đúng khe giữa. Đây là lần thứ **năm** bảng khoá hở (#99, #116, #140,
+#90, #102) — bốn lần đầu thiếu **điều kiện**, lần này thiếu **độ phủ**.
+
+Áp ngay vào các bảng **đang chờ kết quả**: tìm thấy lỗ ở **#101** (`d_ceil` dương-nhưng-nhỏ **có**
+ý nghĩa; và ≥.02 **không** ý nghĩa) và **#103** (`H(B)−H(C)` lớn nhưng không ý nghĩa). Đã bịt
+**trước khi** hai run trả kết quả.
+
+> **Quy tắc cứng: mọi bảng khoá phải kèm một hàm `row(...)` mô phỏng và một danh sách giá trị
+> đại diện phủ MỌI khoảng của đại lượng chính (âm / 0 / dưới ngưỡng / tại ngưỡng / trên ngưỡng,
+> × có ý nghĩa / không). Chạy nó. Không giá trị nào được rơi vào "không hàng nào".**
+> Làm được trước khi phóng, mất 2 phút, và nó cứu được cả một lần chạy.
