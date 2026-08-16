@@ -5327,3 +5327,40 @@ lời "kế hoạch này chạy được không" trong ~5 phút.
 ### Giá phải trả cho tới giờ
 H86b **54 phút** · H81c **48 phút** · H84b **36 phút** · H89 ~11 phút · H84c ~10 phút · H84d ~3 phút.
 Tất cả đều cứu được dữ liệu thô nhờ #128 — trừ H84b (chạy trước khi có luật đó): **0 byte**.
+
+---
+
+## Vòng #136 (THĂM DÒ, **không phải kết luận**) — Lấy mẫu 3 lần chỉ mua được **1.93** ứng viên
+
+**Nguồn dữ liệu:** `partial_H86b.json` cứu được từ lần huỷ ở #135 (Pool A = 3 mẫu Qwen-7B,
+MBPP **511–974**, n=464). **Không chấm điểm, không đụng đáp án chuẩn** — nên **không** làm nhiễm
+bảng khoá #89 mà H86c đang chạy lại. Chỉ đo **độ đa dạng VỀ CHUỖI**, đại lượng độc lập với đúng/sai.
+
+| | số bài | tỉ lệ |
+|---|---|---|
+| cả 3 mẫu **giống hệt nhau** | 160 | **.345** |
+| đúng 2 trong 3 giống nhau | 175 | .377 |
+| cả 3 **khác nhau** | 129 | .278 |
+| **số ứng viên phân biệt trung bình** | | **1.933 / 3** |
+
+Trùng từng cặp: `.513` · `.489` · `.409`.
+
+### Vì sao điều này đáng chú ý
+**34.5% số bài chỉ có ĐÚNG MỘT ứng viên, dù đã trả tiền sinh ba lần.** Với những bài đó, mọi
+giao thức chỉ-CHỌN đều **không thể** làm gì — không có gì để chọn giữa. Đây là **trần cứng của
+`H(pool A)` đọc được mà không cần chấm điểm**: một pool chứa duy nhất một câu trả lời thì không
+cứu được bài nào, bất kể `κ` tốt đến đâu.
+
+Nó cho M2 một cơ chế **định lượng và cụ thể hơn**: TONG_HOP nói lỗi của các mẫu cùng model
+**tương quan**; con số này nói phần lớn "tương quan" ấy là dạng mạnh nhất có thể —
+**cùng một chuỗi ký tự**. Một phần ba ngân sách lấy mẫu mua về **con số không**.
+
+### Vì sao CHƯA vào TONG_HOP
+- **Thăm dò**: không có đăng ký trước nào khoá đại lượng này; tôi chọn nó **sau khi** đã thấy dữ liệu.
+- Một dải bài, một model, một mức nhiệt độ.
+- Chuẩn hoá (bỏ chú thích + gộp khoảng trắng) là **lựa chọn của tôi**; chuẩn hoá lỏng hơn sẽ đẩy
+  "giống hệt" lên cao hơn, chặt hơn thì thấp xuống. Con số **phụ thuộc quy ước**.
+
+> Muốn dùng được thì phải **đăng ký trước** như một dự đoán: *nếu M2 đúng, pool khác họ phải có
+> số ứng viên phân biệt cao hơn hẳn 1.93 trên cùng dải bài*. H86c sẽ có sẵn cả hai pool —
+> nhưng đại lượng đó phải được khoá **trước** khi tôi mở kết quả của nó.
