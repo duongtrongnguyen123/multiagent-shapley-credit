@@ -6025,3 +6025,50 @@ làm tròn **một lần** ở cuối. Các lần chạy sau sẽ tự khớp.
 
 *(Lưu ý: H86c đã chạy xong nên số của nó giữ nguyên; chênh .0001 này không đổi hàng nào của #95 —
 hàng 1 đòi `SEL(B)−SEL(A)` ≥ +.015, cả hai cách tính đều vượt xa.)*
+
+---
+
+## Vòng #153 — H91c **VOID**; cổng tôi tự thêm ở #101-b vừa cứu tôi khỏi đọc số bẩn
+
+| nhánh | trích được (compiles) | **cắt cụt** |
+|---|---|---|
+| `S` | 1.0000 | **.0000** |
+| `I` | .9960 | **.0020** |
+| `V` | .9539 | **.1042** |
+
+`extract_spread` = **.0461 < .05 ⇒ ĐẠT**. Cổng cũ **cho qua**.
+Cổng **cắt cụt** (tôi thêm ở #101-b để bắt **nguyên nhân** thay vì **hậu quả**) = **.1042 ⇒ TRƯỢT**.
+
+> **Không có cổng đó, tôi đã đọc một lần chạy mà `V` bị cắt 10.4% còn `I` chỉ .2%** —
+> đúng loại bất đối xứng đã suýt tạo ra headline giả +.2080 ở #130.
+> Cổng bắt **nguyên nhân** bắt được thứ mà cổng bắt **hậu quả** để lọt.
+
+### Lỗi của tôi ở #146: ước ngưỡng từ dữ liệu ĐÃ BỊ CẮT
+| `MAXNEW` | p95 quan sát của `V` | max quan sát | cắt cụt |
+|---|---|---|---|
+| 768 | 3374 ký tự | 3905 | .1720 |
+| 1536 | 6231 ký tự | **7582** | **.1042** |
+
+Ở 768 tôi thấy p95 ≈ 3374 và kết luận 1536 **dư 1.7×**. Nhưng phân phối quan sát **bị chính cap
+chặn trên** — nó không thể cho thấy cái đuôi nằm ngoài cap.
+
+> **Quy tắc: không bao giờ ước một ngưỡng cắt từ dữ liệu do chính ngưỡng đó sinh ra.**
+> Mỗi lần nhân đôi chỉ đẩy vấn đề đi một nấc, và tôi đã làm đúng thế hai vòng liền.
+
+### Sửa hướng khác: chặn tại NGUỒN
+`V` mất **82 phút** ở 1536; lên 3072 là ~2.7 giờ **mà vẫn không chắc**. Nên thay vì nhân đôi tiếp:
+**dừng sinh ngay sau khi đóng block code** (`stop_strings`, áp **đối xứng** mọi nhánh), `MAXNEW`=3072
+chỉ còn là lưới an toàn. Thứ bị cắt là **văn xuôi thừa SAU code** — mà `extract()` vốn không lấy.
+
+### Kiểm điểm dòng 32B: **5 lần, nhưng KHÔNG phải 5 nguyên nhân**
+| lần | vòng | nguyên nhân |
+|---|---|---|
+| 1 | #123 | cổng cắt ngắn |
+| 2 | #130 | cắt cụt phạt `I` |
+| 3 | #139 | soundness |
+| 4 | #146 | cắt cụt phạt `V` (768) |
+| 5 | #153 | **cắt cụt phạt `V` (1536) — CÙNG nguyên nhân với lần 4** |
+
+Lần 4 và 5 **cùng một lỗi**; tôi **sửa chưa tới**. Trước đây tôi tự nói "năm lần, năm nguyên nhân
+khác nhau" — **điều đó giờ không còn đúng**, và tôi phải sửa lại phát biểu đó.
+Giá đã trả cho riêng lần 5: **106 phút RTX**.
