@@ -100,6 +100,37 @@ if not BIG_CARD:
                               bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 print(f"CHE DO: {'card lon -> bf16' if BIG_CARD else 'card nho -> nf4 cho model dat'}", flush=True)
 
+def ckpt_gb(p):
+    """Kich thuoc checkpoint THAT (fp16) — doc tu index, KHONG dung GPU, mat vai mili giay."""
+    idx = os.path.join(p, "model.safetensors.index.json")
+    if os.path.exists(idx):
+        t = json.load(open(idx)).get("metadata", {}).get("total_size", 0)
+        if t: return t / 2**30
+    tot = sum(os.path.getsize(f) for pat in ("*.safetensors", "*.bin")
+              for f in glob.glob(os.path.join(p, pat)))
+    return tot / 2**30
+
+def plan_placement(p, tag):
+    """#134-e: KHONG DAT CUOC VAO LUONG TU HOA.
+
+    H84c xin nf4 cho Llama-3.1-8B va nhan ve fp16 (~15 GB) -> OOM sau 36 phut. Uoc tinh theo
+    nf4 se bao 'vua 1 card' va van hong y het. Vi the tinh cho theo kich thuoc fp16 THAT:
+    neu no khong vua mot card thi trai deu ngay, du ta co xin luong tu hoa hay khong.
+    Gia phai tra neu luong tu hoa CO chay: dung nhieu card hon can. Chap nhan duoc.
+    """
+    fp16 = ckpt_gb(p)
+    per = torch.cuda.get_device_properties(0).total_memory / 2**30
+    n = torch.cuda.device_count()
+    fits_one_fp16 = fp16 <= per * 0.90
+    risky = not fits_one_fp16          # chi vua neu luong tu hoa THAT SU chay
+    if risky and n == 1:
+        print(f"  [preflight] CANH BAO {tag}: {fp16:.2f} GB fp16 tren 1 card {per:.2f} GB — "
+              f"chi chay duoc neu luong tu hoa ap dung. Khong co card thu hai de lui ve.", flush=True)
+    print(f"  [preflight] {tag}: checkpoint {fp16:.2f} GB fp16 | {n} card x {per:.2f} GB | "
+          f"{'vua mot card ke ca fp16' if fits_one_fp16 else 'CAN luong tu hoa, neu truot thi TRAI DEU'}",
+          flush=True)
+    return risky
+
 NGPU = torch.cuda.device_count()
 print(f"SO GPU THAY DUOC = {NGPU} | tong VRAM = "
       f"{sum(torch.cuda.get_device_properties(d).total_memory for d in range(NGPU))/2**30:.1f} GB", flush=True)
@@ -108,15 +139,28 @@ def load(tag):
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
-    # #134: Kaggle cap 2x T4 (31.2 GB) ngay ca khi chi xin mot. device_map={"":0} VUT BO mot nua
-    # va lam Llama-3.1-8B OOM. Model DAT trai deu tren moi card; model RE nho nen giu o card 0.
-    dmap = {"": 0} if (tag == "cheap" or NGPU == 1) else "auto"
-    if BIG_CARD:
-        mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map=dmap).eval()
-    elif tag == "cheap":
-        mo = AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16, device_map=dmap).eval()
-    else:
-        mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map=dmap).eval()
+    # #134-e: LAC QUAN CO DUONG LUI. Thu mot card truoc (nhanh nhat: song song du lieu, va
+    # Qwen-7B nf4 that su chi ton 5.2 GB nen ep trai deu la phi). Neu OOM -> giai phong sach
+    # roi thu lai TRAI DEU. Ly do can duong lui: H84c XIN nf4 va NHAN fp16 (#134-d), nen khong
+    # the biet truoc luong tu hoa co ap dung hay khong; chi co lan nap that moi tra loi duoc.
+    risky = plan_placement(p, tag)
+    def _build(dmap):
+        if BIG_CARD:
+            return AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map=dmap).eval()
+        if tag == "cheap":
+            return AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16, device_map=dmap).eval()
+        return AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map=dmap).eval()
+    dmap = {"": 0}
+    try:
+        mo = _build(dmap)
+    except torch.OutOfMemoryError:
+        if NGPU == 1: raise
+        print(f"  [preflight] {tag} OOM tren MOT card (du bao rui ro={risky}) -> lui ve TRAI DEU", flush=True)
+        mo = None; gc.collect()
+        for _d in range(NGPU):
+            with torch.cuda.device(_d): torch.cuda.empty_cache()
+        dmap = "auto"
+        mo = _build(dmap)
     print(f"  nap {tag} (device_map={dmap}): " + " | ".join(
         f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(d)/2**30:.2f}"
         for d in range(NGPU)), flush=True)

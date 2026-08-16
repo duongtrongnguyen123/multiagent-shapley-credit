@@ -417,3 +417,20 @@ có file hỏng. Kết quả thật: **118/118 file OK, 0 hỏng.**
 > **Quy tắc cứng: trước khi tin một cảnh báo hàng loạt, kiểm xem CÁC FILE ĐÓ có nằm trong số
 > mình vừa sửa không (`git diff --name-only`) và có khác gì so với trước phiên không.**
 > Ở đây câu trả lời là "không đụng tới, byte y hệt" ⇒ lỗi nằm ở bộ kiểm, không ở kernel.
+
+11. **#134-e — ĐỪNG ĐẶT CƯỢC VÀO LƯỢNG TỬ HOÁ; hãy LẠC QUAN CÓ ĐƯỜNG LÙI**
+
+Ba vòng liên tiếp mất 30–40 phút GPU rồi mới biết model không vừa. Định làm *preflight* tính
+trước chỗ — nhưng chạy thử phát hiện **preflight kiểu nào cũng sai**:
+
+- ước theo **nf4** ⇒ Llama-8B = 4.19 GB ⇒ "vừa một card" ⇒ **vẫn hỏng y hệt** (vì thực tế nó rơi
+  về fp16), tức preflight *lạc quan* vô dụng;
+- ước theo **fp16** ⇒ ép Qwen-7B (15.2 GB) đi trải đều, dù nf4 của nó **thật sự** chỉ tốn 5.2 GB
+  ⇒ **chậm đi không lý do**, tức preflight *bi quan* trả giá trên đúng ca đang chạy tốt.
+
+Không đoán trước được **vì lượng tử hoá có áp dụng hay không chỉ lộ ra lúc nạp thật**.
+
+> **Quy tắc cứng: thử phương án NHANH trước, bắt `OutOfMemoryError`, giải phóng SẠCH,
+> rồi lùi về phương án AN TOÀN. Preflight chỉ để IN ra dự báo, KHÔNG để quyết định.**
+> Chạy thử đường lùi bằng mô phỏng (không cần GPU) trước khi phóng: 1 card OK / OOM→trải đều /
+> 1 GPU→ném lỗi.
