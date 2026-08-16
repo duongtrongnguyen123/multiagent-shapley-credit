@@ -5712,3 +5712,48 @@ Trên tập `T_other` áp dụng được, tín hiệu **khác họ** chọn **h
 **Nhưng n rất nhỏ** (chỉ 4 bài cứu được) và đây là **phân tích tập con hậu nghiệm**.
 Muốn dùng thì phải chạy lại với **ép DeepSeek sinh đủ test cho mọi bài** (ví dụ lấy mẫu lại tới khi
 có ≥1 assert hợp lệ), rồi mới so được **cùng độ phủ**.
+
+---
+
+## Vòng #145 — H86c: **TÁI LẬP H80** (#95 hàng 1) và **XÁC NHẬN cơ chế chuỗi** (#99 hàng 1)
+
+Hai bảng khoá độc lập, cùng một lần chạy, **cùng ra hàng 1**. Cổng #95 **đều đạt**:
+`task_id` **511–974** (xác minh trong trace **trước** khi đọc — #121) · soundness **.9718** ·
+copy_rate **.0021** · n=464 ≥ 400 · mọi `acc` ∈ [.35,.85] (Q1 .7112 · Q2/Q3 .6983 · L .5647 · D .6379).
+
+### #95 — TÁI LẬP, và mạnh hơn bản gốc
+
+| | H80 (11–510) | **H86c (511–974)** |
+|---|---|---|
+| `H(B) − H(A)` | +.0500 (p 6.2e-4) | **+.0690** (p **9.43e-07**) |
+| `SEL(B) − SEL(A)` | +.0320 (p 7.0e-3) | **+.0453** (p **4.92e-05**) |
+| bài **hỗn hợp** A → B | 57 → 167 | **47 → 176** |
+
+Hàng 1 đòi `H(B)−H(A)` ≥ +.03 **và** `SEL(B)−SEL(A)` ≥ +.015 — **đạt cả hai, p ≤ 5e-5**.
+**Đây là kết quả dương duy nhất của dự án đã tái lập trên dải bài tách rời.**
+
+Đáng chú ý: biên độ **LỚN HƠN** ở dải 511–974 dù dải này `acc` nền **cao hơn** (Q1 .7112 vs .6400)
+— ngược với tiên nghiệm của tôi (*"ít dư địa nên biên độ nhỏ hơn"*). Prior sai **đúng chiều
+làm kết quả mạnh hơn**, nên phải nói rõ để không tự khen.
+
+### #99 — cơ chế nằm ở TẦNG CHUỖI, đúng như đã khoá
+
+| | pool A (3 mẫu Qwen) | pool B (Qwen+Llama+DeepSeek) |
+|---|---|---|
+| số ứng viên **phân biệt** | **1.9138** / 3 | **2.6961** / 3 |
+| bài chỉ có **MỘT** ứng viên | **36.21%** | **6.47%** |
+
+`Δd` = **+.7823** (≥ +.50) và `soloB − soloA` = **−.2974** (≤ −.15) ⇒ **hàng 1**.
+
+`dA` = 1.9138 ở đây so với **1.933** đo thăm dò ở #136 trên **cùng dải** — **tái lập gần như y hệt**.
+
+> **Lấy mẫu 3 lần từ một model chỉ mua được ~1.9 ứng viên; 36% số bài chỉ có ĐÚNG MỘT.**
+> Ở những bài đó mọi giao thức chỉ-CHỌN đều **bất lực về cấu trúc** — không có gì để chọn giữa.
+> Đổi sang pool khác họ đưa con số này xuống **6.5%**.
+> M2 có cơ chế **đo được mà không cần chấm điểm**: phần lớn "lỗi tương quan" của mẫu cùng model
+> là dạng mạnh nhất có thể — **cùng một chuỗi ký tự**.
+
+**Giữ đúng cảnh báo đã tự đặt ở #99:** `Δd` lớn **một phần là tầm thường** (model khác nhau thì
+code khác nhau). Giá trị nằm ở **`soloB` sụt .36 → .065**, tức pool B **thực sự có gì đó để chọn**
+ở những bài pool A không có. Và mọi phát biểu về `κ` vẫn dựa trên `H`/`SEL` của #95, **không** dựa
+riêng vào `Δd` — đúng như đã khoá.
