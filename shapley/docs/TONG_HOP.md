@@ -135,11 +135,30 @@ giá trị của agent thứ hai  =  H(pool)  ×  κ(z)  −  D(giao thức)
 | `V_cons` "đừng sửa" | >0 | 0 | 0 nhưng **thừa hưởng `acc(S)`** | **−.1560** ❌ |
 | đồng thuận | >0 | **≈0** (tương quan) | 0 | **−.064 … −.084** ❌ |
 | GRPO verifier | >0 | 0 | 0, **học nhại lại** ⇒ chặn trần ở `acc(S)` | +.018 (dưới ngưỡng) ❌ |
+| **`G_V` sửa CÓ CỔNG** (#142) | >0 | 0 | **VẪN lớn** — cổng không chạm tới | **−.0842 / −.0929** ❌ |
+| **`G*_V` cổng ORACLE** (#142) | >0 | 0 | **vẫn lớn** ⇒ **CHẶN TRÊN của cả dòng sửa** | **−.0641 / −.0583** ❌ |
 | `SEL` test tự sinh | >0 | **~.5–.9** | **0** | **+.015 … +.022** ✓ |
 | `SEL` + nhiều ứng viên | **lớn hơn** | ~.7 | 0 | **+.0496** (dải giữ lại) ✓ |
 | test **chạy được** | >0 | **cao** (oracle thật) | 0 | **+.0401 / +.0388** ✓ |
+| **`SEL` pool KHÁC HỌ** (#145) | **lớn nhất đo được** (+.069 trần) | **~.63** | 0 | **+.0452** ✓ **tái lập 2/2** |
 
 **Mọi kết quả ÂM là `D > 0` hoặc `κ ≈ 0`. Mọi kết quả DƯƠNG là `D = 0` và `κ > 0`.**
+
+### Sửa công thức sau #142: `D` phụ thuộc PHƠI NHIỄM, không phụ thuộc QUYỀN GHI ĐÈ
+
+Bản đầu viết `D(giao thức)` và ngầm hiểu *"giao thức nào cho ghi đè thì `D > 0`"*. **Sai.**
+#142 dựng cổng chặn ghi đè, kể cả **cổng ORACLE**, và `D` **không giảm** (`Δ_gate` = +.004 / +.000,
+null hai lần). Phá hoại **không nằm** ở tập cổng-đạt: `V` phá 12 bài `S` đúng, chỉ **4** trong tập đó.
+
+```
+D = D(phoi nhiem)     KHONG phai   D(quyen ghi de)
+```
+Bằng chứng trực tiếp: `Δ_cont` = **+.0902 / +.0994** (p 1e−6) — cùng ngân sách, cùng bài, chỉ khác
+việc `M` **có nhìn thấy** artifact hay không. Nhìn thấy tốn ~**.09**.
+
+**Hệ quả cho thiết kế hệ thống:** muốn `D = 0` thì **không được cho model mạnh nhìn** sản phẩm của
+model yếu **trong lượt sinh**. Chỉ được nhìn **ở lượt CHỌN**, sau khi nó đã có bản của chính mình.
+Đó đúng là hình dạng của `SEL` — và đó là lý do `SEL` là **thứ duy nhất** cho kết quả dương.
 
 ### Nghịch lý phục tùng/chủ động — hệ quả trực tiếp
 Muốn `D = 0` thì `M` phải **không sửa**. Nhưng nếu `M` **không sửa gì cả** thì nó thừa hưởng
