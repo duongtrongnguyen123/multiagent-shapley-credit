@@ -49,10 +49,15 @@ def compiles(c):
     try: compile(c, "<s>", "exec"); return True
     except Exception: return False
 def clean_asserts(t):
-    out = []
-    for ln in extract(t).splitlines():
-        ln = ln.strip()
-        if ln.startswith("assert") and compiles(ln): out.append(ln)
+    """#90-b: quet TOAN VAN, khong chi trong block markdown. H81d cho thay bo loc cu ep ca hai
+    model ve ~1/5 assert, va DeepSeek trot nhieu hon -> do phu 41% vs 99.6%, lam hong phep so.
+    Ap DOI XUNG cho ca hai nhanh."""
+    out, seen = [], set()
+    for src in (extract(t), t or ""):
+        for ln in src.splitlines():
+            ln = ln.strip()
+            if ln.startswith("assert") and compiles(ln) and ln not in seen:
+                seen.add(ln); out.append(ln)
     return out[:5]
 def _run(code, checks, mode):
     if not code or not compiles(code): return False if mode == "all" else 0
@@ -157,19 +162,22 @@ CODE, RAW = {}, {}
 mo, tk = load("Q")
 CODE["Q1"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
 CODE["Q2"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS, temp=0.8)]
-T_self = [clean_asserts(t) for t in gen(mo, tk, WTEST, PR, BS)]   # test do CHINH Qwen viet
+T_self_raw = gen(mo, tk, WTEST, PR, BS)                              # test do CHINH Qwen viet
+T_self = [clean_asserts(t) for t in T_self_raw]
 mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
 free()
 print(f"Q xong ({time.time()-t0:.0f}s)", flush=True)
-json.dump({"partial": True, "raw": CODE, "T_self": T_self},
+json.dump({"partial": True, "raw": CODE, "T_self": T_self, "T_self_raw": T_self_raw},
           open(f"/kaggle/working/partial_{RUN}.json", "w"))
 
 mo, tk = load("D")
-T_other = [clean_asserts(t) for t in gen(mo, tk, WTEST, PR, BS)]   # test do HO KHAC viet
+T_other_raw = gen(mo, tk, WTEST, PR, BS)                             # test do HO KHAC viet
+T_other = [clean_asserts(t) for t in T_other_raw]
 mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
 free()
 print(f"T_other (DeepSeek) xong ({time.time()-t0:.0f}s)", flush=True)
-json.dump({"partial": True, "raw": CODE, "T_self": T_self, "T_other": T_other},
+json.dump({"partial": True, "raw": CODE, "T_self": T_self, "T_self_raw": T_self_raw,
+           "T_other": T_other, "T_other_raw": T_other_raw},
           open(f"/kaggle/working/partial_{RUN}.json", "w"))
 
 PASS = {k: grade(v) for k, v in CODE.items()}
@@ -190,15 +198,28 @@ def run_sel(TESTS, lab):
     snd = round(sum(1 for i in range(N) if TESTS[i] and sd[i])/max(sum(1 for t in TESTS if t),1), 4)
     base = A(PASS["Q1"])
     union = sum(1 for i in range(N) if any(PASS[k][i] for k in POOL))/N
+    cov = round(sum(1 for t in TESTS if t)/N, 4)
     return {"lab": lab, "SEL": round(sum(sel)/N, 4), "SEL_minus_base": round(sum(sel)/N-base, 4),
-            "soundness": snd, "copy_rate": cr, "n_tests": ng,
+            "soundness": snd, "copy_rate": cr, "n_tests": ng, "coverage": cov, "sel_vec": sel,
             "H": round(union, 4), "kappa": round((sum(sel)/N-base)/(union-base)*100, 1) if union > base else None}
 
 RS, RO = run_sel(T_self, "T_self(Qwen)"), run_sel(T_other, "T_other(DeepSeek)")
 comp = round(sum(compiles(c) for v in CODE.values() for c in v)/(len(CODE)*N), 4)
+# #90-b: cong DO PHU — phep so vo nghia neu mot tin hieu im lang o nhieu bai
+BOTH = [i for i in range(N) if T_self[i] and T_other[i]]
+sel_i = {"T_self": RS.pop("sel_vec"), "T_other": RO.pop("sel_vec")}
+inter = {k: round(sum(sel_i[k][i] for i in BOTH)/max(len(BOTH),1), 4) for k in sel_i}
+gates = {"coverage>=.90 ca hai": min(RS["coverage"], RO["coverage"]) >= .90,
+         "chenh do phu <.10": abs(RS["coverage"] - RO["coverage"]) < .10,
+         "soundness>=.50 ca hai": min(RS["soundness"], RO["soundness"]) >= .50,
+         "copy_rate<=.20": max(RS["copy_rate"], RO["copy_rate"]) <= .20}
+VOID = [k for k, v in gates.items() if not v]
 res = {"tag": RUN, "n": N, "acc_each": {k: A(PASS[k]) for k in CODE}, "base": A(PASS["Q1"]),
        "T_self": RS, "T_other": RO, "compile_rate": comp,
-       "diff": round(RO["SEL"] - RS["SEL"], 4)}
+       "diff": round(RO["SEL"] - RS["SEL"], 4),
+       "n_giao": len(BOTH), "SEL_tren_tap_giao": inter,
+       "diff_tap_giao": round(inter["T_other"] - inter["T_self"], 4),
+       "gates": gates, "VOID": VOID}
 json.dump(res, open(f"/kaggle/working/res_{RUN}.json", "w"), indent=2)
 json.dump([{"task_id": ALL[i]["task_id"], "T_self": T_self[i], "T_other": T_other[i],
             **{k: CODE[k][i][:800] for k in CODE}, **{"p_"+k: PASS[k][i] for k in PASS}} for i in range(N)],
@@ -212,7 +233,10 @@ for r in (RS, RO):
 d = res["diff"]
 print(f"\n  SEL(T_other) - SEL(T_self) = {d:+.4f}   <-- DAI LUONG CHINH (#90)")
 print("\n-- bang khoa #90 --")
-if RO["soundness"] < .50: print("  -> HUY nhanh T_other: soundness < .50")
+print(f"  do phu: T_self={RS['coverage']} T_other={RO['coverage']} | n_giao={len(BOTH)}"
+      f" | SEL tren tap giao: {inter} (chenh {res['diff_tap_giao']:+.4f})")
+if VOID: print(f"  -> HANG 0: VOID {VOID}")
+elif RO["soundness"] < .50: print("  -> HUY nhanh T_other: soundness < .50")
 elif RS["soundness"] < .50 or max(RS["copy_rate"], RO["copy_rate"]) > .20: print("  -> HUY: cong truot")
 elif d >= .02: print("  -> HANG 1: M2 XAC NHAN o phia BO CHON. Tin hieu phai doc lap ve HO.")
 elif abs(d) < .02: print("  -> HANG 2: doc lap ve ho KHONG cai thien kappa. Thu hep M2 ve pool.")

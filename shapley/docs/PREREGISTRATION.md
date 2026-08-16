@@ -4259,3 +4259,35 @@ còn khi **giải từ đầu** thì viết gọn.
    bắt sớm hơn.
 
 ### Bảng khoá #101 **giữ nguyên từng chữ.** Không đổi gì khác.
+
+---
+
+## #90-b — SỬA ĐỔI: #90 so hai tín hiệu có ĐỘ PHỦ lệch 2.4 lần
+
+**Đăng ký lúc:** H81d đã xong và **không hàng nào được viết** (#144). Sửa đổi này ghi **trước** khi
+chạy lại H81e.
+
+### Vấn đề (đã ghi ở #144)
+`T_other` (DeepSeek) chỉ sinh được assert hợp lệ cho **205/500** bài; `T_self` (Qwen) được **498/500**.
+Luật chọn cho bài **không có test** rơi về base ⇒ `SEL(T_other)` bị kéo về base ở **59%** số bài
+**theo cấu trúc**. Trên tập nó phủ, `T_other` chọn **hoàn hảo** (đạt đúng trần).
+⇒ chênh `−.024` là **độ phủ**, không phải **chất lượng**.
+
+### Chẩn đoán thêm
+Cả hai model chỉ cho ~**1 assert/bài** dù prompt xin **5**. `clean_asserts` chỉ nhận dòng nằm trong
+block ```` ```python ```` **và** bắt đầu bằng `assert`. Bộ lọc **quá chặt với CẢ HAI**; DeepSeek
+trượt nhiều hơn. **Bản raw của test KHÔNG được lưu**, nên không chẩn đoán sâu hơn được.
+
+### Sửa cho H81e — áp dụng ĐỐI XỨNG cho cả hai nhánh
+1. **Quét `assert` trên TOÀN VĂN**, không chỉ trong block markdown (giống bài học #138: model
+   khác nhau rào code khác nhau; rào markdown là **thói quen định dạng**, không phải tính hợp lệ).
+2. **LƯU raw** của cả hai lượt sinh test (bài học #128).
+3. **CỔNG ĐỘ PHỦ mới:** `coverage ≥ .90` ở **cả hai** nhánh, và **chênh độ phủ < .10**.
+   Không đạt ⇒ **VOID**, vì phép so trở nên vô nghĩa (đúng cái đã xảy ra ở H81d).
+4. **Báo cáo `SEL` trên TẬP GIAO** (bài có test ở cả hai) **kèm** `SEL` toàn cục.
+
+**Vì sao nới bộ lọc KHÔNG phải cứu vãn hậu nghiệm:** nó áp **đối xứng**, lý do là **lỗi phân tích
+cú pháp** chứng minh được độc lập với kết quả (cả hai model đều bị ép về ~1/5 assert), và
+**H81d vẫn VOID vĩnh viễn** — tôi không đọc lại số của nó theo luật mới.
+
+### Bảng khoá #90 **giữ nguyên từng chữ**, chỉ thêm hàng 0 (VOID theo cổng độ phủ).
