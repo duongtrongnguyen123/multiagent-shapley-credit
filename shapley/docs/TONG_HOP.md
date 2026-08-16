@@ -48,6 +48,28 @@ Trên code tỉ lệ là **38% chế độ / 62% nguồn**.
 > **M1. Bất kỳ giao thức nào cho phép `M` GHI ĐÈ artifact đều mất giá trị.
 > Giao thức chỉ cho phép `M` CHỌN thì không.**
 
+#### M1 có một ĐƠN THUỐC, và đơn thuốc đó ĐÃ CHẾT (#142, tái lập 2/2)
+Nếu `D > 0` vì `M` ghi đè lên bản **vốn đã đúng**, thì **chặn ghi đè bằng cổng độc lập** phải khử
+được `D`. Kiểm bằng H88d/H88e, hai dải **tách rời**:
+
+| đại lượng | 11–510 | 511–974 |
+|---|---|---|
+| `Δ_gate` = cổng có cứu được "sửa" không | **+.0040** (p .69) | **+.0000** (p 1.00) |
+| **`Δ_ceil` = cổng ORACLE so với `I`** | **−.0641** (p .0016) | **−.0583** (p .0067) |
+| `Δ_cont` = leo thang bằng GIẢI LẠI vs bằng SỬA | **+.0902** (p 1e−6) | **+.0994** (p 1e−6) |
+
+1. **Cổng không làm gì cả** (`Δ_gate` null hai lần). Phá hoại **không nằm** ở tập cổng-đạt:
+   `V` phá 12 bài `S` đúng, chỉ **4** bài trong tập cổng-đạt.
+2. **Ngay cả cổng ORACLE cũng THUA `I`.** Không có hệ thống nào vượt được chặn trên này ⇒
+   **không có gì để khai thác** từ artifact của model yếu qua đường SỬA. Cải thiện tín hiệu là vô ích.
+3. **Thiệt hại nằm ở NHÁNH LEO THANG:** khi đã quyết định can thiệp, **giải lại từ đầu hơn sửa
+   ~+.09**. Cùng ngân sách, khác **duy nhất** ở chỗ `M` có **nhìn thấy** artifact hay không.
+
+> **Phát biểu lại M1 cho mạnh hơn: vấn đề không phải `M` ĐƯỢC PHÉP ghi đè, mà là `M` NHÌN THẤY.
+> Việc nhìn thấy làm hỏng model mạnh ĐÚNG Ở những bài mà model yếu đã sai — tức đúng chỗ
+> ta cần model mạnh nhất.** Cổng không cứu được, vì cổng chỉ điều khiển *ghi đè*, không điều
+> khiển *nhìn thấy*.
+
 ### Mệnh đề 2 — Bộ chọn chỉ tốt bằng ĐỘ ĐỘC LẬP của tín hiệu, không phải độ mạnh
 
 | pool | bộ chọn = đếm test tự sinh | bộ chọn = đồng thuận thực thi | chênh |
@@ -138,6 +160,8 @@ Muốn `D = 0` thì `M` phải **không sửa**. Nhưng nếu `M` **không sửa
 
 1. **`κ` phải tăng khi `z` độc lập hơn.** Test do **model KHÁC** viết phải chọn tốt hơn test tự viết.
 2. **`D` phải bằng 0 cho mọi giao thức chỉ-chọn**, kể cả với >2 ứng viên và nguồn hỗn hợp — đã đúng ở k≤8.
+   > **ĐÃ KIỂM và ĐÃ BÁC (#142):** dự đoán ngầm rằng *"chặn ghi đè bằng cổng ⇒ `D` → 0"* là **SAI**.
+   > `Δ_gate` = +.0040 (p .69) và +.0000 (p 1.00). `D` **không** nằm ở chỗ cổng với tới được.
 3. **`H` với ứng viên từ HỌ MODEL KHÁC phải cao hơn** cùng số ứng viên từ một model
    (lỗi ít tương quan hơn) — hệ quả trực tiếp của M2, chưa đo.
 4. ~~**M3 định lượng:** định tuyến hoà vốn khi `p_esc < 1 − (chi phí rẻ)/(chi phí đắt)` …
