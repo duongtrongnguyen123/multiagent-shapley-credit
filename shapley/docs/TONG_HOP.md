@@ -78,6 +78,12 @@ Cấu hình hợp lý (`S` viết + `S` tự viết test → đạt thì NHẬN,
 |---|---|---|---|
 | MATH (H39, kết quả dương) | **37.5%** | .625 | **0.61×** ✓ |
 | BigCodeBench (H79b) | **11.3%** | **.887** | **1.36×** ❌ |
+| **MBPP (H83d, #137)** | **25.3%** | **.7475** | **1.14×** ❌ |
+
+> **Cảnh báo #137:** ba dòng trên dùng **quy ước chi phí có thể KHÔNG nhất quán** (số lượt tầng rẻ
+> tính vào giá). Bản thân **hướng** của M3 (tiết kiệm nơi ít cần nhất) vẫn được cả ba dòng ủng hộ:
+> `p_esc` càng cao thì định tuyến càng thua. Cái bị **đình chỉ** là **NGƯỠNG ĐỊNH LƯỢNG**, không
+> phải mệnh đề M3.
 
 > **M3. Giá trị của định tuyến tỉ lệ với việc tầng rẻ THƯỜNG XUYÊN tự tin ĐÚNG —
 > mà đó chính là điều KHÔNG xảy ra trên tác vụ đủ khó để cần tầng đắt.**
@@ -134,9 +140,16 @@ Muốn `D = 0` thì `M` phải **không sửa**. Nhưng nếu `M` **không sửa
 2. **`D` phải bằng 0 cho mọi giao thức chỉ-chọn**, kể cả với >2 ứng viên và nguồn hỗn hợp — đã đúng ở k≤8.
 3. **`H` với ứng viên từ HỌ MODEL KHÁC phải cao hơn** cùng số ứng viên từ một model
    (lỗi ít tương quan hơn) — hệ quả trực tiếp của M2, chưa đo.
-4. **M3 định lượng:** định tuyến hoà vốn khi `p_esc < 1 − (chi phí tầng rẻ)/(chi phí tầng đắt)`.
-   Với 7B→32B: `p_esc` phải **< .52**; đo được **.887** ⇒ thua. Với 1.5B→7B trên MATH:
-   phải **< .80**; đo được **.625** ⇒ thắng. **Công thức khớp cả hai trường hợp đã có.**
+4. ~~**M3 định lượng:** định tuyến hoà vốn khi `p_esc < 1 − (chi phí rẻ)/(chi phí đắt)` …
+   **Công thức khớp cả hai trường hợp đã có.**~~
+   > **ĐÌNH CHỈ từ #137 — ĐỪNG TRÍCH.** Điểm thứ ba (H83d, MBPP 1.5B→7B) rơi vào **hàng 4** của
+   > đăng ký trước #92: công thức dự đoán **THẮNG** (`p_esc .7475 < ngưỡng .803`), thực tế
+   > **THUA** (`ROUTE` đắt hơn `I` 1.142×).
+   > **Nguyên nhân:** ngưỡng `.803` giả định tầng rẻ tốn **1 lượt**, còn thiết kế tốn **2**
+   > (giải + viết test). Với `c_rẻ = 2` ⇒ ngưỡng `.606` < `.7475` ⇒ dự đoán thua, khớp thực tế.
+   > **Nhưng MATH cũng dùng ngưỡng `.803`**, tức cùng giả định sai ⇒ **thành tích "2/2" ở trên
+   > không đáng tin cho tới khi cả ba điểm được tính lại bằng MỘT quy ước chi phí duy nhất.**
+   > Việc phải làm: (1) chốt quy ước, (2) tính lại 3 điểm, (3) đăng ký trước rồi mới đo điểm thứ tư.
 
 ## 4. KHÔNG được kết luận từ tài liệu này
 - Không có điểm nào ở **32B trở lên** — hai lần HUỶ vì hạ tầng (#123, #130), chưa vì khoa học.
