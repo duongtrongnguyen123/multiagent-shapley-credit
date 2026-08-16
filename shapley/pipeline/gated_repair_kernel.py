@@ -17,7 +17,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 RUN, LO, HI = "@@RUN@@", int("@@LO@@"), int("@@HI@@")
 DEAR_NEEDLES = [s for s in "@@DEAR@@".split(",") if s]   # model DAT: doi ho de kiem #98
-MAXNEW, TIMEOUT = 768, 60
+MAXNEW, TIMEOUT = 1536, 60   # #101-b: 768 cat cut 17.2% nhanh V o 32B (V dai 4.5x I)
 BSZ = {"cheap": 24, "dear": 16}
 
 def find_model(*needles):
@@ -285,7 +285,14 @@ fenced = {k: round(sum(has_block(t) for t in v)/N, 4) for k, v in
           (("S", S_raw), ("I", I_raw), ("V", V_raw))}
 ext_min, ext_spread = min(ext.values()), round(max(ext.values())-min(ext.values()), 4)
 runnable = round(sum(1 for t in TESTS if t)/N, 4)
+# #101-b: cong CAT CUT tuong minh — bat NGUYEN NHAN, som hon cong extract_spread (bat hau qua)
+def _unclosed(t):
+    return (t or "").count("```") % 2 != 0 or (t or "").count("```") < 2
+trunc = {k: round(sum(_unclosed(t) for t in v)/N, 4) for k, v in
+         (("S", S_raw), ("I", I_raw), ("V", V_raw))}
+trunc_max = max(trunc.values())
 gates = {"extract_min>=.80": ext_min >= .80, "extract_spread<.05": ext_spread < .05,
+         "truncation<.05 moi nhanh": trunc_max < .05,
          "n>=480": N >= 480, ".15<=p_esc<=.90": .15 <= p_esc <= .90, "test_runnable>=.60": runnable >= .60,
          "I-S>=.05 (cong nang luc #98)": d_IS >= .05}
 VOID = [k for k, v in gates.items() if not v]
@@ -297,7 +304,7 @@ res = {"tag": RUN, "range": [LO, HI], "n": N,
                  "V_minus_I": d_VI, "I_minus_S": d_IS},
        "mcnemar": {k: {"b01": v[0], "b10": v[1], "p": v[2]} for k, v in mc.items()},
        "p_esc": p_esc, "extract_rate": ext, "extract_min": ext_min, "extract_spread": ext_spread,
-       "test_runnable": runnable, "fenced_rate": fenced, "gates": gates, "VOID": VOID,
+       "test_runnable": runnable, "fenced_rate": fenced, "truncation_rate": trunc, "gates": gates, "VOID": VOID,
        "gate_accept_but_wrong": sum(1 for i in range(N) if Z[i] and not PS[i]),
        "gate_reject_but_right": sum(1 for i in range(N) if not Z[i] and PS[i]),
        "V_destroys": sum(1 for i in range(N) if PS[i] and not PV[i]),

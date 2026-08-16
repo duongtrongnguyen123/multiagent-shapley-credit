@@ -4228,3 +4228,34 @@ hành vi ấy cần **code thật** để bám vào, chứ chữ ký hàm thì k
 **Hàng 4 đáng kể (~25%)** vì mọi phép đo đầu độc từ trước tới nay **đều kèm lệnh "review"**;
 rất có thể lệnh mới là thủ phạm, và #142 của tôi đã quy sai cho "nhìn thấy".
 **Nếu hàng 4 xảy ra, tôi phải sửa TONG_HOP lần nữa và nói rõ #142 đã suy diễn quá tay.**
+
+---
+
+## #101-b — SỬA ĐỔI: `MAXNEW` quá nhỏ cho nhánh `V` ở 32B
+
+**Đăng ký lúc:** H91b đã VOID (`extract_spread` .0982 > .05). **Tôi CHƯA đọc `d_ceil`/`d_gate`/
+`d_honest`/`d_cont` của H91b và sẽ không đọc** — nó VOID vĩnh viễn.
+
+### Chẩn đoán (chỉ dùng đại lượng CỔNG + độ dài, không dùng kết quả)
+| nhánh | độ dài TB | p95 | **block ```` ``` ```` CHƯA ĐÓNG** |
+|---|---|---|---|
+| `S` | 219 | 533 | **0.0%** |
+| `I` | 302 | 733 | 0.4% |
+| **`V`** | **1359** | **3374** | **17.2%** |
+
+`V` dài gấp **4.5×** `I` và **17.2%** bị cắt giữa chừng ở `MAXNEW`=768 ⇒ không trích được code.
+**Đây đúng là confound cắt cụt của #119/#130 — nhưng ĐỔI CHIỀU:** ở #130 cái cap phạt `I` nặng hơn,
+ở đây nó phạt `V` nặng hơn. Lý do: 32B khi **được cho xem code** thì viết dài (giải thích + code),
+còn khi **giải từ đầu** thì viết gọn.
+
+> **Bài học tổng quát hơn #130: `MAXNEW` cố định phạt nhánh nào VIẾT DÀI NHẤT, và nhánh đó
+> thay đổi theo thiết kế lẫn theo cỡ model.** Không thể chọn `MAXNEW` một lần rồi dùng mãi.
+
+### Sửa cho H91c
+1. **`MAXNEW`: 768 → 1536.** Căn cứ: p95 của `V` ≈ 3374 ký tự ≈ 850–900 token; 1536 để dư gấp ~1.7×.
+   Chi phí: `V` mất ~36 phút ở 768 ⇒ ước ~72 phút; tổng ~100 phút, thừa sức trong tường 12h.
+2. **Thêm CỔNG CẮT CỤT tường minh:** tỉ lệ output có block ```` ``` ```` **chưa đóng** phải **< .05
+   ở MỌI nhánh**. Cổng `extract_spread` chỉ bắt được hậu quả; cổng này bắt **nguyên nhân**, và
+   bắt sớm hơn.
+
+### Bảng khoá #101 **giữ nguyên từng chữ.** Không đổi gì khác.
