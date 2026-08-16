@@ -5461,3 +5461,36 @@ Chuyển sang thước đo mà tôi **đã biết là sẽ đạt**, **sau khi**
   Ai không chấp nhận việc nới thì **chỉ đọc `d_ceil`** — cổng ORACLE, **không dính** tới `z`.
 
 ### Bảng khoá #97 **không sửa một chữ.**
+
+---
+
+## Vòng #139 — H87b **VOID**: cổng soundness trượt (.4509 < .50)
+
+Lần chạy RTX 6000 đắt nhất của dự án (32B + Llama-8B + DeepSeek, 3619s). **Cổng của #96 trượt** ⇒
+**không hàng nào được đọc**. Các cổng khác đều đạt (copy_rate .0177 · n=500 · biên dịch .9945 ·
+`acc(32B)` .742 ∈ [.60,.90] · `acc(L)` .538, `acc(D)` .618 ≥ .35). Chỉ **soundness .4509** trượt —
+tức **test do 32B viết SAI nhiều hơn ĐÚNG** khi chấm trên lời giải chuẩn.
+
+### Công bố thành thật: tôi ĐÃ NHÌN THẤY các con số
+Kernel in toàn bộ tổng kết trước khi tôi kịp kiểm cổng. **Tôi không thể "chưa thấy" chúng.**
+Cái tôi làm được: **không dùng**, không đưa vào TONG_HOP, không đưa vào README, và **ghi lại rằng
+mình đã bị nhiễm** để lần chạy lại không bị tôi lái theo.
+
+> **Rủi ro cụ thể:** giờ tôi biết pool C có `H` cao hơn nhưng `κ` thấp hơn. Khi thiết kế H87c,
+> mọi thay đổi tôi đưa ra đều có thể **vô tình** hướng về việc làm hàng đó "đẹp hơn".
+> Vì thế H87c **chỉ được đổi ĐÚNG MỘT THỨ: cách sinh test.** Pool, bộ chọn, dải bài, model —
+> **giữ nguyên tuyệt đối.** Bất kỳ đề xuất đổi gì khác đều phải bị nghi là hậu quả của nhiễm.
+
+### Sửa kernel để cổng được kiểm TRƯỚC khi in
+Lỗi quy trình thật sự: kernel **in tổng kết rồi mới nói HUỶ**. Phải đảo lại — kiểm cổng, nếu trượt
+thì **in đúng dòng VOID và các số CỦA CỔNG, không in gì khác**. Có thế thì kỷ luật mới không phụ
+thuộc vào việc tôi nhắm mắt kịp hay không.
+
+### Vấn đề thật: test do model viết KHÔNG ĐÁNG TIN, hai lần liên tiếp
+| lần chạy | soundness | ngưỡng |
+|---|---|---|
+| H83d (#137) | **.533** | .50 — **suýt trượt** |
+| H87b (#139) | **.4509** | .50 — **trượt** |
+
+Đây **không** phải nhiễu ngẫu nhiên; đây là đại lượng `κ` phụ thuộc vào, và nó đang **sát đáy**.
+`SEL` chỉ có thể tốt bằng tín hiệu `z`, mà `z` ở đây **đúng chưa tới một nửa**.
