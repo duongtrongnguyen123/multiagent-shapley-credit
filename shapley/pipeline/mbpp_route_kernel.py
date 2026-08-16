@@ -16,12 +16,14 @@ def find_model(*needles):
             return p.rstrip("/")
     raise RuntimeError(f"khong thay {needles}: co {sorted(os.listdir('/kaggle/input'))}")
 M = {"7B": find_model("1-5b", "1_5b", "1.5b"), "32B": find_model("2-5-7b", "qwen2-5-7b")}  # "7B"=tang re(1.5B), "32B"=tang dat(7B)
-BCB = sorted(glob.glob("/kaggle/input/**/mbpp_full.json", recursive=True), key=len)[0]
+# T4 CO internet -> nap thang tu HF, khong can dataset private (loi H83 lan 1)
+from datasets import load_dataset
+_DS = load_dataset("mbpp", "full", split="test+train+validation")
 CC = torch.cuda.get_device_capability(0); VRAM = torch.cuda.get_device_properties(0).total_memory/2**30
-print(f"MODELS={json.dumps(M,indent=1)}\nBCB={BCB}\nGPU={torch.cuda.get_device_name(0)} | {VRAM:.1f} GB | sm_{CC[0]}{CC[1]}", flush=True)
+print(f"MODELS={json.dumps(M,indent=1)}\nGPU={torch.cuda.get_device_name(0)} | {VRAM:.1f} GB | sm_{CC[0]}{CC[1]}", flush=True)
 
 
-RAWALL = [r for r in json.load(open(BCB)) if 11 <= r["task_id"] <= 510 and len(r["test_list"]) >= 3]
+RAWALL = [r for r in _DS if 11 <= r["task_id"] <= 510 and len(r["test_list"]) >= 3]
 def canon(r): return r["code"]   # MBPP: truong "code" la loi giai day du
 
 SOLVE = ("Write the complete self-contained Python function. "

@@ -317,3 +317,23 @@ json.dump({"partial": True, "done": sorted(OUT.keys()), "raw": OUT},
           open(f"/kaggle/working/partial_{RUN}.json", "w"))
 ```
 **Mẫu sai (H77):** `json.dump({"partial": True, "n": kk+1}, ...)`
+
+---
+
+## Bài học #H83: **dataset PRIVATE không mount được sang tài khoản khác — và push VẪN THÀNH CÔNG**
+
+Tôi stage `zhongzhing/bigcodebench-v014-json` và `zhongzhing/mbpp-full-json` (private) cho kernel
+RTX 6000 (competition **cấm internet**). Rồi dùng lại chúng cho kernel T4 trên **tài khoản khác**.
+
+`kaggle kernels push` **thành công**. Kernel chạy. Rồi chết ở
+`glob.glob(".../mbpp_full.json")[0]` → `IndexError`, vì **dataset không hề được mount**.
+
+> **Kaggle nhận tham chiếu tới dataset private của tài khoản khác mà KHÔNG báo lỗi lúc push,
+> và cũng KHÔNG mount nó.** Lại một tham số bị bỏ qua im lặng — cùng loại với lỗi #121.
+
+**Quy tắc:**
+1. **Kernel T4 CÓ internet** ⇒ dùng `load_dataset(...)` thẳng, **không** cần stage.
+2. **Chỉ kernel RTX 6000** (cấm internet) mới cần dataset đã stage — và khi đó phải chạy trên
+   **đúng tài khoản sở hữu dataset** (`zhongzhing`), hoặc dataset phải **public**.
+3. Kernel phải **báo lỗi RÕ** khi thiếu dữ liệu, thay vì `IndexError` từ `[0]`:
+   `if not hits: raise SystemExit("khong mount duoc dataset X — kiem visibility/tai khoan")`.
