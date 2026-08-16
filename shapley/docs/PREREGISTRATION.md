@@ -4345,3 +4345,29 @@ như hai mẫu từ một model, nên `solo(C)` sẽ tụt đáng kể. **Rủi 
 yếu hơn hẳn Llama (.56)/DeepSeek (.64) ở #145, nên pool C có thể thua pool B **vì chất lượng**
 chứ không vì họ. Vì thế **phải báo `acc` từng model kèm mọi kết luận**, và hàng 2 **không** được
 đọc thành "họ quan trọng" nếu chênh `acc` giải thích được.
+
+---
+
+## #102-b — SỬA ĐỔI: #102 không nêu cổng `n` cho dải TÁCH RỜI
+
+**Đăng ký lúc:** H92b đã xong, **tôi CHƯA đọc `E0/E1/E2/E3` hay bất kỳ delta nào** — chỉ mới xem
+các đại lượng CỔNG (`extract_rate`, `n`, `I−S`, `acc_S`). Commit này đi **trước** khi đọc.
+
+### Vấn đề
+#102 viết cổng 2 là *"`n ≥ 480` (dải 11–510)"* — có ghi rõ **dải áp dụng**, nhưng **không nêu**
+ngưỡng cho dải tách rời 511–974. H92b chạy dải đó và được **n = 463**.
+
+Đây **không phải vi phạm cổng**; đây là **thiếu đặc tả**.
+
+### Sửa — áp đúng tiền lệ đã lập ở #97-d
+**Dải tách rời (511–974): `n ≥ 460`.** Căn cứ **y hệt #97-d**: MBPP chỉ có **464** bài trong
+511–974 (task_id kết thúc ở 974), còn **463** sau lọc lời giải chuẩn. Đây là **số đếm của bộ dữ
+liệu**, kiểm chứng độc lập được, **không phụ thuộc đầu ra của model nào**.
+
+Giữ **`n ≥ 480`** cho dải chính 11–510.
+
+**Vì sao không phải nới ngưỡng để lách:** #127 cấm hạ ngưỡng vì **kết quả** không đạt. Ở đây
+ngưỡng **bất khả thi về mặt dữ liệu** — giữ nguyên nghĩa là cấm vĩnh viễn mọi tái lập trên
+benchmark này. Và tôi đã lập tiền lệ này ở **#97-d**, **trước** khi H92b tồn tại.
+
+### Bảng khoá #102 giữ nguyên từng chữ. Không đổi gì khác.
