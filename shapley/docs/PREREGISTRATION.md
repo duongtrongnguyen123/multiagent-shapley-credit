@@ -4408,3 +4408,50 @@ Hàng 1 đòi `|H(C)−H(B)| < .03`; hàng 2 đòi `H(B)−H(C) ≥ .03` **và**
 
 **Không đổi ngưỡng hiệu ứng nào, không đổi tiên nghiệm nào.** Chỉ làm cho các hàng **vét cạn**
 trục số. Cả hai sửa đổi commit **trước khi** H91c/H93b trả kết quả — dấu thời gian git kiểm được.
+
+---
+
+## #104 — H94: **PHÂN RÃ PHƠI NHIỄM trên TOÁN** (xác nhận phát hiện thăm dò #150)
+
+**Đăng ký lúc:** trước khi phóng. #150 là **thăm dò** (phân rã hậu nghiệm trên dữ liệu H92/H92b).
+Đăng ký này biến nó thành **xác nhận**, và đổi **miền** để không chỉ là đo lại cùng thứ.
+
+### Phát hiện cần xác nhận
+Trên MBPP, cho `M` xem code của model yếu:
+
+| | 11–510 | 511–974 |
+|---|---|---|
+| artifact **SAI** | **−.1900** | **−.1927** |
+| artifact **ĐÚNG** | +.0636 | +.0245 |
+
+⇒ giả thuyết: **`D` là hàm của "thấy NỘI DUNG SAI", không phải của "thấy"**.
+
+### Thiết kế — MATH-500, y hệt H92 nhưng đổi miền
+`S` = Qwen2.5-1.5B, `M` = Qwen2.5-7B. **Mọi nhánh dùng CÙNG lệnh giải**, chỉ khác ngữ cảnh thêm:
+`E0` (không thấy gì) và `E3` (thấy toàn bộ lời giải của `S`). **Bỏ `E1`/`E2`** — #149 cho thấy
+chúng không tái lập và chỉ làm loãng lực thống kê.
+`MAXNEW` = **1536** (bài học #101-b: toán viết dài; và #130: cap phạt không đều giữa nhánh).
+
+### CỔNG
+1. tỉ lệ có `\boxed` ≥ .80 **mọi nhánh**, chênh **< .05** (#84)
+2. tỉ lệ block/đáp án chưa đóng < .05 mọi nhánh (#101-b)
+3. `n ≥ 450` · 4. `I − S ≥ .05` **và** p < .05
+5. `S` phải sai ở **≥ 30%** và đúng ở **≥ 20%** số bài — nếu không, một trong hai tầng phân rã
+   quá nhỏ để đo. (Trên MATH `acc(1.5B)` ~.30 nên nhánh "đúng" là tầng mỏng — **rủi ro đã biết**.)
+
+### BẢNG KHOÁ (đã KIỂM PHỦ — xem mô phỏng kèm dưới)
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng trượt | **VOID** |
+| 1 | `Δ(SAI)` ≤ **−.10** với p<.05 **và** `Δ(ĐÚNG)` ≥ 0 | **XÁC NHẬN #150 và TỔNG QUÁT SANG TOÁN.** `D` là hàm của **nội dung sai**. Vào TONG_HOP. |
+| 2 | `Δ(SAI)` ≤ −.10 với p<.05 **nhưng** `Δ(ĐÚNG)` < 0 | thấy **bất kỳ** artifact nào cũng hại, chỉ hại **hơn** khi sai ⇒ giữ "thấy" là biến chính, "sai" chỉ khuếch đại. **Thu hẹp #150.** |
+| 3 | `−.10` < `Δ(SAI)` ≤ **−.02** với p<.05 | hại **yếu hơn nhiều** trên toán ⇒ biên độ **phụ thuộc MIỀN**; không tổng quát hoá con số .19. |
+| 4 | `Δ(SAI)` > −.02 **hoặc** p ≥ .05 | **KHÔNG tái lập trên toán.** #150 chỉ đúng cho code ⇒ **giữ nguyên là thăm dò, KHÔNG lên TONG_HOP.** |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 1 **~40%** · hàng 3 **~30%** · hàng 2 **~20%** · hàng 4 **~10%**.
+Trên MATH `V − I` đã đo **−.1260** (mạnh hơn code), nên nhánh SAI có khả năng cũng mạnh.
+**Rủi ro lớn nhất là cổng 5**: `acc(1.5B)` trên MATH chỉ ~.30, nên tầng "artifact ĐÚNG" chỉ còn
+~150 bài ⇒ `Δ(ĐÚNG)` sẽ **thiếu lực**, và hàng 1 vs 2 có thể không phân định được.
+**Nếu vậy tôi phải đọc hàng 3/4 theo `Δ(SAI)` và nói rõ `Δ(ĐÚNG)` không kết luận được.**
