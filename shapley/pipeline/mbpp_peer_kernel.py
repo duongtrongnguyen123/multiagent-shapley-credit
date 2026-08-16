@@ -1,7 +1,9 @@
 # H84 (dang ky truoc #93) — nguon CUNG CO khac ho (Llama-3.1-8B) vs nguon YEU (1.5B) — DAU DOC CO XAY RA TREN CODE KHONG?
 # Y het H61, doi task: MBPP thay GSM8K. S=1.5B viet code | I=7B tu viet | V=7B xem code cua S.
 # Dai luong CHINH = V - I (KHONG phai V - S). I re hon V -> I >= V la AP DAO HOAN TOAN.
-import os, re, json, glob, time, tempfile, subprocess, sys, gc, torch
+import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")   # phai TRUOC import torch
+import re, json, glob, time, tempfile, subprocess, sys, gc, torch
 from concurrent.futures import ThreadPoolExecutor
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", "bitsandbytes>=0.46.1"], check=False)
 from datasets import load_dataset
@@ -68,9 +70,40 @@ def load(p, big):
         mos = [AutoModelForCausalLM.from_pretrained(p, quantization_config=BNB, device_map={"": d}).eval() for d in DEVS]
     else:
         mos = [AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16).to(d).eval() for d in DEVS]
-    print(f"nap {'7B nf4' if big else '1.5B fp16'}: {len(mos)} ban sao | "
-          f"VRAM {torch.cuda.memory_allocated()/2**30:.1f} GB", flush=True)
+    print(f"nap {'7B nf4' if big else '1.5B fp16'}: {len(mos)} ban sao | " + " | ".join(
+        f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(d)/2**30:.2f}"
+        for d in range(NG)), flush=True)
     return mos, tk
+
+def load_sharded(p):
+    """#134-d: MOT ban duy nhat TRAI DEU tren moi card (device_map='auto').
+
+    Vi sao can: H84c OOM khi nap Llama-3.1-8B voi CA HAI card gan nhu trong
+    (cap phat 0.01 / giu cho 0.02) — va bao loi ghi '14.32 GiB allocated by PyTorch,
+    87 MiB reserved but unallocated', tuc KHONG phai phan manh ma la model that su chiem
+    14.32 GB => no dang vao fp16 (~16 GB) chu KHONG phai nf4. Qwen-7B cung kernel nay
+    luong tu hoa binh thuong (5.2 GB), nen bitsandbytes van chay; van de rieng o Llama tren
+    duong nap moi cua transformers. Trai deu 2 card thi du cho ke ca khi no o fp16.
+    Danh doi: song song DU LIEU (2 ban) -> song song MO HINH (1 ban), cham hon nhung chay duoc.
+    """
+    tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
+    if tk.pad_token is None: tk.pad_token = tk.eos_token
+    mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=BNB, device_map="auto").eval()
+    print(f"nap TRAI DEU: " + " | ".join(
+        f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(d)/2**30:.2f}"
+        for d in range(NG)), flush=True)
+    if hasattr(mo, "hf_device_map"):
+        print(f"  trai tren: {sorted(set(str(v) for v in mo.hf_device_map.values()))}", flush=True)
+    return [mo], tk
+
+def _indev(mo):
+    """Model trai nhieu card thi mo.device khong dang tin — dua dau vao ve card cua lop nhung."""
+    dm = getattr(mo, "hf_device_map", None)
+    if dm:
+        for k in ("model.embed_tokens", "transformer.wte", ""):
+            if k in dm: return dm[k]
+        return sorted(dm.values(), key=str)[0]
+    return mo.device
 
 @torch.no_grad()
 def _g1(mo, tk, sysm, usrs, bs):
@@ -80,7 +113,7 @@ def _g1(mo, tk, sysm, usrs, bs):
         try:
             ps = [tk.apply_chat_template([{"role":"system","content":sysm},{"role":"user","content":u}],
                   tokenize=False, add_generation_prompt=True) for u in ch]
-            e = tk(ps, return_tensors="pt", padding=True).to(mo.device)
+            e = tk(ps, return_tensors="pt", padding=True).to(_indev(mo))
             o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=False, pad_token_id=tk.pad_token_id)
         except torch.OutOfMemoryError:
             torch.cuda.empty_cache()
@@ -140,7 +173,7 @@ print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 save_partial(S_RAW=S_RAW)
 
 # Llama TRUOC 7B: nho vay 7B nap mot lan roi lam ca ba luot sinh, khong phai nap lai.
-mp, tkp = load(MPEER, True)
+mp, tkp = load_sharded(MPEER)   # #134-d: 8B khong vua MOT card
 PEER_RAW = gen(mp, tkp, SOLVE, PR, 8)
 PEER = [extract(t) for t in PEER_RAW]
 free_models(mp); mp = None; tkp = None; gc.collect()
