@@ -5665,3 +5665,50 @@ mà không mount nó. `crossfamily_kernel.py` **đã có** đường nạp offli
 
 **H91b** đã phóng lại, mount `zhongzhing/mbpp-full-json`, xác minh trong bản ĐÃ ĐẨY.
 Giá phải trả: một khe RTX (~vài phút, chết sớm nên rẻ — hiếm khi được thế).
+
+---
+
+## Vòng #144 — H81d: hàng 3 khớp SỐ, nhưng cơ chế nói **NGƯỢC LẠI**. Không hàng nào được viết.
+
+Cổng của #90 **đều đạt**: soundness .9699 / .8537 (≥.50) · copy_rate .0 / .0044 (≤.20) · n=500 ·
+biên dịch .998. Được đọc số.
+
+`SEL(T_other) − SEL(T_self)` = **−.0240** ≤ −.02 ⇒ **khớp hàng 3**, hàng nói:
+*"test của họ khác TỆ HƠN ⇒ `κ` phụ thuộc KHỚP PHONG CÁCH, ngược M2, rút lại phần κ."*
+
+### Nhưng cơ chế bác đúng câu kết luận đó
+
+| bộ test | phủ bài | trần (do phủ) | đạt được | cứu được / có thể làm hỏng |
+|---|---|---|---|---|
+| `T_self` (Qwen) | **498/500** | .6840 | .6780 | 19 / 20 |
+| `T_other` (DeepSeek) | **205/500** | **.6540** | **.6540** | **4 / 9** |
+
+**`T_other` ĐẠT ĐÚNG TRẦN của nó.** Trên tập nó có test, nó **cứu đủ cả 4 bài cứu được và
+KHÔNG làm hỏng bài nào trong 9 bài có thể hỏng** — tức **κ = 100%** trên tập đó, so với **84.2%**
+của `T_self`.
+
+Luật chọn: `sc = [CNT[k][i] for k in POOL] if TESTS[i] else [0]*len(POOL)`, rồi
+`sc.index(max(sc))` ⇒ bài **không có test** rơi về **Q1 = base**. Nên ở **295/500 bài (59%)**,
+`SEL(T_other)` **bằng base theo CẤU TRÚC**, không phải vì chọn sai.
+
+> **Chênh −.024 là do ĐỘ PHỦ 41% vs 99.6%, không phải do chất lượng chọn.**
+> Viết kết luận hàng 3 sẽ là phát biểu **ngược hẳn** với thứ dữ liệu thực sự cho thấy.
+
+### Không hàng nào của #90 được viết
+Hàng 1/2 không khớp số; hàng 3 khớp số nhưng kết luận của nó bị chính cơ chế bác bỏ.
+**Ghi nhận THẤT BẠI THIẾT KẾ của #90.**
+
+**Lỗ hổng: #90 khoá cổng cho CHẤT LƯỢNG tín hiệu (soundness, copy_rate) nhưng KHÔNG khoá
+ĐỘ PHỦ.** Một bộ chọn chỉ đúng nhưng hiếm khi phát biểu thì **không so được** với một bộ chọn
+đúng và luôn phát biểu — trừ khi ta so **trên cùng tập bài nó áp dụng được**.
+
+> Đây là lần thứ **TƯ** một bảng khoá hỏng vì thiếu điều kiện (#99, #116, #140, nay #90).
+> Ba lần trước thiếu **điều kiện p**. Lần này thiếu **điều kiện độ phủ**.
+> **Quy tắc: mỗi bảng khoá phải khoá ĐỦ BỐN thứ — hiệu ứng, ý nghĩa, ĐỘ PHỦ, và mốc so.**
+
+### THĂM DÒ (không phải kết luận)
+Trên tập `T_other` áp dụng được, tín hiệu **khác họ** chọn **hoàn hảo** (4/4 cứu, 0/9 hỏng) so với
+**84.2%** của tín hiệu cùng họ. Đây là **ủng hộ M2**, đúng chiều dự đoán 1 — **ngược hẳn** hàng 3.
+**Nhưng n rất nhỏ** (chỉ 4 bài cứu được) và đây là **phân tích tập con hậu nghiệm**.
+Muốn dùng thì phải chạy lại với **ép DeepSeek sinh đủ test cho mọi bài** (ví dụ lấy mẫu lại tới khi
+có ≥1 assert hợp lệ), rồi mới so được **cùng độ phủ**.

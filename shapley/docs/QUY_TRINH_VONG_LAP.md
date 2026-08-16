@@ -453,3 +453,14 @@ gây hại"* từ một hiệu ứng **không phân biệt được với 0**.
 > **Quy tắc cứng: trước khi phóng kernel X lên phần cứng Y lần đầu, đối chiếu 5 giả định:
 > (1) internet, (2) số GPU, (3) dtype/lượng tử hoá, (4) dataset mount, (5) giới hạn thời gian.**
 > Launcher giờ tự chặn (1) và (4). (2)(3) đã có đường lui từ #134-e.
+
+14. **#144 — bảng khoá phải khoá cả ĐỘ PHỦ, không chỉ chất lượng**
+
+`#90` gác soundness và copy_rate của test, nhưng không gác **có bao nhiêu bài thực sự có test**.
+DeepSeek chỉ sinh được assert hợp lệ cho **205/500** bài; 295 bài còn lại rơi về base theo
+**cấu trúc luật chọn**. Kết quả: `SEL` thấp hơn −.024 và khớp đúng hàng "test họ khác tệ hơn" —
+trong khi thực tế nó chọn **hoàn hảo** ở mọi bài nó áp dụng được.
+
+> **Quy tắc cứng: khi so hai TÍN HIỆU, phải báo ĐỘ PHỦ của từng tín hiệu, và so trên
+> TẬP GIAO nếu độ phủ lệch quá 10%.** Một tín hiệu "im lặng" trông y hệt một tín hiệu "sai"
+> ở đại lượng tổng, nhưng hai thứ đó đòi hai kết luận trái ngược.
