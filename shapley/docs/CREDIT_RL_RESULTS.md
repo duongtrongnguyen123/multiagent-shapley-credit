@@ -196,11 +196,12 @@ ref = toàn pipeline base (S/V/A adapter tắt), full = S/V/A trained bật.
 
 ### GSM8K (ref 0.695)
 
-| nhánh A | acc_full | gain |
-|---|---|---|
-| A-base (không train) = ref | 0.695 | — |
-| A GRPO cũ | 0.690 | −0.005 |
-| **A asel** | **0.710** | **+0.015** |
+| nhánh A | acc_full | gain | folds cùng dấu |
+|---|---|---|---|
+| A-base (không train) = ref | 0.695 | — | — |
+| A GRPO cũ | 0.690 | −0.005 | — |
+| A asel | 0.710 | +0.015 | 4/5 |
+| **A vcond+asel** | **0.715** | **+0.020** | 3/5 |
 
 ### MATH-500 (ref 0.450; boxed grading)
 
@@ -209,8 +210,14 @@ ref = toàn pipeline base (S/V/A adapter tắt), full = S/V/A trained bật.
 | PSVA base (S/V/A GRPO cũ) | 0.385 | −0.065 | 4/5 (âm) |
 | PSVA asel | 0.390 | −0.060 | 3/5 (âm) |
 | V-COND (chỉ V, S base) | 0.405 | −0.005 | 2/5 |
+| **PSVA vcond+asel** | **0.380** | **−0.070** | 5/5 (âm) |
 
 Stage (MATH, PSVA base): PS 0.415→0.380, PSV 0.410→0.365 → trained **hại** ở mọi stage.
+
+> Kết quả này KHÔNG làm PSVA vcond+asel thành pipeline tốt nhất trên GSM8K 1.5B từ trước
+> đến nay: base pipeline P→S→V→A (greedy, chưa train) từng đạt **.744** (RESULTS.md:104,
+> n=250), PSV/SS_anc .728, wvote_sum .737, route_3_seq .736 — đo trên bộ bài/ngân sách khác
+> nhau nên chỉ là tham chiếu, nhưng credit-RL trên từng vai chưa bao giờ thắng base pipeline.
 
 ## 11. Kết luận giai đoạn 2
 
@@ -229,8 +236,27 @@ Stage (MATH, PSVA base): PS 0.415→0.380, PSV 0.410→0.365 → trained **hại
 5. **Tổng hợp**: credit-sharing RL vẫn thất bại làm pipeline 1.5B tốt hơn base trên tập lạ
    (MATH). Hướng còn lại: fine-tune solver (S) thật sự, reward mượt theo likelihood, hoặc
    nâng cấp model backbone thay vì LoRA trên từng vai.
+6. **Tổ hợp vcond+asel cộng hưởng theo chiều TASK**: trên GSM8K nhỉnh hơn từng biến thể đơn
+   (+0.020 > +0.030/… xét theo acc_full 0.715 > 0.710), nhưng trên MATH **tệ nhất** (−0.070,
+   5/5 âm) — hai adapter đều học pattern GSM8K nên gộp lại càng nhiễu trên MATH.
 
-## 12. Trạng thái giai đoạn 2
+## 12. Thử train trên MATH — BỎ DỞ (lỗi môi trường + tín hiệu yếu)
+
+Muốn train V-COND và A-SEL trực tiếp trên MATH train để thoát pattern GSM8K, nhưng:
+
+| kernel | v1 | v2 (BS=4, MAXLEN=1536) |
+|---|---|---|
+| `credit-rl-vcond-math` (V, COND) | OOM outer 5/16 (T4 14.56GB) | device-side assert ngay outer 1 |
+| `credit-rl-asel-math` (A, A_SELECT) | OOM outer 3 | OOM tái diễn |
+
+- MATH prompt dài hơn GSM8K nhiều → `logp()` grad (logits [T,V] + autograd graph) phình quá
+  T4; `MAXLEN` thực ra KHÔNG được kernel dùng (chỉ khai báo), nên chỉnh BS/MAXLEN không cứu.
+- A-SEL-MATH có tín hiệu xấu từ trước: outer 1–2 `sel_ok=0, none=64` — trên MATH gần như
+  không câu nào có ứng viên đúng trong 2 trace (sol+verifier base) → reward ≈ 0 → khó học.
+- **Quyết định: dừng train-MATH.** Không có adapter MATH; mọi kết luận vẫn dựa trên eval
+  cross-task (GSM8K-trained → MATH).
+
+## 13. Trạng thái giai đoạn 2
 
 - Kernel: `credit_rl_kernel.py` (flags COND/PLAN_MINLEN/PLAN_LAMBDA/A_SELECT),
   `credit_rl_eval_kernel.py` (ROLE ∈ P/S/V/A/FULL/PSVA), `credit_rl_eval_math_kernel.py`
@@ -241,5 +267,9 @@ Stage (MATH, PSVA base): PS 0.415→0.380, PSV 0.410→0.365 → trained **hại
   `TrgDinKai/credit-rl-asel-adapter`.
 - Kernel đã chạy: `credit-rl-asel-gsm8k` (A-SEL train v2), `credit-rl-eval-psva-gsm8k`,
   `credit-rl-eval-psva-math`, `credit-rl-eval-psva-asel-gsm8k`, `credit-rl-eval-psva-asel-math`,
+  `credit-rl-eval-psva-vcond-asel-gsm8k`, `credit-rl-eval-psva-vcond-asel-math`,
   `credit-rl-eval-vcond-math`, `credit-rl-eval-vcond-gsm8k`, `credit-rl-eval-ps-minlen-gsm8k`,
-  `credit-rl-plan-inspect-gsm8k`. Output cục bộ: `crl_final\*_pull\summary.json`.
+  `credit-rl-plan-inspect-gsm8k`, `asel-vs-vote-math` (lỗi bug vote, chỉ A_base/A_sel hợp lệ).
+  Output cục bộ: `crl_final\*_pull\summary.json`.
+- Kernel train-MATH (`credit-rl-vcond-math`, `credit-rl-asel-math`): **bỏ dở** — OOM/assert
+  trên T4 (xem mục 12), không có adapter MATH.
