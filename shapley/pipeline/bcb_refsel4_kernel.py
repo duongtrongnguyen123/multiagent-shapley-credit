@@ -27,7 +27,16 @@ def nodes(code):
     try: return sum(1 for _ in ast.walk(ast.parse(code)))
     except Exception: return None
 
-ALL = json.load(open(sorted(glob.glob("/kaggle/input/**/bigcodebench_v014.json", recursive=True), key=len)[0]))[:N]
+# T4 CO internet -> nap thang tu HF (dataset private khong mount duoc sang tai khoan khac)
+from datasets import load_dataset
+_hits = sorted(glob.glob("/kaggle/input/**/bigcodebench_v014.json", recursive=True), key=len)
+if _hits:
+    ALL = json.load(open(_hits[0]))[:N]
+else:
+    print("khong thay dataset da stage -> nap tu HuggingFace", flush=True)
+    _DS = load_dataset("bigcode/bigcodebench", split="v0.1.4")
+    ALL = [{k: _DS[i][k] for k in ["task_id","complete_prompt","canonical_solution","test","instruct_prompt"]}
+           for i in range(min(N, len(_DS)))]
 print(f"BigCodeBench {len(ALL)} bai", flush=True)
 
 def run_tests(r, code):
