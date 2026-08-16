@@ -5875,3 +5875,47 @@ Có canary: chết sau **vài phút**, và **biết chính xác model nào**. So
 Nếu **không** (28 GB fp16) thì **22 GiB cả hai card vẫn thiếu** — và #135 đã cho thấy model
 **ngoài họ Qwen** không lượng tử hoá. Qwen-7B **có** (5.17 GB), nên Qwen-14B **nên** có.
 **Canary sẽ trả lời trong ~10 phút.** Nếu vẫn trượt: chuyển H93 sang RTX 6000 (95 GB) sau khi H91c xong.
+
+---
+
+## Vòng #149 — H92 + H92b: **`E3` tái lập chính xác; `E1`/`E2` KHÔNG. Cặp BẤT ĐỒNG hàng.**
+
+H92 **mọi cổng ĐẠT** (n=499, chênh trích .004). H92b đạt theo #102-b.
+
+| nhánh | `M` xem gì | H92 (11–510) | H92b (511–974) |
+|---|---|---|---|
+| `E0` | không gì | .6413 | .7149 |
+| `E1` | *"có model nhỏ đã thử"* | .6132 (**−.0281**, p **.034**) | .7127 (−.0022, p **1.00**) |
+| `E2` | chỉ chữ ký hàm | .6273 (−.0140, p .483) | .6825 (−.0324, p .072) |
+| `E3` | **toàn bộ code** | .5631 (**−.0782**, p **1.5e−04**) | .6371 (**−.0778**, p **8.7e−05**) |
+
+### Điều DUY NHẤT vững: `E3`
+**−.0782 và −.0778** — hai dải tách rời, hai độ khó khác nhau, lệch nhau **.0004**.
+p ≤ 1.5e−04 cả hai. **Không nhánh nào được lệnh "review".**
+
+> **Chỉ NHÌN THẤY code của model yếu đã làm model mạnh mất ~.078, không cần bất kỳ lệnh sửa nào.**
+> **Hàng 4 — hàng GIẾT phát biểu lại M1 ở #142 — bị bác ở CẢ HAI lần chạy.**
+
+### Nhưng cặp BẤT ĐỒNG, và tôi không được chọn bên
+`H92` rơi vào **hàng 3** (*"hiệu ứng KHUNG"*): chỉ **báo rằng có người đã thử**, không nội dung gì,
+mà mất **−.0281** (p .034). `H92b` đo **−.0022** (p **1.00**) cho **đúng nhánh đó**.
+
+`H92` còn **KHÔNG đơn điệu**: thứ tự thực tế là **`E0` > `E2` > `E1` > `E3`** — `E1` **thấp hơn**
+`E2`, tức "biết có người thử" hại **hơn** "thấy chữ ký hàm". Không cơ chế liều–đáp ứng nào giải
+thích được điều đó.
+
+**Đánh giá thành thật về `E1` ở H92:** p = **.0336**, trong khi tôi chạy **6 phép so** (3 nhánh ×
+2 lần). Ở α=.05 kỳ vọng ~0.3 dương tính giả, và đây đúng vùng p ≈ .02–.04 mà kiểm định #125-B4 đã
+cảnh báo. Cộng với việc **không tái lập** (p=1.00 ở dải kia) và **phá vỡ đơn điệu**
+⇒ **tôi đọc `E1` của H92 là DƯƠNG TÍNH GIẢ, không phải hiệu ứng khung.**
+
+### Kết luận được phép viết
+1. ✅ **`E3` vững, tái lập 2/2**: phơi nhiễm **toàn bộ nội dung** hại ~.078 **không cần lệnh sửa**.
+   Phát biểu lại M1 ở #142 (`D` phụ thuộc **PHƠI NHIỄM**) **sống sót phép thử giết nó, hai lần**.
+2. ❌ **KHÔNG kết luận được LIỀU hay NGƯỠNG.** `E2` (chữ ký) không có ý nghĩa ở cả hai lần
+   (p .483 / .072) và **đổi chiều biên độ** giữa hai dải. `E1` không tái lập.
+3. ❌ **KHÔNG có "hiệu ứng khung"**: hàng 3 chỉ khớp ở một dải, và bị chính phi-đơn-điệu bác lại.
+
+> **Ghi vào TONG_HOP chỉ mục (1).** Mục (2)(3) ở lại đây như ghi chép, **không** lên README.
+> Muốn phân định liều vs ngưỡng phải có `n` lớn hơn nhiều — `E2` cần phát hiện được cỡ .015–.03,
+> tức cần **n ≈ 2000–4000**, gấp 4–8 lần hiện tại. **Đó là thí nghiệm khác, phải đăng ký riêng.**
