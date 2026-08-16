@@ -3760,3 +3760,69 @@ khác hẳn Qwen ⇒ lỗi khó tương quan. Đoán `H(A)` ≈ .69 (từ #117: 
 Rủi ro ghi trước: **`κ` có thể tụt mạnh** ở pool B vì test do **Q** viết có thể thiên vị code kiểu Q
 — nếu vậy ra hàng 2, và đó cũng là phát hiện đáng giá (bộ chọn cũng phải độc lập với **họ**).
 Hàng 2 ~25% · hàng 3 ~20% · hàng 4 ~5%. Tỉ lệ prior đúng: **15/31**.
+
+
+# Đăng ký trước #90 — H81: **BỘ CHỌN có cần ĐỘC LẬP VỀ HỌ không?** (dự đoán 1 của TONG_HOP)
+M2 nói `κ` bị chặn bởi độ độc lập của tín hiệu. Test tự sinh hiện do **chính Qwen** viết —
+lỗi của nó có thể tương quan với lỗi code của Qwen. Nếu M2 đúng, **test do HỌ KHÁC viết phải chọn TỐT HƠN**.
+**Thiết kế:** MBPP 11–510, ứng viên **cố định** = {Q1 greedy, Q2 T=.8}; đổi **duy nhất** người viết test:
+`T_self` (Qwen) vs **`T_other` (DeepSeek-Coder)**. Cùng ứng viên, cùng bài ⇒ ghép cặp hoàn hảo.
+**Cổng:** soundness ≥ .50 cả hai · copy_rate ≤ .20 · n=500.
+| Kết quả | Kết luận |
+|---|---|
+| `SEL(T_other) − SEL(T_self)` ≥ **+.02** | **M2 XÁC NHẬN ở phía bộ chọn.** Tín hiệu phải độc lập về HỌ, không chỉ về mẫu. |
+| \|chênh\| < .02 | Độc lập về họ **không** cải thiện `κ` ⇒ M2 chỉ đúng cho pool, không cho tín hiệu. Thu hẹp. |
+| chênh ≤ −.02 | Test của họ khác **tệ hơn** ⇒ `κ` phụ thuộc **khớp phong cách**, ngược M2. Rút lại phần κ. |
+| `soundness(T_other)` < .50 | HUỶ nhánh đó (DeepSeek có thể viết test kém). |
+**Prior:** hàng 1 ~40%, hàng 2 ~35%, hàng 3 ~25%. Rủi ro: DeepSeek-Coder viết test **kém hơn** về
+soundness, làm nhiễu phép so. **Tỉ lệ prior đúng: 15/31.**
+
+# Đăng ký trước #91 — H82: **"CHỌN hơn REVIEW" trên TOÁN** (chạy lại H77, đã chết ở tường 12h)
+H77 mất 12h vì `k=8` + lưu-từng-phần rỗng. **Sửa: `k=4`, lưu `raw` thật sau MỖI mẫu.**
+MATH-500, `MAXNEW`=1280 + cổng cắt ngắn #84. `I` · `V_review` · `maj@2/4`.
+| Kết quả | Kết luận |
+|---|---|
+| `maj@4 − V_review` ≥ **+.05** | **"CHỌN hơn REVIEW" TỔNG QUÁT sang toán** — không phụ thuộc oracle chạy được. |
+| +.02 ≤ chênh < +.05 | đúng chiều, yếu hơn code (+.084…+.130); nêu cả hai. |
+| \|chênh\| < .02 | **KHÔNG tổng quát** ⇒ phát biểu trung tâm chỉ về CODE. Thu hẹp TONG_HOP-M1. |
+| `maj@4 − I` < .02 | bỏ phiếu đa số không giúp trên toán ⇒ củng cố lỗi tương quan là hiện tượng chung. |
+| cổng cắt ngắn trượt | HUỶ. |
+**Prior:** hàng 1 ~55% (`V_review` trên MATH = −.1260 nên khoảng cách dễ vượt). **15/31.**
+
+# Đăng ký trước #92 — H83: **ĐIỂM THỨ BA cho công thức định tuyến** (dự đoán 4)
+Công thức: hoà vốn khi `p_esc < 1 − chi_phí_rẻ/chi_phí_đắt`. Đã khớp 2/2
+(MATH 1.5B→7B: ngưỡng .803, thực .625 → thắng · BCB 7B→32B: ngưỡng .762, thực .887 → thua).
+**Điểm thứ ba: MBPP, 1.5B→7B** ⇒ ngưỡng `1 − 1/5.07` = **.803**.
+| Kết quả | Kết luận |
+|---|---|
+| `p_esc` < .803 **và** `ROUTE ≥ I − .02` **và** chi phí < `I` | **CÔNG THỨC ĐÚNG 3/3** — dùng được để dự đoán trước khi chạy. |
+| `p_esc` ≥ .803 **và** `ROUTE` đắt hơn `I` | cũng khớp công thức (dự đoán thua, thua thật). |
+| `p_esc` < .803 nhưng `ROUTE < I − .02` | công thức đúng về CHI PHÍ, sai về ĐỘ CHÍNH XÁC ⇒ cần thêm số hạng. |
+| dự đoán ngược thực tế | **RÚT LẠI công thức M3.** |
+**Prior:** `p_esc` ≈ .55–.70 (MBPP dễ hơn BCB), tức **thắng** — hàng 1 ~55%. **15/31.**
+
+# Đăng ký trước #93 — H84: **ĐẦU ĐỘC là do CHÊNH NĂNG LỰC hay do VĂN BẢN NGOẠI LAI?**
+Mọi phép đo đầu độc đều dùng nguồn **yếu hơn**. Chưa tách được hai giả thuyết:
+(a) hại vì lời giải **SAI nhiều**, (b) hại vì nó **của model KHÁC**.
+**Thiết kế:** MBPP, verifier = Qwen2.5-7B. Nguồn: `S_weak` = 1.5B (**yếu hơn**) vs
+**`S_peer` = Llama-3.1-8B (CÙNG CỠ, khác họ)**. Cùng verifier, cùng bài.
+| Kết quả | Kết luận |
+|---|---|
+| `V(S_peer) − I` ≤ **−.02** | **ĐẦU ĐỘC KHÔNG CẦN CHÊNH NĂNG LỰC** — văn bản ngoại lai tự nó gây hại. Phát biểu mạnh hơn nhiều. |
+| `V(S_peer) − I` ≥ −.02 mà `V(S_weak) − I` ≤ −.05 | Đầu độc **cần** nguồn yếu ⇒ (a) đúng, thu hẹp phát biểu về "nguồn KÉM", không phải "nguồn NGOẠI LAI". |
+| cả hai ≈ 0 | không tái lập được đầu độc trong lần chạy này ⇒ HUỶ, kiểm lại thiết lập. |
+**Prior:** hàng 1 ~45%. Lý do: #104 cho thấy cho xem lời giải **ĐÚNG** vẫn giúp (+.042), nên
+"sai" là yếu tố lớn — nhưng 78% thiệt hại là **viết lại**, mà viết lại không cần nguồn sai. **15/31.**
+
+# Đăng ký trước #94 — H85: **REFACTOR: CHỌN vs SỬA** (chạy lại H63, đã mất ~15h)
+H63 chết ở tường 12h **không lưu gì**. **Sửa: k=8→4, lưu `raw` sau mỗi nhánh, n=267 (đã lọc).**
+BigCodeBench (dataset đã stage), 7B nf4. `ref1` · `ref_exec3` (sửa) · **`ref_sel4`** (chọn bản
+ít nút AST nhất trong 4 bản GIỮ ĐƯỢC hành vi).
+**Thước đo (khoá #58):** `good_refactor` = preserve ∧ simpler. **Báo `preserve` KÈM `good`.**
+| Kết quả | Kết luận |
+|---|---|
+| `good(sel4) − good(exec3)` ≥ **+.08** | **CHỌN thắng SỬA trên refactor** — quy tắc tổng quát từ SINH sang BIẾN ĐỔI. |
+| +.02 ≤ chênh < +.08 | hơn nhưng khiêm tốn; nêu chi phí 4 lượt vs ≤4 lượt. |
+| \|chênh\| < .02 | **CHỌN không tổng quát sang refactor** ⇒ nút thắt là **giữ ngữ nghĩa**, không phải chọn ứng viên. |
+| `preserve(ref1)` ngoài [.70,.85] | HUỶ (không tái lập được H52/H53). |
+**Prior:** hàng 1 ~45% (H53 cho SỬA chỉ +1.9 điểm, còn CHỌN chưa ai thử). **15/31.**
