@@ -44,6 +44,13 @@ def main():
         sys.exit("zhongzhing DE DANH cho viec can RTX 6000 Pro — dung tai khoan khac cho T4")
 
     raw = (ROOT / kernel).read_text()
+    # #143: RTX 6000 chay trong competition -> KHONG internet. H91 goi load_dataset("mbpp") va
+    # chet ngay dong do, truoc khi in duoc mot chu ("client has been closed"), phi ca khe RTX.
+    # Kernel chay khong internet PHAI co duong nap tu dataset da stage.
+    if not INTERNET and "load_dataset(" in raw and "/kaggle/input" not in raw.split("load_dataset(")[0][-800:]:
+        if "mbpp_full.json" not in raw and "glob.glob(\"/kaggle/input" not in raw:
+            sys.exit("KHONG internet nhung kernel goi load_dataset() ma khong co duong nap tu "
+                     "dataset da stage -> se chet ngay dong do. Stage benchmark thanh dataset truoc.")
     # #121: launcher CHI kiem "con placeholder chua thay", KHONG kiem "placeholder co ton tai".
     # Vi the LO=511 HI=974 bi BO QUA IM LANG khi kernel hardcode dai -> tao ra mot ban
     # "tai lap" GIA chay tren dung du lieu cu. Kiem xuoi: da truyen thi PHAI co cho de thay.

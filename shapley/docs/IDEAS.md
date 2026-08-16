@@ -5638,3 +5638,30 @@ Cùng ngân sách, cùng bài, khác **duy nhất** ở việc `M` **có nhìn t
 Kernel in cả bảng #98, nhưng H88d/H88e dùng model đắt **Qwen-7B — CÙNG họ**, tức chính là **mốc**
 của #98. So mốc với chính nó thì vô nghĩa. `V − I` = **−.0882 / −.0929** ở đây chỉ là **mốc nội họ
 đã cập nhật** (trước là −.0740), **không phải** một hàng của #98.
+
+---
+
+## Vòng #143 — H91 chết ở dòng ĐẦU TIÊN: RTX 6000 không có internet
+
+Không stdout nào. Lỗi: `Cannot send a request, as the client has been closed` —
+`gated_repair_kernel.py` gọi `load_dataset("mbpp", ...)` từ HuggingFace, mà kernel RTX 6000 chạy
+**trong competition nên bị CẤM internet**.
+
+**Đây là ràng buộc tôi đã ghi sẵn trong luật vận hành** (*"RTX 6000 ... FORBIDS internet, benchmark
+phải stage thành Kaggle dataset; `mbpp-full-json` đã có sẵn dưới zhongzhing"*) — và tôi vẫn phóng
+mà không mount nó. `crossfamily_kernel.py` **đã có** đường nạp offline từ trước; tôi lấy
+`gated_repair` (kernel viết cho T4, nơi **có** internet) đem thẳng lên RTX.
+
+> **Đúng loại lỗi #135 vừa dạy: một bản vá đúng ở kernel A là lỗi ở kernel B.**
+> Lần đó là `expandable_segments` gây lỗi CUDA ở kernel đa luồng. Lần này là **giả định về mạng**.
+> **Khi chuyển một kernel sang PHẦN CỨNG KHÁC, phải liệt kê mọi giả định về MÔI TRƯỜNG
+> (mạng, số card, dtype, dataset mount), không chỉ giả định về bộ nhớ.**
+
+### Sửa ở tầng chặn được, không chỉ ở kernel
+1. `gated_repair_kernel.py`: ưu tiên `mbpp_full.json` đã stage, chỉ gọi HF khi thật sự có mạng.
+2. **`deploy/launch_any.py` — guard mới:** nếu `INTERNET=False` mà kernel có `load_dataset(`
+   nhưng **không** có đường nạp từ `/kaggle/input` ⇒ **dừng ngay lúc phóng**.
+   Trước đây launcher chỉ canh placeholder và cấu hình máy; giờ nó canh cả **giả định môi trường**.
+
+**H91b** đã phóng lại, mount `zhongzhing/mbpp-full-json`, xác minh trong bản ĐÃ ĐẨY.
+Giá phải trả: một khe RTX (~vài phút, chết sớm nên rẻ — hiếm khi được thế).

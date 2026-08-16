@@ -28,8 +28,18 @@ def find_model(*needles):
 CHEAP_NEEDLES = [x for x in "@@CHEAP@@".split(",") if x]   # #142: tang RE cung tham so hoa
 M = {"cheap": find_model(*CHEAP_NEEDLES), "dear": find_model(*DEAR_NEEDLES)}
 SAME_FAMILY = any("qwen" in n for n in DEAR_NEEDLES)
-from datasets import load_dataset
-_DS = load_dataset("mbpp", "full", split="test+train+validation")
+# #143: RTX 6000 chay trong competition -> KHONG co internet. H91 chet ngay dong nay
+# ("Cannot send a request, as the client has been closed") truoc khi in duoc gi.
+# Uu tien dataset JSON da stage; chi goi HuggingFace khi that su co mang.
+_hits = sorted(glob.glob("/kaggle/input/**/mbpp_full.json", recursive=True), key=len)
+if _hits:
+    print(f"MBPP nap tu dataset da stage: {_hits[0]}", flush=True)
+    _DS = json.load(open(_hits[0]))
+else:
+    print("khong mount duoc mbpp_full.json -> thu HuggingFace (can internet)", flush=True)
+    from datasets import load_dataset
+    _D = load_dataset("mbpp", "full", split="test+train+validation")
+    _DS = [{k: r[k] for k in ["task_id", "text", "code", "test_list"]} for r in _D]
 CC = torch.cuda.get_device_capability(0); VRAM = torch.cuda.get_device_properties(0).total_memory/2**30
 print(f"MODELS={json.dumps(M,indent=1)}\nGPU={torch.cuda.get_device_name(0)} | {VRAM:.1f} GB | sm_{CC[0]}{CC[1]}\n"
       f"DAI BAI: {LO}-{HI}", flush=True)

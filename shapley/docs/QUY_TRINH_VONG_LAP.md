@@ -444,3 +444,12 @@ gây hại"* từ một hiệu ứng **không phân biệt được với 0**.
 > **Quy tắc cứng: mỗi hàng phải viết dạng `|Δ| ≥ x VÀ p < .05`.**
 > Đây là lần thứ BA bảng khoá hỏng vì thiếu điều kiện (#99, #116, #140).
 > Và: **ngưỡng hiệu ứng không được đặt trong vùng dự án đã tuyên là nhiễu** (≤ .02 ở n=500).
+
+13. **#143 — chuyển kernel sang phần cứng khác = kiểm lại MỌI giả định môi trường**
+
+`gated_repair` viết cho T4 (**có** internet) đem lên RTX 6000 (**cấm** internet) ⇒ chết ở dòng
+`load_dataset()`, không in nổi một chữ.
+
+> **Quy tắc cứng: trước khi phóng kernel X lên phần cứng Y lần đầu, đối chiếu 5 giả định:
+> (1) internet, (2) số GPU, (3) dtype/lượng tử hoá, (4) dataset mount, (5) giới hạn thời gian.**
+> Launcher giờ tự chặn (1) và (4). (2)(3) đã có đường lui từ #134-e.
