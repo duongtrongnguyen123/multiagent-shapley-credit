@@ -6107,3 +6107,48 @@ Vế thứ hai gán nhãn "cắt cụt" cho đầu ra **không hề dùng rào m
 `family_vs_size`, `strong_plus_diverse`, `selector_indep`, `mbpp_peer`) **không có gì** —
 một kết quả lệch vì cắt cụt ở bất kỳ cái nào trong số đó sẽ **không ai phát hiện**.
 Đã thêm `_unclosed()` + `trunc_report()` (định nghĩa đã sửa) vào cả sáu.
+
+---
+
+## Vòng #155 — H91d: **tôi tự phá lần chạy**. Toàn bộ đầu ra là chuỗi ` ``` ` 3 ký tự.
+
+Đây là **lỗi của tôi**, không phải của hạ tầng, và nó tốn **một khe RTX 6000 (~2 giờ)** —
+tài nguyên khan hiếm nhất của dự án.
+
+### Chuyện gì xảy ra
+Ở #101-d tôi thêm `stop_strings=["```\n", "```"]` để dừng sinh sau khi **đóng** block code.
+Vế `"```"` trần khớp **RÀO MỞ**: model vừa sinh xong ba dấu huyền của `` ```python `` thì văn bản
+**đã kết thúc bằng** `` ``` `` ⇒ dừng ngay lập tức.
+
+```
+S_raw: '```'   I_raw: '```'   V_raw: '```'      (499 bai x 3 nhanh, do dai TB = 3 ky tu)
+```
+`extract_rate` = **0.0 / 0.0 / 0.0**. Cổng bắt được — nhưng **sau khi** đã đốt hết khe.
+
+### Ba lỗi riêng biệt trong một bản vá
+1. **Không mô phỏng chuỗi dừng trước khi phóng.** Phép thử 5 dòng (`text.endswith(stop)` chạy
+   từng ký tự) cho thấy ngay `"```"` dừng ở rào mở. Tôi đã **viết** đúng phép thử đó — **sau khi**
+   mất lần chạy.
+2. **Không có kiểm tỉnh táo trong kernel.** Sinh ra 1497 chuỗi 3 ký tự mà không có gì kêu lên.
+3. **Chẩn đoán vội.** Tôi cho rằng `V` dài vì **văn xuôi sau code**; số liệu nói ngược:
+   nhóm bị cắt có **891 ký tự văn xuôi TRƯỚC rào (32%)** và tổng **2787 ký tự** — tức chạm đúng
+   trần 1536 token (~2765 ký tự cho code). **`stop_strings` không bao giờ cứu được ca này.**
+
+> **Bản vá tôi chọn không giải quyết vấn đề tôi có, và còn tạo ra vấn đề tệ hơn.**
+> Nguyên nhân gốc: tôi **suy** ra cơ chế ("văn xuôi ở cuối") thay vì **đo** nó — dù dữ liệu để đo
+> đã nằm sẵn trong `partial_H91c.json`.
+
+### Sửa (đã kiểm TRƯỚC khi phóng lần này)
+| | |
+|---|---|
+| chuỗi dừng | `["\n```\n"]` — **chỉ khớp rào ĐÓNG**; đã mô phỏng từng ký tự, giữ được code |
+| `MAXNEW` | 1536 → **4096** (nhóm bị cắt chạm 2787 ký tự ≈ 1536 token cho code) |
+| **kiểm tỉnh táo** | sau **lô ĐẦU TIÊN**: độ dài TB < **20** ký tự ⇒ **HUỶ NGAY** |
+
+Ngưỡng 20 chọn từ dữ liệu thật: nhỏ nhất quan sát được là **80.1** ký tự (`T_raw`, các dòng assert
+ngắn) ⇒ biên **4×** dưới; ca hỏng là **3.0** ký tự ⇒ biên **6.7×** trên. (Đặt 50 như ý đầu chỉ có
+biên 1.6× — **quá sát**, có thể huỷ nhầm lần chạy tốt.)
+
+> **Quy tắc: mọi thay đổi cơ chế SINH phải (a) mô phỏng ngoại tuyến trên chuỗi ví dụ, và
+> (b) đi kèm một phép kiểm tỉnh táo chạy sau lô ĐẦU TIÊN.**
+> Cổng chất lượng ở cuối là lưới cuối cùng, **không phải** lưới đầu tiên.

@@ -17,7 +17,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 RUN, LO, HI = "@@RUN@@", int("@@LO@@"), int("@@HI@@")
 DEAR_NEEDLES = [s for s in "@@DEAR@@".split(",") if s]   # model DAT: doi ho de kiem #98
-MAXNEW, TIMEOUT = 3072, 60   # #101-d: luoi an toan; chan chinh la stop_strings
+MAXNEW, TIMEOUT = 4096, 60   # #155: V bi cat o ~2787 ky tu (=1536 token cho code)
 BSZ = {"cheap": 24, "dear": 16}
 
 def find_model(*needles):
@@ -212,7 +212,7 @@ def gen(mo, tk, sysm, usrs, bs):
             try:
                 o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=False,
                                 pad_token_id=tk.pad_token_id,
-                                stop_strings=["```\n", "```"], tokenizer=tk)
+                                stop_strings=["\n```\n"], tokenizer=tk)   # #155: CHI rao DONG
             except TypeError:
                 if not globals().get("_NOSTOP_WARNED"):
                     print("    [#101-d] transformers khong nhan stop_strings -> chi dung MAXNEW", flush=True)
@@ -224,6 +224,15 @@ def gen(mo, tk, sysm, usrs, bs):
             bs = max(1, bs//2); print(f"    OOM -> lo {bs}", flush=True); continue
         L = e["input_ids"].shape[1]
         outs += [tk.decode(o[j, L:], skip_special_tokens=True).strip() for j in range(len(ch))]
+        # #155: KIEM TINH TINH ngay sau lo DAU TIEN. H91d sinh ra chuoi "```" 3 ky tu cho
+        # ca 499 bai x 3 nhanh va toi chi biet khi da het mot khe RTX (~2 gio). Mot phep
+        # kiem 3 dong o day bat duoc trong vai giay.
+        if i == 0:
+            _avg = sum(len(x) for x in outs)/max(len(outs), 1)
+            if _avg < 20:   # #155: nho nhat quan sat that = 80.1 (T_raw); hong = 3.0
+                raise SystemExit(f"HUY SOM (#155): lo dau tien co do dai TB {_avg:.1f} ky tu "
+                                 f"(<20) — sinh bi hong. Mau: {outs[0][:80]!r}")
+            print(f"    [kiem lo 1] do dai TB {_avg:.0f} ky tu — binh thuong", flush=True)
         del e, o; torch.cuda.empty_cache(); i += bs
     return outs
 
