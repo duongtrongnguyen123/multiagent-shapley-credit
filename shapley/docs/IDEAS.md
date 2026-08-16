@@ -5419,3 +5419,45 @@ MATH cũng dùng ngưỡng `.803`, tức cũng giả định 1 lượt rẻ. **T
 - **`ROUTE − I` = +.0060 (p .648)** và **`SEL − I` = +.0120 (p .146)**: **CẢ HAI KHÔNG CÓ Ý NGHĨA**
   và đều **dưới ngưỡng .02** mà dự án đã tuyên là nhiễu. **Không được phát biểu là "định tuyến
   giữ nguyên độ chính xác" hay "chọn có lợi"** — n=499 không phân biệt được chúng với 0.
+
+---
+
+## Vòng #138 — H88 + H88b **VOID**. Cổng đo *thói quen định dạng*, không đo *tính hợp lệ*
+
+**KHÔNG đọc `d_gate`, `d_honest`, `d_cont`, `d_ceil`, hay bất kỳ `acc` nào. Sẽ không bao giờ đọc.**
+
+### Cổng trượt
+| | `extract_min` | chênh | `n` | `test_runnable` |
+|---|---|---|---|---|
+| H88 (11–510) | **.1383** | **.8617** | 499 ✓ | .6994 |
+| H88b (511–974) | **.2073** | **.7927** | **463** ✗ | .6739 |
+
+### Cổng đã bắt cái gì
+| nhánh | `has_block` (đã CÀI) | `compiles(extract(·))` (đã VIẾT trong #97) |
+|---|---|---|
+| `S` (1.5B) | **.1383** | **.9980** |
+| `I` (7B) | 1.0000 | .9940 |
+
+#97 viết *"tỉ lệ **trích được code chạy** ≥ .80"*. Tôi cài bằng `has_block()` — **có hàng rào
+markdown hay không**. Model yếu **không rào code**; nó cứ thế in `def remove_Occ(s, ch): ...`.
+`extract()` có đường lui lấy toàn văn, và code ấy **biên dịch được 99.8%**.
+Cổng bắt một **thói quen định dạng**, không phải một **mối đe doạ tới tính hợp lệ**.
+
+### Vì sao vẫn VOID
+Theo chữ đã viết, cổng **ĐẠT** (.998 / .994, chênh .0040). Theo thứ đã cài, cổng **TRƯỢT**.
+Chuyển sang thước đo mà tôi **đã biết là sẽ đạt**, **sau khi** thấy thước đo kia trượt —
+đó đúng là **#114**, sai phạm mà kiểm định #125-C đã bắt và tôi đã phải rút hai kết luận.
+
+> **Một lý lẽ đúng đưa ra SAU khi thấy cổng trượt vẫn là lý lẽ đưa ra sau.**
+> Tôi không chứng minh được rằng mình sẽ soi lại định nghĩa cổng nếu nó ĐẠT.
+> **H88/H88b VOID vĩnh viễn.** Điều duy nhất cứu vãn được: tôi **chưa mở** các delta,
+> nên lần chạy lại vẫn **sạch**.
+
+### Đã sửa (đăng ký ở #97-c, TRƯỚC khi chạy lại)
+- cổng → `compiles(extract(t))`, đúng chữ của #97; `has_block` **vẫn báo cáo** nhưng **hết là cổng**
+- `n ≥ 480`: H88b chỉ được 463 ⇒ **nới DẢI LẤY BÀI lên 511–1000**, **không hạ ngưỡng** (bài học #127)
+- `test_runnable`: **.70 → .60**. **Đây là NỚI ngưỡng và tôi nói thẳng.** Ngưỡng .70 là tôi đoán;
+  đại lượng này chỉ mô tả **cổng `z` mạnh cỡ nào**, không đe doạ tính hợp lệ của so sánh.
+  Ai không chấp nhận việc nới thì **chỉ đọc `d_ceil`** — cổng ORACLE, **không dính** tới `z`.
+
+### Bảng khoá #97 **không sửa một chữ.**

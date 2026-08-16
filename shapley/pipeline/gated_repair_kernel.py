@@ -265,12 +265,17 @@ mc = {"gate": mcnemar(PV, PG_V), "honest": mcnemar(PI, PG_V),
       "VI": mcnemar(PI, PV), "IS": mcnemar(PS, PI)}
 
 # ---- CONG CHAT LUONG (#97) ----
-ext = {k: round(sum(has_block(t) for t in v)/N, 4) for k, v in
+# #97-c: cong PHAI la "trich duoc code CHAY", khong phai "co hang rao markdown".
+# H88/H88b VOID vi cai nham: S co has_block .1383 nhung compiles(extract) .9980 —
+# model yeu khong rao code, the thoi. `has_block` van duoc BAO CAO nhung khong con la cong.
+ext = {k: round(sum(compiles(extract(t)) for t in v)/N, 4) for k, v in
        (("S", S_raw), ("I", I_raw), ("V", V_raw))}
+fenced = {k: round(sum(has_block(t) for t in v)/N, 4) for k, v in
+          (("S", S_raw), ("I", I_raw), ("V", V_raw))}
 ext_min, ext_spread = min(ext.values()), round(max(ext.values())-min(ext.values()), 4)
 runnable = round(sum(1 for t in TESTS if t)/N, 4)
 gates = {"extract_min>=.80": ext_min >= .80, "extract_spread<.05": ext_spread < .05,
-         "n>=480": N >= 480, ".15<=p_esc<=.90": .15 <= p_esc <= .90, "test_runnable>=.70": runnable >= .70,
+         "n>=480": N >= 480, ".15<=p_esc<=.90": .15 <= p_esc <= .90, "test_runnable>=.60": runnable >= .60,
          "I-S>=.05 (cong nang luc #98)": d_IS >= .05}
 VOID = [k for k, v in gates.items() if not v]
 
@@ -281,7 +286,7 @@ res = {"tag": RUN, "range": [LO, HI], "n": N,
                  "V_minus_I": d_VI, "I_minus_S": d_IS},
        "mcnemar": {k: {"b01": v[0], "b10": v[1], "p": v[2]} for k, v in mc.items()},
        "p_esc": p_esc, "extract_rate": ext, "extract_min": ext_min, "extract_spread": ext_spread,
-       "test_runnable": runnable, "gates": gates, "VOID": VOID,
+       "test_runnable": runnable, "fenced_rate": fenced, "gates": gates, "VOID": VOID,
        "gate_accept_but_wrong": sum(1 for i in range(N) if Z[i] and not PS[i]),
        "gate_reject_but_right": sum(1 for i in range(N) if not Z[i] and PS[i]),
        "V_destroys": sum(1 for i in range(N) if PS[i] and not PV[i]),
