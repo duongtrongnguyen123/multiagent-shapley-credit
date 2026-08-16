@@ -403,3 +403,17 @@ Chạy thử phát hiện bản đầu **bỏ sót `TESTS`** (list-of-list) và 
 > **Quy tắc cứng: mọi bản sửa "an toàn" phải được CHẠY THỬ trên dữ liệu giả có đủ hình dạng
 > thật (list-of-str, list-of-list, list-of-bool, biến không phải list) trước khi tin.**
 > Bản chụp đầu tiên trông đúng và im lặng đánh rơi hai mảng quan trọng nhất.
+
+10. **#134-c — bộ kiểm báo động giả là bộ kiểm sẽ bị phớt lờ**
+
+Quy tắc "AST-check toàn bộ file sau MỖI lần sửa" chỉ có giá trị khi bộ kiểm **đúng**. Bộ kiểm
+tạm của tôi báo **16 kernel hỏng cú pháp**; thật ra chúng dùng placeholder (`@@SHARD@@`,
+`@@NSHARD@@`, `@@TIDLO@@`, ...) mà bộ kiểm không biết thay. Nếu tôi tin nó, tôi đã đi "sửa"
+16 file lành. Nếu tôi phớt lờ nó, lần sau nó báo thật tôi cũng phớt lờ.
+
+Đã thay bằng **`deploy/astcheck.py`**: thay MỌI `@@TÊN@@` bằng literal hợp lệ, mã thoát != 0 khi
+có file hỏng. Kết quả thật: **118/118 file OK, 0 hỏng.**
+
+> **Quy tắc cứng: trước khi tin một cảnh báo hàng loạt, kiểm xem CÁC FILE ĐÓ có nằm trong số
+> mình vừa sửa không (`git diff --name-only`) và có khác gì so với trước phiên không.**
+> Ở đây câu trả lời là "không đụng tới, byte y hệt" ⇒ lỗi nằm ở bộ kiểm, không ở kernel.
