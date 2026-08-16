@@ -4455,3 +4455,36 @@ Trên MATH `V − I` đã đo **−.1260** (mạnh hơn code), nên nhánh SAI c
 **Rủi ro lớn nhất là cổng 5**: `acc(1.5B)` trên MATH chỉ ~.30, nên tầng "artifact ĐÚNG" chỉ còn
 ~150 bài ⇒ `Δ(ĐÚNG)` sẽ **thiếu lực**, và hàng 1 vs 2 có thể không phân định được.
 **Nếu vậy tôi phải đọc hàng 3/4 theo `Δ(SAI)` và nói rõ `Δ(ĐÚNG)` không kết luận được.**
+
+---
+
+## #101-d — SỬA ĐỔI: chặn cắt cụt TẠI NGUỒN thay vì cứ nhân đôi `MAXNEW`
+
+**Đăng ký lúc:** H91c VOID (cắt cụt nhánh `V` = .1042 > .05). **Chưa đọc `d_ceil`/`d_gate`/
+`d_honest`/`d_cont` của H91c và sẽ không đọc.**
+
+### Lỗi tôi mắc ở #146, nói thẳng
+Ở `MAXNEW`=768 tôi thấy `V` có p95 ≈ 3374 ký tự và kết luận 1536 là **dư ~1.7×**. Sai, vì
+**phân phối quan sát được bị CHÍNH CÁI CAP chặn trên**. Ở 1536, `V` đạt tới **7582** ký tự và
+**vẫn 10.42%** bị cắt ⇒ đuôi thật vẫn chưa nhìn thấy.
+
+> **Không bao giờ ước ngưỡng cắt từ dữ liệu đã bị chính ngưỡng đó cắt.**
+> Ước như thế **luôn thấp hơn sự thật**, và mỗi vòng chỉ đẩy vấn đề đi một nấc.
+
+### Vì sao không nhân đôi tiếp
+`V` mất **82 phút** ở 1536. Lên 3072 ⇒ ~2.7 giờ chỉ riêng `V`, mà **vẫn không đảm bảo** —
+đuôi thật chưa biết. Đây là vòng lặp không có điểm dừng xác định.
+
+### Sửa: **dừng sinh ngay sau khi đóng block code**
+Thêm `stop_strings=["```\n", "```"]` (kèm `tokenizer=`) vào `generate()`, **áp ĐỐI XỨNG cho MỌI
+nhánh**. Đầu ra khi ấy bị chặn bởi **độ dài của chính khối code**, không bởi phần văn xuôi mà
+model 32B thêm vào khi được cho xem code. Kèm `MAXNEW` = **3072** làm lưới an toàn.
+
+**Vì sao đối xứng nên không thiên vị:** `S` và `I` vốn đã đóng block sớm (cắt cụt .0000 / .0020),
+nên `stop_strings` gần như không đổi gì với chúng; nó chỉ cắt phần **văn xuôi thừa sau code** của
+`V`. Thứ bị cắt **không nằm** trong `extract()` — `extract()` chỉ lấy block đầu tiên.
+
+**Dự phòng:** nếu bản `transformers` trên máy không nhận `stop_strings`, bắt `TypeError` và chạy
+tiếp chỉ với `MAXNEW`=3072 (kernel in rõ đã dùng đường nào).
+
+### Cổng và BẢNG KHOÁ #101 giữ nguyên từng chữ. Chỉ đổi cơ chế sinh.

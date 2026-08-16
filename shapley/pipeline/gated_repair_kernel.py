@@ -17,7 +17,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 RUN, LO, HI = "@@RUN@@", int("@@LO@@"), int("@@HI@@")
 DEAR_NEEDLES = [s for s in "@@DEAR@@".split(",") if s]   # model DAT: doi ho de kiem #98
-MAXNEW, TIMEOUT = 1536, 60   # #101-b: 768 cat cut 17.2% nhanh V o 32B (V dai 4.5x I)
+MAXNEW, TIMEOUT = 3072, 60   # #101-d: luoi an toan; chan chinh la stop_strings
 BSZ = {"cheap": 24, "dear": 16}
 
 def find_model(*needles):
@@ -207,7 +207,17 @@ def gen(mo, tk, sysm, usrs, bs):
             ps = [tk.apply_chat_template([{"role":"system","content":sysm},{"role":"user","content":u}],
                   tokenize=False, add_generation_prompt=True) for u in ch]
             e = tk(ps, return_tensors="pt", padding=True).to(_indev(mo))
-            o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=False, pad_token_id=tk.pad_token_id)
+            # #101-d: dung ngay sau khi DONG block code. Ap DOI XUNG moi nhanh.
+            # extract() chi lay block dau tien, nen phan bi cat la van xuoi THUA sau code.
+            try:
+                o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=False,
+                                pad_token_id=tk.pad_token_id,
+                                stop_strings=["```\n", "```"], tokenizer=tk)
+            except TypeError:
+                if not globals().get("_NOSTOP_WARNED"):
+                    print("    [#101-d] transformers khong nhan stop_strings -> chi dung MAXNEW", flush=True)
+                    globals()["_NOSTOP_WARNED"] = True
+                o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=False, pad_token_id=tk.pad_token_id)
         except torch.OutOfMemoryError:
             torch.cuda.empty_cache()
             if bs == 1: raise
