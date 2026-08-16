@@ -4291,3 +4291,57 @@ cú pháp** chứng minh được độc lập với kết quả (cả hai model
 **H81d vẫn VOID vĩnh viễn** — tôi không đọc lại số của nó theo luật mới.
 
 ### Bảng khoá #90 **giữ nguyên từng chữ**, chỉ thêm hàng 0 (VOID theo cổng độ phủ).
+
+---
+
+## #103 — H93: **HỌ hay chỉ là TRỌNG SỐ KHÁC?** (thu hẹp M2 sau #145)
+
+**Đăng ký lúc:** trước khi phóng. #145 vừa tái lập: pool **khác họ** cho `H` +.069, `SEL` +.045,
+và số bài chỉ-một-ứng-viên tụt **36.2% → 6.5%**. README giờ khuyên *"trả tiền cho k lượt thì k
+model KHÁC NHAU hơn k mẫu từ một model"*.
+
+**Nhưng #145 KHÔNG tách được hai giải thích:**
+- (a) **HỌ** quan trọng — dữ liệu huấn luyện / tokenizer / nhà cung cấp khác nhau;
+- (b) chỉ cần **TRỌNG SỐ KHÁC** là đủ — cùng họ, khác **cỡ**, cũng decorrelate.
+
+Phân biệt được thì rất đáng: **ba cỡ của MỘT họ dễ triển khai hơn ba nhà cung cấp** rất nhiều.
+
+### Thiết kế — MỘT lần chạy, ba pool, bộ chọn GIỮ NGUYÊN
+MBPP 11–510. Bộ chọn **cố định**: test do **Qwen-7B viết một lần**, dùng chung cho cả ba pool.
+
+| pool | ứng viên | biến |
+|---|---|---|
+| **A** | Qwen-7B greedy + 2 mẫu T=.8 | **cùng trọng số** (mốc tương quan) |
+| **B** | Qwen-7B + Llama-3.1-8B + DeepSeek-6.7B | **khác HỌ** |
+| **C** | Qwen-7B + Qwen-1.5B + Qwen-14B | **cùng họ, khác CỠ** |
+
+Đo cho mỗi pool: `d` (số ứng viên phân biệt, chuẩn hoá đã khoá ở #99), `solo` (tỉ lệ bài chỉ có
+một ứng viên), `H` (trần), `SEL`. **Ghép cặp hoàn hảo** — cùng bài, cùng bộ chọn, một lần chạy.
+
+### CỔNG (hiệu ứng + ý nghĩa + độ phủ — luật #140/#144)
+1. soundness ≥ .50 · copy_rate ≤ .20 · n ≥ 480
+2. `acc` mọi model ∈ [.35, .85]
+3. **độ phủ test ≥ .90** (một bộ chọn duy nhất nên độ phủ như nhau ở cả ba pool — kiểm cho chắc)
+4. tỉ lệ block chưa đóng < .05 mọi model (#101-b)
+
+### BẢNG KHOÁ (đọc theo thứ tự)
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng trượt | **VOID** |
+| 1 | `H(C) − H(A)` ≥ +.03 (p<.05) **và** \|`H(C) − H(B)`\| < .03 | **TRỌNG SỐ KHÁC LÀ ĐỦ.** Không cần đổi họ — đổi **cỡ** trong cùng họ decorrelate tương đương. **Khuyến nghị README rẻ đi rất nhiều.** |
+| 2 | `H(C) − H(A)` ≥ +.03 (p<.05) nhưng `H(B) − H(C)` ≥ +.03 (p<.05) | cỡ khác **có** giúp nhưng **họ khác giúp HƠN** ⇒ giữ khuyến nghị hiện tại, nêu thêm bậc thang. |
+| 3 | \|`H(C) − H(A)`\| < .03 hoặc p ≥ .05 | **CỠ KHÁC KHÔNG decorrelate.** Biến thật sự là **HỌ** (dữ liệu/tokenizer), không phải trọng số. **Phải thu hẹp README từ "k model khác nhau" thành "k HỌ khác nhau".** |
+| 4 | `H(C) − H(B)` ≥ +.03 (p<.05) | cỡ khác **thắng** họ khác — ngược hẳn trực giác, phải điều tra lại #145. |
+
+**Đại lượng phụ (báo kèm, không quyết định hàng):** `d` và `solo` của ba pool. Nếu `solo(C)` không
+tụt như `solo(B)` thì cơ chế chuỗi của #145 **chỉ đúng cho họ**, và đó là bằng chứng độc lập cho hàng 3.
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 2 **~40%** · hàng 1 **~30%** · hàng 3 **~25%** · hàng 4 **~5%**.
+Qwen-1.5B và Qwen-14B chia **cùng dữ liệu huấn luyện và cùng tokenizer**, nên tôi ngờ chúng
+mắc **cùng kiểu lỗi** hơn là Llama/DeepSeek — nhưng chúng **chắc chắn** không trả về cùng chuỗi
+như hai mẫu từ một model, nên `solo(C)` sẽ tụt đáng kể. **Rủi ro đã biết:** Qwen-1.5B (`acc` ~.44)
+yếu hơn hẳn Llama (.56)/DeepSeek (.64) ở #145, nên pool C có thể thua pool B **vì chất lượng**
+chứ không vì họ. Vì thế **phải báo `acc` từng model kèm mọi kết luận**, và hàng 2 **không** được
+đọc thành "họ quan trọng" nếu chênh `acc` giải thích được.
