@@ -170,7 +170,9 @@ for kk in range(1, 5):
     SS.append([extract(t) for t in gen(m15, tk15, SOLVE, PR, 24, temp=0.8)])
     print(f"S{kk+1} (1.5B T=0.8) xong ({time.time()-t0:.0f}s)", flush=True)
 for _m in m15: del _m
-del m15; gc.collect(); torch.cuda.empty_cache()
+del m15; gc.collect()
+for _d in range(torch.cuda.device_count()):
+    with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"5 mau 1.5B xong ({time.time()-t0:.0f}s)", flush=True)
 
 m7, tk7 = load(M7, True)

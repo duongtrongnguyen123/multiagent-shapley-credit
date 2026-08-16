@@ -169,7 +169,9 @@ t0 = time.time()
 m15, tk15 = load("1.5B")
 SOLS = gen(m15, tk15, SOLVE, Q, BSZ["1.5B"])
 for _m in m15: del _m
-del m15; gc.collect(); torch.cuda.empty_cache()
+del m15; gc.collect()
+for _d in range(torch.cuda.device_count()):
+    with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 
 m7, tk7 = load("7B")

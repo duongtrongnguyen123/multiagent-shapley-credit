@@ -337,3 +337,21 @@ RTX 6000 (competition **cấm internet**). Rồi dùng lại chúng cho kernel T
    **đúng tài khoản sở hữu dataset** (`zhongzhing`), hoặc dataset phải **public**.
 3. Kernel phải **báo lỗi RÕ** khi thiếu dữ liệu, thay vì `IndexError` từ `[0]`:
    `if not hits: raise SystemExit("khong mount duoc dataset X — kiem visibility/tai khoan")`.
+
+---
+
+## Bài học H84: **lỗi #109 lần thứ NĂM — sửa một file, quên cả HỌ**
+
+Bản sửa "giải phóng VRAM theo TỪNG GPU" (#130, H65T2) chỉ được áp vào `capacity_poison_kernel.py`.
+**Mười một kernel khác vẫn dùng `torch.cuda.empty_cache()` một-thiết-bị** và H84 OOM vì đúng lý do đó.
+
+Đếm lại các lần lỗi #109 lặp lại:
+1. #109 — bản sửa `#74-c` không lan sang `mbpp_budget_kernel` ⇒ đốt một phiên
+2. #121 — tham số hoá dải chỉ có ở 1/10 kernel ⇒ **bản tái lập GIẢ**
+3. H83/H85 — fallback HuggingFace sửa từng file
+4. H81 — cùng lỗi, vẫn sửa từng file
+5. **H84 — giải phóng đa-GPU, 11 kernel còn sót**
+
+> **Quy tắc cứng: MỌI bản sửa kernel phải bắt đầu bằng `grep -l <mẫu lỗi> pipeline/*.py`
+> và kết thúc bằng việc sửa TẤT CẢ các file khớp — trước khi phóng bất cứ thứ gì.**
+> Sửa một file rồi phóng là mặc định SAI trong repo này, vì kernel được sinh ra bằng cách sao chép nhau.

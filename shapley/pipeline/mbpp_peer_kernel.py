@@ -117,7 +117,9 @@ m15, tk15 = load(M15, False)
 S_RAW = gen(m15, tk15, SOLVE, PR, 24)
 S = [extract(t) for t in S_RAW]
 for _m in m15: del _m
-del m15; gc.collect(); torch.cuda.empty_cache()
+del m15; gc.collect()
+for _d in range(torch.cuda.device_count()):
+    with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 
 m7, tk7 = load(M7, True)
@@ -128,11 +130,15 @@ VP = [f"{PR[i]}\n\nProposed code:\n```python\n{S[i]}\n```" for i in range(N)]
 V = [extract(t) for t in gen(m7, tk7, REVIEW, VP, 8)]
 print(f"V_weak xong ({time.time()-t0:.0f}s)", flush=True)
 for _m in m7: del _m
-del m7; gc.collect(); torch.cuda.empty_cache()
+del m7; gc.collect()
+for _d in range(torch.cuda.device_count()):
+    with torch.cuda.device(_d): torch.cuda.empty_cache()
 mp, tkp = load(MPEER, True)
 PEER = [extract(t) for t in gen(mp, tkp, SOLVE, PR, 8)]
 for _m in mp: del _m
-del mp; gc.collect(); torch.cuda.empty_cache()
+del mp; gc.collect()
+for _d in range(torch.cuda.device_count()):
+    with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S_peer (Llama-8B) xong ({time.time()-t0:.0f}s)", flush=True)
 m7, tk7 = load(M7, True)
 VPP = [f"{PR[i]}\n\nProposed code:\n```python\n{PEER[i]}\n```" for i in range(N)]
