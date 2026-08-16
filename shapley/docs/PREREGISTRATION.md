@@ -3942,3 +3942,54 @@ Hàng 1 đáng kể vì `acc(I)` đã cao hơn `acc(S)` tới +.2120: tập bài
 ### Tái lập dựng sẵn
 `H88` = MBPP 11–510 · `H88b` = MBPP 511–974 (**dải tách rời**) · `H88c` = MATH-500 (khác miền).
 Kết luận chỉ vào TONG_HOP nếu **H88 và H88b khớp hàng**.
+
+---
+
+## #98 — H89: PHÁ HOẠI CÓ PHỤ THUỘC HỌ MODEL KHÔNG?
+
+**Đăng ký lúc:** trước khi phóng H89/H89b/H89c. **Chưa nhìn số nào.**
+
+### Câu hỏi
+TONG_HOP mục 1 kết luận thiệt hại **100% đến từ NGUỒN NGOẠI LAI** (trên MATH: `V_self` = +.0020
+vô hại, `V_weak` = −.1260). Nhưng "ngoại lai" ở đó chỉ có nghĩa **model khác kích cỡ, CÙNG họ
+Qwen2.5**. Nếu cơ chế thật sự là "nguồn lạ" thì đổi sang **model khác HỌ** — nguồn lạ tối đa —
+phải làm `D` **lớn hơn**. Đây là dự đoán **có hướng**, nên nó **có thể sai**.
+
+Đồng thời vá được điểm yếu tự thú ở TONG_HOP mục 4: *"mọi thứ ở một họ model (Qwen2.5)"*.
+
+### Thiết kế
+Giữ **nguyên** `S` = Qwen2.5-1.5B, **nguyên** giao thức, **nguyên** dải bài, **nguyên** MBPP.
+Chỉ đổi **một biến**: họ của model đắt `M`.
+
+| chạy | `M` | họ | dải |
+|---|---|---|---|
+| (đã có, H88) | Qwen2.5-7B | **cùng họ** | 11–510 |
+| `H89` | Llama-3.1-8B | khác họ | 11–510 |
+| `H89b` | DeepSeek-Coder-6.7B | khác họ, **chuyên code** | 11–510 |
+| `H89c` | Llama-3.1-8B | khác họ | 511–974 (tái lập) |
+
+Mốc đã khoá để so: `V − I` nội họ Qwen trên MBPP = **−.0740**.
+
+### CỔNG CHẤT LƯỢNG (kiểm TRƯỚC khi đọc) — thêm vào 5 cổng của #97
+6. **`I − S ≥ .05`** — nếu `M` khác họ không thật sự mạnh hơn `S`, `V − I` vô nghĩa. VOID.
+
+### BẢNG KHOÁ (hàng đầu tiên khớp là kết luận)
+
+| # | điều kiện | KẾT LUẬN ĐƯỢC PHÉP VIẾT |
+|---|---|---|
+| 0 | cổng chất lượng trượt | **VOID** — không đọc số nào |
+| A | `V−I ≤ −.104` (tức âm hơn mốc ≥ .03) và p<.05 | **Cơ chế "nguồn lạ" ĐƯỢC CỦNG CỐ**: nguồn càng lạ, phá càng mạnh. `D` là hàm tăng theo khoảng cách phân phối giữa nguồn và người sửa. |
+| B | `\|V−I −(−.0740)\| < .03` và `V−I < −.02` | **Phá hoại KHÔNG phụ thuộc họ.** "Nguồn lạ" không phải chuyện HỌ MODEL mà là chuyện artifact **của người khác**. Phải phát biểu lại cơ chế trong TONG_HOP. |
+| C | `V−I ≥ −.02` | **Đầu độc BIẾN MẤT khi đổi họ** ⇒ kết quả trung tâm của cả dự án **chỉ đúng trong họ Qwen**. Phải thu hẹp phạm vi mọi phát biểu. **Đây là hàng giết giả thuyết.** |
+| D | còn lại (âm nhưng yếu hơn rõ rệt) | phá hoại **giảm** khi đổi họ — ngược dự đoán A, ghi nhận nhưng chưa đủ mạnh để kết luận C. |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng B **~45%** · hàng A **~25%** · hàng D **~20%** · hàng C **~10%**.
+Tôi nghiêng về B: cơ chế đọc từ trace ở #119 là `M` **viết lại** khi được lệnh "review" — hành vi
+đó do **prompt** gây ra, không do nguồn thuộc họ nào. Hàng A đòi hỏi `M` phải "khó chịu" với code
+lạ theo mức độ định lượng được, điều chưa có bằng chứng nào.
+**Rủi ro đã biết:** DeepSeek-Coder chuyên code nên `I − S` có thể rất lớn, đẩy `V − I` theo hướng
+khác vì lý do năng lực chứ không vì họ — nên H89b đọc **kèm** `I − S`, không đọc rời.
+
+### Tái lập
+Kết luận chỉ vào TONG_HOP nếu **H89 và H89c khớp hàng** (cùng `M`, hai dải tách rời).

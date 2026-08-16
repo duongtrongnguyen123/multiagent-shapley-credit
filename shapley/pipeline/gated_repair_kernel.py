@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 RUN, LO, HI = "@@RUN@@", int("@@LO@@"), int("@@HI@@")
+DEAR_NEEDLES = [s for s in "@@DEAR@@".split(",") if s]   # model DAT: doi ho de kiem #98
 MAXNEW, TIMEOUT = 768, 60
 BSZ = {"cheap": 24, "dear": 16}
 
@@ -20,7 +21,8 @@ def find_model(*needles):
         if any(n in p.lower() for n in needles) and os.path.exists(os.path.join(p, "config.json")):
             return p.rstrip("/")
     raise RuntimeError(f"khong thay {needles}: co {sorted(os.listdir('/kaggle/input'))}")
-M = {"cheap": find_model("1-5b", "1_5b", "1.5b"), "dear": find_model("2-5-7b", "qwen2-5-7b")}
+M = {"cheap": find_model("1-5b", "1_5b", "1.5b"), "dear": find_model(*DEAR_NEEDLES)}
+SAME_FAMILY = any("qwen" in n for n in DEAR_NEEDLES)
 from datasets import load_dataset
 _DS = load_dataset("mbpp", "full", split="test+train+validation")
 CC = torch.cuda.get_device_capability(0); VRAM = torch.cuda.get_device_properties(0).total_memory/2**30
@@ -188,8 +190,11 @@ d_gate   = round(A(PG_V) - A(PV), 4)
 d_honest = round(A(PG_V) - A(PI), 4)
 d_cont   = round(A(PG_I) - A(PG_V), 4)
 d_ceil   = round(A(PGO_V) - A(PI), 4)
+d_VI     = round(A(PV) - A(PI), 4)      # #98: dau doc, so voi -.0740 cua cap NOI HO Qwen
+d_IS     = round(A(PI) - A(PS), 4)      # cong nang luc
 mc = {"gate": mcnemar(PV, PG_V), "honest": mcnemar(PI, PG_V),
-      "cont": mcnemar(PG_V, PG_I), "ceil": mcnemar(PI, PGO_V)}
+      "cont": mcnemar(PG_V, PG_I), "ceil": mcnemar(PI, PGO_V),
+      "VI": mcnemar(PI, PV), "IS": mcnemar(PS, PI)}
 
 # ---- CONG CHAT LUONG (#97) ----
 ext = {k: round(sum(has_block(t) for t in v)/N, 4) for k, v in
@@ -197,12 +202,15 @@ ext = {k: round(sum(has_block(t) for t in v)/N, 4) for k, v in
 ext_min, ext_spread = min(ext.values()), round(max(ext.values())-min(ext.values()), 4)
 runnable = round(sum(1 for t in TESTS if t)/N, 4)
 gates = {"extract_min>=.80": ext_min >= .80, "extract_spread<.05": ext_spread < .05,
-         "n>=480": N >= 480, ".15<=p_esc<=.90": .15 <= p_esc <= .90, "test_runnable>=.70": runnable >= .70}
+         "n>=480": N >= 480, ".15<=p_esc<=.90": .15 <= p_esc <= .90, "test_runnable>=.70": runnable >= .70,
+         "I-S>=.05 (cong nang luc #98)": d_IS >= .05}
 VOID = [k for k, v in gates.items() if not v]
 
 res = {"tag": RUN, "range": [LO, HI], "n": N,
+       "dear_model": M["dear"], "dear_needles": DEAR_NEEDLES, "same_family": SAME_FAMILY,
        "acc": {"S": A(PS), "I": A(PI), "V": A(PV), "G_V": A(PG_V), "G_I": A(PG_I), "Go_V": A(PGO_V)},
-       "delta": {"gate": d_gate, "honest": d_honest, "cont": d_cont, "ceil": d_ceil},
+       "delta": {"gate": d_gate, "honest": d_honest, "cont": d_cont, "ceil": d_ceil,
+                 "V_minus_I": d_VI, "I_minus_S": d_IS},
        "mcnemar": {k: {"b01": v[0], "b10": v[1], "p": v[2]} for k, v in mc.items()},
        "p_esc": p_esc, "extract_rate": ext, "extract_min": ext_min, "extract_spread": ext_spread,
        "test_runnable": runnable, "gates": gates, "VOID": VOID,
@@ -240,4 +248,22 @@ else:
     print("  -> HANG 4: M1 SAI NHU DANG PHAT BIEU. Co cho khai thac nhung chan ghi de KHONG cuu duoc.")
 if d_cont < -.02 and mc["cont"][2] < .05:
     print("  -> HANG 5 (cong them): duoi cong, cho thay artifact VAN nhiem doc — cung co #119.")
+
+# ---- BANG KHOA #98: dau doc co PHU THUOC HO cua model DAT khong? ----
+QWEN_MBPP_VI = -.0740   # moc NOI HO da khoa (1.5B->7B Qwen, MBPP), TONG_HOP muc 1
+print(f"\n-- BANG KHOA #98 (model dat = {M['dear'].split('/')[-1]}, cung ho = {SAME_FAMILY}) --")
+print(f"  V - I = {d_VI:+.4f} (p={mc['VI'][2]})  |  moc noi ho Qwen tren MBPP = {QWEN_MBPP_VI:+.4f}")
+print(f"  I - S = {d_IS:+.4f} (p={mc['IS'][2]})  cong nang luc {'DAT' if d_IS>=.05 else 'TRUOT'}")
+if VOID:
+    print(f"  -> HANG 0: VOID ({VOID}). Khong doc.")
+elif d_VI <= QWEN_MBPP_VI - .03 and mc["VI"][2] < .05:
+    print("  -> HANG A: nguon NGOAI HO PHA MANH HON nguon noi ho => co che 'nguon la' duoc cung co.")
+elif abs(d_VI - QWEN_MBPP_VI) < .03 and d_VI < -.02:
+    print("  -> HANG B: pha hoai KHONG phu thuoc ho => 'nguon la' khong phai ve HO MODEL, "
+          "ma ve viec artifact la CUA NGUOI KHAC. Phat bieu lai co che.")
+elif d_VI >= -.02:
+    print("  -> HANG C: dau doc BIEN MAT khi doi ho => ket qua trung tam CHI DUNG TRONG HO Qwen. "
+          "Gioi han pham vi cua ca du an.")
+else:
+    print(f"  -> HANG D: pha hoai YEU HON ro ret ({d_VI:+.4f} vs {QWEN_MBPP_VI:+.4f}) nhung van am.")
 print("XONG", flush=True)

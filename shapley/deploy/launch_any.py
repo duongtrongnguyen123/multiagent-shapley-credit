@@ -45,7 +45,7 @@ def main():
     # #121: launcher CHI kiem "con placeholder chua thay", KHONG kiem "placeholder co ton tai".
     # Vi the LO=511 HI=974 bi BO QUA IM LANG khi kernel hardcode dai -> tao ra mot ban
     # "tai lap" GIA chay tren dung du lieu cu. Kiem xuoi: da truyen thi PHAI co cho de thay.
-    for var, ph in (("LO", "@@LO@@"), ("HI", "@@HI@@"), ("SIZE", "@@SIZE@@")):
+    for var, ph in (("LO", "@@LO@@"), ("HI", "@@HI@@"), ("SIZE", "@@SIZE@@"), ("DEAR", "@@DEAR@@")):
         if os.environ.get(var) and ph not in raw:
             sys.exit(f"{var}={os.environ[var]} duoc truyen nhung kernel KHONG co {ph} "
                      f"-> se bi bo qua im lang. Tham so hoa kernel truoc.")
