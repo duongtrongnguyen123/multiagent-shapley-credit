@@ -25,7 +25,8 @@ def find_model(*needles):
         if any(n in p.lower() for n in needles) and os.path.exists(os.path.join(p, "config.json")):
             return p.rstrip("/")
     raise RuntimeError(f"khong thay {needles}: co {sorted(os.listdir('/kaggle/input'))}")
-M = {"cheap": find_model("1-5b", "1_5b", "1.5b"), "dear": find_model(*DEAR_NEEDLES)}
+CHEAP_NEEDLES = [x for x in "@@CHEAP@@".split(",") if x]   # #142: tang RE cung tham so hoa
+M = {"cheap": find_model(*CHEAP_NEEDLES), "dear": find_model(*DEAR_NEEDLES)}
 SAME_FAMILY = any("qwen" in n for n in DEAR_NEEDLES)
 from datasets import load_dataset
 _DS = load_dataset("mbpp", "full", split="test+train+validation")

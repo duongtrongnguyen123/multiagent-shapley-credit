@@ -4110,3 +4110,44 @@ trượt, chính là sai phạm ở **#114** mà kiểm định #125-C đã bắ
 5. **`has_block` vẫn được BÁO CÁO** như số mô tả — không còn là cổng.
 
 ### Bảng khoá: **GIỮ NGUYÊN #97**, không sửa một chữ.
+
+---
+
+## #101 — H91: SỬA CÓ CỔNG **ở 32B** (điểm 32B đầu tiên của dự án)
+
+**Đăng ký lúc:** trước khi phóng. TONG_HOP mục 4 tự thú: *"không có điểm nào ở 32B trở lên —
+hai lần HUỶ vì hạ tầng (#123, #130), chưa vì khoa học"*. #139 vừa HUỶ lần thứ ba (soundness).
+
+### Vì sao thiết kế NÀY cho khe RTX, chứ không phải chạy lại H87
+`H87` phụ thuộc **soundness của test do model viết** — đại lượng đã trượt (.4509) và suýt trượt
+(.533) hai lần liên tiếp. Chạy lại nó mà chưa sửa được soundness là **đánh cược tài nguyên khan
+hiếm nhất vào đúng thứ vừa hỏng hai lần**.
+
+Thiết kế `gated_repair` có **đại lượng CHÍNH `Δ_ceil` = `acc(G*_V) − acc(I)`** dùng **cổng ORACLE**
+(giữ `S` khi `S` ĐÚNG THẬT). Nó **không phụ thuộc chút nào** vào chất lượng test. Nên khe RTX
+sinh ra kết quả đọc được **bất kể** soundness ra sao.
+
+### Thiết kế
+Y hệt #97 (H88), đổi **duy nhất** cặp model: `S` = **Qwen2.5-7B** · `M` = **Qwen2.5-32B** (bf16,
+95 GB đủ). MBPP 11–510. `MAXNEW` = 768 (mã ngắn hơn văn xuôi toán; #130 là bài học của MATH).
+
+### CỔNG (mỗi hàng nêu CẢ hiệu ứng LẪN ý nghĩa — luật mới #140)
+1. `compiles(extract(t)) ≥ .80` mọi nhánh, chênh **< .05** (đúng chữ #97, đã sửa ở #97-c)
+2. `n ≥ 480` · 3. `.15 ≤ p_esc ≤ .90`
+4. **`I − S ≥ .05` VÀ p < .05** ← #141: Llama-8B trượt đúng cổng này; đừng giả định model to là mạnh
+
+### BẢNG KHOÁ (đọc theo thứ tự)
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng trượt | **VOID** |
+| 1 | `Δ_ceil ≤ 0` **hoặc** (p ≥ .05 và \|Δ_ceil\| < .02) | **GIẾT DÒNG SỬA Ở MỌI QUY MÔ.** Ngay ở 32B, cổng ORACLE cũng không vượt `I` ⇒ không có gì để khai thác từ artifact của model yếu hơn. Kết quả 32B đầu tiên, và là kết quả **mạnh**. |
+| 2 | `Δ_ceil ≥ +.02` và p < .05 và `Δ_honest ≥ +.02` và p < .05 | sửa **CÓ CỔNG** thắng mốc thật ở 32B ⇒ quy mô **cứu** được dòng sửa. Trái ngược tiên nghiệm. |
+| 3 | `Δ_ceil ≥ +.02` và p < .05 nhưng `Δ_honest` không đạt | có chỗ khai thác nhưng **cổng khả thi không lấy được** ⇒ nút thắt là `κ`, đúng M2, **ở quy mô 32B**. |
+| 4 | `Δ_ceil` đạt nhưng `Δ_gate < 0` và p < .05 | cổng làm **hỏng** so với sửa vô điều kiện — phải viết lại M1. |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 3 **~45%** · hàng 1 **~30%** · hàng 2 **~15%** · hàng 4 **~10%**.
+Ở 7B, `I − S` = +.20 và `V − I` = −.074..−.088 rất ổn định. Ở 32B khoảng cách `M`−`S` **hẹp lại**
+(7B đã khá), nên tập "S đúng mà I sai" nhỏ đi ⇒ `Δ_ceil` nhỏ đi. **Rủi ro lớn nhất: cổng `I − S`
+trượt** vì Qwen-7B vốn đã mạnh trên MBPP — chính là cách H89e chết. Tôi cho **~25%** khả năng VOID.
