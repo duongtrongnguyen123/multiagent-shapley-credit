@@ -3713,3 +3713,50 @@ Lý do: BCB khó, 7B chỉ ~.35, nên code của nó **trượt test của chín
 Hàng 1 ~20% · hàng 3 ~20% · HUỶ vì cổng năng lực ~15%.
 **Dự đoán phụ:** `V − I` vẫn ÂM ở 32B (~70%), vì cơ chế là *bị kéo vào chế độ sửa chữa*,
 không phải thiếu năng lực. Tỉ lệ prior đúng: **15/31**.
+
+
+# Đăng ký trước #89 — H80: **ĐA DẠNG HỌ MODEL vs ĐA DẠNG LẤY MẪU** (dự đoán 3 của TONG_HOP)
+**Viết TRƯỚC khi chạy.** Đây là phép thử trực tiếp cho mệnh đề M2, và nó có thể **PHÁ** khung hợp nhất.
+
+## Vì sao — và vì sao nó "ra ngoài hộp" so với mọi vòng trước
+Toàn bộ dự án dùng **một họ model duy nhất (Qwen2.5)**. M2 nói giá trị của bộ chọn bị chặn bởi
+**độ ĐỘC LẬP của lỗi**, và #117-b đo được 8 mẫu cùng model **đồng ý về đúng/sai ở 77.8%** số bài.
+Nếu M2 đúng thì **ứng viên từ HỌ KHÁC phải nâng trần `H` nhiều hơn hẳn** cùng số ứng viên từ một họ.
+Nếu KHÔNG — nếu đa dạng họ cũng chỉ ngang đa dạng lấy mẫu — thì **"lỗi tương quan" không phải
+ràng buộc chặn**, và mệnh đề M2 (cùng lời giải thích cho #118/#120) phải **RÚT LẠI**.
+
+## Thiết kế — MỘT kernel, ghép cặp hoàn hảo, CHI PHÍ KHỚP
+MBPP 11–510, giao thức #74-c (`assert[0]` vào prompt, chấm `assert[1..2]`), bf16 trên RTX 6000.
+Ba model **cùng cỡ (~7B), ba HỌ khác nhau**: `Q`=Qwen2.5-7B · `L`=Llama-3.1-8B · `D`=DeepSeek-Coder-6.7B.
+
+| pool | ứng viên | chi phí |
+|---|---|---|
+| **A — đa dạng LẤY MẪU** | `Q₁` greedy, `Q₂` T=.8, `Q₃` T=.8 | 3 × ~7B |
+| **B — đa dạng HỌ** | `Q₁` greedy, `L` greedy, `D` greedy | 3 × ~7B |
+
+**Bộ chọn GIỮ NGUYÊN cho cả hai** (test tự sinh do **Q** viết, một lần) ⇒ khác biệt duy nhất
+là **thành phần pool**. Báo cho mỗi pool: `acc` từng ứng viên · **trần `H`** (hợp) ·
+`SEL` · **`κ` = tỉ lệ khai thác** · **phân bố số ứng viên đúng** (đo tương quan trực tiếp).
+
+## NGƯỠNG HIỆU LỰC (khoá trước)
+`test_soundness` ≥ .50 · `copy_rate` ≤ .20 · n = 500 · biên dịch ≥ .50 ·
+**mỗi model phải đạt `acc` ∈ [.35, .80]** — nếu `L` hoặc `D` sụp dưới .35 thì pool B không phải
+"đa dạng" mà là "một model hỏng" ⇒ HUỶ.
+
+## Cam kết diễn giải (khoá TRƯỚC khi có số)
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `H(B) − H(A)` ≥ **+.05** VÀ `SEL(B) − SEL(A)` ≥ **+.02** | **M2 ĐƯỢC XÁC NHẬN MẠNH.** Lỗi tương quan đúng là ràng buộc chặn; đa dạng HỌ là đòn bẩy rẻ hơn nhiều so với thêm mẫu. Khuyến nghị thực dụng thay đổi hẳn: **trộn họ model, đừng lấy thêm mẫu**. |
+| `H(B) − H(A)` ≥ +.05 nhưng `SEL(B) − SEL(A)` < +.02 | Trần lên nhưng **bộ chọn không khai thác được** ⇒ `κ` giảm khi ứng viên đa dạng hơn. M2 đúng về `H`, sai về `κ`. Nút thắt quay về bộ chọn. |
+| \|`H(B) − H(A)`\| < .05 | **M2 SAI hoặc yếu hơn tôi nghĩ ⇒ RÚT LẠI** lời giải thích "lỗi tương quan" ở #118/#120/TONG_HOP-M2. Lỗi của các model KHÁC HỌ cũng tương quan như mẫu cùng model — nghĩa là ràng buộc nằm ở **độ khó của BÀI**, không ở model. |
+| `H(B) < H(A)` − .02 | Đảo ngược: trộn họ **hại** trần. Bất ngờ lớn, phải kiểm `acc` từng model trước khi tin. |
+| `SEL(B) > H(A)` | Pool đa dạng vượt cả **trần** của pool cùng họ ⇒ kết quả rất mạnh, ghi rõ. |
+| model nào `acc` < .35 | HUỶ. |
+
+## Prior TRUNG THỰC (ghi trước)
+Đoán **hàng 1 (~50%)**. Lý do: `D` là model **chuyên code**, kiến trúc và dữ liệu huấn luyện
+khác hẳn Qwen ⇒ lỗi khó tương quan. Đoán `H(A)` ≈ .69 (từ #117: 8 mẫu Qwen cho trần .750,
+3 mẫu sẽ thấp hơn), `H(B)` ≈ .76–.80.
+Rủi ro ghi trước: **`κ` có thể tụt mạnh** ở pool B vì test do **Q** viết có thể thiên vị code kiểu Q
+— nếu vậy ra hàng 2, và đó cũng là phát hiện đáng giá (bộ chọn cũng phải độc lập với **họ**).
+Hàng 2 ~25% · hàng 3 ~20% · hàng 4 ~5%. Tỉ lệ prior đúng: **15/31**.
