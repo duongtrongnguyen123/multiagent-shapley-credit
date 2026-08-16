@@ -5757,3 +5757,42 @@ làm kết quả mạnh hơn**, nên phải nói rõ để không tự khen.
 code khác nhau). Giá trị nằm ở **`soloB` sụt .36 → .065**, tức pool B **thực sự có gì đó để chọn**
 ở những bài pool A không có. Và mọi phát biểu về `κ` vẫn dựa trên `H`/`SEL` của #95, **không** dựa
 riêng vào `Δd` — đúng như đã khoá.
+
+---
+
+## Vòng #146 — H91b **VOID**: cắt cụt phạt nhánh `V`, và lần này ĐỔI CHIỀU so với #130
+
+Điểm 32B đầu tiên **chạy trọn vẹn** (59 phút, nạp dataset offline OK — bản vá #143 hoạt động,
+preflight in đúng: cheap 14.19 GB, dear 61.03 GB trên card 95 GB). Nhưng **VOID** ở
+`extract_spread` = **.0982** > .05.
+
+| nhánh | độ dài TB | p95 | block chưa đóng |
+|---|---|---|---|
+| `S` | 219 | 533 | **0.0%** |
+| `I` | 302 | 733 | 0.4% |
+| **`V`** | **1359** | **3374** | **17.2%** |
+
+`V` dài gấp **4.5×** `I`; **17.2%** bị `MAXNEW`=768 cắt giữa block code ⇒ không trích được.
+
+> **Ở #130 cái cap phạt `I` nặng hơn (I phải suy từ đầu). Ở đây nó phạt `V` nặng hơn.**
+> Cùng một cơ chế, **hai chiều ngược nhau**, tuỳ thiết kế và cỡ model.
+> ⇒ **`MAXNEW` không bao giờ là hằng số chọn một lần.** Nó phải được chọn theo **nhánh viết
+> dài nhất trong CHÍNH thiết kế đó**, và phải có cổng kiểm.
+
+### Cổng đã làm đúng việc
+`extract_spread` bắt được **hậu quả**. Đã thêm cổng bắt **nguyên nhân**: tỉ lệ block ```` ``` ````
+**chưa đóng** < .05 ở mọi nhánh — nó phát hiện cắt cụt **trực tiếp**, không đợi lan sang tỉ lệ trích.
+
+### Bốn lần thử 32B, bốn nguyên nhân KHÁC NHAU
+| lần | vòng | nguyên nhân |
+|---|---|---|
+| H78 | #123 | cổng cắt ngắn trượt sát nút |
+| H78 | #130 | cắt cụt **phạt `I`** — suýt tạo headline giả +.2080 |
+| H87b | #139 | soundness .4509 |
+| **H91b** | **#146** | cắt cụt **phạt `V`** |
+
+**Không lần nào là cùng một lỗi**, và **mỗi lần cổng đều bắt đúng**. Đắt, nhưng đây là hệ thống
+đang hoạt động — #130 cho thấy cái giá của việc KHÔNG có cổng là một kết quả **sai mà nghe rất kêu**.
+
+**H91c** phóng lại: `MAXNEW`=1536 (p95 của `V` ≈ 850–900 token, dư ~1.7×), thêm cổng cắt cụt.
+Ước tính ~100 phút.
