@@ -78,11 +78,24 @@ def own_tests(code, asserts):
 def par(fn, args, w=8):
     with ThreadPoolExecutor(max_workers=w) as ex: return list(ex.map(lambda a: fn(*a), args))
 
+BIG_CARD = (torch.cuda.get_device_properties(0).total_memory/2**30 >= 40)
+if not BIG_CARD:
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "bitsandbytes>=0.46.1"], check=False)
+    from transformers import BitsAndBytesConfig
+    _BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                              bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
+print(f"CHE DO: {'card lon -> bf16' if BIG_CARD else 'card nho -> nf4 cho model >=7B'}", flush=True)
+
 def load(tag):
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
-    mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
+    if BIG_CARD:
+        mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
+    elif tag == "7B":   # tang re = 1.5B, vua fp16
+        mo = AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16, device_map={"": 0}).eval()
+    else:               # tang dat = 7B, PHAI nf4 tren T4 (bf16 = 15.2 GB > 14.56 GB)
+        mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": 0}).eval()
     print(f"  nap {tag}: VRAM {torch.cuda.memory_allocated(0)/2**30:.1f} GB", flush=True)
     return mo, tk
 def free(mo):
