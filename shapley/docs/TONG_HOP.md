@@ -156,6 +156,20 @@ D = D(phoi nhiem)     KHONG phai   D(quyen ghi de)
 Bằng chứng trực tiếp: `Δ_cont` = **+.0902 / +.0994** (p 1e−6) — cùng ngân sách, cùng bài, chỉ khác
 việc `M` **có nhìn thấy** artifact hay không. Nhìn thấy tốn ~**.09**.
 
+**Kiểm độc lập lần hai (#149, H92/H92b), bỏ HẲN lệnh "review":** mọi nhánh dùng **cùng một lệnh
+`SOLVE`**, chỉ khác phần ngữ cảnh thêm vào. Cho `M` xem **toàn bộ code** của model yếu:
+
+| | MBPP 11–510 | MBPP 511–974 |
+|---|---|---|
+| `E3` (thấy code) − `E0` (không thấy gì) | **−.0782** (p 1.5e−04) | **−.0778** (p 8.7e−05) |
+
+Hai dải tách rời, lệch nhau **.0004**. ⇒ **thiệt hại KHÔNG cần lệnh ghi đè; chỉ cần NHÌN THẤY.**
+Đây là hàng được viết sẵn để **giết** phát biểu này, và nó **không nổ ở cả hai lần**.
+
+> **CHƯA biết là LIỀU hay NGƯỠNG.** Mức phơi nhiễm trung gian (chỉ chữ ký hàm) cho −.0140 (p .48)
+> và −.0324 (p .072) — **không có ý nghĩa ở cả hai dải và đổi biên độ giữa chúng**. Phân định
+> được thì cần `n` ≈ 2000–4000. **Không trích rằng "càng thấy nhiều càng hại"** — chưa đo được.
+
 **Hệ quả cho thiết kế hệ thống:** muốn `D = 0` thì **không được cho model mạnh nhìn** sản phẩm của
 model yếu **trong lượt sinh**. Chỉ được nhìn **ở lượt CHỌN**, sau khi nó đã có bản của chính mình.
 Đó đúng là hình dạng của `SEL` — và đó là lý do `SEL` là **thứ duy nhất** cho kết quả dương.

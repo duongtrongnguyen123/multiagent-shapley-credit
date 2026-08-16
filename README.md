@@ -143,8 +143,21 @@ chi goi model manh mot luot                                        = .6413
 > Việc nhìn thấy làm hỏng nó **đúng ở những bài model yếu đã sai**, tức đúng chỗ ta cần nó nhất.
 > Cổng vô dụng vì cổng điều khiển *ghi đè*, không điều khiển *nhìn thấy*.
 
-*(Đang kiểm: `H92` tách riêng **NHÌN THẤY** khỏi **ĐƯỢC LỆNH SỬA** — mọi phép đo đầu độc trước
-nay đều trộn hai thứ. Bảng khoá #102 có sẵn một hàng **giết** chính phát biểu ở trên.)*
+**Đã kiểm xong (#149): chỉ NHÌN THẤY là đủ, KHÔNG cần lệnh sửa.**
+Mọi phép đo đầu độc trước nay đều kèm lệnh *"review/fix"*, nên *nhìn thấy* và *được lệnh ghi đè*
+luôn bị trộn. `H92` bỏ hẳn lệnh — cả bốn nhánh dùng **cùng một lệnh "viết hàm"**, chỉ khác phần
+ngữ cảnh thêm vào:
+
+| cho model mạnh xem | MBPP 11–510 | MBPP 511–974 |
+|---|---|---|
+| **toàn bộ code của model yếu** | **−.0782** (p 1.5e−04) | **−.0778** (p 8.7e−05) |
+
+Hai dải tách rời, lệch nhau **.0004**. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
+hàng đó **không nổ ở cả hai lần chạy**.
+
+> ⚠️ **Chưa biết là LIỀU hay NGƯỠNG.** Mức phơi nhiễm trung gian (chỉ cho xem **chữ ký hàm**)
+> cho −.0140 (p .48) và −.0324 (p .072) — **không có ý nghĩa ở cả hai dải**.
+> **Đừng trích "càng nhìn nhiều càng hại"** — dữ liệu hiện tại không phân định được.
 
 ### 6. ✅ **Đa dạng HỌ MODEL — kết quả dương DUY NHẤT đã tái lập trên dải tách rời** (#131 + #145)
 
