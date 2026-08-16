@@ -98,8 +98,10 @@ def load(tag):
         mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": 0}).eval()
     print(f"  nap {tag}: VRAM {torch.cuda.memory_allocated(0)/2**30:.1f} GB", flush=True)
     return mo, tk
-def free(mo):
-    del mo; gc.collect()
+def free(mo=None):
+    """LUU Y: 'del mo' TRONG ham chi xoa TEN CUC BO — model van song o bien cua caller.
+    Vi the caller PHAI gan mo=None TRUOC khi goi. Ham nay chi lam gc + empty_cache."""
+    gc.collect()
     for d in range(torch.cuda.device_count()):
         with torch.cuda.device(d): torch.cuda.empty_cache()
 
@@ -141,7 +143,8 @@ S = [extract(t) for t in gen(mo, tk, SOLVE, PR, BSZ["7B"])]
 print(f"S (7B) xong ({time.time()-t0:.0f}s)", flush=True)
 TESTS = [clean_asserts(t) for t in gen(mo, tk, WTEST, PR, BSZ["7B"])]
 print(f"test tu sinh xong ({time.time()-t0:.0f}s)", flush=True)
-free(mo)
+mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+free()
 json.dump({"partial": 1, "S": S, "TESTS": TESTS}, open(f"/kaggle/working/partial_{RUN}.json", "w"))
 
 # quyet dinh dinh tuyen: code cua 7B DAT test cua chinh no?
@@ -156,7 +159,8 @@ print(f"I (32B) xong ({time.time()-t0:.0f}s)", flush=True)
 V = [extract(t) for t in gen(mo, tk, REVIEW,
      [f"{PR[i]}\n\nProposed code:\n```python\n{S[i]}\n```" for i in range(N)], BSZ["32B"])]
 print(f"V (32B xem code 7B) xong ({time.time()-t0:.0f}s)", flush=True)
-free(mo)
+mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+free()
 
 ROUTE = [S[i] if ACCEPT[i] else I[i] for i in range(N)]
 cI = par(own_tests, [(I[i], TESTS[i]) for i in range(N)])

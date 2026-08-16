@@ -99,8 +99,10 @@ def load(tag):
         mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": 0}).eval()
     print(f"  nap {tag}: VRAM {torch.cuda.memory_allocated(0)/2**30:.1f} GB", flush=True)
     return mo, tk
-def free(mo):
-    del mo; gc.collect()
+def free(mo=None):
+    """LUU Y: 'del mo' TRONG ham chi xoa TEN CUC BO — model van song o bien cua caller.
+    Vi the caller PHAI gan mo=None TRUOC khi goi. Ham nay chi lam gc + empty_cache."""
+    gc.collect()
     for d in range(torch.cuda.device_count()):
         with torch.cuda.device(d): torch.cuda.empty_cache()
 
@@ -133,7 +135,8 @@ CODE["Q1"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
 CODE["Q2"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS, temp=0.8)]
 CODE["Q3"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS, temp=0.8)]
 TESTS = [clean_asserts(t) for t in gen(mo, tk, WTEST, PR, BS)]   # bo chon: CHI do Q viet
-free(mo)
+mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+free()
 print(f"Q xong ({time.time()-t0:.0f}s)", flush=True)
 json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TESTS},
           open(f"/kaggle/working/partial_{RUN}.json", "w"))
@@ -141,7 +144,8 @@ json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TES
 for tag in ["L", "D"]:
     mo, tk = load(tag)
     CODE[tag] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
-    free(mo)
+    mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+    free()
     print(f"{tag} xong ({time.time()-t0:.0f}s)", flush=True)
     json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TESTS},
               open(f"/kaggle/working/partial_{RUN}.json", "w"))

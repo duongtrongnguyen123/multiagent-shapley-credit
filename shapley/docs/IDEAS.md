@@ -5117,3 +5117,43 @@ Tỉ lệ prior đúng: **16/32**.
 ### Còn phải kiểm
 Một lần chạy, một benchmark (MBPP), ba model cụ thể. **Chưa tái lập trên dải bài tách rời** —
 đây là kết quả dương mạnh nhất nên **bắt buộc phải tái lập** trước khi vào README.
+
+---
+
+## Vòng #132 — Lỗi Python nuốt mất mọi lần "giải phóng model" ở 6 kernel
+
+**Bối cảnh.** H83c chết OOM trên T4 dù bản vá tự-chọn-độ-chính-xác (#131) đã có mặt và đã chạy
+đúng: log xác nhận `CHE DO: card nho -> nf4`, `nap 7B: VRAM 2.9 GB`, tầng rẻ hoàn tất cả hai
+lượt. OOM xảy ra khi nạp model **thứ hai**. Tức là model thứ nhất chưa hề được trả về.
+
+**Nguyên nhân.**
+```python
+def free(mo):
+    del mo; gc.collect()     # xoá TÊN CỤC BỘ, không phải biến của caller
+```
+`del` trong hàm chỉ gỡ tên khỏi scope của hàm. Caller vẫn giữ `mo`, refcount không về 0, model
+vẫn nằm nguyên trên card. Toàn bộ dòng `free(mo)` trong repo là **no-op** đối với VRAM.
+
+**Vì sao lọt qua ngần ấy vòng.** Hai lý do, cả hai đều là bài học:
+1. Bản vá đa-GPU ở #128 sửa đúng phần `empty_cache()` phải lặp qua mọi device — nên nó *trông
+   như* đã là bản giải phóng đúng, và tôi không đọc lại thân hàm.
+2. Log tự xác nhận sai: nó in `memory_allocated()`, mà con số này về gần 0 sau `empty_cache()`
+   ngay cả khi pool vẫn bị chiếm. **Chỉ báo đúng là `memory_reserved()`.**
+
+**Phạm vi.** `grep -l "def free(mo)" pipeline/*.py` → **6 kernel**: `bcb_route32b`,
+`capacity32b`, `crossfamily`, `mbpp_route`, `selector_indep`, `strong_plus_diverse`.
+
+**Hệ quả đã chặn được.** H87 đang chạy trên RTX 6000 với kernel lỗi: 32B (68 GB) + Llama (16 GB)
++ DeepSeek (13.5 GB) = **97.5 GB > 95 GB**. Nó **chắc chắn sẽ OOM** ở model thứ ba, sau khi đã
+đốt phần lớn ngân sách GPU tuần của tài khoản đắt nhất. Đã xoá và phóng lại **H87b** với kernel
+đã sửa. H83c → **H83d**.
+
+**Điều đáng nói về mặt phương pháp.** Đây là lần thứ ba một kết quả suýt bị quyết định bởi
+hạ tầng chứ không phải bởi giả thuyết (#119 truncation, #130 truncation ở 32B, giờ là #132).
+Cả ba đều có chung một dạng: **một cơ chế kỹ thuật tác động KHÔNG ĐỀU lên các nhánh.** Ở đây
+nhánh nào nạp nhiều model tuần tự nhất thì chết trước — mà đó đúng là nhánh "pool đa dạng",
+tức là nhánh mang giả thuyết. Nếu H87 chạy hết và nhánh đa dạng lỗi, tôi sẽ đọc được thành
+"pool đa dạng không giúp gì" trong khi sự thật chỉ là hết VRAM.
+
+> **Không có hàng nào trong bảng khoá được đọc ở vòng này** — đây là lỗi hạ tầng, không phải
+> kết quả. H87b và H83d giữ nguyên bảng khoá của #96 và #83.

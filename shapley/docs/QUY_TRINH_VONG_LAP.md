@@ -355,3 +355,15 @@ Bản sửa "giải phóng VRAM theo TỪNG GPU" (#130, H65T2) chỉ được á
 > **Quy tắc cứng: MỌI bản sửa kernel phải bắt đầu bằng `grep -l <mẫu lỗi> pipeline/*.py`
 > và kết thúc bằng việc sửa TẤT CẢ các file khớp — trước khi phóng bất cứ thứ gì.**
 > Sửa một file rồi phóng là mặc định SAI trong repo này, vì kernel được sinh ra bằng cách sao chép nhau.
+
+6. **H83c — `def free(mo): del mo` KHÔNG giải phóng gì cả**
+
+`del` bên trong hàm chỉ xoá **tên cục bộ**; biến `mo` của caller vẫn giữ tham chiếu, refcount
+không về 0, `empty_cache()` sau đó không có gì để trả. Sáu kernel đã mang lỗi này. Triệu chứng
+đánh lừa: log in ra `VRAM sau giải phóng: 0.00` — vì `memory_allocated()` đọc **sau** khi
+`empty_cache()` chạy trên một cache vẫn đang bị model chiếm, nên con số trông đúng.
+
+> **Quy tắc cứng: KHÔNG bao giờ giải phóng tài nguyên qua tham số hàm.
+> Caller phải tự gán `mo = None` rồi mới gọi hàm `gc`.**
+> Và: **log giải phóng phải in `torch.cuda.memory_reserved()`, không chỉ `memory_allocated()`** —
+> `allocated` có thể về 0 trong khi model vẫn nằm nguyên trong pool.

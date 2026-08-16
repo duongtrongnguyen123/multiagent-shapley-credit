@@ -89,8 +89,10 @@ def load(tag):
     mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
     print(f"  nap {tag}: VRAM {torch.cuda.memory_allocated(0)/2**30:.1f} GB", flush=True)
     return mo, tk
-def free(mo):
-    del mo; gc.collect()
+def free(mo=None):
+    """LUU Y: 'del mo' TRONG ham chi xoa TEN CUC BO — model van song o bien cua caller.
+    Vi the caller PHAI gan mo=None TRUOC khi goi. Ham nay chi lam gc + empty_cache."""
+    gc.collect()
     for d in range(torch.cuda.device_count()):
         with torch.cuda.device(d): torch.cuda.empty_cache()
     print(f"  VRAM sau giai phong: " +
@@ -119,7 +121,8 @@ t0 = time.time()
 OUT = {}
 mo, tk = load("1.5B")
 OUT["S"] = gen(mo, tk, SOLVE, Q, 64)
-free(mo)
+mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+free()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 VP = [f"{Q[i]}\n\nProposed solution:\n{OUT['S'][i]}" for i in range(N)]
 
@@ -129,7 +132,8 @@ for tag in ["7B", "14B", "32B"]:
     print(f"I_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
     OUT[f"V_{tag}"] = gen(mo, tk, VERIFY, VP, BSZ[tag])
     print(f"V_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
-    free(mo)
+    mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+    free()
     json.dump({"partial": True, "done": sorted(OUT.keys()), "raw": OUT},
               open(f"/kaggle/working/partial_{RUN}.json", "w"))
     print(f"  da luu partial_{RUN}.json ({len(OUT)} nhanh)", flush=True)
