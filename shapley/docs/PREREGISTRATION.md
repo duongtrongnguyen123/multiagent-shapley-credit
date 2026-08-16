@@ -3850,3 +3850,34 @@ và H73b đã cho thấy một "bản tái lập" chạy nhầm dải trông y n
 **Prior:** tái lập ~75%. Cơ chế (hỗn hợp 57→167) quá mạnh và quá cơ học để là nhiễu;
 nhưng biên độ có thể nhỏ hơn vì dải 511–974 có `acc` nền cao hơn (H69d: `I` = .7069)
 ⇒ ít dư địa. Đoán `H` +.03..+.05. **Tỉ lệ prior đúng: 16/32.**
+
+
+# Đăng ký trước #96 — H87: **MODEL YẾU-KHÁC-HỌ có còn đóng góp khi đã có model MẠNH?**
+**Viết TRƯỚC khi chạy.** Mở rộng H80 (#131) sang trường hợp **lệch năng lực lớn** — câu hỏi thực dụng nhất.
+
+H80: thêm Llama-8B (.540, **yếu nhất**) vào pool Qwen-7B vẫn nâng `H` +.0500, `SEL` +.0320.
+Nhưng cả ba **ngang cơ**. Câu hỏi của người triển khai:
+> *"Đã có 32B. Thêm vài model 7B rẻ khác họ có còn được gì, hay chênh năng lực nuốt hết đa dạng?"*
+
+## Thiết kế — RTX 6000, MBPP 11–510, bộ chọn GIỮ NGUYÊN (test do 32B viết một lần)
+| pool | ứng viên | chi phí (1.5B-eq) |
+|---|---|---|
+| **A** | 32B greedy | 21.3 |
+| **B** | 32B + 32B(T=.8) | 42.6 |
+| **C** | **32B + Llama-8B + DeepSeek-6.7B** | **31.2** ← rẻ hơn B, thêm HAI ứng viên |
+
+## NGƯỠNG (khoá trước)
+soundness ≥ .50 · copy_rate ≤ .20 · n=500 · `acc(32B)` ∈ [.60,.90] · `acc(L)`,`acc(D)` ≥ .35 ·
+tỉ lệ có ```python block ≥ .90 mọi nhánh (bài học #130).
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `SEL(C) − SEL(A)` ≥ **+.02** VÀ `SEL(C) ≥ SEL(B) − .01` | **M2 DẠNG MẠNH ĐÚNG.** Model yếu-khác-họ vẫn đóng góp bên cạnh model mạnh, **rẻ hơn** thêm mẫu. Khuyến nghị triển khai rõ ràng. |
+| `SEL(C) − SEL(A)` ≥ +.02 nhưng `< SEL(B) − .01` | Có đóng góp nhưng thua thêm mẫu ⇒ đa dạng họ chỉ thắng **giữa model NGANG CƠ**. Thu hẹp H80. |
+| \|`SEL(C) − SEL(A)`\| < .02 | **Chênh năng lực NUỐT đa dạng** ⇒ M2 chỉ đúng giữa model ngang cơ. Thu hẹp mạnh ở TONG_HOP. |
+| `SEL(C) < SEL(A)` − .02 | Thêm model yếu **HẠI** khi đã có model mạnh; đối chiếu #118. |
+| `H(C) > H(B)` mà `SEL(C) < SEL(B)` | `κ` tụt khi pool lệch năng lực ⇒ nút thắt là bộ chọn. |
+
+**Prior:** hàng 1 ~40%, **kém tự tin hơn H80**: 32B mạnh hơn Llama-8B nhiều (đoán .78 vs .54)
+nên số bài Llama đúng mà 32B sai sẽ ít hơn hẳn 38 bài của H80.
+Hàng 2 ~25% · hàng 3 ~25% · hàng 4 ~10%. **Tỉ lệ prior đúng: 16/32.**
