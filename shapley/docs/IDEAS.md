@@ -5585,3 +5585,56 @@ khác — nó là PHÂN PHỐI ĐỘ KHÓ khác.**
 ### H89d (11–510) vẫn chạy — và nó CÓ THỂ đạt cổng
 Trên 11–510, `acc` Llama-8B − `acc` Qwen-1.5B = **+.132** (đọc từ H84e, nơi Llama đóng vai `S_peer`).
 Đủ qua ngưỡng .05. **Không giết H89d.**
+
+---
+
+## Vòng #142 — H88d + H88e: **HÀNG 1. DÒNG "SỬA" BỊ GIẾT, có tái lập, có ý nghĩa**
+
+Cặp đã đăng ký ở #97 (*"chỉ vào TONG_HOP nếu H88 và H88b khớp hàng"*) — **khớp**.
+Cổng: H88d **mọi cổng ĐẠT**; H88e đạt sau sửa đổi #97-d (`n ≥ 460` trên dải tách rời, commit
+**03:11:17 TRƯỚC** khi tôi mở delta — dấu thời gian git kiểm được).
+
+| đại lượng | H88d (11–510, n=499) | H88e (511–974, n=463) |
+|---|---|---|
+| **`Δ_ceil` = `G*_V` − `I`** | **−.0641** (p **.0016**) | **−.0583** (p **.0067**) |
+| `Δ_honest` = `G_V` − `I` | −.0842 (p 4.7e−05) | −.0929 (p 1.5e−05) |
+| `Δ_gate` = `G_V` − `V` | **+.0040** (p .69) | **+.0000** (p 1.00) |
+| `Δ_cont` = `G_I` − `G_V` | **+.0902** (p 1e−06) | **+.0994** (p 1e−06) |
+| `acc(S)` | .4409 | .5292 |
+
+Hai dải **tách rời** và **khác độ khó rõ rệt** (#141), vậy mà bốn đại lượng khớp nhau tới ~.01.
+
+### HÀNG 1: **giết cả dòng sửa**
+`G*_V` là **cổng ORACLE** — giữ `S` khi `S` ĐÚNG THẬT, sai thì lấy `V`. Không hệ thống nào làm
+tốt hơn thế. Số học của H88d:
+```
+G*_V = P(S dung) + P(S sai VA V dung) = .4409 + .1363 = .5772
+acc(I)                                                = .6413
+                                            thieu       -.0641
+```
+> **Ngay cả với cổng HOÀN HẢO, sửa vẫn thua việc chỉ gọi model mạnh một lượt.**
+> Không phải "tín hiệu của ta kém" — **không có gì để khai thác**. Mọi nỗ lực cải thiện cổng
+> đều vô ích. Đây là **chặn trên**, và nó **âm**, có ý nghĩa, ở **cả hai** dải.
+
+### Đơn thuốc rút ra từ M1 **KHÔNG hoạt động** — `Δ_gate` = 0
+Tôi đã suy từ M1 (*"ghi đè thì phá"*) ra đơn thuốc: **chặn ghi đè bằng cổng độc lập thì `D` biến mất**.
+Đo được: **+.0040 (p .69)** và **+.0000 (p 1.00)**. **Không hiệu ứng, hai lần, hoàn toàn null.**
+Tiên nghiệm của tôi đặt **~50% vào hàng 3** (cổng khử được `D` nhưng `κ`=0). **Sai.** Cổng
+**không khử được gì cả**, vì phá hoại **không nằm** ở tập cổng-đạt: `V` phá **12** bài `S` làm đúng,
+mà chỉ **4** nằm trong tập cổng-đạt.
+
+### Cơ chế: thiệt hại nằm ở NHÁNH LEO THANG
+`Δ_cont` = **+.0902 / +.0994**, p **1e−06** cả hai: khi đã quyết định leo thang,
+**cho model GIẢI LẠI TỪ ĐẦU tốt hơn cho nó SỬA, khoảng +.09**.
+Cùng ngân sách, cùng bài, khác **duy nhất** ở việc `M` **có nhìn thấy** artifact của `S` hay không.
+
+> **Không phải "sửa" tệ vì thiếu cổng. "Sửa" tệ vì NHÌN THẤY artifact yếu làm hỏng model mạnh —
+> và điều đó xảy ra ĐÚNG Ở những bài mà `S` đã sai, tức đúng chỗ ta cần model mạnh nhất.**
+
+`G_I` (leo thang bằng giải-lại) = .6473 / .7214 so với `I` = .6413 / .7149 ⇒ **+.006 / +.0065**,
+**không có ý nghĩa** — khớp `ROUTE − I` của H83d (+.0060, p .648). Định tuyến **hoà**, không thắng.
+
+### Không đọc bảng #98 từ hai lần chạy này
+Kernel in cả bảng #98, nhưng H88d/H88e dùng model đắt **Qwen-7B — CÙNG họ**, tức chính là **mốc**
+của #98. So mốc với chính nó thì vô nghĩa. `V − I` = **−.0882 / −.0929** ở đây chỉ là **mốc nội họ
+đã cập nhật** (trước là −.0740), **không phải** một hàng của #98.
