@@ -4151,3 +4151,36 @@ Hàng 3 **~45%** · hàng 1 **~30%** · hàng 2 **~15%** · hàng 4 **~10%**.
 Ở 7B, `I − S` = +.20 và `V − I` = −.074..−.088 rất ổn định. Ở 32B khoảng cách `M`−`S` **hẹp lại**
 (7B đã khá), nên tập "S đúng mà I sai" nhỏ đi ⇒ `Δ_ceil` nhỏ đi. **Rủi ro lớn nhất: cổng `I − S`
 trượt** vì Qwen-7B vốn đã mạnh trên MBPP — chính là cách H89e chết. Tôi cho **~25%** khả năng VOID.
+
+---
+
+## #97-d — SỬA ĐỔI: cổng `n ≥ 480` là BẤT KHẢ THI trên dải tách rời
+
+**Đăng ký lúc:** H88e đã xong và **VOID** vì `n`=463. **Tôi CHƯA đọc `d_gate`/`d_honest`/
+`d_cont`/`d_ceil` của H88e** — sửa đổi này được ghi và commit **TRƯỚC** khi đọc.
+
+### Sự thật thuộc về DỮ LIỆU, không thuộc về kết quả
+```
+MBPP full: task_id 11..974, tong 964 bai
+  dai  11-510 : 500 bai tho -> 499 sau loc
+  dai 511-974 : 464 bai tho -> 463 sau loc
+  dai 511-1000: 464 bai tho   <-- y HET, vi MBPP het o 974
+```
+Ở #97-c tôi "sửa" bằng cách nới dải lên **511–1000**. **Sửa đó VÔ NGHĨA** — không có bài nào
+trên 974. Tôi đã áp bài học #127 (*"nới dải, đừng hạ ngưỡng"*) **mà không kiểm dải có nới được không**.
+
+Hệ quả: **`n ≥ 480` KHÔNG BAO GIỜ đạt được trên dải tách rời.** Đặt nguyên ngưỡng đó nghĩa là
+**cấm vĩnh viễn** việc tái lập trên benchmark này — không phải kỷ luật, mà là hỏng thiết kế.
+
+### Sửa
+**Dải tách rời (511–974): cổng `n ≥ 460`.** Dải chính (11–510): giữ **`n ≥ 480`**.
+
+**Vì sao được phép hạ ở đây mà #127 thì không:** căn cứ là **số đếm của bộ dữ liệu** (464 bài tồn
+tại), **kiểm chứng độc lập được**, và **không phụ thuộc mảy may vào đầu ra của model nào**.
+Ở #127 tôi định hạ ngưỡng vì **kết quả** không đạt — hoàn toàn khác. Chênh 463 vs 480 là **3.5%**
+cỡ mẫu, ảnh hưởng không đáng kể tới lực thống kê.
+
+**Công bố thứ tự:** sửa đổi này commit **trước** khi tôi mở bất kỳ delta nào của H88e.
+Ai kiểm tra được bằng dấu thời gian git.
+
+### Không đổi gì khác. Bảng khoá #97 giữ nguyên từng chữ.
