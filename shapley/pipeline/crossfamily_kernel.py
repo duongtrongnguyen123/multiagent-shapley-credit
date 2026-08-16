@@ -9,6 +9,20 @@ from concurrent.futures import ThreadPoolExecutor
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 RUN = "@@RUN@@"
+
+def _unclosed(t):
+    """#154: CAT CUT = mo rao ``` ma khong dong (so rao LE).
+    KHONG dem "khong co rao nao" la cat cut — do la lua chon dinh dang (#138)."""
+    return (t or "").count("```") % 2 != 0
+
+def trunc_report(named):
+    """named = {ten_nhanh: list[str]}. In ti le cat cut moi nhanh + chenh lech.
+    Cong bat NGUYEN NHAN: cong extract_spread chi bat HAU QUA va da de lot H91c (#153)."""
+    r = {k: round(sum(_unclosed(t) for t in v)/max(len(v),1), 4) for k, v in named.items()}
+    sp = round(max(r.values()) - min(r.values()), 4) if r else 0.0
+    print(f"  [cat cut] {r} | chenh={sp} | {'DAT' if max(r.values(), default=0) < .05 else 'TRUOT (<.05)'}", flush=True)
+    return r, sp
+
 TIDLO, TIDHI = int("@@LO@@"), int("@@HI@@")
 MAXNEW, TIMEOUT = 512, 20
 BS = 24

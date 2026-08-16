@@ -6072,3 +6072,38 @@ chỉ còn là lưới an toàn. Thứ bị cắt là **văn xuôi thừa SAU co
 Lần 4 và 5 **cùng một lỗi**; tôi **sửa chưa tới**. Trước đây tôi tự nói "năm lần, năm nguyên nhân
 khác nhau" — **điều đó giờ không còn đúng**, và tôi phải sửa lại phát biểu đó.
 Giá đã trả cho riêng lần 5: **106 phút RTX**.
+
+---
+
+## Vòng #154 — Quét lớp lỗi "không ai bắt được cắt cụt", và **một lỗi trong chính cổng của tôi**
+
+### A. Kiểm hậu kiểm phát biểu ĐÃ ĐĂNG README (#149) — **SẠCH**
+`exposure_dose_kernel.py` **không có cổng cắt cụt nào**, mà nó là kernel sinh ra kết quả `E3`
+đã đưa lên README. Tính lại ngoại tuyến:
+
+| | `E0` | `E1` | `E2` | `E3` |
+|---|---|---|---|---|
+| H92 | .0000 | .0000 | .0000 | **.0000** |
+| H92b | .0000 | .0000 | .0000 | **.0000** |
+
+**Bốn nhánh được so đều KHÔNG bị cắt.** Phát biểu ở README **đứng vững**.
+
+### B. Nhưng phép kiểm đó lộ ra **cổng #101-b của tôi định nghĩa SAI**
+Tôi viết `cắt cụt = count("```") % 2 != 0 **HOẶC** count("```") < 2`.
+Vế thứ hai gán nhãn "cắt cụt" cho đầu ra **không hề dùng rào markdown** — mà đó là
+**lựa chọn định dạng** (#138: model 1.5B không rào code, nhưng code vẫn biên dịch .998).
+`S_raw` bị báo **.8617** "cắt cụt" trong khi độ dài tối đa của nó là 1314 ký tự, xa cap.
+
+**Đã sửa:** cắt cụt ⟺ **số rào LẺ** (mở mà không đóng). Không rào ⇒ **không phải** cắt cụt.
+
+**Kiểm lại phán quyết cũ:** H91c nhánh `V` = **.0641** theo định nghĩa đúng (thay vì .1042).
+**Vẫn > .05 ⇒ VOID của H91c VẪN ĐÚNG** — đó là cắt cụt thật, không phải lỗi định nghĩa.
+
+> **Một cổng sai định nghĩa nguy hiểm gấp đôi: nó vừa VOID nhầm lần chạy tốt, vừa khiến
+> tôi tin là mình đang được bảo vệ.** May là lần này nó VOID đúng vì lý do đúng.
+
+### C. Quét lớp lỗi
+**Chỉ `gated_repair` có cổng cắt cụt.** Sáu kernel còn lại (`exposure_dose`, `crossfamily`,
+`family_vs_size`, `strong_plus_diverse`, `selector_indep`, `mbpp_peer`) **không có gì** —
+một kết quả lệch vì cắt cụt ở bất kỳ cái nào trong số đó sẽ **không ai phát hiện**.
+Đã thêm `_unclosed()` + `trunc_report()` (định nghĩa đã sửa) vào cả sáu.

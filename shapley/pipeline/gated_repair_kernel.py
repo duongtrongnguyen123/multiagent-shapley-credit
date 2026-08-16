@@ -297,7 +297,10 @@ ext_min, ext_spread = min(ext.values()), round(max(ext.values())-min(ext.values(
 runnable = round(sum(1 for t in TESTS if t)/N, 4)
 # #101-b: cong CAT CUT tuong minh — bat NGUYEN NHAN, som hon cong extract_spread (bat hau qua)
 def _unclosed(t):
-    return (t or "").count("```") % 2 != 0 or (t or "").count("```") < 2
+    """#154: CAT CUT = mo rao ma khong dong (so rao LE). KHONG dem "khong co rao nao"
+    la cat cut — do la lua chon DINH DANG (bai hoc #138: model yeu khong rao code,
+    nhung code van bien dich .998). Ve `count < 2` cu gan nhan sai cho ca mot nhanh."""
+    return (t or "").count("```") % 2 != 0
 trunc = {k: round(sum(_unclosed(t) for t in v)/N, 4) for k, v in
          (("S", S_raw), ("I", I_raw), ("V", V_raw))}
 trunc_max = max(trunc.values())
