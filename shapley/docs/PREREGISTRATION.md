@@ -3993,3 +3993,42 @@ khác vì lý do năng lực chứ không vì họ — nên H89b đọc **kèm**
 
 ### Tái lập
 Kết luận chỉ vào TONG_HOP nếu **H89 và H89c khớp hàng** (cùng `M`, hai dải tách rời).
+
+---
+
+## #97-b — SỬA ĐỔI cho H88c (MATH): định nghĩa `z` mà #97 còn thiếu
+
+**Đăng ký lúc:** trước khi phóng H88c. Đây là **sửa đổi công khai**, không phải diễn giải lại.
+
+### Vì sao phải sửa đổi
+#97 định nghĩa cổng `z` = *"test do `S` tự viết, **chạy thật**"*. Trên MATH **không có gì để chạy**.
+Nên dòng "H88c = MATH-500" trong #97 **thiếu định nghĩa** — nếu tôi cứ chọn một `z` nào đó sau khi
+đã thấy dữ liệu thì đó đúng là post hoc. Khoá lại ngay bây giờ.
+
+### `z` cho MATH
+`z` = **tự nhất quán k=2**: `S` giải lần 1 (greedy) và lần 2 (nhiệt độ 0.8, hạt cố định);
+`z` ĐẠT ⟺ hai đáp án chuẩn hoá **trùng nhau**.
+
+### Hệ quả PHẢI thừa nhận trước
+`z` này **TƯƠNG QUAN** với lỗi của `S` — cùng một model, M2 đã đo: 8 mẫu cùng model có 25.0%
+**cùng SAI**. Vậy M2 **dự đoán trước** rằng cổng này sẽ bắt kém. Nếu H88c ra `κ` thấp thì
+**KHÔNG được đọc thành "cổng không hoạt động trên toán"** — nó chỉ tái xác nhận M2.
+
+### Vì thế H88c đổi thứ tự đọc
+
+| | đại lượng | vì sao đọc được |
+|---|---|---|
+| **CHÍNH** | `Δ_ceil = acc(G*_V) − acc(I)` | cổng **ORACLE** — **không phụ thuộc** chất lượng `z`. Trả lời: trên MATH **có gì để khai thác không**? |
+| phụ (thăm dò) | `Δ_gate`, `Δ_honest` với `z` tự nhất quán | chỉ đọc **kèm** cảnh báo tương quan ở trên |
+
+**Chỉ hàng 0 và hàng 1 của bảng khoá #97 được áp cho H88c.** Hàng 2/3/4 nói về cổng khả thi
+nên **không** áp cho một `z` đã biết trước là tương quan.
+
+### CỔNG CHẤT LƯỢNG (thay cổng code của #97)
+1. tỉ lệ có `\boxed` `≥ .80` ở **mọi** nhánh, chênh `< .05` (cổng cắt cụt #84 — bài học #119/#130)
+2. `MAXNEW = 1280`
+3. `n ≥ 450` · 4. `.15 ≤ p_esc ≤ .90`
+
+### TIÊN NGHIỆM
+`Δ_ceil > 0` rõ rệt trên MATH: **~70%** (vì `I − S` trên MATH lớn, còn tập "S đúng mà I sai" thì
+nhỏ — nhưng `acc(S)` thấp nên vẫn còn chỗ). Cổng khả thi cho `κ` gần 0: **~75%**.
