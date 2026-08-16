@@ -5062,3 +5062,58 @@ Nếu đọc bừa, bảng sẽ nói:
 `MAXNEW` ≥ **3072** cho 32B (trung vị 7B là 1332 token-tương-đương ⇒ 32B cần ~2.3×).
 Nhưng H78 đã mất **5.2 giờ** ở 1280; ×2.4 sẽ vượt tường 12h ⇒ phải **giảm n xuống ~250**
 hoặc **bỏ nhánh 14B**. Ghi rõ: đây là đánh đổi bắt buộc, không phải lựa chọn tuỳ tiện.
+
+---
+
+# Vòng #131 — H80: **ĐA DẠNG HỌ THẮNG ĐA DẠNG LẤY MẪU — M2 ĐƯỢC XÁC NHẬN**
+*(đăng ký trước #89, khoá tại `92fddfb` TRƯỚC khi chạy — đây là dự đoán 3 của TONG_HOP,
+và bảng khoá có hàng GIẾT M2 nếu `|ΔH| < .05`)*
+
+### Cổng ĐẠT: soundness **.9619** · copy_rate **.0020** · biên dịch **.9992** · mọi model ≥ .35
+RTX PRO 6000, bf16, MBPP 11–510, n=500. **Bộ chọn GIỮ NGUYÊN** (test do Qwen viết, một lần)
+⇒ khác biệt duy nhất là **thành phần pool**. Chi phí khớp (3 × ~7B).
+
+| pool | ứng viên | **trần `H`** | **`SEL`** | **`κ`** | hoà |
+|---|---|---|---|---|---|
+| **A — đa dạng LẤY MẪU** | Q1 .666 · Q2 .666 · Q3 .662 | .7220 | .6920 | **46.4%** | .866 |
+| **B — đa dạng HỌ** | Q1 .666 · **L .540** · D .622 | **.7720** | **.7240** | **54.7%** | .682 |
+
+**PHÁN QUYẾT: HÀNG 1 — M2 XÁC NHẬN MẠNH.**
+- `H(B) − H(A)` = **+.0500** · thắng 38 / thua 13 · **McNemar p = 6.2e-4**
+- `SEL(B) − SEL(A)` = **+.0320** · thắng 24 / thua 8 · **p = 7.0e-3**
+- Hàng phụ cũng kích hoạt: **`SEL(B)` = .7240 > `H(A)` = .7220** —
+  **CHỌN trong pool khác họ vượt cả TRẦN của pool cùng họ.**
+
+### Cơ chế đo được TRỰC TIẾP — đây là điều đáng giá nhất
+| phân bố số ứng viên đúng | cùng sai | **hỗn hợp** | cùng đúng |
+|---|---|---|---|
+| pool A (cùng họ) | 139 | **57** | 304 |
+| pool B (khác họ) | **114** | **167** | 219 |
+
+**Số bài HỖN HỢP tăng gấp 2.9 lần (57 → 167)**, và số bài **cùng sai giảm 139 → 114**.
+Đây chính là **giải tương quan lỗi**, đo thẳng chứ không suy diễn.
+
+### Điều lật ngược trực giác — và là phát biểu mạnh nhất rút ra được
+**`L` (Llama-3.1-8B) là ứng viên YẾU NHẤT: .5400, kém MỌI mẫu Qwen (≥ .662).
+Thêm nó vào vẫn NÂNG cả trần lẫn kết quả cuối.**
+
+> **Một ứng viên YẾU HƠN nhưng GIẢI TƯƠNG QUAN đóng góp nhiều hơn một ứng viên MẠNH HƠN
+> nhưng TƯƠNG QUAN.** Giá trị của một agent trong nhóm **KHÔNG phải là năng lực của nó**,
+> mà là **phần lỗi của nó KHÔNG trùng với lỗi của những agent đã có**.
+
+### `κ` cũng TĂNG — rủi ro tôi nêu trước KHÔNG xảy ra
+Ở #89 tôi ghi trước rủi ro: *"test do Q viết có thể thiên vị code kiểu Q ⇒ κ tụt ở pool B"*.
+Thực tế **κ tăng .464 → .547**: ứng viên đa dạng hơn **dễ phân biệt hơn**, vì tỉ lệ hoà
+giảm .866 → .682. Bộ chọn có nhiều việc để làm hơn và làm tốt hơn.
+
+### Ý nghĩa cho khung hợp nhất
+`value = H × κ − D`. Đổi từ đa dạng-lấy-mẫu sang đa dạng-họ **nâng ĐỒNG THỜI cả `H` lẫn `κ`**,
+ở **cùng chi phí** và `D = 0`. Đây là **đòn bẩy rẻ nhất tìm được trong toàn dự án**:
+không cần model lớn hơn, không cần thêm lượt, chỉ cần **đổi NGUỒN ứng viên**.
+
+### Prior của tôi ĐÚNG (hàng 1, ~50%)
+Tỉ lệ prior đúng: **16/32**.
+
+### Còn phải kiểm
+Một lần chạy, một benchmark (MBPP), ba model cụ thể. **Chưa tái lập trên dải bài tách rời** —
+đây là kết quả dương mạnh nhất nên **bắt buộc phải tái lập** trước khi vào README.
