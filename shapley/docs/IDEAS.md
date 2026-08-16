@@ -5240,3 +5240,43 @@ H89 **có** `partial_H89.json` **282 KB dữ liệu thật** (499 bài `S` + `TE
 Không giết: sẽ mất >40 phút công đã chạy. **Ghi nhận sai khác**: H89b chạy 1 card, H89d/H89e chạy
 2 card; giải mã vẫn greedy nên khác biệt chỉ có thể đến từ kích thước lô lúc lùi OOM — nhỏ,
 nhưng **phải nêu** nếu đọc ba nhánh cạnh nhau.
+
+---
+
+## Vòng #134-d — H84c HUỶ: **Llama-3.1-8B vào fp16 chứ không phải nf4**
+
+**Không đọc số nào.** Lại là hạ tầng. Nhưng lần này log đủ để chốt nguyên nhân *chính xác*,
+không phải đoán — và nó bác bỏ chẩn đoán tôi định đưa ra.
+
+### Bản vá #134 ĐÃ hoạt động
+```
+sau giai phong: gpu0 cap phat 0.01 giu cho 0.02 | gpu1 cap phat 0.01 giu cho 0.02
+```
+Cả `cấp phát` lẫn `giữ chỗ` đều về ~0 trên **cả hai** card. `_free_models()` đúng, và
+`expandable_segments` xoá nốt 2.88 GB "giữ chỗ" còn sót ở #134. **Giải phóng không còn là vấn đề.**
+
+### Nguyên nhân thật, đọc thẳng từ thông báo lỗi
+```
+14.32 GiB is allocated by PyTorch, and 87.30 MiB is reserved but unallocated
+```
+`reserved-but-unallocated` chỉ **87 MB** ⇒ **KHÔNG phải phân mảnh**. 14.32 GB là model **thật sự**
+chiếm. Llama-3.1-8B ở nf4 phải ~5.6 GB; 14.32 GB đang trên đường tới **~16 GB của fp16**.
+⇒ **lượng tử hoá KHÔNG được áp dụng cho Llama.**
+
+Bằng chứng đối chứng nằm ngay trong cùng kernel: **Qwen-7B nf4 nạp bình thường ở 5.2 GB** (H84b).
+Nên bitsandbytes có chạy; sự cố **riêng với Llama** trên đường nạp mới của transformers
+(`core_model_loading._materialize_copy` — vật chất hoá tensor **trước** rồi mới lượng tử hoá).
+
+> Nếu chỉ nhìn "OOM khi nạp model thứ hai" tôi đã kết luận "free vẫn hỏng" lần thứ ba liên tiếp
+> và đi sửa đúng cái **không hỏng**. Con số `reserved-but-unallocated` là thứ phân biệt
+> **phân mảnh** với **thật sự quá to** — hai bệnh khác nhau, hai thuốc khác nhau.
+
+### Bản sửa
+`load_sharded()`: **một** bản Llama **trải đều cả hai card** (`device_map="auto"`, 31.2 GB tổng),
+thay vì hai bản mỗi bản một card. Vừa cả khi nó ở fp16.
+**Đánh đổi được ghi rõ:** song song **dữ liệu** (2 bản, nhanh) → song song **mô hình** (1 bản, chậm hơn).
+Qwen-7B giữ nguyên 2 bản vì nó lượng tử hoá đúng và chỉ tốn 5.2 GB.
+
+### Cứu được
+`partial_H84c.json` **72 KB dữ liệu thật** (`S_RAW` 500 bài). So với H84b cùng chỗ chết:
+**0 byte**. Luật #128 đã trả công lần thứ hai trong hai vòng.
