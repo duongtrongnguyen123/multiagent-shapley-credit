@@ -160,18 +160,29 @@ việc `M` **có nhìn thấy** artifact hay không. Nhìn thấy tốn ~**.09**
 model yếu **trong lượt sinh**. Chỉ được nhìn **ở lượt CHỌN**, sau khi nó đã có bản của chính mình.
 Đó đúng là hình dạng của `SEL` — và đó là lý do `SEL` là **thứ duy nhất** cho kết quả dương.
 
-### Nghịch lý phục tùng/chủ động — hệ quả trực tiếp
-Muốn `D = 0` thì `M` phải **không sửa**. Nhưng nếu `M` **không sửa gì cả** thì nó thừa hưởng
-`acc(S)`. Đo được: `V_cons` giữ nguyên 75% ⇒ tụt về **.4840** (nguồn có `acc` = .428).
+### Nghịch lý phục tùng/chủ động — **đã sửa sau #142**
 
-| cực | `D` | trần |
-|---|---|---|
-| quá **chủ động** (`V_std`) | **lớn** — phá bản đúng | — |
-| quá **phục tùng** (`V_cons`, GRPO) | 0 | **chặn ở `acc(S)`** |
+> ⚠️ **Bản trước viết: *"Muốn `D = 0` thì `M` phải không sửa"*. #142 BÁC BỎ câu đó.**
+> Cổng chặn ghi đè — kể cả **cổng ORACLE** — **không** làm `D` giảm (`Δ_gate` null hai lần).
+> **Không sửa là KHÔNG ĐỦ**, vì `M` **vẫn đã nhìn thấy**.
 
-> **Không có điểm ngọt ở tầng prompt**, vì chọn giữa hai cực đòi hỏi biết đâu đúng đâu sai —
-> **chính là bài toán cần giải**. Lối thoát duy nhất là **CHỌN** (D=0 mà không phục tùng),
-> và nó cần một `z` độc lập.
+Ba cực, không phải hai:
+
+| cực | `M` có **nhìn thấy** trước khi sinh? | `D` | trần |
+|---|---|---|---|
+| quá **chủ động** (`V_std`) | có | **lớn** — phá bản đúng | — |
+| quá **phục tùng** (`V_cons`, GRPO) | có | **vẫn > 0**, cộng thêm **thừa hưởng `acc(S)`** | **chặn ở `acc(S)`** |
+| **sửa CÓ CỔNG** (`G_V`, `G*_V` — #142) | có | **KHÔNG đổi** (`Δ_gate` = +.004 / +.000) | **vẫn dưới `acc(I)`** |
+| **CHỌN** (`SEL`) | **KHÔNG** — `M` tự giải xong rồi mới so | **0** | `H(pool)` |
+
+Đo được cho cực phục tùng: `V_cons` giữ nguyên 75% ⇒ tụt về **.4840** (nguồn `acc` = .428).
+
+> **Không có điểm ngọt ở tầng prompt** — và giờ ta biết **vì sao**: cả ba cực đầu đều để `M`
+> **nhìn thấy artifact TRƯỚC KHI nó sinh ra bản của mình**. Prompt điều khiển được *`M` làm gì
+> với thứ nó thấy*, nhưng không xoá được *việc nó đã thấy*.
+> **Lối thoát duy nhất là CHỌN**: `M` sinh bản của chính nó **trong trạng thái mù**, rồi mới
+> được xem để so. Phơi nhiễm xảy ra **sau khi `M` đã cam kết câu trả lời của mình** ⇒ `D = 0`.
+> Và khi ấy `κ` cần một `z` độc lập.
 
 ---
 
