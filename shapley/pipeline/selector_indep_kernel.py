@@ -92,12 +92,37 @@ def load(tag):
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
-    if BIG_CARD:
-        mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
-    else:
-        mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": 0}).eval()
-    print(f"  nap {tag}: VRAM {torch.cuda.memory_allocated(0)/2**30:.1f} GB", flush=True)
+    # #134-h: tren ban transformers nay, model NGOAI HO QWEN khong duoc luong tu hoa —
+    # quan sat doc lap: Llama-3.1-8B (H84c/H89/H86b) va DeepSeek-Coder-6.7B (H81c, 13.85 GB
+    # = dung bang fp16 cua no). Thu MOT card truoc, OOM thi lui ve TRAI DEU hai card.
+    NG = torch.cuda.device_count()
+    def _build(dmap):
+        if BIG_CARD:
+            return AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map=dmap).eval()
+        return AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map=dmap).eval()
+    dmap = {"": 0}
+    try:
+        mo = _build(dmap)
+    except torch.OutOfMemoryError:
+        if NG == 1: raise
+        print(f"  {tag}: OOM tren MOT card -> giai phong -> lui ve TRAI DEU", flush=True)
+        mo = None; gc.collect()
+        for _d in range(NG):
+            with torch.cuda.device(_d): torch.cuda.empty_cache()
+        dmap = "auto"
+        mo = _build(dmap)
+    print(f"  nap {tag} (device_map={dmap}): " + " | ".join(
+        f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(d)/2**30:.2f}"
+        for d in range(NG)), flush=True)
     return mo, tk
+
+def _indev(mo):
+    dm = getattr(mo, "hf_device_map", None)
+    if dm:
+        for k in ("model.embed_tokens", "transformer.wte", ""):
+            if k in dm: return dm[k]
+        return sorted(dm.values(), key=str)[0]
+    return mo.device
 def free(mo=None):
     """LUU Y: 'del mo' TRONG ham chi xoa TEN CUC BO — model van song o bien cua caller.
     Vi the caller PHAI gan mo=None TRUOC khi goi. Ham nay chi lam gc + empty_cache."""
@@ -113,7 +138,7 @@ def gen(mo, tk, sysm, usrs, bs, temp=0.0):
         try:
             ps = [tk.apply_chat_template([{"role":"system","content":sysm},{"role":"user","content":u}],
                   tokenize=False, add_generation_prompt=True) for u in ch]
-            e = tk(ps, return_tensors="pt", padding=True).to(mo.device)
+            e = tk(ps, return_tensors="pt", padding=True).to(_indev(mo))
             o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=(temp > 0),
                             temperature=max(temp, 1e-5), top_p=0.95, pad_token_id=tk.pad_token_id)
         except torch.OutOfMemoryError:

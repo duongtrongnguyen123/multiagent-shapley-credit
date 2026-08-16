@@ -2,7 +2,10 @@
 # Y het H61, doi task: MBPP thay GSM8K. S=1.5B viet code | I=7B tu viet | V=7B xem code cua S.
 # Dai luong CHINH = V - I (KHONG phai V - S). I re hon V -> I >= V la AP DAO HOAN TOAN.
 import os
-os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")   # phai TRUOC import torch
+# #134-h: KHONG dat expandable_segments o kernel nay. Day la kernel DUY NHAT dung
+# threading + nhieu ban sao tren nhieu GPU; bat expandable_segments o H84d gay
+# "CUDA error: an illegal memory access" ngay sau khi nap 1.5B — H84c (khong co no)
+# qua cung cho do trong 150s. Phan manh o day khong dang de doi lay mot loi CUDA.
 import re, json, glob, time, tempfile, subprocess, sys, gc, torch
 from concurrent.futures import ThreadPoolExecutor
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", "bitsandbytes>=0.46.1"], check=False)

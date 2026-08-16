@@ -5280,3 +5280,50 @@ Qwen-7B giữ nguyên 2 bản vì nó lượng tử hoá đúng và chỉ tốn 
 ### Cứu được
 `partial_H84c.json` **72 KB dữ liệu thật** (`S_RAW` 500 bài). So với H84b cùng chỗ chết:
 **0 byte**. Luật #128 đã trả công lần thứ hai trong hai vòng.
+
+---
+
+## Vòng #135 — H86b/H81c/H84d HUỶ. **Nguyên nhân gốc: model NGOÀI HỌ QWEN không được lượng tử hoá**
+
+**Không đọc số nào.** Ba lần huỷ nữa, nhưng lần này chẩn đoán đã lên tới **nguyên nhân gốc**
+thay vì vá từng ca.
+
+### Bằng chứng hội tụ — bốn lần quan sát ĐỘC LẬP
+| lần chạy | model chết | `allocated` lúc OOM | fp16 lý thuyết |
+|---|---|---|---|
+| H84c (`mbpp_peer`) | Llama-3.1-8B | 14.32 GB | 14.96 GB |
+| H89 (`gated_repair`) | Llama-3.1-8B | 14.32 GB | 14.96 GB |
+| H86b (`crossfamily`) | Llama-3.1-8B | 13.94 GB | 14.96 GB |
+| **H81c (`selector_indep`)** | **DeepSeek-Coder-6.7B** | **13.85 GB** | **12.57 GB** |
+
+Trong **cùng những kernel đó**, Qwen-7B lượng tử hoá bình thường ở **5.2 GB**.
+
+> **Không phải "Llama có vấn đề". Là: trên bản transformers/bitsandbytes này, `quantization_config`
+> IM LẶNG không áp dụng cho model ngoài họ Qwen — chúng rơi về fp16 (12.5–15 GB), tức ngay tại
+> hoặc vượt trần một card T4 (14.56 GB).** H81c là mảnh ghép quyết định: DeepSeek **không phải**
+> Llama, nên giả thuyết "lỗi riêng của Llama" bị bác.
+
+Điều này cũng giải thích vì sao `grep -ln "llama"` của tôi **bỏ sót** `selector_indep` — tôi đã
+quét theo **tên model**, trong khi lớp lỗi là **"không thuộc họ Qwen"**. Lại đúng cái sai của #134:
+quét theo chuỗi ký tự chứ không theo lớp lỗi.
+
+### H84d — lỗi này là DO TÔI GÂY RA
+`RuntimeError: CUDA error: an illegal memory access` ngay sau khi nạp 1.5B. H84c **qua chặng đó
+trong 150s**. Khác biệt duy nhất: tôi thêm `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`.
+`mbpp_peer` là kernel **DUY NHẤT** dùng `threading` + **nhiều bản sao trên nhiều GPU**.
+
+> **`expandable_segments` + đa luồng đa GPU = lỗi CUDA.** Đã gỡ khỏi `mbpp_peer` (giữ ở các kernel
+> một-model-một-luồng, nơi nó thật sự chữa được 2.88 GB "giữ chỗ" ở #134).
+> **Bài học: một bản vá đúng ở kernel A có thể là lỗi ở kernel B.** "Lan bản vá sang mọi kernel
+> phái sinh" phải kèm câu hỏi *"kernel này có gì khác không?"* — không phải dán mù.
+
+### Bản sửa
+`load()` **lạc quan có đường lùi** ở `crossfamily`, `strong_plus_diverse`, `selector_indep`,
+`gated_repair` — thử một card, `OutOfMemoryError` thì giải phóng sạch rồi trải đều hai card
+(31.2 GB, thừa cho fp16 15 GB). Thêm **`canary()`**: nạp thử **từng** model rồi giải phóng ngay,
+**trước** khi sinh gì cả — H86b tiêu **54 phút** cho model 1 rồi mới chết ở model 2; canary trả
+lời "kế hoạch này chạy được không" trong ~5 phút.
+
+### Giá phải trả cho tới giờ
+H86b **54 phút** · H81c **48 phút** · H84b **36 phút** · H89 ~11 phút · H84c ~10 phút · H84d ~3 phút.
+Tất cả đều cứu được dữ liệu thô nhờ #128 — trừ H84b (chạy trước khi có luật đó): **0 byte**.

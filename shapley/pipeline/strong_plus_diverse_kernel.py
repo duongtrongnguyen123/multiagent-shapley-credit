@@ -158,6 +158,21 @@ def gen(mo, tk, sysm, usrs, bs, temp=0.0):
     return outs
 
 PR = [f"{r['text']}\n\nYour code must satisfy this test:\n{r['test_list'][0]}" for r in ALL]
+def canary():
+    """#134-g: nap THU tung model roi giai phong NGAY, TRUOC khi sinh bat cu gi.
+
+    H86b tieu 54 phut sinh voi model 1 roi moi chet luc nap model 2. Canary tra loi cau hoi
+    "ke hoach nay co chay duoc tren phan cung nay khong" trong ~5 phut thay vi ~2 gio.
+    No cung IN ra footprint that cua tung model, nen phat hien duoc truong hop
+    "xin nf4 nhung nhan fp16" ngay lap tuc thay vi suy dien tu mot dong OOM."""
+    print("=== CANARY: thu nap tung model truoc khi sinh ===", flush=True)
+    for _tag in list(M):
+        _mo, _tk = load(_tag)
+        _mo = None; _tk = None
+        free()
+    print("=== CANARY xong: MOI model deu nap duoc ===", flush=True)
+
+canary()
 t0 = time.time()
 CODE, RAW = {}, {}
 
