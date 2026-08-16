@@ -4184,3 +4184,47 @@ cỡ mẫu, ảnh hưởng không đáng kể tới lực thống kê.
 Ai kiểm tra được bằng dấu thời gian git.
 
 ### Không đổi gì khác. Bảng khoá #97 giữ nguyên từng chữ.
+
+---
+
+## #102 — H92: **LIỀU–ĐÁP ỨNG của việc NHÌN THẤY** (kiểm M1 đã phát biểu lại ở #142)
+
+**Đăng ký lúc:** trước khi phóng. #142 vừa phát biểu lại M1: *"vấn đề không phải `M` được phép
+GHI ĐÈ, mà là `M` NHÌN THẤY"*. Đó là một **cơ chế**, và cơ chế thì phải có **liều–đáp ứng**.
+Nếu không có, phát biểu lại của tôi chỉ là kể chuyện cho vừa số liệu.
+
+### Thiết kế — cùng bài, cùng ngân sách, chỉ đổi LƯỢNG được nhìn
+`S` = Qwen2.5-1.5B, `M` = Qwen2.5-7B, MBPP. Sinh `S` **một lần**, dùng chung cho mọi nhánh.
+
+| nhánh | `M` được cho xem gì | ghi chú |
+|---|---|---|
+| `E0` = `I` | **không gì cả** | mốc thật |
+| `E1` | *"Một model nhỏ hơn đã thử bài này."* — **không nội dung** | chỉ có sự tồn tại |
+| `E2` | **chỉ chữ ký hàm + số dòng** của `S` (không thân hàm) | cấu trúc, không logic |
+| `E3` | **toàn bộ code** của `S` (= `V`) | phơi nhiễm tối đa |
+
+Mọi nhánh dùng **cùng một lệnh**: *"Write the complete self-contained Python function."*
+`E1`–`E3` chỉ **thêm** phần ngữ cảnh. **Không nhánh nào được bảo "sửa"** — nhờ vậy tách được
+**NHÌN THẤY** khỏi **ĐƯỢC LỆNH GHI ĐÈ** (thứ mà `V` truyền thống trộn chung).
+
+### CỔNG (nêu CẢ hiệu ứng LẪN ý nghĩa — luật #140)
+1. `compiles(extract(t)) ≥ .80` mọi nhánh, chênh **< .05**
+2. `n ≥ 480` (dải 11–510) · 3. `I − S ≥ .05` **và** p < .05
+
+### BẢNG KHOÁ
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng trượt | **VOID** |
+| 1 | `E0 > E1 > E2 > E3` đơn điệu, và `E0 − E3 ≥ .05` với p < .05, và `E0 − E2 ≥ .02` với p < .05 | **LIỀU–ĐÁP ỨNG CÓ THẬT.** "Nhìn thấy" là biến gây hại, càng nhìn nhiều càng hại. M1 phát biểu lại ở #142 **đứng vững**. |
+| 2 | `E3` thấp hơn `E0` (p<.05) nhưng `E1 ≈ E2 ≈ E0` (đều \|Δ\|<.02) | **NGƯỠNG, không phải liều.** Chỉ **nội dung logic đầy đủ** mới hại; biết-có-tồn-tại và cấu trúc thì vô hại. Phát biểu lại M1 lần nữa: hại đến từ **logic cụ thể**, không từ "nhìn thấy" nói chung. |
+| 3 | `E1 < E0` với p < .05 (chỉ cần **biết có người thử** đã hại) | **KINH NGẠC.** Thiệt hại xảy ra **không cần nội dung nào** ⇒ là hiệu ứng **lệnh/khung**, không phải nhiễm nội dung. Sẽ phải xét lại toàn bộ diễn giải "nguồn ngoại lai". |
+| 4 | mọi \|`Ei` − `E0`\| < .02 hoặc p ≥ .05 | **GIẾT phát biểu lại của #142.** Không tái lập được thiệt hại khi BỎ lệnh "review" ⇒ thủ phạm là **LỆNH GHI ĐÈ**, không phải việc nhìn thấy. M1 quay về bản gốc. |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 2 **~40%** · hàng 1 **~25%** · hàng 4 **~25%** · hàng 3 **~10%**.
+Tôi nghiêng về **ngưỡng** hơn **liều**: #119 đọc từ trace thấy `M` **viết lại** khi thấy code —
+hành vi ấy cần **code thật** để bám vào, chứ chữ ký hàm thì khó neo.
+**Hàng 4 đáng kể (~25%)** vì mọi phép đo đầu độc từ trước tới nay **đều kèm lệnh "review"**;
+rất có thể lệnh mới là thủ phạm, và #142 của tôi đã quy sai cho "nhìn thấy".
+**Nếu hàng 4 xảy ra, tôi phải sửa TONG_HOP lần nữa và nói rõ #142 đã suy diễn quá tay.**
