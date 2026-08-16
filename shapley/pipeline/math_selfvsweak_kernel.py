@@ -9,6 +9,22 @@ if os.environ.get("NEED_BNB", "1") == "1":
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
+
+def save_partial(stage=""):
+    """#128/#134: luu DU LIEU THO sau moi chang. Khong can biet ten bien cua tung kernel —
+    chup MOI bien toan cuc la list[str] du dai. Tieu chuan: neu kernel chet o dong ngay sau,
+    file nay phai CHAM DIEM duoc."""
+    try:
+        snap = {k: v for k, v in list(globals().items())
+                if isinstance(v, list) and len(v) >= 10
+                and isinstance(v[0], (str, list, bool, int, float))}
+        json.dump({"partial": True, "run": RUN, "stage": stage,
+                   "keys": sorted(snap), "raw": snap},
+                  open(f"/kaggle/working/partial_{RUN}.json", "w"))
+        print(f"    [partial] {stage}: {sorted(snap)}", flush=True)
+    except Exception as _e:
+        print(f"    [partial] LOI: {_e}", flush=True)
+
 MAXNEW = 1280   # #119: 640 cat nhanh I nhieu hon nhanh V (39.8% vs 25.4%) -> confound
 BSZ_SMALL = {"1.5B": 32, "7B": 16, "14B": 8}    # T4 16 GB
 BSZ_BIG   = {"1.5B": 96, "7B": 64, "14B": 32}   # RTX 6000 Pro 102 GB — tinh lai theo VRAM, khong chep
@@ -184,14 +200,18 @@ for _d in range(torch.cuda.device_count()):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 
+save_partial("S (1.5B)")
 m7, tk7 = load("7B")
 IND = gen(m7, tk7, SOLVE, Q, BSZ["7B"])
 print(f"I xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial("I")
 VW = gen(m7, tk7, VERIFY, [f"{Q[i]}\n\nProposed solution:\n{SOLS[i]}" for i in range(N)], BSZ["7B"])
 print(f"V_weak xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial("V_weak")
 VS = gen(m7, tk7, VERIFY, [f"{Q[i]}\n\nProposed solution:\n{IND[i]}" for i in range(N)], BSZ["7B"])
 print(f"V_self xong ({time.time()-t0:.0f}s)", flush=True)
 
+save_partial("V_self")
 OUT = {"S": SOLS, "I": IND, "V_weak": VW, "V_self": VS}
 A = {k: [_bx(t) or (re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I) or [None])[-1]
          for t in v] for k, v in OUT.items()}

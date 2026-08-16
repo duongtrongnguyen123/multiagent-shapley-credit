@@ -8,6 +8,22 @@ from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
+
+def save_partial(stage=""):
+    """#128/#134: luu DU LIEU THO sau moi chang. Khong can biet ten bien cua tung kernel —
+    chup MOI bien toan cuc la list[str] du dai. Tieu chuan: neu kernel chet o dong ngay sau,
+    file nay phai CHAM DIEM duoc."""
+    try:
+        snap = {k: v for k, v in list(globals().items())
+                if isinstance(v, list) and len(v) >= 10
+                and isinstance(v[0], (str, list, bool, int, float))}
+        json.dump({"partial": True, "run": RUN, "stage": stage,
+                   "keys": sorted(snap), "raw": snap},
+                  open(f"/kaggle/working/partial_{RUN}.json", "w"))
+        print(f"    [partial] {stage}: {sorted(snap)}", flush=True)
+    except Exception as _e:
+        print(f"    [partial] LOI: {_e}", flush=True)
+
 TIDLO, TIDHI = int("@@LO@@"), int("@@HI@@")
 MAXNEW, TIMEOUT = 512, 20
 
@@ -151,20 +167,25 @@ SS = [[extract(t) for t in gen(m15, tk15, SOLVE, PR, 24)]]
 for kk in range(1, 5):
     SS.append([extract(t) for t in gen(m15, tk15, SOLVE, PR, 24, temp=0.8)])
     print(f"S{kk+1} (1.5B T=0.8) xong ({time.time()-t0:.0f}s)", flush=True)
+    save_partial("S{kk+1} (1.5B T=0.8)")
 _free_models(m15); m15 = None; gc.collect()
 for _d in range(torch.cuda.device_count()):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"5 mau 1.5B xong ({time.time()-t0:.0f}s)", flush=True)
 
+save_partial("5 mau 1.5B")
 m7, tk7 = load(M7, True)
 I  = [extract(t) for t in gen(m7, tk7, SOLVE, PR, 8)]
 print(f"I (7B greedy) xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial("I (7B greedy)")
 I2 = [extract(t) for t in gen(m7, tk7, SOLVE, PR, 8, temp=0.8)]
 print(f"I2 (7B T=0.8) xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial("I2 (7B T=0.8)")
 VREV = I
 TESTS = [clean_asserts(t) for t in gen(m7, tk7, WTEST, PRNT, 8)]
 print(f"test tu sinh xong ({time.time()-t0:.0f}s)", flush=True)
 
+save_partial("test tu sinh")
 def nrm(s): return " ".join(s.split())
 off = [set(nrm(x) for x in r["test_list"][1:3]) for r in ALL]
 ngen = sum(len(t) for t in TESTS)

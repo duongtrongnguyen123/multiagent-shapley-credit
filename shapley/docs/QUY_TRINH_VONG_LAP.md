@@ -385,3 +385,21 @@ ghi chú mong manh. Số đúng, trình bày sai.
 > trong khi 2.88 GB vẫn bị giữ — đủ để chẩn đoán sai hoàn toàn.
 > **Quy tắc cứng 3: quét sửa lỗi theo LỚP LỖI, không theo chuỗi ký tự vừa gõ.** #132 quét
 > `def free(mo)` nên bỏ sót 12 kernel dùng `for _m in X: del _m` — cùng một lớp lỗi.
+
+9. **#134-b — lưu từng phần KHÔNG cần biết tên biến**
+
+Tám kernel nhiều chặng vẫn không có lưu từng phần nào (đúng lớp lỗi đã mất 12h ở #128 và ~15h ở
+#124). Viết tay cho từng kernel thì phải biết tên biến của từng cái — chậm và dễ sai. Thay bằng
+**một helper chung chụp mọi biến toàn cục là `list` đủ dài**, chèn sau mỗi mốc `... xong (`:
+
+```python
+snap = {k: v for k, v in list(globals().items())
+        if isinstance(v, list) and len(v) >= 10
+        and isinstance(v[0], (str, list, bool, int, float))}
+```
+Chạy thử phát hiện bản đầu **bỏ sót `TESTS`** (list-of-list) và **vector cổng `Z`** (list-of-bool) —
+đúng hai thứ đắt nhất. Đã mở rộng.
+
+> **Quy tắc cứng: mọi bản sửa "an toàn" phải được CHẠY THỬ trên dữ liệu giả có đủ hình dạng
+> thật (list-of-str, list-of-list, list-of-bool, biến không phải list) trước khi tin.**
+> Bản chụp đầu tiên trông đúng và im lặng đánh rơi hai mảng quan trọng nhất.

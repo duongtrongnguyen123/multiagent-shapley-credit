@@ -8,6 +8,22 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from datasets import load_dataset
 
 RUN = "@@RUN@@"
+
+def save_partial(stage=""):
+    """#128/#134: luu DU LIEU THO sau moi chang. Khong can biet ten bien cua tung kernel —
+    chup MOI bien toan cuc la list[str] du dai. Tieu chuan: neu kernel chet o dong ngay sau,
+    file nay phai CHAM DIEM duoc."""
+    try:
+        snap = {k: v for k, v in list(globals().items())
+                if isinstance(v, list) and len(v) >= 10
+                and isinstance(v[0], (str, list, bool, int, float))}
+        json.dump({"partial": True, "run": RUN, "stage": stage,
+                   "keys": sorted(snap), "raw": snap},
+                  open(f"/kaggle/working/partial_{RUN}.json", "w"))
+        print(f"    [partial] {stage}: {sorted(snap)}", flush=True)
+    except Exception as _e:
+        print(f"    [partial] LOI: {_e}", flush=True)
+
 M7 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors.index.json", recursive=True), key=len)[0])
 N, MAXNEW, TEMP, K = 300, 768, 0.8, 8
 TIMEOUT = 60
@@ -116,6 +132,7 @@ r1 = {i: extract(c) for i, c in zip(KEEP, gen(REFAC, [SRC[i] for i in KEEP], 0.0
 p1 = dict(zip(KEEP, many(run_tests, [(ALL[i], r1[i]) for i in KEEP])))
 print(f"ref1 xong ({time.time()-t0:.0f}s) preserve={sum(p1.values())/len(KEEP):.4f}", flush=True)
 
+save_partial("ref1")
 # ---- nhanh 2: ref_exec3 — sua toi da 3 vong theo stderr ----
 cur = dict(r1); okm = dict(p1); rounds = {i: 0 for i in KEEP}
 for rd in range(3):
@@ -132,6 +149,7 @@ for rd in range(3):
 e3, pe3 = cur, okm
 print(f"ref_exec3 xong ({time.time()-t0:.0f}s) preserve={sum(pe3.values())/len(KEEP):.4f}", flush=True)
 
+save_partial("ref_exec3")
 # ---- nhanh 3/4: 8 mau -> chay test ca 8 -> chon ----
 flat = gen(REFAC, [SRC[i] for i in KEEP] * K, TEMP)
 CAND = {i: [extract(flat[k*len(KEEP)+j]) for k in range(K)] for j, i in enumerate(KEEP)}
@@ -145,6 +163,7 @@ for (i, k), o in zip(idxmap, res_all):
     if o: PASS[i].append(k)
 print(f"8 mau + chay test xong ({time.time()-t0:.0f}s)", flush=True)
 
+save_partial("8 mau + chay test")
 sel, selfirst = {}, {}
 for i in KEEP:
     ok_k = PASS[i]

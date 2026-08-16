@@ -8,6 +8,22 @@ from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 RUN = "@@RUN@@"
+
+def save_partial(stage=""):
+    """#128/#134: luu DU LIEU THO sau moi chang. Khong can biet ten bien cua tung kernel —
+    chup MOI bien toan cuc la list[str] du dai. Tieu chuan: neu kernel chet o dong ngay sau,
+    file nay phai CHAM DIEM duoc."""
+    try:
+        snap = {k: v for k, v in list(globals().items())
+                if isinstance(v, list) and len(v) >= 10
+                and isinstance(v[0], (str, list, bool, int, float))}
+        json.dump({"partial": True, "run": RUN, "stage": stage,
+                   "keys": sorted(snap), "raw": snap},
+                  open(f"/kaggle/working/partial_{RUN}.json", "w"))
+        print(f"    [partial] {stage}: {sorted(snap)}", flush=True)
+    except Exception as _e:
+        print(f"    [partial] LOI: {_e}", flush=True)
+
 TIDLO, TIDHI = int("@@LO@@"), int("@@HI@@")
 MAXNEW, TIMEOUT = 512, 20
 
@@ -130,15 +146,18 @@ for _d in range(torch.cuda.device_count()):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 
+save_partial("S (1.5B)")
 m7, tk7 = load(M7, True)
 I_RAW = gen(m7, tk7, SOLVE, PR, 8)
 I = [extract(t) for t in I_RAW]
 print(f"I (7B tu viet) xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial("I (7B tu viet)")
 VP = [f"{PR[i]}\n\nProposed code:\n```python\n{S[i]}\n```" for i in range(N)]
 V_RAW = gen(m7, tk7, REVIEW, VP, 8)
 V = [extract(t) for t in V_RAW]
 print(f"V (7B xem code cua S) xong ({time.time()-t0:.0f}s)", flush=True)
 
+save_partial("V (7B xem code cua S)")
 PS, PI, PV = grade(S), grade(I), grade(V)
 comp = sum(compiles(c) for c in S + I + V) / (3*N)
 accS, accI, accV = (round(sum(x)/N, 4) for x in (PS, PI, PV))
