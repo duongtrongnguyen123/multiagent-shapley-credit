@@ -3826,3 +3826,27 @@ BigCodeBench (dataset đã stage), 7B nf4. `ref1` · `ref_exec3` (sửa) · **`r
 | \|chênh\| < .02 | **CHỌN không tổng quát sang refactor** ⇒ nút thắt là **giữ ngữ nghĩa**, không phải chọn ứng viên. |
 | `preserve(ref1)` ngoài [.70,.85] | HUỶ (không tái lập được H52/H53). |
 **Prior:** hàng 1 ~45% (H53 cho SỬA chỉ +1.9 điểm, còn CHỌN chưa ai thử). **15/31.**
+
+
+# Đăng ký trước #95 — H86: **TÁI LẬP H80 trên dải bài TÁCH RỜI**
+**Viết TRƯỚC khi chạy.** H80 là kết quả dương **mạnh nhất** của dự án
+(`H` +.0500 p=6.2e-4 · `SEL` +.0320 p=7.0e-3). Quy tắc dự án: **chưa tái lập thì chưa vào README**,
+và H73b đã cho thấy một "bản tái lập" chạy nhầm dải trông y như thật.
+
+**Thiết kế:** Y HỆT H80, đổi DUY NHẤT dải task_id → **MBPP 511–974** (không giao với 11–510).
+**Bắt buộc xác minh `task_id` min/max trong trace TRƯỚC khi đọc số** (bài học #121).
+
+**Cổng:** soundness ≥ .50 · copy_rate ≤ .20 · n ≥ 400 · mọi model `acc` ∈ [.35,.85].
+
+| Kết quả | Kết luận BẮT BUỘC |
+|---|---|
+| `H(B) − H(A)` ≥ **+.03** VÀ `SEL(B) − SEL(A)` ≥ **+.015** | **TÁI LẬP.** Đa dạng họ là đòn bẩy thật; đưa vào README kèm cả hai lần đo và cả hai p. |
+| `H(B) − H(A)` ≥ +.03 nhưng `SEL` không tái lập | Trần tái lập, khai thác thì không ⇒ `κ` không ổn định. Báo cả hai. |
+| \|`H(B) − H(A)`\| < .03 | **KHÔNG tái lập ⇒ HẠ CẤP H80** xuống "chưa xác lập". M2 mất chỗ dựa thực nghiệm mạnh nhất. |
+| `H(B) < H(A)` | **ĐẢO DẤU ⇒ RÚT LẠI H80.** |
+| số bài **hỗn hợp** ở pool B KHÔNG cao hơn pool A rõ rệt | Cơ chế "giải tương quan" không tái lập ⇒ ghi rõ dù biên độ acc có tái lập. |
+| `task_id` không nằm trong 511–974 | **HUỶ** — chạy nhầm dải (lỗi #121). |
+
+**Prior:** tái lập ~75%. Cơ chế (hỗn hợp 57→167) quá mạnh và quá cơ học để là nhiễu;
+nhưng biên độ có thể nhỏ hơn vì dải 511–974 có `acc` nền cao hơn (H69d: `I` = .7069)
+⇒ ít dư địa. Đoán `H` +.03..+.05. **Tỉ lệ prior đúng: 16/32.**
