@@ -150,6 +150,17 @@ def _gen1(mo, tk, sysm, usrs, bs):
         del e, o; torch.cuda.empty_cache(); i += bs
     return outs
 
+def _free_models(mos):
+    """#134: 'for _m in mos: del _m' chi xoa BIEN VONG LAP — khong ha refcount cua model.
+    Gan tung phan tu = None thi cat duoc lien ket du ai dang giu cai list."""
+    if mos:
+        try:
+            for _i in range(len(mos)): mos[_i] = None
+        except TypeError: pass
+    gc.collect()
+    for _d in range(torch.cuda.device_count()):
+        with torch.cuda.device(_d): torch.cuda.empty_cache()
+
 def gen(mos, tk, sysm, usrs, bs):
     """chia deu cho cac ban sao, chay song song, ghep lai dung thu tu"""
     if len(mos) == 1: return _gen1(mos[0], tk, sysm, usrs, bs)
@@ -176,8 +187,7 @@ m15, tk15 = load("1.5B")
 SOLS = gen(m15, tk15, SOLVE, Q, BSZ["1.5B"])
 VP   = [f"{q}\n\nProposed solution:\n{s}" for q, s in zip(Q, SOLS)]
 V15  = gen(m15, tk15, VERIFY, VP, BSZ["1.5B"])
-for _m in m15: del _m
-del m15; gc.collect()
+_free_models(m15); m15 = None; gc.collect()
 for _d in range(NG):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"1.5B xong ({time.time()-t0:.0f}s)", flush=True)
@@ -194,8 +204,7 @@ for tag in ["7B", "14B"]:
                "raw": {k: v for k, v in OUT.items()}},
               open(f"/kaggle/working/partial_{RUN}.json", "w"))
     print(f"  da luu partial_{RUN}.json ({len(OUT)} nhanh)", flush=True)
-    for _m in mo: del _m
-    del mo; gc.collect()
+    _free_models(mo); mo = None; gc.collect()
     # empty_cache()/memory_allocated() CHI tac dung len thiet bi HIEN TAI -> phai lap qua TUNG GPU.
     # Khong lam vay thi ban sao tren GPU 1 van chiem cho va 14B se OOM (loi cua H65T2).
     for _d in range(NG):

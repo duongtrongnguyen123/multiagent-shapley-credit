@@ -5188,3 +5188,55 @@ còn **`SEL − I` thì nhỏ và mong manh**.
 > **Quy tắc rút ra: một điều kiện của kiểm định chỉ được coi là ĐÃ ÁP DỤNG khi nó có mặt trong
 > tài liệu mà người đọc TRÍCH, không phải trong vòng ghi nhận nó.**
 > Kiểm định sinh ra điều kiện; áp dụng điều kiện là **việc riêng, phải làm rõ ràng**.
+
+---
+
+## Vòng #134 — H84b + H89 + H89c HUỶ vì hạ tầng: **ném đi một nửa số GPU Kaggle đưa cho**
+
+**KHÔNG đọc con số nào.** Cả ba chết vì OOM, không vì khoa học. Bảng khoá #97/#98 giữ nguyên.
+
+### Chẩn đoán — và dòng log mới ở #132 đã trả công ngay
+H89 in ra, sau khi giải phóng model rẻ:
+```
+sau giai phong: gpu0 cap phat 0.01 giu cho 2.88 | gpu1 cap phat 0.00 giu cho 0.00
+```
+Đọc được **hai** điều mà trước đây tôi không thấy:
+
+1. **`cấp phát` = 0.01 nhưng `giữ chỗ` = 2.88 GB.** Giải phóng **ĐÃ chạy đúng** — nhưng bộ cấp phát
+   vẫn ôm 2.88 GB *sau khi* `empty_cache()`. Nếu chỉ in `memory_allocated` như trước #132, tôi đã
+   kết luận "free vẫn hỏng" và đi sửa đúng chỗ **không hỏng**. Đã đặt `PYTORCH_CUDA_ALLOC_CONF=
+   expandable_segments:True` (phải đặt **trước** khi import torch).
+2. **Có `gpu1`.** Dòng đầu kernel in `GPU=Tesla T4 | 14.6 GB` vì nó chỉ hỏi card 0. Kaggle thực ra
+   đưa **2× T4 = 31.2 GB**, còn `device_map={"": 0}` **vứt bỏ một nửa** rồi OOM khi nạp Llama-3.1-8B.
+
+> **Đây là lỗi tôi đã ghi trong bộ nhớ từ trước** (*"Kaggle cho 2 GPU ngay cả khi chỉ xin một;
+> `device_map='cuda'` phí một nửa"*) **mà vẫn viết lại đúng lỗi đó.** Biết một luật không bằng
+> việc kernel **in ra** đủ thứ để luật đó tự lộ.
+
+### H84b — lớp lỗi KHÁC, và quét ở #132 đã BỎ SÓT
+`mbpp_peer_kernel.py` chạy được 3 chặng (S 147s, I 987s, V_weak 2013s) rồi OOM ở model thứ tư.
+Nó nạp 7B → giải phóng → nạp Llama → giải phóng → **nạp LẠI 7B**. Và nó giải phóng bằng:
+```python
+for _m in m7: del _m     # chi xoa BIEN VONG LAP, list khong he bi dong toi
+del m7; gc.collect()
+```
+Quét ở #132 của tôi tìm `def free(mo)` — **đúng chuỗi ký tự tôi vừa gõ**, nên 12 kernel dùng
+`for _m in X: del _m` **lọt hết**.
+
+> **Quy tắc cứng: quét theo LỚP LỖI, không theo chuỗi ký tự của bản sửa vừa rồi.**
+> Lớp lỗi ở đây là *"giải phóng tài nguyên qua một tên không phải tên của caller"*.
+> Đã sửa **11 kernel** bằng `_free_models()` (gán **từng phần tử** = None), + `mbpp_peer` sửa tay.
+
+`mbpp_peer` còn được **xếp lại thứ tự**: `1.5B → Llama → 7B`, mỗi model nạp **đúng một lần**,
+bỏ hẳn lần nạp lại. Và thêm **lưu từng phần có DỮ LIỆU THÔ** sau mỗi chặng — H84b chạy 36 phút,
+cứu được **0 byte**.
+
+### Cái được cứu
+H89 **có** `partial_H89.json` **282 KB dữ liệu thật** (499 bài `S` + `TESTS`). Luật #128 hoạt động.
+Đối chiếu: H84b, kernel chưa có luật đó, mất trắng.
+
+### Còn treo
+`H89b` (DeepSeek-6.7B) **vẫn chạy** trên bản `device_map={"": 0}` cũ — model nhỏ nên vừa một card.
+Không giết: sẽ mất >40 phút công đã chạy. **Ghi nhận sai khác**: H89b chạy 1 card, H89d/H89e chạy
+2 card; giải mã vẫn greedy nên khác biệt chỉ có thể đến từ kích thước lô lúc lùi OOM — nhỏ,
+nhưng **phải nêu** nếu đọc ba nhánh cạnh nhau.

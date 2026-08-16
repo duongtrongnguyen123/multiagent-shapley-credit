@@ -7,7 +7,11 @@
 #   G_V   z dat -> giu S ; z truot -> V
 #   G_I   z dat -> giu S ; z truot -> I      (khong cho thay artifact)
 #   G*_V  cong ORACLE: S dung THAT -> giu S ; sai -> V   <- CHAN TREN, khong phai he thong
-import os, re, json, glob, time, gc, math, tempfile, subprocess, sys, torch
+import os
+# #134: phai dat TRUOC khi import torch. Giam phan manh — H89 con 2.88 GB "giu cho" sau khi
+# da giai phong sach (cap phat 0.01), va chinh 2.88 GB do gop phan lam OOM khi nap model 8B.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+import re, json, glob, time, gc, math, tempfile, subprocess, sys, torch
 from concurrent.futures import ThreadPoolExecutor
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -96,18 +100,28 @@ if not BIG_CARD:
                               bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 print(f"CHE DO: {'card lon -> bf16' if BIG_CARD else 'card nho -> nf4 cho model dat'}", flush=True)
 
+NGPU = torch.cuda.device_count()
+print(f"SO GPU THAY DUOC = {NGPU} | tong VRAM = "
+      f"{sum(torch.cuda.get_device_properties(d).total_memory for d in range(NGPU))/2**30:.1f} GB", flush=True)
+
 def load(tag):
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
+    # #134: Kaggle cap 2x T4 (31.2 GB) ngay ca khi chi xin mot. device_map={"":0} VUT BO mot nua
+    # va lam Llama-3.1-8B OOM. Model DAT trai deu tren moi card; model RE nho nen giu o card 0.
+    dmap = {"": 0} if (tag == "cheap" or NGPU == 1) else "auto"
     if BIG_CARD:
-        mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
+        mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map=dmap).eval()
     elif tag == "cheap":
-        mo = AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16, device_map={"": 0}).eval()
+        mo = AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16, device_map=dmap).eval()
     else:
-        mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": 0}).eval()
-    print(f"  nap {tag}: cap phat {torch.cuda.memory_allocated(0)/2**30:.2f} GB | "
-          f"giu cho {torch.cuda.memory_reserved(0)/2**30:.2f} GB", flush=True)
+        mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map=dmap).eval()
+    print(f"  nap {tag} (device_map={dmap}): " + " | ".join(
+        f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(d)/2**30:.2f}"
+        for d in range(NGPU)), flush=True)
+    if hasattr(mo, "hf_device_map"):
+        print(f"    trai tren: {sorted(set(str(v) for v in mo.hf_device_map.values()))}", flush=True)
     return mo, tk
 def free():
     """#132: 'del mo' TRONG ham chi xoa TEN CUC BO. Caller PHAI gan mo=None TRUOC khi goi.
@@ -119,6 +133,16 @@ def free():
         f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(d)/2**30:.2f}"
         for d in range(torch.cuda.device_count())), flush=True)
 
+def _indev(mo):
+    """Model trai tren nhieu card thi mo.device khong dang tin — dua dau vao ve card cua
+    LOP NHUNG (embed), noi forward bat dau; accelerate lo phan chuyen tiep giua cac card."""
+    dm = getattr(mo, "hf_device_map", None)
+    if dm:
+        for k in ("model.embed_tokens", "transformer.wte", ""):
+            if k in dm: return dm[k]
+        return sorted(dm.values(), key=str)[0]
+    return mo.device
+
 @torch.no_grad()
 def gen(mo, tk, sysm, usrs, bs):
     outs, i = [], 0
@@ -127,7 +151,7 @@ def gen(mo, tk, sysm, usrs, bs):
         try:
             ps = [tk.apply_chat_template([{"role":"system","content":sysm},{"role":"user","content":u}],
                   tokenize=False, add_generation_prompt=True) for u in ch]
-            e = tk(ps, return_tensors="pt", padding=True).to(mo.device)
+            e = tk(ps, return_tensors="pt", padding=True).to(_indev(mo))
             o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=False, pad_token_id=tk.pad_token_id)
         except torch.OutOfMemoryError:
             torch.cuda.empty_cache()

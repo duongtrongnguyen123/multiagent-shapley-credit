@@ -143,6 +143,17 @@ def _gen1(mo, tk, sysm, usrs, bs):
         del e, o; torch.cuda.empty_cache(); i += bs
     return outs
 
+def _free_models(mos):
+    """#134: 'for _m in mos: del _m' chi xoa BIEN VONG LAP — khong ha refcount cua model.
+    Gan tung phan tu = None thi cat duoc lien ket du ai dang giu cai list."""
+    if mos:
+        try:
+            for _i in range(len(mos)): mos[_i] = None
+        except TypeError: pass
+    gc.collect()
+    for _d in range(torch.cuda.device_count()):
+        with torch.cuda.device(_d): torch.cuda.empty_cache()
+
 def gen(mos, tk, sysm, usrs, bs):
     """chia deu cho cac ban sao, chay song song, ghep lai dung thu tu"""
     if len(mos) == 1: return _gen1(mos[0], tk, sysm, usrs, bs)
@@ -168,8 +179,7 @@ t0 = time.time()
 
 m15, tk15 = load("1.5B")
 SOLS = gen(m15, tk15, SOLVE, Q, BSZ["1.5B"])
-for _m in m15: del _m
-del m15; gc.collect()
+_free_models(m15); m15 = None; gc.collect()
 for _d in range(torch.cuda.device_count()):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)

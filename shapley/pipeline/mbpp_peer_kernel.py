@@ -113,37 +113,56 @@ def task(r): return f"{r['text']}\n\nYour code must satisfy:\n" + "\n".join(r["t
 PR = [task(r) for r in ALL]
 t0 = time.time()
 
+# #134: BAN CU nap 7B -> giai phong -> nap Llama -> giai phong -> nap LAI 7B.
+# Lan giai phong 7B nf4 KHONG tra du VRAM -> OOM khi nap Llama (mat 36 phut, 0 byte cuu duoc).
+# BAN NAY: moi model nap DUNG MOT LAN, khong co lan nap lai nao. Thu tu: 1.5B -> Llama -> 7B.
+def free_models(mos):
+    """Xoa TUNG PHAN TU (gan None), khong phai 'for _m in mos: del _m' — cai do chi xoa
+    bien vong lap. Caller VAN phai gan ten cua minh = None sau khi goi (bai hoc #132)."""
+    if mos:
+        for i in range(len(mos)): mos[i] = None
+    gc.collect()
+    for _d in range(torch.cuda.device_count()):
+        with torch.cuda.device(_d): torch.cuda.empty_cache()
+    print("  sau giai phong: " + " | ".join(
+        f"gpu{_d} cap phat {torch.cuda.memory_allocated(_d)/2**30:.2f} giu cho {torch.cuda.memory_reserved(_d)/2**30:.2f}"
+        for _d in range(torch.cuda.device_count())), flush=True)
+def save_partial(**kw):
+    """#128: phai chua DU LIEU THO. Neu kernel chet ngay dong sau, file nay phai cham duoc."""
+    json.dump({"partial": True, "run": RUN, "n": N, **kw},
+              open(f"/kaggle/working/partial_{RUN}.json", "w"))
+
 m15, tk15 = load(M15, False)
 S_RAW = gen(m15, tk15, SOLVE, PR, 24)
 S = [extract(t) for t in S_RAW]
-for _m in m15: del _m
-del m15; gc.collect()
-for _d in range(torch.cuda.device_count()):
-    with torch.cuda.device(_d): torch.cuda.empty_cache()
+free_models(m15); m15 = None; tk15 = None; gc.collect()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial(S_RAW=S_RAW)
+
+# Llama TRUOC 7B: nho vay 7B nap mot lan roi lam ca ba luot sinh, khong phai nap lai.
+mp, tkp = load(MPEER, True)
+PEER_RAW = gen(mp, tkp, SOLVE, PR, 8)
+PEER = [extract(t) for t in PEER_RAW]
+free_models(mp); mp = None; tkp = None; gc.collect()
+print(f"S_peer (Llama-8B) xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial(S_RAW=S_RAW, PEER_RAW=PEER_RAW)
 
 m7, tk7 = load(M7, True)
 I_RAW = gen(m7, tk7, SOLVE, PR, 8)
 I = [extract(t) for t in I_RAW]
 print(f"I (7B tu viet) xong ({time.time()-t0:.0f}s)", flush=True)
+save_partial(S_RAW=S_RAW, PEER_RAW=PEER_RAW, I_RAW=I_RAW)
 VP = [f"{PR[i]}\n\nProposed code:\n```python\n{S[i]}\n```" for i in range(N)]
-V = [extract(t) for t in gen(m7, tk7, REVIEW, VP, 8)]
+V_RAW = gen(m7, tk7, REVIEW, VP, 8)
+V = [extract(t) for t in V_RAW]
 print(f"V_weak xong ({time.time()-t0:.0f}s)", flush=True)
-for _m in m7: del _m
-del m7; gc.collect()
-for _d in range(torch.cuda.device_count()):
-    with torch.cuda.device(_d): torch.cuda.empty_cache()
-mp, tkp = load(MPEER, True)
-PEER = [extract(t) for t in gen(mp, tkp, SOLVE, PR, 8)]
-for _m in mp: del _m
-del mp; gc.collect()
-for _d in range(torch.cuda.device_count()):
-    with torch.cuda.device(_d): torch.cuda.empty_cache()
-print(f"S_peer (Llama-8B) xong ({time.time()-t0:.0f}s)", flush=True)
-m7, tk7 = load(M7, True)
+save_partial(S_RAW=S_RAW, PEER_RAW=PEER_RAW, I_RAW=I_RAW, V_RAW=V_RAW)
 VPP = [f"{PR[i]}\n\nProposed code:\n```python\n{PEER[i]}\n```" for i in range(N)]
-VPEER = [extract(t) for t in gen(m7, tk7, REVIEW, VPP, 8)]
+VPEER_RAW = gen(m7, tk7, REVIEW, VPP, 8)
+VPEER = [extract(t) for t in VPEER_RAW]
 print(f"V_peer xong ({time.time()-t0:.0f}s)", flush=True)
+free_models(m7); m7 = None; tk7 = None; gc.collect()
+save_partial(S_RAW=S_RAW, PEER_RAW=PEER_RAW, I_RAW=I_RAW, V_RAW=V_RAW, VPEER_RAW=VPEER_RAW)
 
 PS, PI, PV = grade(S), grade(I), grade(V)
 PPEER, PVPEER = grade(PEER), grade(VPEER)

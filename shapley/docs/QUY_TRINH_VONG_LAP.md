@@ -376,3 +376,12 @@ ghi chú mong manh. Số đúng, trình bày sai.
 > **Quy tắc cứng: sau MỖI vòng rút lại/kiểm định, phải grep phát biểu bị ảnh hưởng trong
 > `README.md` + `docs/TONG_HOP.md` — KHÔNG chỉ ghi vào `IDEAS.md`.**
 > `IDEAS.md` là nhật ký (ghi rồi rút là đúng); README/TONG_HOP là nơi người ta **trích**.
+
+8. **#134 — quét theo LỚP LỖI, và bắt kernel tự khai báo phần cứng**
+
+> **Quy tắc cứng 1: mọi kernel phải in `torch.cuda.device_count()` và VRAM **TỔNG** ngay dòng đầu.**
+> `GPU=... 14.6 GB` (chỉ hỏi card 0) đã che mất việc Kaggle đưa 2× T4 = 31.2 GB, ba lần.
+> **Quy tắc cứng 2: mọi log giải phóng phải in CẢ `memory_reserved`.** `memory_allocated` về 0
+> trong khi 2.88 GB vẫn bị giữ — đủ để chẩn đoán sai hoàn toàn.
+> **Quy tắc cứng 3: quét sửa lỗi theo LỚP LỖI, không theo chuỗi ký tự vừa gõ.** #132 quét
+> `def free(mo)` nên bỏ sót 12 kernel dùng `for _m in X: del _m` — cùng một lớp lỗi.

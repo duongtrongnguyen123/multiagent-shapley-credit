@@ -107,6 +107,17 @@ def gen(mos, tk, sysm, usrs, bs):
     if len(store) != len(usrs): raise RuntimeError("thieu dau ra")
     return [store[i] for i in range(len(usrs))]
 
+def _free_models(mos):
+    """#134: 'for _m in mos: del _m' chi xoa BIEN VONG LAP — khong ha refcount cua model.
+    Gan tung phan tu = None thi cat duoc lien ket du ai dang giu cai list."""
+    if mos:
+        try:
+            for _i in range(len(mos)): mos[_i] = None
+        except TypeError: pass
+    gc.collect()
+    for _d in range(torch.cuda.device_count()):
+        with torch.cuda.device(_d): torch.cuda.empty_cache()
+
 def task(r): return f"{r['text']}\n\nYour code must satisfy:\n" + "\n".join(r["test_list"])
 PR = [task(r) for r in ALL]
 t0 = time.time()
@@ -114,8 +125,7 @@ t0 = time.time()
 m15, tk15 = load(M15, False)
 S_RAW = gen(m15, tk15, SOLVE, PR, 24)
 S = [extract(t) for t in S_RAW]
-for _m in m15: del _m
-del m15; gc.collect()
+_free_models(m15); m15 = None; gc.collect()
 for _d in range(torch.cuda.device_count()):
     with torch.cuda.device(_d): torch.cuda.empty_cache()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
