@@ -5796,3 +5796,47 @@ preflight in đúng: cheap 14.19 GB, dear 61.03 GB trên card 95 GB). Nhưng **V
 
 **H91c** phóng lại: `MAXNEW`=1536 (p95 của `V` ≈ 850–900 token, dư ~1.7×), thêm cổng cắt cụt.
 Ước tính ~100 phút.
+
+---
+
+## Vòng #147 — H92b: **hàng GIẾT bị bác dứt khoát**, nhưng không hàng nào khớp
+
+Cổng: `extract` .9957–.9978 (**chênh .0043** — cổng đã sửa ở #97-c hoạt động, trước đó chênh .8617)
+· `I − S` = +.1857 (p 0.0) · `n` = 463, đạt theo **#102-b** (commit **04:32:32 TRƯỚC** khi đọc delta).
+
+| nhánh | `M` được cho xem | acc | vs `E0` | p |
+|---|---|---|---|---|
+| `E0` = `I` | **không gì** | .7149 | — | — |
+| `E1` | *"có model nhỏ hơn đã thử"* — **không nội dung** | .7127 | **−.0022** | **1.00** |
+| `E2` | **chỉ chữ ký hàm** + số dòng | .6825 | **−.0324** | **.0722** |
+| `E3` = `V` | **toàn bộ code** | .6371 | **−.0778** | **8.7e−05** |
+
+### Kết quả CHÍNH: **`E3` hại rõ rệt DÙ KHÔNG có lệnh "review"**
+Mọi phép đo đầu độc trước nay của dự án đều **kèm lệnh sửa**, nên *nhìn thấy* và *được lệnh ghi đè*
+luôn bị trộn. H92 bỏ hẳn lệnh — **cả bốn nhánh dùng CÙNG một lệnh `SOLVE`**, chỉ khác phần
+ngữ cảnh thêm vào.
+
+**Hàng 4 của #102 — hàng tôi viết để GIẾT phát biểu lại của mình ở #142 — đòi:**
+*"mọi `|Ei − E0|` < .02 hoặc p ≥ .05"*. `E3` = **−.0778** với **p = 8.7e−05** ⇒ điều kiện **SAI
+dứt khoát**. Đây là phán đoán **nhị phân, sạch**, không cần diễn giải.
+
+> **Chỉ NHÌN THẤY code của model yếu — không hề được bảo sửa — đã làm model mạnh mất .0778.**
+> Thủ phạm **không phải** lệnh ghi đè. Phát biểu lại M1 ở #142 **sống sót phép thử giết nó**.
+> Tôi đã đặt **~25%** cho khả năng hàng 4 xảy ra; nó **không** xảy ra.
+
+### Nhưng KHÔNG hàng nào khớp — bảng khoá lại thiếu một khoảng
+- Hàng 1 (liều–đáp ứng) đòi `E2` **có ý nghĩa**: `E2` = −.0324 nhưng **p = .0722** ⇒ trượt.
+- Hàng 2 (ngưỡng) đòi `E2` **không đáng kể** (`|Δ|` < .02): `E2` = −.0324 ⇒ trượt.
+- `E2` rơi **đúng vào khe giữa hai hàng**: đủ lớn để không phải "vô hại", chưa đủ mạnh để "xác lập".
+
+**Đây là lần thứ NĂM bảng khoá hở** (#99, #116, #140, #90, nay #102). Bốn lần trước hở vì thiếu
+**điều kiện** (p, độ phủ). Lần này hở vì tôi **giả định `E2` sẽ rơi hẳn về một phía** — viết hai
+hàng loại trừ nhau mà **không phủ hết trục số**.
+
+> **Quy tắc: sau khi viết bảng khoá, phải KIỂM PHỦ — liệt kê một giá trị đại diện cho MỌI
+> khoảng của đại lượng chính và xác nhận mỗi giá trị khớp ĐÚNG MỘT hàng.**
+> Việc này làm được **trước khi chạy**, bằng đúng đoạn mô phỏng tôi vẫn dùng để kiểm nhánh.
+
+### Chờ H92 (11–510, n=499) trước khi kết luận LIỀU vs NGƯỠNG
+`E2` là điểm quyết định và nó **thiếu lực** ở n=463. H92 có n=499 và `acc(S)` thấp hơn (nhiều dư địa
+hơn — #141). **Không gộp hai lần chạy** trừ khi cả hai đạt cổng và tôi đăng ký trước cách gộp.
