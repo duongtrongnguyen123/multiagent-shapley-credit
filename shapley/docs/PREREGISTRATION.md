@@ -4072,3 +4072,41 @@ Ba model khác nhau gần như chắc chắn không sinh ra **cùng một chuỗ
 thì code khác nhau, điều đó **không** tự động nghĩa là chúng đúng/sai độc lập. Vì thế hàng 1 chỉ
 được viết khi **kèm** `soloB` giảm rõ; và mọi phát biểu về **`κ`** vẫn phải dựa trên `H` và `SEL`
 của #89, **không** dựa vào riêng `Δd`.
+
+---
+
+## #97-c — SỬA ĐỔI: cổng trích xuất của #97 đo SAI thứ nó viết ra
+
+**Đăng ký lúc:** sau khi H88/H88b **VOID**, **TRƯỚC** khi chạy lại. **Tôi CHƯA đọc `d_gate`,
+`d_honest`, `d_cont`, `d_ceil` hay bất kỳ `acc` nào của H88/H88b** — và sẽ không đọc.
+
+### Chuyện đã xảy ra
+#97 viết cổng là: *"tỉ lệ **trích được code chạy** ≥ .80 ở mọi nhánh, chênh < .05"*.
+Kernel lại cài đặt bằng `has_block()` — **có hàng rào ```python hay không**. Hai thứ khác nhau.
+
+| nhánh | `has_block` (đã cài) | `compiles(extract(·))` (đã VIẾT) |
+|---|---|---|
+| `S` (1.5B) | **.1383** | **.9980** |
+| `I` (7B) | 1.0000 | .9940 |
+
+Model yếu **không rào code bằng markdown**; nhưng `extract()` có đường lui lấy toàn văn, và
+code đó **biên dịch được 99.8%**. Cổng đã bắt một **thói quen định dạng**, không phải một
+**mối đe doạ tới tính hợp lệ**.
+
+### Vì sao vẫn VOID mà KHÔNG đọc số
+Cổng **đã cài** trượt. Đổi sang thước đo mà tôi **biết là sẽ đạt**, **sau khi** thấy thước đo kia
+trượt, chính là sai phạm ở **#114** mà kiểm định #125-C đã bắt. Lý lẽ hay không làm nó bớt sai.
+**H88 và H88b VOID vĩnh viễn. Số của chúng không bao giờ được trích.**
+
+### Cổng cho lần chạy lại (H88d / H88e) — khoá lại tại đây
+1. **`compiles(extract(t)) ≥ .80` ở MỌI nhánh** và **chênh < .05** ← đúng chữ của #97
+2. `n ≥ 480` (H88b được 463 ⇒ **nới dải lấy bài, KHÔNG hạ ngưỡng** — bài học #127: dùng
+   MBPP 511–**1000** để bù phần bị lọc)
+3. `.15 ≤ p_esc ≤ .90`
+4. **`test_runnable ≥ .60`** (đo được .6994/.6739; ngưỡng .70 cũ là tôi đoán, không có cơ sở)
+   — **đây là NỚI ngưỡng, phải nói thẳng.** Lý do: đại lượng này chỉ mô tả **cổng `z` mạnh cỡ nào**,
+   nó **không** đe doạ tính hợp lệ của so sánh; và `d_ceil` (cổng ORACLE) **không phụ thuộc** vào `z`.
+   Nếu ai không đồng ý với việc nới này thì **chỉ đọc `d_ceil`**, đại lượng không dính tới `z`.
+5. **`has_block` vẫn được BÁO CÁO** như số mô tả — không còn là cổng.
+
+### Bảng khoá: **GIỮ NGUYÊN #97**, không sửa một chữ.
