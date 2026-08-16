@@ -5919,3 +5919,53 @@ cảnh báo. Cộng với việc **không tái lập** (p=1.00 ở dải kia) v�
 > **Ghi vào TONG_HOP chỉ mục (1).** Mục (2)(3) ở lại đây như ghi chép, **không** lên README.
 > Muốn phân định liều vs ngưỡng phải có `n` lớn hơn nhiều — `E2` cần phát hiện được cỡ .015–.03,
 > tức cần **n ≈ 2000–4000**, gấp 4–8 lần hiện tại. **Đó là thí nghiệm khác, phải đăng ký riêng.**
+
+---
+
+## Vòng #150 — H93b HUỶ lần hai; và một **PHÂN RÃ THĂM DÒ** làm rõ hẳn cơ chế
+
+### A. H93b — `max_memory` không cứu được, và tôi biết vì sao
+Canary lại dừng ở `XL` (Qwen-14B). Đã **xác minh trong bản ĐÃ ĐẨY** rằng dòng `max_memory` có mặt
+**và nằm trên đường chạy tới** (dòng 126–128, nhánh `not BIG_CARD`). Vẫn OOM ở **14.43 GB** trên
+card 0 dù trần đặt **11 GiB**.
+
+> **`max_memory` điều khiển CHỖ ĐẶT CUỐI CÙNG, không điều khiển ĐỈNH LÚC NẠP.**
+> Đúng như #148 đã đoán: transient là ràng buộc, và **cả preflight (#134-e) lẫn `max_memory`
+> đều không nhìn thấy nó**. Qwen-14B **không nạp được trên card 14.56 GB**, chấm hết.
+
+**Quyết định:** H93 chuyển sang **RTX 6000 (95 GB)** sau khi H91c xong. Không thử T4 lần ba —
+hai lần cùng một điểm chết là đủ. Không hạ thiết kế xuống k=2 vì như thế **mất tính so sánh**
+với pool A/B (k=3).
+
+### B. THĂM DÒ — `E3` hại vì thấy **NỘI DUNG SAI**, không phải vì "thấy"
+Phân rã hiệu ứng `E3` đã ghi ở #149 theo **artifact của `S` đúng hay sai**. `S` đúng/sai là
+**tính chất của đầu vào**, cố định **trước** khi `M` sinh gì ⇒ đây là **phân tầng theo hiệp biến
+tiền-xử-lý**, không phải điều kiện hoá lên biến hậu-xử-lý.
+
+| | H92 (11–510) | H92b (511–974) |
+|---|---|---|
+| `M` thấy artifact **SAI** | **−.1900** (p 1.9e−09) | **−.1927** (p 5.7e−08) |
+| `M` thấy artifact **ĐÚNG** | **+.0636** (p .0043) | +.0245 (p .263) |
+| gộp (đã đăng ký, #149) | −.0782 | −.0778 |
+
+**Thiệt hại ở nhánh SAI tái lập tới .003.** Thấy code sai **làm gần một nửa** độ chính xác của
+model mạnh (.4373 → .2473). Thấy code **đúng** thì **giúp**.
+
+> **Phát biểu lại lần nữa: `D` không phải hàm của "nhìn thấy", mà của "nhìn thấy NỘI DUNG SAI".**
+> Con số gộp −.078 chỉ là trung bình có trọng số: `S` sai ở ~56% số bài, nên phần âm thắng.
+> Điều này **khớp** ghi chú cũ ở TONG_HOP (#104: cho xem lời giải **ĐÚNG** vẫn giúp +.042).
+
+### C. Và nó giải thích nghịch lý với #142
+"Cổng oracle" trên **PHƠI NHIỄM** (chỉ cho xem khi artifact đúng, còn lại để `M` giải **mù**):
+**+.0281** (p .0043) và **+.0130** (p .263).
+"Cổng oracle" trên **SỬA** (#142, `G*_V`): **−.0641** và **−.0583**.
+
+**Hai cổng oracle, hai dấu ngược nhau.** Khác biệt duy nhất: khi artifact **sai**,
+`G_exp` để `M` **giải lại từ đầu**, còn `G*_V` bắt `M` **sửa cái sai đó**.
+⇒ củng cố `Δ_cont` của #142 (+.090/+.099): **trên tập artifact sai, giải-lại hơn hẳn sửa.**
+
+### Vì sao PHẦN B/C KHÔNG lên README
+**Thăm dò**: phân rã hậu nghiệm, không có bảng khoá nào khoá nó trước. Nhánh "artifact đúng"
+**không tái lập ý nghĩa** (p .0043 vs .263). Và trần của `G_exp` chỉ **+.028/+.013** — nhỏ, lại
+đòi một **oracle không tồn tại**.
+**Phải đăng ký trước rồi đo lại** thì mới được trích.
