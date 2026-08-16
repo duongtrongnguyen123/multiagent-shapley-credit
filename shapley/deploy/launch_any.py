@@ -32,6 +32,7 @@ def main():
     SIZE    = os.environ.get("SIZE", "7")
     LO      = os.environ.get("LO", "11")
     HI      = os.environ.get("HI", "510")
+    DEAR    = os.environ.get("DEAR", "2-5-7b,qwen2-5-7b")   # #98: mac dinh = Qwen 7B (cung ho)
     INTERNET = os.environ.get("INTERNET", "1" if MACHINE == "NvidiaTeslaT4" else "0") == "1"
 
     if MACHINE == "NvidiaRtxPro6000":
@@ -50,8 +51,8 @@ def main():
             sys.exit(f"{var}={os.environ[var]} duoc truyen nhung kernel KHONG co {ph} "
                      f"-> se bi bo qua im lang. Tham so hoa kernel truoc.")
     src = (raw.replace("@@RUN@@", RUN).replace("@@SIZE@@", SIZE)
-           .replace("@@LO@@", LO).replace("@@HI@@", HI))
-    for ph in ["@@RUN@@", "@@SIZE@@", "@@LO@@", "@@HI@@"]:
+           .replace("@@LO@@", LO).replace("@@HI@@", HI).replace("@@DEAR@@", DEAR))
+    for ph in ["@@RUN@@", "@@SIZE@@", "@@LO@@", "@@HI@@", "@@DEAR@@"]:
         if ph in src: sys.exit(f"con placeholder: {ph}")
     if "@@" in src: sys.exit(f"con placeholder chua thay: {[l for l in src.splitlines() if '@@' in l][:2]}")
 
