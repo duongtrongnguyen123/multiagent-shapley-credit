@@ -3881,3 +3881,64 @@ tỉ lệ có ```python block ≥ .90 mọi nhánh (bài học #130).
 **Prior:** hàng 1 ~40%, **kém tự tin hơn H80**: 32B mạnh hơn Llama-8B nhiều (đoán .78 vs .54)
 nên số bài Llama đúng mà 32B sai sẽ ít hơn hẳn 38 bài của H80.
 Hàng 2 ~25% · hàng 3 ~25% · hàng 4 ~10%. **Tỉ lệ prior đúng: 16/32.**
+
+---
+
+## #97 — H88: SỬA CÓ CỔNG — `D` có biến mất khi cổng bằng tín hiệu độc lập không?
+
+**Đăng ký lúc:** trước khi phóng H88/H88b/H88c. **Chưa nhìn bất kỳ số nào.**
+
+### Câu hỏi
+M1 nói `D > 0` vì `M` **ghi đè lên artifact vốn đã đúng**. Nếu vậy thì chặn nó ghi đè ở đúng
+những bài đó phải khử được `D`. Chưa ai kiểm điều này — mọi vòng trước chỉ so **sửa vô điều kiện**
+với **chọn**, chưa bao giờ thử **sửa CÓ ĐIỀU KIỆN**.
+
+### Thiết kế
+MBPP, `S` = Qwen2.5-1.5B, `M` = Qwen2.5-7B. Sinh **một lần** rồi ghép nhánh **offline** —
+nên các nhánh dùng **cùng** artifact, không có nhiễu lấy mẫu giữa nhánh.
+
+| nhánh | định nghĩa | chi phí |
+|---|---|---|
+| `S` | 1.5B tự giải | 1 |
+| `I` | 7B tự giải, **không thấy gì** | `c` |
+| `V` | 7B **xem** lời giải của `S` rồi sửa (vô điều kiện) | 1+`c` |
+| `z` | test do `S` tự viết, **chạy thật** trên lời giải của `S` | ~0 |
+| `G_V` | `z` đạt → **giữ `S`**; `z` trượt → lấy `V` | 1+`c`·`p_esc` |
+| `G_I` | `z` đạt → **giữ `S`**; `z` trượt → lấy `I` (không cho thấy artifact) | 1+`c`·`p_esc` |
+| `G*_V` | **cổng ORACLE**: `S` đúng thật → giữ `S`; sai → lấy `V` | (không khả thi) |
+
+`G*_V` không phải một hệ thống — nó là **CHẶN TRÊN**. Nó tách bạch "tín hiệu của ta kém"
+khỏi "chẳng có gì để khai thác".
+
+### Đại lượng
+- `Δ_gate  = acc(G_V) − acc(V)`   — cổng có cứu được sửa khỏi chính nó?
+- `Δ_honest= acc(G_V) − acc(I)`   — cứu rồi thì có **thắng mốc thật** không?
+- `Δ_cont  = acc(G_I) − acc(G_V)` — dưới cổng, **cho thấy artifact** còn hại nữa không?
+- `Δ_ceil  = acc(G*_V) − acc(I)`  — chặn trên của cả dòng sửa-có-cổng
+
+### BẢNG KHOÁ (đọc theo thứ tự; hàng đầu tiên khớp là kết luận)
+
+| # | điều kiện | KẾT LUẬN ĐƯỢC PHÉP VIẾT |
+|---|---|---|
+| 0 | **CỔNG CHẤT LƯỢNG** trượt (xem dưới) | **VOID** — không đọc số nào |
+| 1 | `Δ_ceil ≤ 0` (McNemar p<.05 hoặc CI chứa 0 với \|Δ\|<.02) | **GIẾT CẢ DÒNG SỬA.** Ngay cả cổng ORACLE cũng không vượt `I` ⇒ không có gì để khai thác; mọi nỗ lực cải thiện tín hiệu cổng là vô ích. Ghi vào TONG_HOP như **kết quả chặn trên**. |
+| 2 | `Δ_ceil > 0` và `Δ_gate ≥ +.04` (p<.05) và `Δ_honest ≥ +.02` (p<.05) | **M1 CHO RA ĐƠN THUỐC DÙNG ĐƯỢC**: sửa an toàn khi và chỉ khi có cổng độc lập. Kết quả dương đầu tiên của dòng sửa. |
+| 3 | `Δ_ceil > 0` và `Δ_gate ≥ +.04` (p<.05) nhưng `Δ_honest ≤ 0` | Cổng **khử được `D`** nhưng `κ = 0`: cứu `V` khỏi chính nó mà vẫn không bằng chỉ gọi `M` một lượt. **M1 đúng về cơ chế, sai về giá trị.** |
+| 4 | `Δ_ceil > 0` nhưng `Δ_gate < +.04` | **M1 SAI NHƯ ĐANG PHÁT BIỂU.** Có chỗ để khai thác (`Δ_ceil>0`) nhưng chặn ghi đè ở tập cổng-đạt **không** cứu được ⇒ phá hoại **không** nằm ở những bài `S` làm đúng. Phải viết lại M1. |
+| 5 | bất kỳ hàng nào trên **và** `Δ_cont < −.02` (p<.05) | **cộng thêm**: ngay cả dưới cổng, **cho `M` thấy artifact vẫn nhiễm độc** ⇒ củng cố #119. |
+
+### CỔNG CHẤT LƯỢNG (kiểm TRƯỚC khi đọc bảng)
+1. tỉ lệ trích được code chạy `≥ .80` ở **mọi** nhánh, chênh giữa nhánh cao nhất/thấp nhất `< .05`
+2. `n ≥ 480` bài qua lọc
+3. `p_esc` (tỉ lệ `z` trượt) nằm trong `[.15, .90]` — ngoài dải này cổng suy biến, nhánh `G` bằng `S` hoặc bằng `V`
+4. tỉ lệ test tự sinh **chạy được** `≥ .70`
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 3 **~50%** · hàng 1 **~20%** · hàng 4 **~20%** · hàng 2 **~10%**.
+Tôi cho rằng cổng sẽ khử phần lớn `D` (cơ chế M1 đúng) nhưng `G_V` vẫn **không** vượt `I`,
+vì mọi vòng trước cho thấy `κ` của giao thức sửa bằng 0 — sửa không **chọn** gì cả.
+Hàng 1 đáng kể vì `acc(I)` đã cao hơn `acc(S)` tới +.2120: tập bài `S` đúng mà `I` sai có thể quá nhỏ.
+
+### Tái lập dựng sẵn
+`H88` = MBPP 11–510 · `H88b` = MBPP 511–974 (**dải tách rời**) · `H88c` = MATH-500 (khác miền).
+Kết luận chỉ vào TONG_HOP nếu **H88 và H88b khớp hàng**.
