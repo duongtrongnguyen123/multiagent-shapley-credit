@@ -7661,3 +7661,66 @@ H100c đang chạy với bản vá đúng (bắt OOM **của chính lần nạp 
 
 ### Tiên nghiệm
 Lỗi hạ tầng ⇒ **20/41** giữ nguyên.
+
+---
+
+## Vòng #194 — **THĂM DÒ**: vùng dương của `Δ_ceil` — hồi quy nói CÓ, gộp bài nói CHƯA
+
+Miễn phí, trên `results_H97` **đã niêm phong**. **Nhãn: THĂM DÒ** — #107 khoá bốn điều kiện cho
+hàng 1 (`δ₁ < 0`, p, `R²`, `g*`) và **không** khoá điều gì về hệ số chặn. Mọi thứ dưới đây là
+**hậu nghiệm**, không nâng cấp được.
+
+Ở #185 tôi viết *"vùng dương KHÔNG được xác lập; bằng chứng chỉ là hệ số chặn"* và giữ luật ở
+README theo chiều **phủ định**. Giờ kiểm chính hệ số chặn ấy.
+
+### (A) Hệ số chặn — gộp lực qua 15 cặp
+```
+δ₀ = +.02184   se .00901   p = .0308   KTC 95% [+.0024, +.0413]
+δ₁ = −.23922   se .05419   p = .0007
+```
+Hệ số chặn **dương có ý nghĩa**, KTC **không chứa 0**.
+
+### (B) Gộp ba cặp chênh < .06 — nhị thức chính xác trên cặp bất hoà hợp
+```
+b01 = 112   b10 = 139   (251 cặp bất hoà hợp)   Δ_ceil gộp = +.0180   p = .1006
+```
+**Vẫn không có ý nghĩa.**
+
+### Hai phép thử, hai câu trả lời — và cái nào đáng tin hơn
+Chúng **không mâu thuẫn**; chúng đo hai thứ khác nhau.
+- (A) mượn lực từ **cả 15 cặp** qua giả thiết **tuyến tính**. Nếu quan hệ thật sự tuyến tính trên
+  dải chênh .04–.32 thì (A) đúng và mạnh hơn.
+- (B) **không giả thiết dạng hàm**, chỉ dùng ba cặp thật sự nằm trong vùng quan tâm — nhưng vì thế
+  chỉ có 251 cặp bất hoà hợp.
+
+**(A) mua ý nghĩa bằng một giả thiết mà (B) không cần.** Và #186 đã cho thấy cơ chế nền
+(`ρ` và `r*_C`) đều là hàm **tuyến tính có độ dốc khác nhau** của chênh — nên tuyến tính không vô lý.
+Nhưng `p` = .031 **cũng nằm trong dải .01–.05** mà kiểm định #125-B4 gọi là vùng dương tính giả,
+và nó là **hậu nghiệm**.
+
+> **Kết luận thận trọng — tôi KHÔNG đổi README.** Luật phủ định (*"chênh > .09 thì đừng sửa"*)
+> vẫn là thứ duy nhất được phát biểu ra ngoài. Chiều khẳng định giờ có **một dấu hiệu hậu nghiệm
+> p = .031 phụ thuộc giả thiết tuyến tính**, và **một phép thử không giả thiết cho p = .10**.
+> Đó **chưa** đủ để công bố.
+
+### Cần bao nhiêu dữ liệu để dứt điểm — và câu trả lời là tin xấu
+Cỡ mẫu cho lực .80 ở **chính tỉ lệ bất hoà hợp quan sát được**:
+
+| cặp | chênh | `Δ_ceil` | `n` cần |
+|---|---|---|---|
+| 1.5B→Llama | .098 | +.0301 | **1.501** |
+| DSCoder→7B | .048 | +.0240 | **2.653** |
+| 14B→32B | .040 | +.0180 | **3.611** |
+| 7B→14B | .050 | +.0120 | **8.471** |
+| gộp ba cặp chênh nhỏ | — | +.0180 | **~4.031/cặp** |
+
+MBPP có **499** bài dùng được (toàn bộ MBPP là 974, lọc chuẩn còn ~một nửa).
+⇒ Cần **~8× toàn bộ MBPP**. **Không thể xác lập vùng dương trên MBPP, dù chạy bao nhiêu lần.**
+
+### Việc này đổi ưu tiên thế nào
+Muốn theo chiều khẳng định thì **phải đổi bộ bài**, không phải chạy thêm: cần benchmark code
+**vài nghìn bài** (BigCodeBench đã stage sẵn dưới `zhongzhing`, ~1.140 bài — vẫn thiếu).
+**Hoặc** chấp nhận rằng luật phủ định là thứ duy nhất dữ liệu này cho phép, và dồn GPU sang
+`Δ_honest` (H100c) — nơi hiệu ứng **cần phải lớn** mới đáng dùng, nên **dễ phát hiện hơn** nhiều.
+**Tôi nghiêng về hướng thứ hai**: một hiệu ứng cần 4.000 bài mới thấy được thì **không đáng triển khai**
+kể cả khi có thật.
