@@ -4806,3 +4806,66 @@ loại cặp nào bị chật. **Nếu hàng 2 xảy ra, bắt buộc kiểm c�
 
 **(c) Chặn tường 12h.** Sinh dừng ở **10.5h**, phần còn lại để chấm + ghi `res_`. Cặp chưa chạy vào
 `bo_cap` với lý do "hết giờ" — **không** lặng lẽ biến mất (#178 mất trắng vì đụng tường).
+
+---
+
+## #108 — H98: **`B` CÓ PHẢI LÀ ĐÒN BẨY GIAO THỨC KHÔNG?** — 2 cặp × 3 giao thức sửa, hoàn toàn ghép cặp
+
+**Đăng ký lúc:** trước khi viết kernel. Xuất phát từ #181. **Độc lập với H97** (H97 đo `B` ở **một**
+giao thức trên 15 cặp; H98 đo `B` ở **nhiều giao thức** trên 2 cặp — hai trục vuông góc).
+
+### Vì sao
+#181: `Δ_ceil = A − B + C`, và `B` bám `Δ_ceil` chặt hơn `A` (r −.99 vs +.94). `A` là **tính chất
+của cặp model** (#182 đã chứng minh: `A` ≈ .080 − .192·chênh, `R²` .82). `B` được cho là thứ
+**giao thức kiểm soát được** — nhưng **chưa ai thử đổi giao thức ở chênh CỐ ĐỊNH.**
+
+**Điểm mấu chốt làm phép thử sạch:** `A` **không phụ thuộc giao thức** (chỉ phụ thuộc `S`, `I`).
+Nên với cùng một cặp, `Δ_ceil^P − Δ_ceil^0` = `(C_P − B_P) − (C_0 − B_0)` **chính xác**.
+So sánh giao thức = so sánh vector `CEIL` **ghép từng bài** ⇒ McNemar ghép cặp, không cần
+so sánh chéo lần chạy (thứ đã lừa tôi bốn lần).
+
+### Thiết kế — MỘT lần chạy, hai cặp, cùng MBPP 11–510
+| | `S` | `I` | chênh (H96) | `A` (H96) | `r*` (#183) | vì sao chọn |
+|---|---|---|---|---|---|---|
+| cặp **P** | DeepSeek-Coder-6.7B | Qwen2.5-7B | .048 | **.0842** | **.363** | dư địa **cao nhất** trong 15 cặp ⇒ nơi đòn bẩy **có ý nghĩa thực dụng** |
+| cặp **Q** | Qwen2.5-1.5B | Qwen2.5-7B | .226 | .0301 | .883 | ngân sách `B` **lớn nhất** (`P(¬S∧I)` = .257) ⇒ **lực** để phát hiện `B` có dịch chuyển |
+
+**Công bố: hai cặp được chọn DỰA TRÊN H96 đã đọc.** Không giấu. `A` vẫn được **đo lại** trong lần
+chạy này; con số H96 chỉ dùng để **chọn thiết kế**, không dùng để kết luận.
+
+Ba giao thức sửa, **cùng artifact của `S`**, khác **duy nhất** ở lời nhắc:
+- **R0** (mốc): *"đây là lời giải ứng viên có thể sai — trả về bản đã sửa"* (= `V` hiện tại)
+- **R1** (hoài nghi): R0 **cộng** *"ứng viên sai nhiều hơn đúng; kiểm từng phần, nghi ngờ thì VỨT và tự viết"*
+- **R2** (độc lập trước): cho `I` **lời giải TỰ NÓ đã viết** (tái dùng nhánh `I`, **không tốn lượt**)
+  **cùng** ứng viên của `S`, yêu cầu chọn/gộp — hiện thực hoá M2 (*tín hiệu độc lập thắng tín hiệu tương quan*)
+
+### CỔNG
+1. trích xuất ≥ .80 mọi nhánh, giãn < .05 · 2. cắt cụt < .05 mọi nhánh · 3. `n ≥ 480`
+4. `I − S ≥ .02` **và** p < .05 ở **cả hai** cặp (nếu `I` không mạnh hơn thì `B` vô nghĩa)
+5. **`A ≥ .02` ở cặp P** — nếu dư địa không tái lập thì "đòn bẩy" không có gì để bẩy ở cặp đó
+Cổng **theo từng cặp** (#177/#107): một cặp trượt **không** giết cặp kia.
+
+### BẢNG KHOÁ — chính: `D_P` = `acc(CEIL_R1 hoặc CEIL_R2) − acc(CEIL_R0)`, McNemar ghép cặp
+Đọc **riêng từng cặp model**; kết luận toàn cục lấy theo mô tả dưới.
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng lần chạy trượt, hoặc **cả hai** cặp trượt cổng riêng | **VOID** |
+| 1 | **có** giao thức đạt `D ≥ +.02` **và** p < .05 (ở ít nhất một cặp) | **`B` LÀ ĐÒN BẨY GIAO THỨC.** Nêu rõ giao thức nào, cặp nào ⇒ dòng "sửa" **chưa chết bằng số học**; hướng đi là **thiết kế lời nhắc**, không phải đổi model |
+| 2 | **mọi** giao thức có \|`D`\| < .02 **hoặc** p ≥ .05, ở **cả hai** cặp | **`B` KHÔNG dịch chuyển được bằng lời nhắc.** ⇒ mạnh thêm cho đọc "sửa chết bằng số học"; nhưng **chỉ với BA giao thức này** — không phải mọi giao thức |
+| 3 | có giao thức `D ≤ −.02` (p < .05) **và không** giao thức nào dương có ý nghĩa | **`B` DỊCH CHUYỂN ĐƯỢC nhưng chỉ theo chiều XẤU.** Vẫn bác "B là hằng của cặp model" — ghi rõ đây là **cảnh báo triển khai** |
+| 4 | `D` dương có ý nghĩa ở cặp này **và** âm có ý nghĩa ở cặp kia | **hiệu ứng ĐỔI DẤU theo cặp** ⇒ không có lời nhắc nào tốt phổ quát; phải điều tra theo `r*` |
+
+**Phụ (mô tả, không kết luận):** in `A`, `B_P`, `C_P` cho từng ô để thấy `D` đến từ giảm `B`
+hay tăng `C` — hai cơ chế khác nhau.
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 2 **~40%** · hàng 1 **~25%** · hàng 3 **~25%** · hàng 4 **~10%**.
+Nghiêng hàng 2 vì #149/#150 đã cho thấy trục **phơi nhiễm** (thấy/không thấy artifact) đáng
+**−.078**, tức thiệt hại đến từ **việc NHÌN THẤY**, mà cả ba giao thức đều cho nhìn thấy —
+lời nhắc khó thắng được cơ chế đó. Hàng 1 và 3 ngang nhau vì R1 (hoài nghi) có thể **quá tay**:
+vứt cả ứng viên đúng ⇒ giảm `C` nhiều hơn giảm `B`.
+**Nếu hàng 1 xảy ra, tôi phải rút phần "giao thức CHỌN thắng vì đặt `B` = 0 theo cấu trúc" của #181** —
+vì khi ấy giao thức SỬA cũng hạ được `B`.
+
+**Tỉ lệ prior đúng: 19/40** (cộng dồn, xem #167).
