@@ -540,3 +540,18 @@ thực của tiên nghiệm **kiểm được bằng mắt**.
 > **Quy tắc cứng: mọi đăng ký trước kết thúc bằng `Tỉ lệ prior đúng: N/M` cộng dồn.**
 > Con số này chỉ có giá trị khi nó **liên tục** — bỏ vài vòng là mất luôn ý nghĩa,
 > và bỏ đúng lúc đang sai thì trông y như chọn lọc.
+
+21. **#171 — quét TẤT CẢ bảng khoá đang chờ, mỗi khi phát hiện một khuyết tật bảng**
+
+Khuyết tật "ngưỡng trần trụi, không kèm p" đã cắn **ba lần rời rạc**: #93 (bắt ở #140),
+#94 (bắt ở #158), #98 (bắt ở #169). Mỗi lần tôi chỉ sửa **cái vừa cắn**.
+
+Ở #171 tôi quét **toàn bộ bảng khoá còn chờ kết quả** và tìm thấy chỗ thứ tư: **#97 hàng 4**
+(`Δ_gate < +.04` không kèm p) — hàng có thể tuyên *"M1 sai như đang phát biểu"*.
+Với ngưỡng dạng **"nhỏ hơn"**, thiếu p **nguy hiểm hơn**: hiệu ứng nhỏ-nhưng-chắc và
+nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết luận trái ngược.
+
+> **Quy tắc cứng: khi phát hiện một khuyết tật ở MỘT bảng khoá, lập tức quét MỌI bảng
+> ĐANG CHỜ KẾT QUẢ để tìm cùng khuyết tật — và sửa TRƯỚC khi dữ liệu về.**
+> Sửa sau khi dữ liệu về thì dù đúng cũng **không thể phân biệt** với việc chỉnh bảng cho vừa
+> kết quả. Cửa sổ duy nhất để sửa một bảng **mà không mất tính chính danh** là lúc nó chưa có số.
