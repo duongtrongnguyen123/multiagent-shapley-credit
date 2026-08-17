@@ -505,3 +505,28 @@ dù **không** kernel nào của tài khoản đó đang `RUNNING` theo API. Gi�
 > **Quy tắc: coi mỗi tài khoản là có ĐÚNG 2 khe, và khi bị từ chối thì ĐỔI TÀI KHOẢN ngay
 > thay vì thử lại** — thử lại chỉ tốn thời gian vì trạng thái không cập nhật tức thì.
 > Bộ phóng nên tự xoay vòng qua danh sách tài khoản rảnh (đã làm thủ công ở #165).
+
+19. **#166 — "dấu thời gian git kiểm được" là một tuyên bố SAI, và tôi đã lặp lại nó nhiều lần**
+
+Tôi từng viết ở #142/#97-d: *"sửa đổi commit lúc 03:11:17 **TRƯỚC** khi tôi mở delta — dấu thời gian
+git kiểm được"*. **Không kiểm được.** Git chỉ chứng minh sửa đổi có trước lúc **VIẾT BÁO CÁO**;
+nó không biết lúc nào tôi **ĐỌC**. Và `res_*/` bị `.gitignore` chặn (từ #140) nên artifact
+**không hề** nằm trong lịch sử — không có gì để đối chiếu.
+
+Bốn sửa đổi có khoảng cách **dưới 2 phút** so với vòng dùng chúng (#97-c +48s, #97-d +72s,
+#101-b +41s, #102-b +93s). Với khoảng cách đó, tuyên bố "commit trước khi đọc" **hoàn toàn dựa
+vào lời tôi nói**.
+
+> **Sửa: `deploy/seal_results.py`.** Quy trình bắt buộc từ nay:
+> ```
+> 1. kaggle kernels output ... -p results_HXX
+> 2. python deploy/seal_results.py results_HXX     # ghi sha256 vao docs/RESULT_SEALS.md
+> 3. git commit  (+ commit sua doi dang ky truoc neu can)
+> 4. CHI SAU DO moi doc so
+> ```
+> Hash được commit **trước** mọi diễn giải, và artifact thì kiểm lại được bằng `sha256sum`.
+> Bây giờ thứ tự commit mới **thật sự** là bằng chứng, thay vì là lời khẳng định.
+>
+> **Giới hạn phải nói rõ:** niêm phong chứng minh *artifact tồn tại ở dạng đó vào thời điểm X*.
+> Nó **không** chứng minh tôi chưa mở file. Không có cách nào chứng minh điều đó bằng công cụ —
+> nên phần còn lại vẫn là **tin tưởng**, và tôi nên nói thế thay vì viện dẫn git.
