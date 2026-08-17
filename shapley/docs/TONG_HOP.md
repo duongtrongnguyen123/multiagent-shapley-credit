@@ -62,10 +62,19 @@ Nếu `D > 0` vì `M` ghi đè lên bản **vốn đã đúng**, thì **chặn g
 | **`Δ_ceil` = cổng ORACLE so với `I`** | **−.0641** (p .0016) | **−.0583** (p .0067) |
 | `Δ_cont` = leo thang bằng GIẢI LẠI vs bằng SỬA | **+.0902** (p 1e−6) | **+.0994** (p 1e−6) |
 
-1. **Cổng không làm gì cả** (`Δ_gate` null hai lần). Phá hoại **không nằm** ở tập cổng-đạt:
+1. **Ở 7B: cổng không làm gì cả** (`Δ_gate` null hai lần). Phá hoại **không nằm** ở tập cổng-đạt:
    `V` phá 12 bài `S` đúng, chỉ **4** bài trong tập cổng-đạt.
-2. **Ngay cả cổng ORACLE cũng THUA `I`.** Không có hệ thống nào vượt được chặn trên này ⇒
-   **không có gì để khai thác** từ artifact của model yếu qua đường SỬA. Cải thiện tín hiệu là vô ích.
+   > **⚠️ SỬA Ở #168 — điều này PHỤ THUỘC QUY MÔ.** Ở **32B** (H91e, mọi cổng đạt):
+   > `Δ_gate` = **+.0922, p ≈ 0** — cổng **cứu** `V` từ .6453 lên .7375. Ở đó `V` phá **57** bài
+   > `S` đúng và **55/57 NẰM TRONG** tập cổng-đạt, tức phá hoại **đúng chỗ cổng với tới**.
+   > ⇒ *"Cổng không khử được `D`"* đúng cho **1.5B→7B**, **SAI cho 7B→32B**.
+   > Phần **nhất quán** giữa hai quy mô: `Δ_honest` vẫn ≤ 0 (−.0842 ở 7B; −.0160, p .44 ở 32B)
+   > ⇒ **cổng cứu được sửa, nhưng sửa-có-cổng vẫn KHÔNG vượt `I`.**
+2. **Ở 7B, cổng ORACLE THUA `I`** (−.0641 / −.0583, p ≤ .007) ⇒ ở quy mô đó không có gì để
+   khai thác qua đường SỬA.
+   > **⚠️ Ở 32B thì KHÔNG thua mà HOÀ:** `Δ_ceil` = **+.0060, p .82** — không phân biệt được với 0.
+   > "Thua rõ rệt" và "hoà" là **hai kết cục khác nhau**; bản trước gộp cả hai thành
+   > *"giết cả dòng sửa ở mọi quy mô"*. **Phát biểu đúng: chưa xác lập được dư địa khai thác ở 32B.**
 3. **Thiệt hại nằm ở NHÁNH LEO THANG:** khi đã quyết định can thiệp, **giải lại từ đầu hơn sửa
    ~+.09**. Cùng ngân sách, khác **duy nhất** ở chỗ `M` có **nhìn thấy** artifact hay không.
 

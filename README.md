@@ -155,6 +155,19 @@ ngữ cảnh thêm vào:
 Hai dải bài **tách rời**, hai mức độ khó khác nhau. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
 hàng đó **không nổ ở cả hai lần chạy**.
 
+> ### ⚠️ CẬP NHẬT #168 — có điểm 32B rồi, và nó KHÁC
+> Điểm 32B đầu tiên (Qwen-7B → Qwen-32B, **mọi cổng đạt**) cho kết quả **khác 7B**:
+>
+> | | 1.5B→7B | **7B→32B** |
+> |---|---|---|
+> | cổng có cứu được "sửa" không | +.0040 (p .69) — **không** | **+.0922 (p ≈ 0) — CÓ** |
+> | cổng ORACLE so với `I` | **−.0641** (p .0016) — thua | **+.0060** (p .82) — **hoà** |
+> | sửa-có-cổng so với `I` | −.0842 | −.0160 (p .44) |
+>
+> ⇒ **"Cổng không cứu được việc sửa" chỉ đúng ở 1.5B→7B.** Ở 32B cổng **cứu được rõ rệt**
+> (phá hoại ở đó **nằm đúng trong tập cổng-đạt**: 55/57). Phần **giữ nguyên ở cả hai quy mô**:
+> sửa-có-cổng **vẫn không vượt** việc chỉ gọi thẳng model mạnh.
+>
 > ### ⚠️ PHẠM VI — đọc trước khi trích mục 5 (thêm ở #161 sau kiểm định độc lập)
 >
 > **Mục 5 được đo trên ĐÚNG MỘT cặp model: Qwen2.5-1.5B → Qwen2.5-7B, CÙNG họ.**
