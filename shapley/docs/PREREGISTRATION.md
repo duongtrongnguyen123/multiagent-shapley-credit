@@ -4702,3 +4702,25 @@ chủ lực của dự án — thành *"chênh năng lực nhỏ"* thay vì *"kh
 15 cặp với 2 biến là **ít**; hàng 3 hoàn toàn có thể.
 
 **Tỉ lệ prior đúng: 18/39** (cộng dồn, xem #167).
+
+### #106 — CÔNG BỐ: tôi đã chạy OLS trên 7 cặp CŨ trước khi phóng H96
+
+Sau khi commit #106 và viết kernel, tôi chạy hàm `ols()` trên **7 cặp cũ của #179** để **kiểm cài đặt**
+(không có numpy trên kernel nên phải tự viết phương trình chuẩn). Kết quả:
+
+```
+A ~ +0.0730 − 0.1939*(I−S) + 0.0223*khac_ho     dof=4
+    p(gap) = .027      p(khac_ho) = .0495
+```
+
+**Tôi bây giờ biết rằng dữ liệu cũ cho `β₂` = +.022 ngay SÁT ngưỡng hàng 1 (+.02) và p ngay SÁT .05.**
+Công bố vì: (a) nó **có thể** ảnh hưởng cách tôi đọc H96, (b) giấu đi thì kết luận của H96 mất
+tính chính danh.
+
+**Điều này KHÔNG thay bảng khoá.** Phép thử đã đăng ký chạy trên **15 cặp của H96, trên CÙNG một
+bộ bài** — dữ liệu cũ là **7 cặp gộp từ nhiều lần chạy khác nhau, khác dải bài**, chính là thứ
+#179 đã chỉ ra là không tách được. Ngưỡng, hàng, và tiên nghiệm **giữ nguyên**.
+
+**Một hệ quả tôi phải nhận:** kết quả cũ nằm **sát cả hai ngưỡng**, nên H96 rất có thể rơi vào
+vùng biên. **Tôi sẽ không được phép "làm tròn về phía" hàng nào** — nếu `β₂` = +.019 hoặc
+p = .051 thì đó là **hàng 2 hoặc hàng 3**, không phải hàng 1.
