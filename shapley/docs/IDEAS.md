@@ -6277,3 +6277,47 @@ khoá nhầm đại lượng** (`sel4` thay vì `sel4_first`).
 Đây **không** vòng tròn: `preserve` đo bằng **test hành vi**, còn `sel4_first` chọn **ứng viên
 đầu tiên qua test** — nó lọc theo cùng tín hiệu, nên vẫn phải nêu là **có liên hệ**, dù không
 đồng nhất với thước đo `simpler`.
+
+---
+
+## Vòng #159 — Kiểm định độc lập bằng agent: **một kernel ĐANG CHẠY bị hỏng, một số đã đăng bị thổi**
+
+Bốn agent độc lập soi mã, thống kê, số liệu và kỷ luật đăng ký trước. Agent soi **mã** trả về
+trước, và nó tìm ra thứ tôi đã bỏ sót suốt nhiều vòng.
+
+### A. H82 — bốn "mẫu" là **BỐN LẦN GREEDY GIỐNG HỆT NHAU**. Đã GIẾT.
+```python
+CS.append(gen(m7, tk7, SOLVE, Q, BSZ["7B"]) if kk == 0 else
+          gen(m7, tk7, SOLVE, Q, BSZ["7B"]))     # hai nhanh Y HET nhau
+...
+o = mo.generate(..., do_sample=False, ...)        # KHONG co temperature, khong co seed
+```
+Hai nhánh của toán tử ba ngôi **byte-identical**, và `_gen1` **cứng `do_sample=False`**.
+⇒ `C0 = C1 = C2 = C3 = I`. `maj@4` **bằng `I` theo cấu trúc**, không phải theo dữ liệu.
+H82 đã chạy **~7.5 giờ** để sinh ra bốn bản sao. **Đã xoá.**
+
+> Tôi đã đọc kernel này ở #156 để thêm điểm lưu — và **không thấy** dòng ba ngôi vô nghĩa
+> ngay bên cạnh. Tôi đọc để tìm *chỗ lưu*, nên chỉ thấy *chỗ lưu*.
+
+### B. Phá hoà luôn chọn `pool[0]` — mà `pool[0]` **CHÍNH LÀ** mốc
+`sc.index(max(sc))` trả **chỉ số đầu tiên**; mọi pool đều bắt đầu bằng `Q1`, và `base = acc(Q1)`.
+⇒ mọi lần hoà, bộ chọn bị ghim vào mốc. Tỉ lệ hoà **khác nhau giữa các pool**:
+pool A (cùng model) **.968**, pool B (khác họ) **.873**.
+
+**Kiểm bằng cách đổi luật phá hoà trên chính dữ liệu H86c:**
+
+| luật phá hoà | `SEL(A)` | `SEL(B)` | **`SEL_diff`** |
+|---|---|---|---|
+| lấy đầu (**đang dùng**) | .7328 | .7780 | **+.0453** |
+| lấy cuối | .7284 | .7608 | +.0323 |
+| **ngẫu nhiên (200 lần)** | | | **+.0375** (σ .0076) |
+| oracle (chặn trên) | .7457 | .8103 | +.0647 |
+
+**Ngưỡng hàng 1 của #95 là +.015 — MỌI luật đều vượt ⇒ kết luận KHÔNG đổi.**
+Nhưng con số **+.0453 bị thổi ~.008**. **Đã sửa README**: ghi rõ nên đọc **≈+.038**.
+Trần `H` = +.0690 **không** dùng phá hoà nên **không bị ảnh hưởng**.
+
+> **Tôi đã kiểm README khớp file kết quả ở #152 — và nó khớp.**
+> Nhưng "khớp file" không có nghĩa là "không thiên lệch": con số **và** file **cùng** kế thừa
+> một luật phá hoà thiên vị. **Đối chiếu artifact bắt được sai lệch sao chép, không bắt được
+> sai lệch phương pháp.**

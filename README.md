@@ -166,7 +166,13 @@ Giữ **nguyên** bộ chọn và **nguyên** ngân sách; chỉ đổi **nguồ
 | | MBPP 11–510 | MBPP 511–974 (**tách rời**) |
 |---|---|---|
 | **trần `H`**: pool khác họ − pool lấy mẫu | **+.0500** (p 6.2e-4) | **+.0690** (p **9.4e-07**) |
-| **`SEL`**: pool khác họ − pool lấy mẫu | **+.0320** (p 7.0e-3) | **+.0453** (p **4.9e-05**) |
+| **`SEL`**: pool khác họ − pool lấy mẫu | **+.0320** (p 7.0e-3) | **+.0453** (p **4.9e-05**) ⁂ |
+
+<sub>⁂ **Phụ thuộc luật phá hoà** (kiểm định #159). Bộ chọn hiện phá hoà bằng "lấy ứng viên đầu",
+mà ứng viên đầu **chính là** mốc `Q1` ⇒ thiên vị. Tính lại: phá hoà **ngẫu nhiên** cho **+.0375**
+(độ lệch .0076), phá hoà "lấy cuối" cho **+.0323**, chặn trên oracle **+.0647**.
+**Ngưỡng hàng 1 là +.015 — mọi luật đều vượt**, nên kết luận không đổi; nhưng con số nên đọc là
+**≈+.038**, không phải +.0453. Trần `H` **không** bị ảnh hưởng (không dùng phá hoà).</sub>
 | số bài **có bất đồng** | 57 → 167 | 47 → **176** |
 
 **Cơ chế, đo được mà KHÔNG cần chấm điểm:**
