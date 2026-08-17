@@ -27,7 +27,15 @@ def find_model(*needles):
     raise RuntimeError(f"khong thay {needles}: co {sorted(os.listdir('/kaggle/input'))}")
 CHEAP_NEEDLES = [x for x in "@@CHEAP@@".split(",") if x]   # #142: tang RE cung tham so hoa
 M = {"cheap": find_model(*CHEAP_NEEDLES), "dear": find_model(*DEAR_NEEDLES)}
-SAME_FAMILY = any("qwen" in n for n in DEAR_NEEDLES)
+# #170: truoc day chi soi DEAR_NEEDLES ("32b") nen Qwen2.5-32B bi gan nham la KHAC ho.
+# Phai soi DUONG DAN model that su tim duoc, va so voi ho cua model RE.
+def _fam(path):
+    p_ = path.lower()
+    for f in ("qwen", "llama", "deepseek", "mistral", "gemma", "phi"):
+        if f in p_: return f
+    return "?"
+SAME_FAMILY = (_fam(M["dear"]) == _fam(M["cheap"]) and _fam(M["dear"]) != "?")
+print(f"HO: re={_fam(M['cheap'])} dat={_fam(M['dear'])} -> cung ho = {SAME_FAMILY}", flush=True)
 # #143: RTX 6000 chay trong competition -> KHONG co internet. H91 chet ngay dong nay
 # ("Cannot send a request, as the client has been closed") truoc khi in duoc gi.
 # Uu tien dataset JSON da stage; chi goi HuggingFace khi that su co mang.

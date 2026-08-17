@@ -6641,3 +6641,33 @@ KHÔNG được xác lập"*.
 **#98 lại khoá ngưỡng TRẦN TRỤI không kèm điều kiện p** — **lần thứ ba** cùng một khuyết tật
 (#93 → #140, #94 → #158, nay #98). Luật #140 tôi đặt **sau khi** #98 đã viết, nhưng tôi đã có
 cơ hội sửa #98 ở #161 và **không làm**.
+
+---
+
+## Vòng #170 — Hai bản vá nhỏ, cả hai đều là lỗi tôi tự tạo
+
+### A. `SAME_FAMILY` soi NHÃN thay vì soi MODEL (#168 phát hiện)
+```python
+SAME_FAMILY = any("qwen" in n for n in DEAR_NEEDLES)   # DEAR="32b" -> False
+```
+Model thật là `aimo-qwen25-32b-instruct` — **Qwen2.5-32B, cùng họ Qwen**. Nhưng biến `DEAR_NEEDLES`
+chỉ chứa chuỗi tìm kiếm `"32b"`, nên cờ báo **khác họ**. Kernel do đó in ra hàng A của #98
+(*"nguồn ngoại họ phá mạnh hơn"*) cho một so sánh **cùng họ**.
+
+**Đã sửa:** soi **đường dẫn model thật sự tìm được**, so họ của model **rẻ** với model **đắt**,
+và **in ra** để lần sau nhìn log là thấy:
+`HO: re=qwen dat=qwen -> cung ho = True`.
+
+> **Lỗi lớp "biến đại diện":** tôi kiểm **thứ dùng để TÌM** model thay vì **model TÌM ĐƯỢC**.
+> Cùng lớp với #133 (điều kiện kiểm định ghi ở nhật ký nhưng không lan sang tài liệu người đọc)
+> và #154 (`trunc_report` định nghĩa nhưng không gọi): **thứ tôi kiểm không phải thứ có tác dụng.**
+
+### B. Luật "2 lần UNKNOWN liên tiếp" của #164 vẫn để lọt
+Lần chớp API thứ hai kéo dài **qua nhiều chu kỳ poll**, nên "hai lần liên tiếp" vẫn thành thật.
+Ba job lại báo UNKNOWN rồi cả ba quay lại RUNNING.
+
+**Đã sửa đúng chỗ:** thử lại **ngay trong cùng một vòng poll** (2 lần, cách 5 giây) trước khi
+kết luận UNKNOWN. Chống chớp nhoáng phải đặt ở **tầng gọi API**, không phải ở tầng đếm sự kiện.
+
+> Bản vá #164 của tôi xử lý **triệu chứng** (đếm lần lặp) thay vì **nguyên nhân** (một lần gọi
+> có thể hỏng). Đúng lỗi tôi vừa mắc ở #146/#153 với `MAXNEW` — vá triệu chứng, phải vá hai lần.
