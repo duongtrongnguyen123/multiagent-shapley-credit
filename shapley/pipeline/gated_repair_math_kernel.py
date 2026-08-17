@@ -1,7 +1,7 @@
 # H88c (dang ky truoc #97 + sua doi #97-b) — SUA CO CONG tren MATH-500.
 # CHINH = d_ceil (cong ORACLE, khong phu thuoc chat luong z). Phu = cong tu-nhat-quan k=2 (DA BIET la tuong quan).
 # MAXNEW=1280 + cong \boxed (bai hoc #119/#130: cat cut phat nhanh I nang hon nhanh V).
-import os, re, csv, json, glob, time, gc, math, torch
+import os, re, csv, json, glob, time, gc, math, sys, subprocess, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 RUN = "@@RUN@@"
@@ -81,13 +81,28 @@ def mcnemar(a, b):
     k = min(b01, b10)
     return b01, b10, round(min(1.0, 2.0*sum(math.comb(n, i) for i in range(k+1))/(2.0**n)), 6)
 
+BIG_CARD = (torch.cuda.get_device_properties(0).total_memory/2**30 >= 40)
+if not BIG_CARD:
+    # #162: hai kernel MATH KHONG he co duong luong tu hoa — Qwen-7B vao fp16 = 14.21 GB tren
+    # card 14.56 GB, khong con cho cho KV cache => OOM ke ca o lo=1 (H88c chet dung the).
+    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "bitsandbytes>=0.46.1"], check=False)
+    from transformers import BitsAndBytesConfig
+    _BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
+                              bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
+print(f"CHE DO: {'card lon -> bf16' if BIG_CARD else 'card nho -> nf4 cho model dat'}", flush=True)
+
 def load(tag):
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
-    dt = torch.bfloat16 if CC[0] >= 8 else torch.float16
-    mo = AutoModelForCausalLM.from_pretrained(p, dtype=dt, device_map={"": 0}).eval()
-    print(f"  nap {tag} ({dt}): cap phat {torch.cuda.memory_allocated(0)/2**30:.2f} GB | "
+    if BIG_CARD:
+        mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
+    elif tag == "cheap":
+        mo = AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16, device_map={"": 0}).eval()
+    else:   # #162: model DAT phai nf4 tren card nho
+        mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": 0}).eval()
+    _dtlab = "bf16" if BIG_CARD else ("fp16" if tag == "cheap" else "nf4")
+    print(f"  nap {tag} ({_dtlab}): cap phat {torch.cuda.memory_allocated(0)/2**30:.2f} GB | "
           f"giu cho {torch.cuda.memory_reserved(0)/2**30:.2f} GB", flush=True)
     return mo, tk
 def free():
