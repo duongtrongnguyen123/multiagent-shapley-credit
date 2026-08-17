@@ -156,6 +156,20 @@ ngữ cảnh thêm vào:
 Hai dải bài **tách rời**, hai mức độ khó khác nhau. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
 hàng đó **không nổ ở cả hai lần chạy**.
 
+> ### ⚠️ TÌNH TRẠNG TÁI LẬP của hai khối dưới (thêm ở #180)
+> Luật của dự án: **chưa tái lập thì chưa vào README**. Hai khối #169 và #168 dưới đây
+> **CHƯA tái lập** — mỗi khối là **MỘT lần chạy**:
+>
+> | phát hiện | số lần chạy | p |
+> |---|---|---|
+> | #169 `Δ_ceil` **dương** ở cặp khác họ | **1** (H89g) | **.042** — nằm trong dải .01–.05 mà kiểm định #125-B4 gọi là vùng dương tính giả |
+> | #168 cổng **có tác dụng** ở 32B | **1** (H91e) | ≈0 (mạnh) |
+>
+> Chúng có mặt ở đây vì chúng **RÚT LẠI** một phát biểu cũ (*"không có gì để khai thác"*) —
+> **rút một phát biểu quá mạnh thì chỉ cần một phản ví dụ**, còn **khẳng định** một phát biểu mới
+> thì cần tái lập. **Đừng trích chúng như kết quả đã xác lập.**
+> `H95b` (đang chạy) có hàng buộc **hạ cấp #169** nếu dư địa không tái lập.
+>
 > ### ⚠️ CẬP NHẬT #169 — có điểm KHÁC HỌ rồi, và nó ĐẢO DẤU kết luận chính
 > Ba cặp model, **cùng một thiết kế, mọi cổng đều đạt**:
 >

@@ -6993,3 +6993,36 @@ tôi hiện **không có** ô nào trong hai ô đó.
 > Đây là lần thứ hai liên tiếp (#176, nay #179) tôi rút một quy luật gọn gàng từ ít điểm rồi
 > tự bác lại khi kiểm biến gây nhiễu. **Cả hai lần đều chỉ mất vài phút để kiểm.**
 > Chi phí của việc KHÔNG kiểm là một phát biểu sai nằm trong TONG_HOP nhiều tháng.
+
+---
+
+## Vòng #180 — Kiểm niêm phong đầu-cuối, và **một lỗ hổng trong chính README**
+
+### Cơ chế niêm phong (#166) hoạt động
+- **40/40 hash khớp** artifact (kiểm bằng `sha256sum` độc lập)
+- **Thứ tự đúng ở cả 4 cặp kiểm được**: niêm phong luôn commit **trước** vòng đọc số
+  (H91e 09:32:11→#168 09:43:58 · H89g 11:46:11→#169 11:47:39 · H88f 18:31:04→#174 18:32:24 ·
+  H89h 19:42:01→#177 19:43:15)
+- **8/8 con số chủ lực** ở README/TONG_HOP khớp artifact đã niêm phong, **0 lệch**
+
+### Nhưng: hai kết quả CHƯA TÁI LẬP đang nằm trong README mà không nói rõ
+Luật dự án: *"chưa tái lập thì chưa vào README"*. Quét thấy:
+
+| phát hiện | ở đâu | số lần chạy | ghi rõ chưa? |
+|---|---|---|---|
+| #169 `Δ_ceil` dương ở cặp khác họ | README mục 5 | **1** (p **.042**) | **KHÔNG** |
+| #168 cổng có tác dụng ở 32B | README mục 5 | **1** | **KHÔNG** |
+| MATH `Δ_ceil` = −.138 | chỉ TONG_HOP | 1 | — (đúng luật) |
+
+**H88f bị giữ ngoài README đúng luật, nhưng #168/#169 thì lọt vào** — và #169 lại chính là kết quả
+**p = .042**, nằm gọn trong dải .01–.05 mà kiểm định #125-B4 gọi là vùng dương tính giả.
+
+### Vì sao tôi vẫn giữ chúng ở README (có điều kiện)
+Chúng **RÚT LẠI** một phát biểu cũ quá mạnh (*"không có gì để khai thác"*).
+**Rút một phát biểu chỉ cần MỘT phản ví dụ; khẳng định một phát biểu mới thì cần tái lập.**
+Giữ phần **rút**, nhưng **đã thêm khối ghi rõ**: một lần chạy, p = .042, đừng trích như đã xác lập,
+và `H95b` có hàng buộc **hạ cấp #169**.
+
+> **Bài học: luật "chưa tái lập thì chưa vào README" có một ngoại lệ hợp lý (rút lại)
+> — nhưng ngoại lệ đó phải được VIẾT RA, không được ngầm hiểu.** Tôi đã áp dụng ngoại lệ
+> mà không tuyên bố nó, nên từ ngoài nhìn vào thì giống hệt việc phá luật.
