@@ -4783,3 +4783,26 @@ chứng vừa lừa tôi ở #179. Nên hàng 3 được đặt cao thứ nhì: 
 **Nếu hàng 2 xảy ra tôi phải rút phần "nút thắt là `κ` chứ không phải `H`" của #169 trong TONG_HOP.**
 
 **Tỉ lệ prior đúng: 19/40** (cộng dồn, xem #167).
+
+### #107 — SỬA ĐỔI **TRƯỚC KHI PHÓNG** (chưa có dữ liệu nào tồn tại)
+
+**(a) Bảng khoá THIẾU một kết cục — thêm hàng 5.**
+Hàng 1 đòi `g*` ∈ [.04, .32], hàng 2 đòi `g*` < .04. **Không hàng nào phủ `g*` > .32**
+(= `Δ_ceil` **dương trên toàn dải đo được**). Đây đúng là lỗi bảng-khoá-không-đầy-đủ mà kiểm định
+#125 đã bắt. Thêm:
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 5 | `δ₁ < 0`, p < .05, `R² ≥ .50`, **nhưng** `g*` > .32 | `Δ_ceil` **dương khắp dải đo** ⇒ dòng "sửa" có dư địa **rộng hơn** mọi thứ đã đo. **Không được ép vào hàng 1** — ghi nhận, và **phải hỏi ngay vì sao ba điểm cũ lại âm** trước khi tin |
+
+Kernel đã in đúng nhánh này (không im lặng rơi vào `else`).
+
+**(b) Thiên lệch CÓ HƯỚNG của `MAXNEW` — công bố trước.**
+Theo #130, `MAXNEW` cố định phạt model suy luận DÀI nhất. Ở đây model sửa `V` **luôn là model mạnh**,
+nên nếu 2048 chật thì `V` bị phạt nặng hơn `I` ⇒ `B` **tăng giả** ⇒ `Δ_ceil` **âm giả** ⇒
+**thiên vị đúng về phía hàng 2 (hàng giết)**. Tôi phải nói trước vì hàng 2 là hàng kết luận mạnh nhất.
+Giảm nhẹ: H96 đo cắt cụt ≤ **.002** cho cả sáu model ở 2048, và **cổng cắt cụt theo cặp < .05** sẽ
+loại cặp nào bị chật. **Nếu hàng 2 xảy ra, bắt buộc kiểm cắt cụt của nhánh `V` trước khi công bố.**
+
+**(c) Chặn tường 12h.** Sinh dừng ở **10.5h**, phần còn lại để chấm + ghi `res_`. Cặp chưa chạy vào
+`bo_cap` với lý do "hết giờ" — **không** lặng lẽ biến mất (#178 mất trắng vì đụng tường).
