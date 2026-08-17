@@ -98,6 +98,15 @@ def load_on(path, dev):
     kw = dict(dtype=torch.float16) if BIG_CARD else dict(quantization_config=_BNB)
     mo = AutoModelForCausalLM.from_pretrained(path, device_map={"": dev}, **kw).eval()
     return mo, tk
+
+def load_shard(path):
+    """#191: model KHONG-Qwen KHONG luong tu hoa duoc tren ban transformers nay (fp16 ~16 GB),
+    khong lot mot the T4 14.6 GB. Nap MOT ban, CHIA tren ca hai the."""
+    tk = AutoTokenizer.from_pretrained(path); tk.padding_side = "left"
+    if tk.pad_token is None: tk.pad_token = tk.eos_token
+    kw = dict(dtype=torch.float16) if BIG_CARD else dict(quantization_config=_BNB)
+    mo = AutoModelForCausalLM.from_pretrained(path, device_map="auto", **kw).eval()
+    return mo, tk
 def free():
     gc.collect()
     for d in range(NG):
@@ -136,9 +145,34 @@ def gen_dp(path, sysm, usrs, bs=8):
     if NG <= 1:
         mo, tk = load_on(path, 0); out = _gen_one(mo, tk, sysm, usrs, bs, "gpu0")
         mo = None; tk = None; free(); return out
+    # #191: H100 OOM khi nap model KE TIEP vi ban sao cua model TRUOC chua duoc giai phong.
+    # Kiem TRUOC khi nap: neu VRAM chua sach thi bao ngay, dung de OOM giua chung.
+    for d in range(NG):
+        _used = torch.cuda.memory_allocated(d)/2**30
+        if _used > 1.0:
+            print(f"      CANH BAO: gpu{d} con {_used:.2f} GB truoc khi nap — thu giai phong lai", flush=True)
+            free()
+            _used = torch.cuda.memory_allocated(d)/2**30
+            if _used > 1.0:
+                raise SystemExit(f"KHONG GIAI PHONG DUOC gpu{d}: con {_used:.2f} GB. Dung lai (#191).")
+    # #191: thu nap ban sao thu nhat; neu no chiem qua nua the thi KHONG the co ban sao thu hai
+    # -> quay ve MOT ban chia tren ca hai the (mat song song, nhung chay duoc).
+    _m0 = load_on(path, 0)
+    _g0 = torch.cuda.memory_allocated(0)/2**30
+    print(f"      ban sao 1: gpu0 {_g0:.2f} GB", flush=True)
+    if _g0 > VRAM*0.5:
+        print(f"      -> qua lon cho 2 ban sao; nap lai MOT ban CHIA tren {NG} the", flush=True)
+        _m0 = None; free(); free()
+        mo, tk = load_shard(path)
+        out = _gen_one(mo, tk, sysm, usrs, max(1, bs//2), "shard")
+        mo = None; tk = None; free(); free()
+        print("      sau giai phong: " + " | ".join(
+            f"gpu{d} {torch.cuda.memory_allocated(d)/2**30:.2f} GB" for d in range(NG)), flush=True)
+        return out
     parts = [usrs[d::NG] for d in range(NG)]
-    res, models = [None]*NG, []
-    for d in range(NG): models.append(load_on(path, d))
+    res, models = [None]*NG, [None]*NG
+    models[0] = _m0; _m0 = None
+    for d in range(1, NG): models[d] = load_on(path, d)
     def work(d):
         mo, tk = models[d]
         res[d] = _gen_one(mo, tk, sysm, parts[d], bs, f"gpu{d}")
@@ -148,7 +182,12 @@ def gen_dp(path, sysm, usrs, bs=8):
     out = [None]*len(usrs)
     for d in range(NG):
         for j, v in enumerate(res[d]): out[d + j*NG] = v
-    models.clear(); free()
+    # giai phong TUONG MINH tung tham chieu (bai hoc #132: `del ten_cuc_bo` la vo tac dung)
+    for d in range(NG): models[d] = None
+    del th, work
+    free(); free()
+    print("      sau giai phong: " + " | ".join(
+        f"gpu{d} {torch.cuda.memory_allocated(d)/2**30:.2f} GB" for d in range(NG)), flush=True)
     assert all(v is not None for v in out), "gep song song thieu phan tu"
     return out
 

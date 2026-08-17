@@ -594,3 +594,13 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
     Mỗi lần đều có lý do nghe hợp lý (#110 thu phạm vi cổng; #190 cổng ngoài đăng ký). **Chuỗi mới
     là dữ liệu**, không phải từng lần riêng lẻ. Ba lần liên tiếp = hình dạng của **hợp lý hoá**.
     Khi chạm ngưỡng: ghi "không đánh giá được", **chạy lại cho đúng**, không phân tích thứ cấp.
+
+29. **Trước khi chọn model cho một lần chạy, TÍNH dung lượng thật trên phần cứng đó.** (#191)
+    Không-Qwen **không** lượng tử hoá (#135, ba quan sát độc lập) ⇒ trên T4 14.6 GB:
+    Llama-8B fp16 ≈ **16 GB = KHÔNG LỌT**; DeepSeek-6.7B ≈ 13.4 GB = vừa khít **một** thẻ, nên
+    **không** thể có hai bản sao. Danh mục trước khi phóng: *với mỗi model, viết ra số GB dự kiến
+    và đối chiếu với VRAM mỗi thẻ nhân số bản sao định nạp.*
+
+30. **Mọi hàm nạp model phải IN VRAM sau khi nạp và sau khi giải phóng.** (#191) H100 chết vì OOM
+    mà log **không có một dòng dung lượng nào**, nên nguyên nhân phải suy đoán. Một dòng `print`
+    là khác biệt giữa chẩn đoán tức thì và mất một suất GPU để đoán.

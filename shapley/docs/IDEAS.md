@@ -7527,3 +7527,41 @@ sinh ra dữ liệu khác chứ không phải cùng byte.
 
 ### Tiên nghiệm
 Không đánh giá được ⇒ **không cập nhật**. Vẫn **20/41**.
+
+---
+
+## Vòng #191 — H100 (#111): **ERROR** — OOM nạp `llama8b`. Nguyên nhân là một sự thật tôi ĐÃ BIẾT
+
+`results_H100` chỉ có `partial` (đúng thiết kế #128: **chứa dữ liệu thô**, `raw` của `dscoder` còn nguyên).
+Không có `res_`, nên **không có gì để đọc** — đây là **lỗi hạ tầng**, không phải VOID, không phải kết quả.
+
+```
+=== NEN dscoder ===      1172s, acc=.5872   (gpu1 phải lùi lô 8 -> 4 vì OOM)
+=== NEN llama8b ===      torch.OutOfMemoryError: cap phat 112 MiB;
+                         GPU 0 (14.56 GB) da dung 14.50 GB, PyTorch giu 14.29 GB
+```
+
+### Nguyên nhân
+**Model KHÔNG-Qwen không lượng tử hoá được** trên bản `transformers` này — đã quan sát **ba lần độc lập**
+ở #135 (H84c/H89/H86b) và nằm sẵn trong ghi chú dự án. Nên trên T4:
+`dscoder` 6.7B fp16 ≈ **13.4 GB** — *vừa khít* một thẻ (nên nó chạy, chỉ phải lùi lô);
+`llama8b` fp16 ≈ **16 GB** — **không lọt một thẻ 14.56 GB**, hỏng ngay lúc nạp.
+
+**Tôi biết sự thật này và vẫn thiết kế H100 với `llama8b` làm nhánh nền trên T4.**
+Không phải phát hiện mới; là **không áp dụng cái đã biết**. Hai vòng trước tôi vừa viết luật
+"tính lại ngân sách GPU mỗi khi đổi phần cứng" — rồi chọn model mà không tính.
+
+### Sửa (đã lan sang cả `protocol_lever_kernel.py` — cùng hàm `gen_dp`)
+1. Nạp **bản sao thứ nhất**, đo `memory_allocated`. Nếu > **½ VRAM** thì hai bản sao là bất khả ⇒
+   nạp lại **MỘT bản `device_map="auto"` chia trên cả hai thẻ**, lô giảm một nửa, chạy đơn luồng.
+2. Kiểm VRAM **trước** mỗi lần nạp; còn > 1 GB thì giải phóng lại, vẫn bẩn thì **dừng có thông báo**
+   thay vì OOM giữa chừng.
+3. In VRAM sau mỗi lần giải phóng — H100 **không in gì**, nên tôi phải suy đoán nguyên nhân từ một
+   dòng OOM. Lần sau chẩn đoán được ngay.
+
+### Điều KHÔNG thay đổi
+Đăng ký trước #111 **giữ nguyên**: cặp, giao thức, cổng, bảng khoá, tiên nghiệm. Sửa **hạ tầng**,
+không sửa **thiết kế**. `Δ_honest` vẫn chưa được đo, **#188 vẫn chưa được xác nhận**.
+
+### Tiên nghiệm
+Lỗi hạ tầng ⇒ **không cập nhật**. Vẫn **20/41**.
