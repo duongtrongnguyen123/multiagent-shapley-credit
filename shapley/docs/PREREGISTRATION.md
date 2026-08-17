@@ -5011,3 +5011,14 @@ mới biết điều đó, giao thức thật thì không.
 **Nếu hàng 3 xảy ra, #188 mất phần lớn ý nghĩa và tôi phải ghi điều đó vào chính #188.**
 
 **Tỉ lệ prior đúng: 20/41** (cộng dồn, xem #167).
+
+### #104 — CHẠY LẠI (H94d): kernel nay hiện thực ĐÚNG năm cổng. **Bảng khoá KHÔNG đổi một chữ.**
+
+**Ghi lúc:** sau #190, **trước khi phóng H94d**. Sửa **phép đo**, không sửa **giả thuyết**.
+- **Thêm** cổng 2: cắt cụt = output **chạm trần `MAXNEW` token** (trên toán không có rào ```` ``` ````,
+  dấu hiệu tương đương của "chưa đóng" là dùng hết ngân sách token). Đếm bằng tokenizer trên CPU.
+- **Thêm** cổng 4: `I − S ≥ .05` **và** p < .05.
+- **Bỏ** `.15 ≤ p_esc ≤ .90` — #104 không hề yêu cầu, và nhánh định tuyến không phải đại lượng của #104.
+- **`MAXNEW` giữ nguyên 1536** như #104 đã khoá. Nếu cắt cụt ≥ .05 thì **VOID** — đó là kết cục
+  **đúng**, không phải cớ để nâng cap sau khi thấy số (#101-b/#101-d đã bàn riêng chuyện cap).
+- Bảng khoá, ngưỡng, tiên nghiệm: **y nguyên #104**. **Tỉ lệ prior đúng: 20/41.**

@@ -197,6 +197,17 @@ PI = [eq(AI[i],  GOLD[i]) for i in range(N)]
 PV = [eq(AV[i],  GOLD[i]) for i in range(N)]
 Z  = [AS[i] is not None and AS2[i] is not None and eq(AS[i], AS2[i]) for i in range(N)]  # tu nhat quan k=2
 p_esc = round(1 - sum(Z)/N, 4)
+# #190: cong 2 cua #104 (block/dap an CHUA DONG). Tren TOAN khong co rao ```, dau hieu tuong
+# duong cua "chua dong" la sinh DUNG HET ngan sach token => bi cat giua chung.
+# Dem lai bang tokenizer tren CPU sau khi da giai phong GPU (khong ton VRAM).
+_tkc = AutoTokenizer.from_pretrained(M["dear"])
+def _hit_cap(txt):
+    return len(_tkc(txt, add_special_tokens=False)["input_ids"]) >= MAXNEW
+NTOK = {"S": [_hit_cap(t) for t in S_raw],
+        "I": [_hit_cap(t) for t in I_raw],
+        "V": [_hit_cap(t) for t in V_raw]}
+TRUNC = {k: round(sum(v)/N, 4) for k, v in NTOK.items()}
+print(f"  cat cut (cham tran {MAXNEW} token): {TRUNC}", flush=True)
 
 PG_V  = [PS[i] if Z[i]  else PV[i] for i in range(N)]
 PG_I  = [PS[i] if Z[i]  else PI[i] for i in range(N)]
@@ -214,8 +225,14 @@ mc = {"ceil": mcnemar(PI, PGO_V), "gate": mcnemar(PV, PG_V), "honest": mcnemar(P
 BOX = {k: round(sum(1 for t in v if _bx(t) is not None)/N, 4)
        for k, v in (("S", S_raw), ("I", I_raw), ("V", V_raw))}
 bmin, bspread = min(BOX.values()), round(max(BOX.values())-min(BOX.values()), 4)
+# #190: hien thuc DUNG NAM cong cua #104 — khong thieu, khong thua.
+# Bo cong `.15<=p_esc<=.90`: no thuoc dong kernel DINH TUYEN, #104 khong he yeu cau no,
+# va nhanh dinh tuyen KHONG phai dai luong cua #104.
 gates = {"boxed_min>=.80": bmin >= .80, "boxed_spread<.05": bspread < .05,
-         "n>=450": N >= 450, ".15<=p_esc<=.90": .15 <= p_esc <= .90}
+         "cat cut <.05 moi nhanh": max(TRUNC.values()) < .05,
+         "n>=450": N >= 450,
+         "I-S>=.05": d_IS >= .05, "p(I-S)<.05": mc["IS"][2] < .05,
+         "S sai>=30% va dung>=20%": (1-A(PS)) >= .30 and A(PS) >= .20}
 VOID = [k for k, v in gates.items() if not v]
 
 res = {"tag": RUN, "n": N, "MAXNEW": MAXNEW,
@@ -223,7 +240,7 @@ res = {"tag": RUN, "n": N, "MAXNEW": MAXNEW,
        "delta": {"ceil": d_ceil, "gate": d_gate, "honest": d_honest,
                  "V_minus_I": d_VI, "I_minus_S": d_IS},
        "mcnemar": {k: {"b01": v[0], "b10": v[1], "p": v[2]} for k, v in mc.items()},
-       "p_esc": p_esc, "boxed_rate": BOX, "boxed_min": bmin, "boxed_spread": bspread,
+       "p_esc": p_esc, "truncation_rate": TRUNC, "boxed_rate": BOX, "boxed_min": bmin, "boxed_spread": bspread,
        "gates": gates, "VOID": VOID,
        "S_right_I_wrong": sum(1 for i in range(N) if PS[i] and not PI[i]),
        "V_destroys": sum(1 for i in range(N) if PS[i] and not PV[i]),
