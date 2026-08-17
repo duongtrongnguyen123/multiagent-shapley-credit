@@ -111,3 +111,12 @@
 | `partial_H95b.json` | 895162 | `1aee6074ed1b16d51da7d536584f5f43041c93281c71b3447fa3f9af20c26677` |
 | `res_H95b.json` | 2481 | `6cdf8a788a555bb3f054beac93ad6e0fd9aac68fd19598b76bb6fcd12cf207bd` |
 | `traces_H95b.json` | 501683 | `b2986ca145a9210a40070c1d540fdc2fd163ae75807ce67fc0a5d7dd85701afe` |
+
+### `results_H97` — niêm phong 2026-08-18 01:08:42 +0700
+
+| tệp | bytes | sha256 |
+|---|---|---|
+| `ceil-map-h97.log` | 1627408 | `556c446bff7865218864de8a28593f7445fd83cc03ff1daa185b4982cca930b3` |
+| `partial_H97.json` | 2770275 | `9db197f5c1c0e8813a970992acf5340ed70dab72e168e961130cbbaac58c0225` |
+| `res_H97.json` | 7526 | `358b16ea8a5ab227ae638e18401c7439dc7a8fa303c75b7ec07ac39eca72bb39` |
+| `traces_H97.json` | 69763 | `90bd8073a3620f67522fd9be7afbd1fffcf8eb9a5c25b80b52a6a72204fda9a3` |
