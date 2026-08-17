@@ -455,3 +455,47 @@ Giao thức H39: 3 mẫu 1.5B → đồng thuận thì nhận, không → 7B tu�
 **không phải do độ khó trong nhiệm vụ**, mà ở cấp **tác vụ**. Giả thuyết "trần" không giải thích được.
 Phải tìm biến khác (độ dài? kiểu suy luận? bộ chấm?) hoặc chấp nhận kết quả #78 trên MATH
 có thể không tái lập.
+
+---
+
+## PENDING — THÍ NGHIỆM CHỜ CHẠY
+
+Các kernel đã triển khai, chờ chạy trên Kaggle.
+
+### H17 — rc_m7: MATH 7B FULL vs TRIM, 5 fold
+
+**Kernel:** `pipeline/rc_m7_kernel.py` · **Deploy:** `deploy/orchestrate_rc_m7.py`
+**Pre-reg:** #17
+
+Mắt xích cuối của phát biểu hợp nhất. Đã đo 1 lần (trim_minus_full = −17.5). Nay 5 fold.
+Nếu khoảng toàn âm → xác nhận phát biểu hợp nhất. Nếu chứa 0 → phải thu hẹp.
+
+### H24 — Ô thứ 4 lưới 2×2: MATH 7B, S_pln vs V_bli vs V_inf
+
+**Kernel:** `pipeline/h24_cell4_kernel.py` · **Deploy:** `deploy/orchestrate_h24_cell4.py`
+**Pre-reg:** #24
+
+3/4 ô đã đo: "khung kiểm không mang thông tin, mỏ neo mới mang". Ô cuối (MATH 7B) xác nhận hay bác.
+
+### H27-FIX — Sửa lỗi rò rỉ adapter (#36/#37)
+
+**Kernel:** `pipeline/disc_leakfix_kernel.py` · **Deploy:** `deploy/orchestrate_disc_leakfix.py`
+**Pre-reg:** #36, #37
+
+Mẫu đánh giá sinh khi LoRA vẫn bật → solver bị hỏng. Sửa: gen mặc định adapter TẮT.
+Ngưỡng rò rỉ: `probe_pre − probe_post` trên 60 bài, |leak| ≤ .05.
+
+### H37 — Huấn luyện bộ kiểm trên lỗi TIÊM, đánh giá chuyển giao lên lỗi THẬT
+
+**Kernel:** `pipeline/injected_classifier_kernel.py` · **Deploy:** `deploy/orchestrate_injected_classifier.py`
+**Pre-reg:** #43
+
+Chỉ số chính: `discrimination_real` (chuyển giao). Nếu ≈ 0 → "nhãn rẻ không thay thế nhãn đúng loại".
+
+### Decompose pipeline v2
+
+**Kernel:** `pipeline/decompose_pipeline_kernel.py` (đã sửa: mỗi sub mang original problem + prior answers)
+**Deploy:** `deploy/orchestrate_decompose_pipeline.py`
+**Kết quả đã có:** GSM8K .08 / MATH .02 (thua Solver-alone ở cả hai).
+
+Kernel đã v2 (mỗi sub-question nhận original problem + previous answer). Kết quả thấp là thật.

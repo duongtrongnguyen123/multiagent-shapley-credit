@@ -22,8 +22,17 @@ kính đã có (Shapley, signed decomposition), **không** phải solution conce
 
 ✅ Shapley GSM8K (4 vòng) · ✅ MATH baseline `m1` (chấm bằng grader sympy) ·
 ✅ signed Shapley (`analysis/signed_shapley.py`) · ✅ grader sympy + bootstrap CI ·
-✅ oracle +19 điểm · ✅ repo tái lập, đường dẫn portable. Còn lại: **chạy nốt capacity MATH +
-phân tích + hình + viết.**
+✅ oracle +19 điểm · ✅ repo tái lập, đường dẫn portable.
+✅ 41 pre-registration (H1–H41) · ✅ sàn nhiễu 5 fold (H13) · ✅ credit RL (GRPO, null result)
+✅ solve+judge pipeline · ✅ backward reasoning · ✅ judge quality (vote/few-shot)
+✅ decompose pipeline v2 · ✅ escalate/routing (H38–H41)
+
+**Còn lại:**
+- [ ] **H17 (rc_m7):** MATH 7B FULL vs TRIM, 5 fold — `pipeline/rc_m7_kernel.py` (chờ chạy)
+- [ ] **H24 ô 4:** MATH 7B S_pln vs V_bli vs V_inf — `pipeline/h24_cell4_kernel.py` (chờ chạy)
+- [ ] **H27-FIX:** Sửa lỗi rò rỉ adapter (#36/#37) — `pipeline/disc_leakfix_kernel.py` (chờ chạy)
+- [ ] **H37:** Huấn luyện bộ kiểm trên lỗi tiêm, đánh giá chuyển giao — `pipeline/injected_classifier_kernel.py` (chờ chạy)
+- [ ] **Hình cuối + viết + đọc soát**
 
 ---
 
