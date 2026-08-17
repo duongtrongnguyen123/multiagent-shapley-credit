@@ -6955,3 +6955,41 @@ Sau khi xoá `S2`, dòng 243 vẫn `json.dump({... "S2": S2_raw ...})` ⇒ **`Na
 đúng lớp lỗi đã giết H95 sau 4.1 giờ (#175). Lần này bắt được bằng **kiểm AST tên-chưa-gán**
 chạy trước khi phóng (`ten dung ma KHONG bao gio gan: khong co`).
 **Quy tắc: xoá một nhánh sinh thì phải quét MỌI tham chiếu tới biến của nó, bằng AST chứ không bằng mắt.**
+
+---
+
+## Vòng #179 — BẢN ĐỒ DƯ ĐỊA miễn phí, và một hiệu ứng "khác họ" **BỊ TRỘN** với chênh năng lực
+
+`A = P(S đúng ∧ I sai)` chỉ cần **hai lượt sinh, không cần nhánh `V`** — nên tính được **miễn phí**
+từ các lần chạy đã có nhiều model chấm trên **cùng bộ bài** (H86c có Qwen-7B, Llama-8B, DeepSeek
+trên cùng 464 bài).
+
+| cặp | cùng họ | `I − S` | **`A`** |
+|---|---|---|---|
+| MATH 1.5B→7B | ✓ | .2400 | **.0160** |
+| MBPP 1.5B→7B | ✓ | .2004 | .0441 |
+| Llama-8B→Qwen-7B | ✗ | .1466 | .0733 |
+| MBPP 7B→32B | ✓ | .0902 | .0561 |
+| Llama-8B→DeepSeek | ✗ | .0733 | **.0905** |
+| DeepSeek→Qwen-7B | ✗ | .0733 | .0690 |
+| MBPP 1.5B→Llama-8B | ✗ | .0701 | .0782 |
+
+### Điều tôi suýt kết luận — và vì sao KHÔNG được
+Nhìn cột `cùng họ`: **A trung bình khác họ .0777 vs cùng họ .0387** — gấp đôi. Trông như
+*"cặp khác họ có dư địa gấp đôi"*, khớp đẹp với #145 (pool khác họ có `H` cao hơn).
+
+**Nhưng:** `I − S` trung bình khác họ = **.0908**, cùng họ = **.1769**.
+**Tương quan (`I−S`, `A`) = −.859** (n=7) — **mạnh hơn nhiều** so với hiệu ứng họ.
+
+> **Các cặp khác họ trong mẫu này TÌNH CỜ cũng là các cặp có chênh năng lực NHỎ.**
+> Hai lời giải thích **hoàn toàn bị trộn**, và n=7 (3 vs 4) **không đủ để tách**.
+> Cách đọc đơn giản hơn và cơ học hơn: **model mạnh càng vượt trội thì model yếu càng hiếm khi
+> thắng nó ở một bài nào đó** — không cần viện tới "họ" gì cả.
+
+**Không viết kết luận nào về họ.** Ghi lại bảng như **quan sát mô tả**.
+Muốn tách được thì cần cặp **cùng họ, chênh nhỏ** (ví dụ 7B→14B) và **khác họ, chênh lớn** —
+tôi hiện **không có** ô nào trong hai ô đó.
+
+> Đây là lần thứ hai liên tiếp (#176, nay #179) tôi rút một quy luật gọn gàng từ ít điểm rồi
+> tự bác lại khi kiểm biến gây nhiễu. **Cả hai lần đều chỉ mất vài phút để kiểm.**
+> Chi phí của việc KHÔNG kiểm là một phát biểu sai nằm trong TONG_HOP nhiều tháng.
