@@ -7428,3 +7428,54 @@ H97.** So sánh **trong** H98 (ghép cặp, cùng phần cứng) thì hợp lệ
 ### Việc bắt buộc tiếp theo
 #110 đã ràng: hàng 1 ⇒ **phải chạy XÁC NHẬN**, cổng đúng phạm vi, **cặp khác**, đăng ký trước.
 Đang thiết kế ngay (#111). Cho tới lúc đó, **kết quả này chỉ tồn tại trong `IDEAS.md`.**
+
+---
+
+## Vòng #189 — **KIỂM ĐỊNH NỘI BỘ**: hai phát biểu công khai đang so **chéo ĐỘ CHÍNH XÁC SỐ**
+
+Phát sinh từ khuyết điểm số 3 của #188 (nf4 hạ `acc` 3–5 điểm). Tôi kiểm toàn bộ 234 kernel có
+metadata: **20 chạy RTX 6000 (bf16, KHÔNG lượng tử hoá)**, **213 chạy T4 (nf4)**, 1 P100.
+Rồi tra từng kết quả đang được trích:
+
+| kết quả | máy | độ chính xác |
+|---|---|---|
+| #142 H88d / H88e (1.5B→7B) | T4 | **nf4** |
+| **#168 H91e (7B→32B)** | **RTX 6000** | **bf16** |
+| #169 H89g (1.5B→Llama) | T4 | **nf4** |
+| **#185 H97 (15 cặp)** | **RTX 6000** | **bf16** |
+| #174 H88f (MATH), #145 H86c, #149 H92/H92b | T4 | nf4 |
+
+### Hai chỗ hỏng — cả hai đều đã vào README công khai
+
+**(1) Bảng "cổng ở 32B" của #168.** README đặt cạnh nhau:
+`Δ_gate` = **+.0040** (1.5B→7B) so với **+.0922** (7B→32B), kết luận *"cổng cứu được ở 32B"*.
+Cột trái là **nf4**, cột phải là **bf16**. ⇒ **so sánh trộn CẢ quy mô model LẪN độ chính xác số.**
+
+**(2) "Tái lập #169" của #185.** Tôi viết *"cùng cặp, cùng dải bài, lần chạy độc lập"*.
+**Sai một chữ quan trọng: không cùng độ chính xác.** H89g nf4, H97 bf16.
+Nên việc `p` rơi từ .042 xuống .133 **không tách được** giữa "dao động lấy mẫu" và "đổi lượng tử hoá".
+
+### Cỡ của nhiễu loạn — ước lượng duy nhất tôi có
+H97 (bf16) và H98 (nf4) chạy **cùng giao thức R0, cùng hai cặp**:
+
+| cặp | `Δ_ceil` bf16 | `Δ_ceil` nf4 | lệch |
+|---|---|---|---|
+| 1.5B→7B | −.0441 | −.0762 | **−.0321** |
+| DSCoder→7B | +.0240 | +.0301 | +.0061 |
+
+`acc` nền lệch **3–5 điểm** (1.5B .4369→.3828; 7B .6633→.6373; DSCoder .6152→.5872).
+**n = 2 cặp, một miền** — đủ để nói *"nhiễu loạn có thật và cỡ tới .03"*, **không** đủ để hiệu chỉnh.
+
+### Điều này KHÔNG lật cái gì, nhưng phải nói ra
+- Khoảng cách của #168 là **.088**; nhiễu loạn quan sát được tối đa **.032** ⇒ **không xoá được** khoảng
+  cách, nhưng chiếm tới **hơn một phần ba**. Phát biểu *"cổng cứu được ở 32B"* **vẫn đứng theo dấu**,
+  còn **độ lớn thì không đáng tin tới chữ số thứ hai**.
+- Việc hạ cấp #169 ở #185 **vẫn đúng** — thậm chí đúng hơn: nay ta có **ít** bằng chứng xác nhận sạch
+  hơn tôi tưởng, chứ không nhiều hơn. Nhưng **cách diễn đạt "tái lập một nửa" phải sửa**.
+- **So sánh TRONG một lần chạy không bị ảnh hưởng**: H97 (15 cặp) và H98 (6 ô) đều cùng phần cứng
+  nội bộ. Chính vì thế thiết kế ghép-cặp-trong-một-lần-chạy là đúng, và bốn lần bị lừa trước đây
+  đều là so chéo.
+
+### Luật mới
+Đưa vào quy trình: **mọi bảng đặt cạnh nhau hai con số phải ghi máy/độ chính xác của từng số**;
+nếu khác nhau thì **hoặc gắn cảnh báo, hoặc đừng đặt cạnh nhau**.

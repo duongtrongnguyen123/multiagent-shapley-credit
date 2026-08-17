@@ -577,3 +577,9 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
     (#184) Câu hỏi `κ` hỏng ở #157 (pool suy biến) rồi #184 (độ phủ tín hiệu) — cả hai lần vì
     **model yếu không sinh nổi tín hiệu dùng được**. Phải đổi `S`, hoặc đổi estimand **có đăng ký
     trước**, chứ không phải hạ ngưỡng cổng sau khi thấy nó trượt (= lỗi #138).
+
+26. **Ghi MÁY và ĐỘ CHÍNH XÁC SỐ cạnh mọi con số đem so.** (#189) T4 chạy nf4, RTX 6000 chạy bf16;
+    đo được nf4 hạ `acc` **3–5 điểm** và dịch `Δ_ceil` tới **.032**. Hai bảng công khai (#168 và
+    "tái lập #169" của #185) đang đặt cạnh nhau số nf4 với số bf16. **Khác độ chính xác thì hoặc
+    gắn cảnh báo, hoặc đừng đặt cạnh nhau.** So sánh **trong cùng một lần chạy** thì miễn nhiễm —
+    thêm một lý do để thiết kế ghép cặp trong-một-lần-chạy.
