@@ -3925,7 +3925,9 @@ khỏi "chẳng có gì để khai thác".
 | 2 | `Δ_ceil > 0` và `Δ_gate ≥ +.04` (p<.05) và `Δ_honest ≥ +.02` (p<.05) | **M1 CHO RA ĐƠN THUỐC DÙNG ĐƯỢC**: sửa an toàn khi và chỉ khi có cổng độc lập. Kết quả dương đầu tiên của dòng sửa. |
 | 3 | `Δ_ceil > 0` và `Δ_gate ≥ +.04` (p<.05) nhưng `Δ_honest ≤ 0` | Cổng **khử được `D`** nhưng `κ = 0`: cứu `V` khỏi chính nó mà vẫn không bằng chỉ gọi `M` một lượt. **M1 đúng về cơ chế, sai về giá trị.** |
 | 4 | `Δ_ceil > 0` nhưng `Δ_gate < +.04` | **M1 SAI NHƯ ĐANG PHÁT BIỂU.** Có chỗ để khai thác (`Δ_ceil>0`) nhưng chặn ghi đè ở tập cổng-đạt **không** cứu được ⇒ phá hoại **không** nằm ở những bài `S` làm đúng. Phải viết lại M1. |
-| 5 | bất kỳ hàng nào trên **và** `Δ_cont < −.02` (p<.05) | **cộng thêm**: ngay cả dưới cổng, **cho `M` thấy artifact vẫn nhiễm độc** ⇒ củng cố #119. |
+| 5 | bất kỳ hàng nào trên **và** `Δ_cont > +.02` (p<.05) | **cộng thêm**: ngay cả dưới cổng, **cho `M` thấy artifact vẫn nhiễm độc** ⇒ củng cố #119. |
+
+> **SỬA Ở #160 (thất bại thiết kế thứ BẢY).** Bản gốc khoá `Δ_cont < −.02`, **ngược dấu với kết luận của chính nó**: `Δ_cont = acc(G_I) − acc(G_V)` với `G_I` là nhánh `M` **KHÔNG nhìn thấy**, nên `Δ_cont > 0` mới có nghĩa "nhìn thấy hại". #142 đo **+.0902/+.0994**, tức điều kiện gốc **KHÔNG thoả**, nhưng tôi **vẫn viết kết luận của hàng 5**. Kết luận đúng theo định nghĩa và đã được #149 xác nhận độc lập bằng hàng-giết khoá đúng — **nhưng quy trình thì sai**. Ghi lại đầy đủ.
 
 ### CỔNG CHẤT LƯỢNG (kiểm TRƯỚC khi đọc bảng)
 1. tỉ lệ trích được code chạy `≥ .80` ở **mọi** nhánh, chênh giữa nhánh cao nhất/thấp nhất `< .05`
@@ -4402,6 +4404,12 @@ Hàng 2/3/4 giữ nguyên (đều đòi `d_ceil ≥ .02` **và** p<.05), giờ *
 Hàng 1 đòi `|H(C)−H(B)| < .03`; hàng 2 đòi `H(B)−H(C) ≥ .03` **và** p<.05.
 
 **SỬA — hàng 1 viết lại:**
+> **THỨ TỰ ĐỌC (sửa ở #160): hàng 4 đọc TRƯỚC hàng 1.**
+> Bản #103-b khiến **hàng 4 không bao giờ tới được**: nếu `H(C)−H(B)` = +.05 (p<.05) thì
+> mệnh đề "họ hơn cỡ" sai ⇒ hàng 1 nổ trước, mà hàng 4 chính là hàng buộc **điều tra lại #145**.
+> Nuốt mất đúng hàng bất lợi nhất là lỗi nặng hơn cả lỗ hổng ban đầu.
+>
+> **Hàng 4** ⟺ `H(C)−H(B) ≥ +.03` với p<.05 (cỡ **thắng** họ) — **kiểm TRƯỚC**.
 > **Hàng 1** ⟺ `H(C)−H(A) ≥ +.03` với p<.05, **VÀ KHÔNG xác lập được** rằng họ hơn cỡ
 > (tức **không** thoả `H(B)−H(C) ≥ +.03` với p<.05).
 > Nghĩa: cỡ khác đã đủ decorrelate, và **phần thêm của họ chưa được chứng minh**.

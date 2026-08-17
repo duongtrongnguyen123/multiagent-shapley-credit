@@ -5732,9 +5732,7 @@ copy_rate **.0021** · n=464 ≥ 400 · mọi `acc` ∈ [.35,.85] (Q1 .7112 · Q
 Hàng 1 đòi `H(B)−H(A)` ≥ +.03 **và** `SEL(B)−SEL(A)` ≥ +.015 — **đạt cả hai, p ≤ 5e-5**.
 **Đây là kết quả dương duy nhất của dự án đã tái lập trên dải bài tách rời.**
 
-Đáng chú ý: biên độ **LỚN HƠN** ở dải 511–974 dù dải này `acc` nền **cao hơn** (Q1 .7112 vs .6400)
-— ngược với tiên nghiệm của tôi (*"ít dư địa nên biên độ nhỏ hơn"*). Prior sai **đúng chiều
-làm kết quả mạnh hơn**, nên phải nói rõ để không tự khen.
+~~Đáng chú ý: biên độ LỚN HƠN ở dải 511–974...~~ **RÚT Ở #160:** +.0690 vs +.0500 có SE(hiệu) ≈ .0198, chênh .0190 = **0.96 SE, p ≈ .34** ⇒ **hai biên độ KHÔNG phân biệt được**. Câu tự phê về prior dựa trên một khác biệt không tồn tại.
 
 ### #99 — cơ chế nằm ở TẦNG CHUỖI, đúng như đã khoá
 
@@ -5948,7 +5946,7 @@ tiền-xử-lý**, không phải điều kiện hoá lên biến hậu-xử-lý.
 | `M` thấy artifact **ĐÚNG** | **+.0636** (p .0043) | +.0245 (p .263) |
 | gộp (đã đăng ký, #149) | −.0782 | −.0778 |
 
-**Thiệt hại ở nhánh SAI tái lập tới .003.** Thấy code sai **làm gần một nửa** độ chính xác của
+**Thiệt hại ở nhánh SAI tái lập rõ ràng** (−.1900 / −.1927; **sửa ở #160**: chênh .003 nằm sâu trong nhiễu lấy mẫu, không được đọc là độ chính xác). Thấy code sai **làm gần một nửa** độ chính xác của
 model mạnh (.4373 → .2473). Thấy code **đúng** thì **giúp**.
 
 > **Phát biểu lại lần nữa: `D` không phải hàm của "nhìn thấy", mà của "nhìn thấy NỘI DUNG SAI".**

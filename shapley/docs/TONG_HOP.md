@@ -2,7 +2,11 @@
 
 > Tài liệu này gom **chỉ những kết quả sống sót sau kiểm định độc lập (vòng #125)**.
 > Số nào bị rút, bị đình chỉ, hoặc không phân biệt được với nhiễu ở n=500 thì **không có mặt ở đây**
-> (danh sách rút lại: xem cuối tài liệu). Mọi con số đều có kiểm định ghép cặp McNemar.
+>(danh sách rút lại: xem cuối tài liệu).
+> **Về kiểm định (sửa ở #160):** các con số ở **M1 mục `V−I`**, **#142**, **#145**, **#149** đều có
+> McNemar ghép cặp. **KHÔNG có** kiểm định cho: bảng giao thức của M1 (−.1080 / +.0220 / chênh +.1300),
+> bảng bộ chọn của M2 (−.0840 / −.0640), và mọi số từ #158 (đã rút ở #160).
+> Câu cũ *"mọi con số đều có kiểm định McNemar"* là **SAI** và đã bị thay.
 
 ---
 
