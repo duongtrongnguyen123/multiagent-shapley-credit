@@ -6865,3 +6865,49 @@ về mặt thống kê — tôi đã suýt biến một **quan sát 3 điểm** 
 
 **Đã sửa TONG_HOP.** Lời khuyên còn lại, yếu hơn nhưng đúng: **`A` nhỏ (~1–2%) ⇒ gần như chắc chắn
 dừng; `A` lớn KHÔNG bảo đảm điều ngược lại.**
+
+---
+
+## Vòng #177 — H89h **VOID lần hai**. Cặp DeepSeek **không đo được** dưới thiết kế này — dừng lại.
+
+Niêm phong **19:42:01 TRƯỚC khi đọc** (#166).
+
+**Bản vá #172 hoạt động:** cắt cụt nhánh `I` **.1443 → .002**, nhánh `V` **.006**. `MAXNEW`=4096 +
+chuỗi dừng đã xử lý đúng vấn đề đã chẩn đoán.
+
+**Nhưng VOID ở `extract_spread` = .0581 > .05** — và lần này **không phải cắt cụt**.
+
+### Nguyên nhân: DeepSeek sinh code **sai cú pháp** 6% khi được cho xem code
+| | |
+|---|---|
+| `V` không biên dịch | **30/499 = 6.01%** |
+| trong đó do cắt cụt | **3** |
+| trong đó không có rào markdown | 6 |
+
+Ví dụ thật: `6..0` (thừa dấu chấm) · `[sorted(x) for x in list of lists]` (khoảng trắng trong tên
+biến) · lỗi cú pháp ở dòng 14. **Đây là lỗi của MODEL, không phải lỗi đo.**
+
+### Quyết định: KHÔNG chạy lần thứ ba
+Tỉ lệ 6% là **tính chất của DeepSeek-Coder ở nhánh `V`**, không phải thứ `MAXNEW` hay chuỗi dừng
+sửa được. Lần chạy thứ ba gần như chắc chắn cho lại ~6% và VOID lại.
+⇒ **Cặp 1.5B→DeepSeek-6.7B KHÔNG đo được dưới cổng đối xứng của #97/#98.** Ghi nhận và dừng.
+
+### Giới hạn của chính cái cổng — phải nói ra
+Cổng `extract_spread` sinh ra từ #119/#130 để bắt **cơ chế đo phạt một nhánh nặng hơn**
+(cắt cụt). Nhưng ở đây nó bắt một thứ **khác hẳn**: nhánh `V` **thực sự tệ hơn** — nó viết code
+hỏng. Đó là **kết quả**, không phải **artifact**.
+
+> **Cổng không phân biệt được "nhánh bị đo thiệt" với "nhánh vốn tệ".**
+> Tôi **vẫn tuân theo cổng** (VOID), vì đổi cách đọc sau **hai** lần trượt chính là gate-shopping.
+> Nhưng ghi lại đây như một **khuyết tật thiết kế của cổng**, để lần sau viết đăng ký trước thì
+> tách hai thứ đó ra — ví dụ: gác riêng **tỉ lệ cắt cụt** (artifact) và **tỉ lệ cú pháp sai**
+> (kết quả), thay vì gộp cả hai vào `extract_spread`.
+
+### #98 kết lại với MỘT điểm khác họ hợp lệ
+| cặp khác họ | tình trạng |
+|---|---|
+| 1.5B→**Llama-3.1-8B** | **HỢP LỆ** (#169), mọi cổng đạt |
+| 1.5B→DeepSeek-6.7B | **không đo được** (VOID ×2, lý do cấu trúc) |
+
+⇒ Mọi phát biểu về "khác họ" trong dự án đứng trên **đúng một** cặp. **Đã ghi vào README ở #161**
+và điều đó **vẫn đúng nguyên** — không được nới ra thành "các model khác họ".

@@ -192,8 +192,12 @@ hàng đó **không nổ ở cả hai lần chạy**.
 > **Mục 5 được đo trên ĐÚNG MỘT cặp model: Qwen2.5-1.5B → Qwen2.5-7B, CÙNG họ.**
 > Nó **không** phải phát biểu về mọi hệ hai-model, dù văn phong ở trên nghe như vậy.
 >
-> Chúng tôi **đã thử** các cặp khác — DeepSeek-Coder-6.7B, Llama-3.1-8B, Qwen2.5-32B — và
-> **TẤT CẢ đều VOID** theo cổng đã đăng ký trước (cắt cụt, soundness, hoặc cổng năng lực).
+> Chúng tôi **đã thử** các cặp khác. Kết cục (cập nhật #177):
+> **Llama-3.1-8B → HỢP LỆ** (#169, mọi cổng đạt — xem khối #169 ở trên).
+> **Qwen2.5-32B → HỢP LỆ** (#168). **DeepSeek-Coder-6.7B → KHÔNG ĐO ĐƯỢC**: VOID hai lần vì nó
+> sinh code **sai cú pháp 6%** ở nhánh review, vi phạm cổng đối xứng — đó là **tính chất của model**,
+> không phải lỗi đo, nên chạy lại cũng vô ích.
+> ⇒ **Mọi phát biểu "khác họ" của dự án đứng trên ĐÚNG MỘT cặp (Llama).**
 > Kiểm định độc lập cho biết các con số **không dùng được** đó **chỉ theo hướng NGƯỢC LẠI**.
 > Chúng tôi **không trích chúng làm bằng chứng** — chúng VOID — nhưng **giấu sự tồn tại của
 > chúng thì tệ hơn nhiều**. Kết luận đúng là:
