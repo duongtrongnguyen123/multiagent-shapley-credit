@@ -75,3 +75,12 @@
 | `partial_H89f.json` | 2466679 | `687b3834c93c94792f0f0c06d31e1a4ab296ed7e22ea912bcaecda2d787c1ac7` |
 | `res_H89f.json` | 1709 | `e3eb6f0a6d6528c0f4319e481be7fad1183a0f40d127c6da3724fc9f094e0ad4` |
 | `traces_H89f.json` | 362905 | `ef778493e21eedaed776919668953bcc5780a01269a5edaddd5115c27dd88297` |
+
+### `results_H88f` — niêm phong 2026-08-17 18:31:04 +0700
+
+| tệp | bytes | sha256 |
+|---|---|---|
+| `gated-repair-math-h88f.log` | 203241 | `75d398dd3f6ac43ffc07327c6a67af176a20aa3f9bbebf636cb8f6bfb1e519fe` |
+| `partial_H88f.json` | 3029696 | `92ebc2a5b7071d8898e89f7b1df03bf3726c9c5d0454065b7651c87d621430d2` |
+| `res_H88f.json` | 1003 | `291adb080d929187cf631d2fee76d34da44d52b2de837ac1f59847b3642885e0` |
+| `traces_H88f.json` | 3034826 | `876cd66954c755a8447a85890eba79d85df2b142ff2e7883c606b35831223b2b` |
