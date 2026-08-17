@@ -7274,3 +7274,49 @@ thì phương sai còn lại cũng có thể chỉ là nhiễu cặp-model. H98 
 
 ### Tiên nghiệm
 Hàng 1 đặt **45%** (modal) — đúng. **20/41.**
+
+---
+
+## Vòng #186 — **THĂM DÒ**: vì sao `Δ_ceil` đổi dấu — **ngưỡng chạy nhanh hơn khả năng bảo toàn**
+
+Không có gì mới về; phân tích **miễn phí** trên `results_H97` **đã niêm phong**. **Nhãn: THĂM DÒ.**
+15 điểm **trong CÙNG một lần chạy** — sửa đúng khuyết tật đã tự bắt ở #183 (trộn lần chạy).
+
+### Trước hết: một "phát hiện" tôi phải tự gạch
+`ρ` = tỉ lệ `V` **bảo toàn** trên bài chỉ `I` làm đúng = `1 − B/P(¬S∧I)`, với `P(¬S∧I)` = `chênh + A`.
+Ngưỡng thật (có cả `C`): `r*_C` = `1 − (A+C)/P(¬S∧I)`.
+Tính ra: **dấu của `ρ − r*_C` dự báo đúng dấu `Δ_ceil` 15/15.**
+
+**Đó là ĐẲNG THỨC, không phải phát hiện.** `(ρ − r*_C)·P(¬S∧I) = A − B + C = Δ_ceil` (kiểm số:
+lệch tối đa 1e-04, đúng bằng sai số làm tròn 4 chữ số). "15/15" ở đây **không mang thông tin nào**.
+Ghi lại vì nó *trông* như xác nhận mạnh, và tôi suýt viết nó thành một dòng kết luận.
+
+### Nội dung thật: `ρ` **KHÔNG hằng**, và đó mới là câu chuyện
+#183 (trộn lần chạy) đoán `ρ` ≈ hằng .520. Trong cùng một lần chạy:
+`ρ` trung bình **.495**, độ lệch chuẩn **.121**, dải **.282–.699** — và **tương quan +.781 với chênh**.
+Giả thiết `ρ` hằng cho `g*` = **.1285**, trong khi `g*` đo trực tiếp là **.0913** — **sai 41%**.
+⇒ #183 đã bác `ρ` hằng bằng lý lẽ; giờ có **số trong-một-lần-chạy** bác luôn.
+
+### Cơ chế: hai đường cùng lên, một đường lên nhanh hơn
+```
+ρ     ~  +.336 + 1.101·chênh     R² = .610   p = 5.9e-04
+r*_C  ~  +.215 + 2.177·chênh     R² = .862   p = 6.0e-07
+chênh lệch độ dốc = +1.076  (se .333,  p = .0066)
+```
+**Chênh càng lớn, model sửa BẢO TOÀN càng TỐT** (`ρ` tăng — hợp lý: nó càng vượt trội so với ứng
+viên thì càng ít bị kéo theo). **Nhưng NGƯỠNG phải vượt còn tăng nhanh gấp đôi.**
+
+> **Đây là lý do "sửa" thua ở chênh lớn — và nó KHÔNG phải "model mạnh dễ bị artifact xấu làm hỏng".**
+> Thực tế ngược lại: nó **chống nhiễu tốt hơn** khi chênh lớn. Cái giết nó là **ngân sách rủi ro**
+> `P(¬S∧I)` phình ra nhanh hơn phần thưởng `A + C`. Là **số học của bài toán**, không phải
+> **yếu điểm của model**.
+
+**Vì sao điều này quan trọng cho hướng đi:** nếu nguyên nhân là "model bị artifact làm hỏng" thì
+lời nhắc hoài nghi (R1 của H98) sẽ chữa được. Nếu nguyên nhân là **số học ngân sách**, thì lời nhắc
+**không đủ** — phải giảm chính `P(¬S∧I)`, tức **đừng đưa bài mà `I` vốn làm đúng vào diện sửa**.
+Đó là một **cổng định tuyến**, không phải một lời nhắc. **H98 đang chạy sẽ phân biệt hai khả năng này**
+(đăng ký #108 trước khi có phân tích này).
+
+**Không đưa vào TONG_HOP:** thăm dò, một miền, một giao thức, và `ρ`/`r*_C` là **hàm của cùng những
+`A`,`B`,`C`** đã dùng để dựng `Δ_ceil` — nên "giải thích" ở đây là **tái phát biểu**, chưa phải
+bằng chứng độc lập. H99 (MATH) sẽ cho biết độ dốc có ổn định qua miền không.
