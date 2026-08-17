@@ -6,18 +6,14 @@
 #   TRIM : P->S (giữ trace), V và A chỉ nhận ĐÁP ÁN (cat trace ở V và A)
 #   S    : chỉ Solver (mốc)
 #
-# 7B 4-bit trên Kaggle T4. N=150 (5 fold x 30).
+# 7B fp16 on T4 16GB (no quantization, same as template_role7b).
+# No bitsandbytes needed — internet is off on Kaggle.
 import os, re, csv, json, glob, statistics, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 TASK = "math"
 N = __N__
 BS = __BS__
-QUANT = True
-
-if QUANT:
-    import subprocess, sys
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "bitsandbytes>=0.46.1"])
 
 _c = glob.glob("/kaggle/input/**/model.safetensors.index.json", recursive=True) or \
      glob.glob("/kaggle/input/**/model.safetensors", recursive=True)
@@ -34,16 +30,8 @@ tok.padding_side = "left"
 if tok.pad_token is None:
     tok.pad_token = tok.eos_token
 
-if QUANT:
-    from transformers import BitsAndBytesConfig
-    _b = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
-                            bnb_4bit_compute_dtype=torch.float16,
-                            bnb_4bit_use_double_quant=True)
-    model = AutoModelForCausalLM.from_pretrained(MODEL, quantization_config=_b,
-                                                  device_map="auto").eval()
-else:
-    model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16,
-                                                  device_map="auto").eval()
+model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16,
+                                              device_map="auto").eval()
 print("model loaded", flush=True)
 
 CHARS = {"FULL": 0, "TRIM": 0}
