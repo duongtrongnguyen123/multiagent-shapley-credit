@@ -6829,3 +6829,39 @@ Quét *"sinh `X_raw` mà không lưu"* báo thêm 3 kernel. **Kiểm lại: cả
 `exposure_dose` gọi `save_partial(S_raw=S_raw)` (dòng 176) và `partial_H92.json` **có** `S_raw`.
 Bộ dò của tôi không nhận dạng được cú pháp `save_partial(S_raw=S_raw)`.
 ⇒ **chỉ `gate_signals` thật sự hỏng.** (Bài học #163 lặp lại: kiểm trước khi "sửa" cái không hỏng.)
+
+---
+
+## Vòng #176 — Tôi tự kiểm phát biểu của #174 và nó **QUÁ MẠNH**
+
+Ở #174 tôi viết: *"biến quyết định KHÔNG phải quy mô, cũng không phải miền — mà là
+`P(S đúng ∧ I sai)`"*, và khuyên **đo nó trước khi xây đường ống**. Tôi rút phát biểu đó
+**từ MỘT lần chạy** (MATH, `A` = 1.6%) rồi khái quát cho cả bốn dòng. Giờ kiểm lại bằng số.
+
+### Đẳng thức CHÍNH XÁC (không phải tương quan)
+```
+Δ_ceil = P(S∧¬I) − P(¬S∧I∧¬V) + P(¬S∧¬I∧V)
+            A          B             C
+```
+| cặp | `A` | `B` | `C` | `A−B+C` | `Δ_ceil` đo |
+|---|---|---|---|---|---|
+| MBPP 1.5B→7B | .0441 | .1303 | .0220 | **−.0641** | **−.0641** |
+| MBPP 1.5B→Llama | .0782 | .0762 | .0401 | **+.0421** | **+.0421** |
+| MBPP 7B→32B | .0561 | .0762 | .0261 | **+.0060** | **+.0060** |
+
+**Khớp tuyệt đối 3/3** — vì đây là **đẳng thức đại số**, không phải mô hình.
+
+### Vì sao #174 sai
+`A` chỉ là **một trong ba** số hạng. Hai số hạng kia (`B`, `C`) **bắt buộc phải chạy `V`** mới biết.
+Lời khuyên *"đo `A` là biết trần"* của tôi **không đúng**: `Δ_ceil ≤ A` chỉ khi `C ≤ B` —
+đúng ở cả ba lần đo nhưng **chưa chứng minh**, và tôi đã nói như thể nó là định lý.
+
+`A` một mình có `r ≈ +.94` với `Δ_ceil`, nhưng **n = 3**. Với 3 điểm, `r = .94` gần như vô nghĩa
+về mặt thống kê — tôi đã suýt biến một **quan sát 3 điểm** thành một **quy luật**.
+
+> **Đây là đúng dạng lỗi mà kiểm định #125 đã bắt tôi hai lần** (khái quát từ một điểm k=2 ở #111-b;
+> *"ba miền, ba cặp model"* thực ra là hai ở #103). Lần này **tôi tự bắt được** — nhưng chỉ vì
+> tôi ngồi tính lại thay vì để phát biểu đứng yên.
+
+**Đã sửa TONG_HOP.** Lời khuyên còn lại, yếu hơn nhưng đúng: **`A` nhỏ (~1–2%) ⇒ gần như chắc chắn
+dừng; `A` lớn KHÔNG bảo đảm điều ngược lại.**

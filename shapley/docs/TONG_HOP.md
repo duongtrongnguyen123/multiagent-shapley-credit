@@ -177,12 +177,30 @@ Bốn cặp, cùng thiết kế, `Δ_ceil` = cổng ORACLE so với `I`:
 | MBPP 7B→32B (cùng họ) | +.0060 (p .82) | — |
 | MBPP 1.5B→Llama-8B (**khác họ**) | **+.0421** (p .042) | — |
 
-**`H` của cả dòng "sửa" bị chặn trên bởi `P(S đúng ∧ I sai)`** — số bài mà model yếu giải được
-còn model mạnh thì không. Trên MATH cùng họ nó chỉ **1.6%**, nên **không giao thức nào** cứu được;
-trên MBPP khác họ nó đủ lớn để cổng oracle **thắng**.
+**SỬA Ở #176 — phát biểu ở trên (bản #174) QUÁ MẠNH.** Đẳng thức **chính xác** là:
 
-> **Đo `P(S đúng ∧ I sai)` TRƯỚC khi xây đường ống.** Nó cần **một** lượt sinh mỗi model, không
-> cần nhánh `V` nào, và nó cho biết ngay trần lý thuyết của mọi giao thức ghép hai model.
+```
+Δ_ceil = P(S∧¬I)  −  P(¬S∧I∧¬V)  +  P(¬S∧¬I∧V)
+            A            B              C
+        dư địa      V hỏng ở bài     V cứu được bài
+                    I vốn làm đúng   cả hai đều sai
+```
+Kiểm trên **cả ba** cặp có trace: `A − B + C` tái tạo `Δ_ceil` **chính xác tới 4 chữ số**
+(−.0641 / +.0421 / +.0060). Nên:
+
+| | |
+|---|---|
+| `A` = `P(S đúng ∧ I sai)` | đo được **không cần** nhánh `V` |
+| `B`, `C` | **bắt buộc** phải chạy `V` |
+
+`A` một mình **tương quan** với `Δ_ceil` (r ≈ **+.94**) nhưng **n = 3 cặp** — quá ít để gọi là
+quy luật. Và `A` **không phải chặn trên đã chứng minh**: `Δ_ceil ≤ A` chỉ khi `C ≤ B`, điều
+**đúng ở cả 3 lần đo** nhưng **chưa chứng minh**.
+
+> **Lời khuyên thực dụng (đã sửa):** đo `A` trước — nó rẻ (**một** lượt sinh mỗi model, **không**
+> cần `V`) và nếu `A` ~1–2% (như MATH cùng họ: **1.6%**) thì gần như chắc chắn **dừng lại**.
+> Nhưng `A` lớn **KHÔNG** bảo đảm `Δ_ceil > 0` — còn phải biết `V` phá bao nhiêu (`B`) và
+> cứu được bao nhiêu (`C`).
 
 ### Sửa công thức sau #142: `D` phụ thuộc PHƠI NHIỄM, không phụ thuộc QUYỀN GHI ĐÈ
 
