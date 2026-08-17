@@ -48,3 +48,12 @@
 | `partial_H92b.json` | 428758 | `d99a7ef4c61654fac9964f1faa50ba36b10f59506a24104d83e12e699b06a76d` |
 | `res_H92b.json` | 866 | `b52c5ed4f048d26975a785370baf694e06b2e53c33e2185c3723c8eb131a1726` |
 | `traces_H92b.json` | 147137 | `ea6f7594434109c7f261d3fff4384b3ab8b09df30015a3b21de9b3ec8ee87a0c` |
+
+### `results_H91e` — niêm phong 2026-08-17 09:32:11 +0700
+
+| tệp | bytes | sha256 |
+|---|---|---|
+| `gated-repair-32b-h91e.log` | 385904 | `28f4ad78791447627d08c15175eed3b1f36f6b5e44a12c493bccbde839b37eba` |
+| `partial_H91e.json` | 1135599 | `ab95003840967f3a849e55f8506cb166e94e629490116d6083a5ae67810339a2` |
+| `res_H91e.json` | 1607 | `b3e1cdb7527b475a50a43def07e41e7565be4f5f3c1478559fe3b1eaa911f828` |
+| `traces_H91e.json` | 480115 | `63075fd2c6441dc99c96d3a98e8bedacad0c285c1970919507cf0d6868dcb54c` |
