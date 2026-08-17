@@ -6550,3 +6550,52 @@ chuỗi dừng chỉ-rào-đóng, kiểm tỉnh táo lô 1). Cùng với **H89f*
 **Rủi ro đã cân nhắc:** thay đổi cơ chế sinh (`stop_strings`) **chưa được kiểm chứng trên máy thật**
 — H91e đang chạy nhưng chưa xong. Chấp nhận phóng vì **kiểm tỉnh táo lô 1** (#155) sẽ giết sớm
 trong vài phút nếu sinh lại hỏng, thay vì đốt hết khe như H91d.
+
+---
+
+## Vòng #168 — H91e: **ĐIỂM 32B ĐẦU TIÊN** (lần thứ 7). Và nó **KHÔNG** giống 7B.
+
+**MỌI CỔNG ĐẠT** — lần đầu tiên trong bảy lần thử ở 32B.
+Niêm phong hash **09:32:11 TRƯỚC khi đọc số** (`docs/RESULT_SEALS.md`, quy trình #166).
+
+Các bản vá đều hoạt động, nhìn thấy trong log:
+`[kiem lo 1] 172 / 76 / 297 / 1275 ky tu — binh thuong` (kiểm tỉnh táo #155 chạy ở cả 4 lượt sinh) ·
+cắt cụt nhánh `V` **.1042 → .0200** (chuỗi dừng chỉ-rào-đóng + `MAXNEW`=4096) · trích .986–1.0, chênh **.014**.
+
+### Đọc theo bảng khoá #101 (bản sửa #101-c)
+`Δ_ceil` = **+.0060, p = .822** ⇒ thoả `d_ceil < .02 HOẶC p ≥ .05` ⇒ **HÀNG 1**.
+Theo đúng chữ của #101-c, hàng 1 nghĩa là **“KHÔNG xác lập được là có dư địa khai thác”**.
+
+> **Đây KHÔNG phải kết quả giống 7B, và tôi phải nói rõ.** Ở 7B, `Δ_ceil` = **−.0641 / −.0583**,
+> **âm và có ý nghĩa** — cổng oracle **thua hẳn** `I`. Ở 32B nó là **+.0060, p .82** —
+> **không phân biệt được với 0**. "Thua rõ rệt" và "hoà" là hai kết cục khác nhau; cả hai đều rơi
+> vào hàng 1 của bảng đã sửa, nhưng **văn bản bắt buộc của hàng 1 nói “GIẾT CẢ DÒNG SỬA Ở MỌI
+> QUY MÔ”, và ở đây điều đó KHÔNG được dữ liệu ủng hộ.**
+> Chính agent kiểm định đã cảnh báo #101-c gộp phần "chưa xác lập" vào một hàng đọc như khẳng định
+> mạnh. **Cảnh báo đó vừa thành hiện thực.** Tôi ghi hàng 1 với nghĩa **hẹp**: *chưa xác lập được
+> dư địa ở 32B* — **không** phải "đã giết dòng sửa ở mọi quy mô".
+
+### Phát hiện thật sự của vòng này: **CỔNG CÓ TÁC DỤNG Ở 32B**
+| đại lượng | 7B (H88d) | **32B (H91e)** |
+|---|---|---|
+| `Δ_gate` (cổng cứu được "sửa" không) | +.0040 (p .69) | **+.0922 (p ≈ 0)** |
+| `Δ_ceil` (cổng ORACLE vs `I`) | **−.0641** (p .0016) | +.0060 (p .82) |
+| `Δ_honest` (`G_V` vs `I`) | −.0842 (p 4.7e−05) | −.0160 (p .44) |
+| `Δ_cont` (giải lại vs sửa) | +.0902 (p 1e−06) | +.0240 (p .065) |
+
+Ở 7B tôi kết luận (#142): *"cổng không làm gì cả — `Δ_gate` null hai lần"*.
+Ở 32B `Δ_gate` = **+.0922, p ≈ 0**: cổng cứu `V` từ .6453 lên .7375.
+Cơ chế nhìn thấy ngay: `V` phá **57** bài `S` làm đúng, và **55/57 nằm TRONG tập cổng-đạt** —
+tức ở 32B, phá hoại **nằm đúng chỗ cổng với tới**, ngược hẳn 7B (12 phá, chỉ 4 trong tập cổng).
+
+> **Kết luận #142 ("cổng không khử được `D`") PHỤ THUỘC QUY MÔ, không phải quy luật.**
+> Phải sửa lại phát biểu trong TONG_HOP. Nhưng `Δ_honest` = −.0160 (p .44) ⇒ **ngay cả khi cổng
+> cứu được, `G_V` vẫn KHÔNG vượt `I`** — phần đó thì nhất quán giữa hai quy mô.
+
+### KHÔNG được đọc bảng #98 từ lần chạy này — lỗi nhận diện HỌ
+Kernel in *"cùng họ = False"* vì `SAME_FAMILY = any("qwen" in n for n in DEAR_NEEDLES)` với
+`DEAR="32b"` ⇒ chuỗi "qwen" không có trong "32b". **Nhưng model là `aimo-qwen25-32b-instruct`
+= Qwen2.5-32B — CÙNG họ Qwen.** Đây là **Qwen-7B → Qwen-32B: cùng họ, khác CỠ**.
+⇒ dòng *"HÀNG A: nguồn ngoại họ phá mạnh hơn"* mà kernel in ra là **VÔ HIỆU**. Đã ghi nhận,
+**không** đưa vào bất cứ đâu. (`V − I` = −.1082 ở đây là điểm **cùng họ, cặp 7B→32B**, không so
+được với mốc 1.5B→7B.)
