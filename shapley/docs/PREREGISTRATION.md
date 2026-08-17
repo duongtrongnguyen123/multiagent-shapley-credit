@@ -5022,3 +5022,27 @@ mới biết điều đó, giao thức thật thì không.
 - **`MAXNEW` giữ nguyên 1536** như #104 đã khoá. Nếu cắt cụt ≥ .05 thì **VOID** — đó là kết cục
   **đúng**, không phải cớ để nâng cap sau khi thấy số (#101-b/#101-d đã bàn riêng chuyện cap).
 - Bảng khoá, ngưỡng, tiên nghiệm: **y nguyên #104**. **Tỉ lệ prior đúng: 20/41.**
+
+### #111 — SỬA ĐỔI **TRƯỚC KHI PHÓNG LẠI** (H100d): bỏ `qwen14b`, đổi bộ cặp. Lý do là PHẦN CỨNG.
+
+**Ghi lúc:** sau #195, trước khi phóng H100d. **Chưa có `Δ_honest` nào được tính.**
+
+**Lý do — đo được, không liên quan kết quả.** H100c: `qwen14b` OOM khi nạp **một** bản trên thẻ
+14.56 GB, và OOM tiếp khi **chia hai thẻ** ⇒ nó **không lượng tử hoá** (14B fp16 ≈ 28 GB, trong khi
+2×T4 chỉ có 29.1 GB tổng — không còn chỗ cho kích hoạt). **`qwen14b` bất khả thi trên T4.**
+Điều này giết cặp Q (`qwen7b→qwen14b`) và cặp R (`dscoder→qwen14b`) của #111.
+
+**Bộ cặp mới** — vẫn **ba cặp**, vẫn **không trùng** cặp nào của H98, mọi model đã đo được trên T4
+(`dscoder` 3.61 GB · `qwen7b` 5.21 GB · `llama8b` chia thẻ · `qwen1.5b` nhỏ):
+
+| | `S` | `I` | ghi chú |
+|---|---|---|---|
+| P | llama8b | qwen7b | giữ nguyên từ #111 |
+| Q | qwen1.5b | dscoder | mới |
+| R | llama8b | dscoder | mới |
+
+Mọi model **sửa** là `qwen7b` hoặc `dscoder` — đều rẻ. `llama8b` chỉ xuất hiện ở nhánh **nền**.
+
+**KHÔNG đổi:** đại lượng chính `Δ_honest`, hai giao thức R0/R2, toàn bộ cổng, **toàn bộ bảng khoá**,
+điều kiện ≥ 2/3 cặp, và **tiên nghiệm** (hàng 3 ~45% · hàng 1 ~25% · hàng 2 ~20% · hàng 4 ~10%).
+**Tỉ lệ prior đúng: 20/41.**

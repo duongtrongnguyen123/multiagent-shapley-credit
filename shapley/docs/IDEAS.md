@@ -7724,3 +7724,49 @@ Muốn theo chiều khẳng định thì **phải đổi bộ bài**, không ph�
 `Δ_honest` (H100c) — nơi hiệu ứng **cần phải lớn** mới đáng dùng, nên **dễ phát hiện hơn** nhiều.
 **Tôi nghiêng về hướng thứ hai**: một hiệu ứng cần 4.000 bài mới thấy được thì **không đáng triển khai**
 kể cả khi có thật.
+
+---
+
+## Vòng #195 — H100c: bản vá **chạy đúng**, nhưng `qwen14b` **cũng không lượng tử hoá** — và nó là Qwen
+
+```
+[ 226s] dscoder    ban sao 1: gpu0 3.61 GB                          -> acc .5872
+[1297s] llama8b    ban sao 1 OOM ngay khi nap -> CHUYEN SANG CHIA THE
+[3713s] llama8b    (chia 2 the) xong                                -> acc .5050   <- BAN VA CHAY DUNG
+[3819s] qwen7b     ban sao 1: gpu0 5.21 GB                          -> acc .6373
+[4809s] qwen14b    ban sao 1 OOM -> chia the -> **VAN OOM** (gpu1 con 98 MiB)
+```
+
+### Bản vá #192 hoạt động
+`llama8b` bắt OOM **ngay lần nạp đầu**, chuyển sang chia thẻ, và **chạy xong** (acc .5050).
+Ba nhánh nền hoàn tất. Đó là điều #191 và #192 nhắm tới.
+
+### Nhưng `qwen14b` giết lần chạy — và nó phá nốt quy tắc theo họ **lần thứ hai**
+14B nf4 phải ~9 GB ⇒ lọt thẻ 14.56 GB. Nó **OOM**. Chia hai thẻ (29.1 GB tổng) **cũng OOM**.
+⇒ nó vào **fp16 ~28 GB**, không còn chỗ cho kích hoạt. **`qwen14b` bất khả thi trên 2×T4.**
+
+**Đây là lần thứ hai trong hai vòng quy tắc-theo-họ sai:**
+| | quy tắc theo họ nói | đo được |
+|---|---|---|
+| DeepSeek-6.7B (#193) | không lượng tử hoá | **3.61 GB — CÓ** |
+| Qwen-14B (#195) | Qwen thì lượng tử hoá | **~28 GB — KHÔNG** |
+
+Hai lần sai **ngược chiều nhau**. ⇒ *"họ nào lượng tử hoá được"* **không phải một quy tắc** —
+nó là **thuộc tính của từng bản dataset**, phải **đo từng model một**.
+Bảng `DO_DUOC_GB` của `preflight.py` nay có `dscoder` 3.61 và `qwen7b` 5.21 (**đo**), `llama8b`
+và `qwen14b` vào danh sách không-lượng-tử-hoá, và **tách riêng** "chia thẻ được" (llama8b — đã chạy
+thật) với "chia cũng không được" (qwen14b). Chạy lại preflight trên cấu hình mới ⇒ **RC=0**.
+
+### Đổi bộ cặp — lý do PHẦN CỨNG, ghi trước khi phóng
+`qwen14b` chết ⇒ mất cặp Q và R của #111. Sửa đổi đã commit **trước** H100d: ba cặp mới
+(**llama8b→qwen7b** · **qwen1.5b→dscoder** · **llama8b→dscoder**), vẫn không trùng H98, mọi model
+sửa đều là `dscoder`/`qwen7b` (rẻ, đã đo). **Đại lượng chính, giao thức, cổng, bảng khoá, tiên
+nghiệm: KHÔNG đổi một chữ.**
+
+### Ba nhánh nền của H100c **không phí**
+`partial_H100c.json` giữ `raw` của cả ba (`dscoder` .5872 · `llama8b` .5050 · `qwen7b` .6373) —
+đúng luật #128. H100d sẽ sinh lại (greedy tất định ⇒ sẽ trùng khớp, và đó là một **phép kiểm chéo**
+miễn phí giữa hai lần chạy).
+
+### Tiên nghiệm
+Lỗi hạ tầng ⇒ **20/41** giữ nguyên.

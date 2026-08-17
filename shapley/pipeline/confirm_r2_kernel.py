@@ -16,13 +16,14 @@ def find_model(*needles):
             return p.rstrip("/")
     raise RuntimeError(f"khong thay {needles}: co {sorted(os.listdir('/kaggle/input'))}")
 
-SPEC = {"dscoder":  ("deepseek-coder-6-7b", "deepseek-coder-6.7b"),
+# #195: qwen14b KHONG luong tu hoa (28 GB fp16) => khong lot ca khi chia 2 the T4 (29.1 GB). Bo.
+SPEC = {"qwen1.5b": ("1-5b", "1_5b", "1.5b"),
+        "dscoder":  ("deepseek-coder-6-7b", "deepseek-coder-6.7b"),
         "llama8b":  ("llama-3-1-8b", "llama-3.1-8b"),
-        "qwen7b":   ("2-5-7b", "qwen2-5-7b"),
-        "qwen14b":  ("14b",)}
+        "qwen7b":   ("2-5-7b", "qwen2-5-7b")}
 M = {k: find_model(*v) for k, v in SPEC.items()}
 print(f"MODELS={json.dumps(M, indent=1)}", flush=True)
-PAIRS = {"P": ("llama8b", "qwen7b"), "Q": ("qwen7b", "qwen14b"), "R": ("dscoder", "qwen14b")}
+PAIRS = {"P": ("llama8b", "qwen7b"), "Q": ("qwen1.5b", "dscoder"), "R": ("llama8b", "dscoder")}
 
 NG = torch.cuda.device_count()
 VRAM = torch.cuda.get_device_properties(0).total_memory/2**30
@@ -213,7 +214,7 @@ def save_partial():   # #128: BAN LUU CHUA DU LIEU THO
                "raw": RAW, "pass": PASS}, open(f"/kaggle/working/partial_{RUN}.json", "w"))
 
 t0 = time.time()
-for tag in ["dscoder", "llama8b", "qwen7b", "qwen14b"]:   # nen: re -> dat
+for tag in ["qwen1.5b", "dscoder", "qwen7b", "llama8b"]:   # nen: re -> dat (llama8b phai chia the)
     print(f"\n=== NEN {tag} ===", flush=True)
     RAW[tag] = gen_dp(M[tag], SOLVE, PR)
     PASS[tag] = par(official, [(ALL[i], extract(RAW[tag][i])) for i in range(N)])

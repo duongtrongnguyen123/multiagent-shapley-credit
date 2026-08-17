@@ -30,10 +30,16 @@ SIZE_HINTS = [("32b", 32), ("14b", 14), ("8b", 8), ("7b", 7), ("6-7b", 6.7), ("6
 # H100b in ra truc tiep: DeepSeek-Coder-6.7B nap het **3.61 GB** => CO luong tu hoa nf4.
 # Nen phat bieu "khong-Qwen khong luong tu hoa" (#135) la QUA RONG — no dung cho Llama, sai cho
 # DeepSeek. Bang duoi chi chua so DA DO; thieu thi moi quay ve doan theo ho, va NOI RO la doan.
-DO_DUOC_GB = {          # GB thuc te, nf4 tren T4, do bang torch.cuda.memory_allocated
-    "dscoder": 3.61,    # H100b @220s
+DO_DUOC_GB = {          # GB thuc te tren T4, do bang torch.cuda.memory_allocated
+    "dscoder": 3.61,    # H100b @220s  — CO luong tu hoa
+    "qwen7b":  5.21,    # H100c @3819s — CO luong tu hoa
 }
-KHONG_LUONG_TU_HOA = ("llama",)   # H100/H100b: OOM khi nap 1 ban tren the 14.6 GB => ~16 GB fp16
+# #195: KHONG luong tu hoa (do gian tiep qua OOM khi nap tren the trong 14.56 GB).
+# qwen14b nam o day du la ho Qwen — **quy tac theo ho lai sai them mot lan nua**.
+KHONG_LUONG_TU_HOA = ("llama", "14b")
+# Chia duoc tren 2 the T4 (da chay that): llama8b (H100c, acc .5050 tinh xong).
+# KHONG chia duoc: qwen14b — 28 GB fp16 > 29.1 GB tong tru kich hoat (H100c).
+CHIA_DUOC = ("llama",)
 QUANTIZABLE = ("qwen",)
 
 def gates_in_kernel(src):
@@ -158,7 +164,13 @@ def main():
         bad = cap is not None and tot > cap * 0.85
         print(f"      {tag:12s} ~{gb:5.1f} GB [{q}]"
               f"  x{a.copies} ban sao = {tot:5.1f} GB" + ("   <-- KHONG LOT" if bad else ""))
-        if bad: warn.append(f"{tag}: {tot:.1f} GB vuot 85% cua {cap} GB/the (loi cua H100)")
+        if bad:
+            if any(k in (tag+" "+" ".join(nds)).lower() for k in CHIA_DUOC):
+                print(f"        ^ da biet: CHIA duoc tren {len(VRAM)>0 and 2 or 2} the (H100c chay that). "
+                      f"Kernel phai co duong `load_shard` + bat OOM lan nap DAU.")
+            else:
+                warn.append(f"{tag}: {tot:.1f} GB vuot 85% cua {cap} GB/the va CHUA biet chia duoc "
+                            f"(qwen14b da that bai ca khi chia — #195)")
 
     # (4) kha thi cua tin hieu (chi nhac — khong tu dong duoc)
     print(f"\n[4] KHA THI (khong tu dong kiem duoc — TRA LOI TRUOC KHI PHONG):")
