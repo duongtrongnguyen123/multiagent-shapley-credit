@@ -530,3 +530,13 @@ vào lời tôi nói**.
 > **Giới hạn phải nói rõ:** niêm phong chứng minh *artifact tồn tại ở dạng đó vào thời điểm X*.
 > Nó **không** chứng minh tôi chưa mở file. Không có cách nào chứng minh điều đó bằng công cụ —
 > nên phần còn lại vẫn là **tin tưởng**, và tôi nên nói thế thay vì viện dẫn git.
+
+20. **#167 — bảng điểm tiên nghiệm phải có ở MỌI đăng ký trước**
+
+Dòng `Tỉ lệ prior đúng: N/M` có ở #57–#96 rồi **biến mất từ #97**, đúng vào giai đoạn prior của tôi
+sai liên tục (2/7). Không cố ý — nhưng hệ quả giống hệt cố ý: mất con số duy nhất khiến độ trung
+thực của tiên nghiệm **kiểm được bằng mắt**.
+
+> **Quy tắc cứng: mọi đăng ký trước kết thúc bằng `Tỉ lệ prior đúng: N/M` cộng dồn.**
+> Con số này chỉ có giá trị khi nó **liên tục** — bỏ vài vòng là mất luôn ý nghĩa,
+> và bỏ đúng lúc đang sai thì trông y như chọn lọc.

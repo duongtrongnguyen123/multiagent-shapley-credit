@@ -4496,3 +4496,36 @@ nên `stop_strings` gần như không đổi gì với chúng; nó chỉ cắt p
 tiếp chỉ với `MAXNEW`=3072 (kernel in rõ đã dùng đường nào).
 
 ### Cổng và BẢNG KHOÁ #101 giữ nguyên từng chữ. Chỉ đổi cơ chế sinh.
+
+---
+
+## #167 — KHÔI PHỤC BẢNG ĐIỂM TIÊN NGHIỆM (bị bỏ im lặng từ #97)
+
+Kiểm định độc lập chỉ ra: dòng `**Tỉ lệ prior đúng: N/M**` có mặt ở **mọi** đăng ký trước từ
+#57 đến **#96** (lần cuối: `16/32`), rồi **biến mất hoàn toàn** từ #97 trở đi — trùng đúng lúc
+tôi đổi sang mục *"TIÊN NGHIỆM THÀNH THẬT"*.
+
+**Chín đăng ký trước liên tiếp (#97–#104 + mọi sửa đổi) nêu xác suất mà KHÔNG có điểm tích luỹ.**
+Và nó trùng với chuỗi prior **sai** — đó chính là lúc con số ấy cần thiết nhất.
+
+Tôi không cố tình bỏ, nhưng **hệ quả** thì giống hệt việc cố tình: mất đi **một con số duy nhất
+làm cho độ trung thực của tiên nghiệm kiểm được bằng mắt**.
+
+### Quyết toán #97–#104 (các ca đã ngã ngũ)
+
+| đăng ký | hàng tôi đặt cao nhất | kết cục | đúng? |
+|---|---|---|---|
+| #90 | hàng 1 (40%) | hàng 2 (#157) | ✗ |
+| #92 | hàng 1 (55%) | hàng 4 — công thức bị bác (#137) | ✗ |
+| #94 | hàng 1 (45%) | hàng 1 theo chữ, **tự hạ** xuống hàng 2 (#158), rồi **rút cả hai số** (#160) | ✗ |
+| #95 | tái lập (75%) | tái lập (#145) | **✓** |
+| #97 | hàng 3 (50%) | **hàng 1** — hàng tôi cho 20% (#142) | ✗ |
+| #99 | hàng 1 (55%) | hàng 1 (#145) | **✓** |
+| #102 | hàng 2 (40%) | **không hàng nào** (#147/#149) | ✗ |
+| #101 | ~25% VOID | VOID **năm** lần | phần phòng hờ trúng |
+
+> **Tỉ lệ prior đúng: 2/7** (chưa tính #101 vì nó là phòng hờ, không phải hàng chính).
+> Cộng dồn từ #57: **18/39**.
+
+**Từ nay mọi đăng ký trước PHẢI kết thúc bằng dòng `Tỉ lệ prior đúng: N/M`.**
+Bỏ dòng đó — dù vô tình — là **xoá bằng chứng chống lại chính mình**.
