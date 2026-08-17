@@ -84,3 +84,12 @@
 | `partial_H88f.json` | 3029696 | `92ebc2a5b7071d8898e89f7b1df03bf3726c9c5d0454065b7651c87d621430d2` |
 | `res_H88f.json` | 1003 | `291adb080d929187cf631d2fee76d34da44d52b2de837ac1f59847b3642885e0` |
 | `traces_H88f.json` | 3034826 | `876cd66954c755a8447a85890eba79d85df2b142ff2e7883c606b35831223b2b` |
+
+### `results_H89h` — niêm phong 2026-08-17 19:42:01 +0700
+
+| tệp | bytes | sha256 |
+|---|---|---|
+| `family-dependence-h89h.log` | 194877 | `5d21c1c3a2fead4ea8ae56025adae81e6ccef842aee4bd9b4442ed5878945864` |
+| `partial_H89h.json` | 642335 | `47033f9fd0bfcd1af3fce99b75b9c8047a77dd52415d0c39eebdc07f3ea60b0f` |
+| `res_H89h.json` | 1669 | `a29dbd1690b51cb99614295ac113efb308c3fe8492d6b6eba01e66755b5b6536` |
+| `traces_H89h.json` | 356840 | `14301b7adcc6d1bab36a7b0678895eb22d51eabdd5ec0c334df73bbe1fd1ce86` |
