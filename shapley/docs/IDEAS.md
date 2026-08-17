@@ -6794,3 +6794,38 @@ một câu đúng lấy một câu đúng**, còn ở tập `S` sai thì `V` t�
 
 **Hệ quả thực dụng:** trước khi xây bất kỳ đường ống "model yếu + model mạnh" nào, **đo
 `P(S đúng ∧ I sai)` trước**. Nếu nó ~1–2%, **dừng lại** — không giao thức nào cứu được.
+
+---
+
+## Vòng #175 — H95 chết ở dòng phân tích sau **4.1 GIỜ** sinh xong, và mất **z_dear**
+
+```
+I xong (11915s) | V xong (14846s)
+NameError: name 'cov_self' is not defined   (dong 333)
+```
+
+### Hai lỗi, đều do tôi, đều khi **tạo kernel mới bằng cách sửa kernel cũ**
+1. **Thứ tự định nghĩa.** Tôi chèn `cov_self`/`cov_dear` vào khối `res` (dòng 351) nhưng dùng
+   chúng trong `gates` (dòng 333) — **dùng trước khi gán**. Kernel sinh xong **toàn bộ** rồi mới
+   chết ở dòng phân tích.
+2. **`TD_raw` sinh ra nhưng KHÔNG BAO GIỜ được lưu.** Tôi thêm lượt sinh test của model đắt
+   (tín hiệu `z_dear`) nhưng **quên thêm nó vào `save_partial`**.
+   ⇒ `partial_H95.json` có `S/TESTS/I_raw/V_raw` nhưng **không có `TD_raw`**
+   ⇒ **tín hiệu `z_dear` — cái đáng quan tâm nhất — MẤT.**
+
+> **Lỗi 2 là bài học #164 thất bại trên chính biến tôi vừa thêm.**
+> Ở #164 tôi ra quy tắc *"trace phải lưu vector kết quả từng bài"* — rồi ở #171 tôi thêm một
+> **lượt sinh mới** và **không** áp quy tắc đó cho nó.
+> **Quy tắc bổ sung: mỗi khi thêm một lượt `gen()`, phải thêm đầu ra của nó vào MỌI `save_partial`
+> phía sau — trong CÙNG một lần sửa.**
+
+### KHÔNG đọc phân tích một phần
+Tôi **có thể** tính `z_self` và `z_agree` ngoại tuyến từ partial (2/3 tín hiệu). **Không làm.**
+Bảng khoá #105 hỏi *"có tín hiệu khả thi NÀO đạt `Δ_honest ≥ +.02` không"* — biết trước 2/3 câu
+trả lời rồi mới chạy lại là **tự bỏ mù một phần**. Chạy lại đầy đủ, đọc một lần.
+
+### Quét lớp lỗi — và một báo động giả
+Quét *"sinh `X_raw` mà không lưu"* báo thêm 3 kernel. **Kiểm lại: cả ba đều SAI.**
+`exposure_dose` gọi `save_partial(S_raw=S_raw)` (dòng 176) và `partial_H92.json` **có** `S_raw`.
+Bộ dò của tôi không nhận dạng được cú pháp `save_partial(S_raw=S_raw)`.
+⇒ **chỉ `gate_signals` thật sự hỏng.** (Bài học #163 lặp lại: kiểm trước khi "sửa" cái không hỏng.)

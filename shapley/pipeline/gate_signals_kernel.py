@@ -276,14 +276,16 @@ I_raw = gen(mo, tk, SOLVE, PR, BSZ["dear"])
 TD_raw = gen(mo, tk, WTEST, PR, BSZ["dear"])
 TESTS_DEAR = [clean_asserts(t) for t in TD_raw]
 print(f"I xong ({time.time()-t0:.0f}s)", flush=True)
-save_partial(S=S, TESTS=TESTS, S_raw=S_raw, T_raw=T_raw, I_raw=I_raw)
+save_partial(S=S, TESTS=TESTS, S_raw=S_raw, T_raw=T_raw, I_raw=I_raw,
+             TD_raw=TD_raw, TESTS_DEAR=TESTS_DEAR)   # #175: truoc day KHONG luu -> mat z_dear
 V_raw = gen(mo, tk, REVIEW,
             [f"{PR[i]}\n\nProposed code:\n```python\n{S[i]}\n```" for i in range(N)], BSZ["dear"])
 print(f"V xong ({time.time()-t0:.0f}s)", flush=True)
 mo = None; tk = None
 free()
 I = [extract(t) for t in I_raw]; V = [extract(t) for t in V_raw]
-save_partial(S=S, TESTS=TESTS, S_raw=S_raw, T_raw=T_raw, I_raw=I_raw, V_raw=V_raw)
+save_partial(S=S, TESTS=TESTS, S_raw=S_raw, T_raw=T_raw, I_raw=I_raw, V_raw=V_raw,
+             TD_raw=TD_raw, TESTS_DEAR=TESTS_DEAR)
 
 # ---- cham ----
 PS = par(official, [(ALL[i], S[i]) for i in range(N)])
@@ -330,6 +332,8 @@ def _unclosed(t):
 trunc = {k: round(sum(_unclosed(t) for t in v)/N, 4) for k, v in
          (("S", S_raw), ("I", I_raw), ("V", V_raw))}
 trunc_max = max(trunc.values())
+cov_self = round(sum(1 for t in TESTS if t)/N, 4)
+cov_dear = round(sum(1 for t in TESTS_DEAR if t)/N, 4)
 gates = {"do phu z_self>=.90": cov_self >= .90, "do phu z_dear>=.90": cov_dear >= .90,
          "chenh do phu <.10": abs(cov_self - cov_dear) < .10,
          "extract_min>=.80": ext_min >= .80, "extract_spread<.05": ext_spread < .05,
@@ -348,9 +352,6 @@ for _gn, _gv in GATES.items():
                      "mcnemar": {"b01": _b01, "b10": _b10, "p": _p},
                      "coverage": round(sum(1 for i in range(N) if _gv[i] is not None)/N, 4),
                      "pass_rate": round(sum(bool(x) for x in _gv)/N, 4)}
-cov_self = round(sum(1 for t in TESTS if t)/N, 4)
-cov_dear = round(sum(1 for t in TESTS_DEAR if t)/N, 4)
-
 res = {"tag": RUN, "range": [LO, HI], "n": N,
        "gates_105": gate_res, "cov_z_self": cov_self, "cov_z_dear": cov_dear,
        "dear_model": M["dear"], "dear_needles": DEAR_NEEDLES, "same_family": SAME_FAMILY,
