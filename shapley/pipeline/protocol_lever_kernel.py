@@ -157,9 +157,16 @@ def gen_dp(path, sysm, usrs, bs=8):
                 raise SystemExit(f"KHONG GIAI PHONG DUOC gpu{d}: con {_used:.2f} GB. Dung lai (#191).")
     # #191: thu nap ban sao thu nhat; neu no chiem qua nua the thi KHONG the co ban sao thu hai
     # -> quay ve MOT ban chia tren ca hai the (mat song song, nhung chay duoc).
-    _m0 = load_on(path, 0)
-    _g0 = torch.cuda.memory_allocated(0)/2**30
-    print(f"      ban sao 1: gpu0 {_g0:.2f} GB", flush=True)
+    # #192: preflight bat duoc: mot ban Llama-8B fp16 (~16 GB) KHONG lot mot the T4 14.6 GB,
+    # nen phep "nap roi do" o tren VAN OOM ngay lan nap DAU. Phai bat OOM cua chinh lan nap do.
+    try:
+        _m0 = load_on(path, 0)
+        _g0 = torch.cuda.memory_allocated(0)/2**30
+        print(f"      ban sao 1: gpu0 {_g0:.2f} GB", flush=True)
+    except torch.OutOfMemoryError:
+        print("      ban sao 1 OOM ngay khi nap -> chuyen thang sang CHIA the", flush=True)
+        _m0 = None; free(); free()
+        _g0 = float("inf")
     if _g0 > VRAM*0.5:
         print(f"      -> qua lon cho 2 ban sao; nap lai MOT ban CHIA tren {NG} the", flush=True)
         _m0 = None; free(); free()

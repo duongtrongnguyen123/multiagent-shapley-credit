@@ -604,3 +604,12 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
 30. **Mọi hàm nạp model phải IN VRAM sau khi nạp và sau khi giải phóng.** (#191) H100 chết vì OOM
     mà log **không có một dòng dung lượng nào**, nên nguyên nhân phải suy đoán. Một dòng `print`
     là khác biệt giữa chẩn đoán tức thì và mất một suất GPU để đoán.
+
+31. **`python deploy/preflight.py <kernel> <id_dang_ky> --machine M --copies N` TRƯỚC MỌI LẦN PHÓNG.**
+    (#192) Bắt ba loại lỗi mà `astcheck` và kiểm-phủ-bảng-khoá **đều mù**: lệch đặc tả/hiện thực
+    cổng, ngân sách VRAM, và danh mục khả thi. `RC != 0` ⇒ **không được phóng**.
+
+32. **Công cụ kiểm cũng phải được kiểm — trên THẤT BẠI THẬT đã lưu.** (#192) `preflight.py` bản đầu
+    **không phát hiện nổi một model nào** trên đúng kernel đã gây OOM (regex bỏ sót `SPEC` dạng dict).
+    Chuẩn nghiệm thu: **báo động trên ca đã hỏng** VÀ **im lặng trên ca đã chạy tốt**. Thiếu vế thứ
+    hai thì công cụ chỉ là tiếng ồn, và tiếng ồn thì bị phớt lờ.

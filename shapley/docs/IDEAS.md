@@ -7565,3 +7565,56 @@ không sửa **thiết kế**. `Δ_honest` vẫn chưa được đo, **#188 vẫ
 
 ### Tiên nghiệm
 Lỗi hạ tầng ⇒ **không cập nhật**. Vẫn **20/41**.
+
+---
+
+## Vòng #192 — **KIỂM ĐỊNH NỘI BỘ**: tỉ lệ hỏng nhảy lên **67%**, và công cụ tôi viết để chữa nó **suýt cũng hỏng**
+
+Không tốn GPU. Đếm trên `IDEAS.md`: **86 vòng**, **14 vòng hỏng** (VOID / ERROR / không đánh giá được)
+≈ **17%** cả đời dự án. Nhưng **sáu lần chạy GPU gần nhất**:
+
+| lần chạy | kết cục | nguyên nhân gốc |
+|---|---|---|
+| H96 | **đọc được** | — |
+| H95b | VOID | cổng độ phủ **bất khả thi** với model yếu |
+| H97 | **đọc được** | — |
+| H98 | VOID | cổng **chép từ H96**, bao cả nhánh không đem so |
+| H94c | không đánh giá được | kernel hiện thực **3/5** cổng của #104 |
+| H100 | ERROR | OOM: Llama fp16 16 GB > T4 14.6 GB |
+
+⇒ **4/6 = 67%.** Gấp bốn lần nền. Đây mới là **ràng buộc chặt** của dự án lúc này — không phải khoa học.
+
+### Bốn nguyên nhân, ba loại — và không loại nào bị công cụ hiện có bắt
+`astcheck.py` bắt **cú pháp**. Kiểm phủ bảng khoá bắt **logic bảng**. Cả hai **mù** với:
+**(a)** lệch giữa **đặc tả cổng** và **hiện thực cổng** (H98, H94c — 2/4);
+**(b)** **ngân sách VRAM** không tính (H100);
+**(c)** **khả thi** của tín hiệu không kiểm trước (H95b).
+
+Viết `deploy/preflight.py`: đối chiếu kernel với **đăng ký trước của chính nó** — liệt kê cổng hai bên,
+ước lượng GB từng model theo họ (#135: không-Qwen **không** lượng tử hoá) so với VRAM × số bản sao,
+và in danh mục khả thi buộc phải trả lời.
+
+### Công cụ **hỏng ngay lần thử đầu** — trên đúng ca nó sinh ra để bắt
+Chạy thử trên bản H100 đã gây lỗi: mục VRAM in ra **rỗng**. `models_in_kernel` dùng regex, và
+`SPEC = {"tag": ("needle",...)}` **dạng dict bị bỏ sót hoàn toàn** ⇒ **không phát hiện một model nào**.
+Sửa sang AST thì lộ lỗi thứ hai: needle `2-5-7b` không chứa chữ "qwen" nên bị đoán nhầm **fp16**,
+còn `14b` bị đếm **hai lần** với hai kết luận khác nhau. Họ phải quyết từ **tag + toàn bộ needle**.
+
+**Đây là bài học cũ, lặp lại**: ở #127 tôi kiểm grader offline trước khi tiêu một suất; ở #173 tôi
+kiểm phép đo cắt cụt trên dữ liệu thật. **Rồi tôi viết công cụ kiểm và suýt tin nó mà không kiểm.**
+
+Sau khi sửa, **kiểm trên ba ca thật**: H100 (hỏng) ⇒ **báo động, RC=1**; H97 trên RTX 6000
+(**chạy tốt**) ⇒ **im lặng, RC=0** — không báo động giả; 32B bf16 64 GB lọt 95 GB, đúng.
+
+### Và nó lập tức bắt được một lỗi ĐANG SỐNG
+Chạy trên `confirm_r2_kernel.py` **đang chạy dưới tên H100b**: llama8b **16 GB** vẫn quá một thẻ
+**14.6 GB** dù chỉ **một** bản sao. Bản vá #191 của tôi là *"nạp một bản, ĐO, nếu quá nửa thẻ thì
+chia"* — nhưng **phép nạp đầu tiên tự nó đã OOM**, trước khi có gì để đo. **H100b sẽ chết y hệt H100.**
+Sửa: bắt `torch.OutOfMemoryError` **của chính lần nạp đầu**, rồi đi thẳng sang chia thẻ.
+Phóng lại **H100c**. Lan sang `protocol_lever_kernel.py` (dùng chung `gen_dp`).
+
+**Bản vá #191 là bản vá SAI, và tôi đã tin nó đủ để phóng.** Cái bắt được không phải suy nghĩ kỹ hơn —
+mà là **chạy công cụ trên mã thật**.
+
+### Tiên nghiệm
+Không phải phép thử ⇒ **20/41** giữ nguyên.
