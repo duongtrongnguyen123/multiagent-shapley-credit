@@ -166,6 +166,24 @@ giá trị của agent thứ hai  =  H(pool)  ×  κ(z)  −  D(giao thức)
 
 **Mọi kết quả ÂM là `D > 0` hoặc `κ ≈ 0`. Mọi kết quả DƯƠNG là `D = 0` và `κ > 0`.**
 
+### #174 — biến quyết định là `P(S đúng ∧ I sai)`, không phải quy mô hay miền
+
+Bốn cặp, cùng thiết kế, `Δ_ceil` = cổng ORACLE so với `I`:
+
+| miền / cặp | `Δ_ceil` | `P(S đúng ∧ I sai)` |
+|---|---|---|
+| MATH 1.5B→7B (cùng họ) | **−.1380** (p 0) | **1.6%** |
+| MBPP 1.5B→7B (cùng họ) | −.0641 (p .0016) | — |
+| MBPP 7B→32B (cùng họ) | +.0060 (p .82) | — |
+| MBPP 1.5B→Llama-8B (**khác họ**) | **+.0421** (p .042) | — |
+
+**`H` của cả dòng "sửa" bị chặn trên bởi `P(S đúng ∧ I sai)`** — số bài mà model yếu giải được
+còn model mạnh thì không. Trên MATH cùng họ nó chỉ **1.6%**, nên **không giao thức nào** cứu được;
+trên MBPP khác họ nó đủ lớn để cổng oracle **thắng**.
+
+> **Đo `P(S đúng ∧ I sai)` TRƯỚC khi xây đường ống.** Nó cần **một** lượt sinh mỗi model, không
+> cần nhánh `V` nào, và nó cho biết ngay trần lý thuyết của mọi giao thức ghép hai model.
+
 ### Sửa công thức sau #142: `D` phụ thuộc PHƠI NHIỄM, không phụ thuộc QUYỀN GHI ĐÈ
 
 Bản đầu viết `D(giao thức)` và ngầm hiểu *"giao thức nào cho ghi đè thì `D > 0`"*. **Sai.**

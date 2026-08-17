@@ -6751,3 +6751,46 @@ Kiểm **tích luỹ sau 96 mẫu**, ngưỡng **.05** (đúng ngưỡng cổng 
 | H89g `V` | 0.0% | **0.0%** | 0.0% | ĐẠT | cho qua ✓ |
 
 **4/4 đúng** trên bốn lần chạy đã biết kết cục. Sẽ cứu được **10.2 giờ** (H89f) và **1.8 giờ** (H91c).
+
+---
+
+## Vòng #174 — H88f: **HÀNG 1 trên TOÁN**, và lần này văn bản mạnh của hàng 1 là XỨNG ĐÁNG
+
+**MỌI CỔNG ĐẠT** (`\boxed` .944/.964/.974, chênh **.03** < .05 · n=500 · `p_esc` .618 · `I − S` = **+.24**).
+Niêm phong **18:31:04 TRƯỚC khi đọc** (#166).
+
+**`Δ_ceil` = −.1380, p = 0.0** (b01=88, b10=19) ⇒ **HÀNG 1**.
+
+> Khác hẳn H91e ở 32B, nơi `Δ_ceil` = +.0060 (p .82) chỉ là **"chưa xác lập"**.
+> Ở đây cổng ORACLE **thua rõ rệt và mạnh** ⇒ văn bản *"giết dòng sửa trên TOÁN"* **được dữ liệu
+> ủng hộ**, không phải do bảng sửa ở #101-c nuốt vào.
+
+### Cơ chế: trần của MỌI cổng chỉ là **1.6%**
+```
+G*_V = P(S dung) + P(S sai VA V dung) = .466 + .102 = .568
+acc(I)                                                = .706
+                                          thieu        -.138
+
+Bai "S DUNG ma I SAI" = 8/500 = 1.6%
+```
+**Model yếu gần như KHÔNG BAO GIỜ giải được bài mà model mạnh không giải được.** Trần cho bất kỳ
+cổng nào — kể cả oracle — là **1.6% số bài**. Giữ `S` ở những bài `S` đúng gần như luôn là **đổi
+một câu đúng lấy một câu đúng**, còn ở tập `S` sai thì `V` tệ hơn `I` rất nhiều.
+
+`Δ_gate` = **−.0020 (p 1.00)**: cổng **không làm gì** trên toán — giống 7B/code, **khác** 32B.
+
+### Bức tranh bốn cặp, cùng một thiết kế
+| miền / cặp | `Δ_ceil` | đọc |
+|---|---|---|
+| **MATH** 1.5B→7B (cùng họ) | **−.1380** (p 0) | không có gì để khai thác, **mạnh nhất** |
+| MBPP 1.5B→7B (cùng họ) | −.0641 (p .0016) | không có gì để khai thác |
+| MBPP 7B→32B (cùng họ) | +.0060 (p .82) | chưa xác lập |
+| **MBPP** 1.5B→Llama-8B (**khác họ**) | **+.0421** (p .042) | **CÓ dư địa** |
+
+> **Biến quyết định KHÔNG phải quy mô, cũng không phải miền — mà là `S` có giải được bài nào
+> `I` không giải được hay không.** Trên MATH cùng họ con số đó là **1.6%**; trên MBPP khác họ nó
+> đủ lớn để cổng oracle **thắng**. Đây là cách đọc thống nhất được cả bốn dòng, và nó **đo được
+> trực tiếp** (`S_right_I_wrong`) mà **không cần** chạy nhánh `V` nào.
+
+**Hệ quả thực dụng:** trước khi xây bất kỳ đường ống "model yếu + model mạnh" nào, **đo
+`P(S đúng ∧ I sai)` trước**. Nếu nó ~1–2%, **dừng lại** — không giao thức nào cứu được.
