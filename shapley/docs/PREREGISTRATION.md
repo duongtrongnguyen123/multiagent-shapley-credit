@@ -4869,3 +4869,56 @@ vứt cả ứng viên đúng ⇒ giảm `C` nhiều hơn giảm `B`.
 vì khi ấy giao thức SỬA cũng hạ được `B`.
 
 **Tỉ lệ prior đúng: 19/40** (cộng dồn, xem #167).
+
+---
+
+## #109 — H99: **LUẬT `Δ_ceil ~ chênh` CÓ CHUYỂN SANG MIỀN KHÁC KHÔNG?** — H97 lặp lại trên MATH-500
+
+**Đăng ký lúc:** trước khi viết kernel. Xuất phát từ #185.
+
+### Vì sao
+#185 (H97, MBPP, 15 cặp, một lần chạy) cho `Δ_ceil` ≈ **+.0218 − .2392·chênh**, `g*` = **.0913**,
+và tôi đã đưa **luật phủ định "chênh > .09 thì đừng sửa"** vào README công khai.
+**Luật ấy hiện chỉ có bằng chứng trên CODE.** Nếu nó là luật về **code** chứ không phải về
+**giao thức**, thì phát biểu ở README đang quá rộng và phải thu hẹp.
+
+**Đã có một điểm MATH mâu thuẫn:** #174/H88f, cặp 1.5B→7B, `Δ_ceil` = **−.1380**.
+Chênh của cặp đó trên MATH = .7060 − .4660 = **.2400**. Đường MBPP dự báo **−.0356**.
+**Thực tế âm hơn gần 4 lần.** ⇒ có lý do mạnh để nghi luật **không** chuyển nguyên vẹn.
+
+### Thiết kế — y hệt H97, đổi DUY NHẤT miền
+RTX 6000, sáu model như H97, **MATH-500 (n = 500, toàn bộ)**, 15 cặp có hướng, nhánh `V` = `I` sửa
+artifact của `S`. Chấm bằng `\boxed` + chuẩn hoá (đúng hàm `_bx`/`norm`/`eq` đã dùng ở #174/#181).
+`Δ_ceil` = `P(S ∨ (¬S ∧ V)) − P(I)`, kernel tự kiểm lại bằng `A − B + C`.
+
+**`MAXNEW` = 2048** (không phải 1280 của H88c). Lý do: #130 — model mạnh suy luận DÀI hơn, cap cố
+định phạt chúng nặng nhất; ở đây sáu model trải từ 1.5B tới 32B nên cap phải rộng hơn. Đổi cap là
+**đổi thiết kế, không phải đổi thước đo sau khi thấy số** — ghi ở đây, trước khi chạy.
+
+### CỔNG
+Cả lần chạy: `n ≥ 480` · mọi `acc` nền ∈ [.10, .90] (MATH khó hơn MBPP ⇒ nới cận dưới, **quyết định
+trước khi thấy số**) · còn ≥ 10 cặp hợp lệ.
+**Theo từng cặp:** `\boxed` của `V` ≥ **.90** và `|boxed(V) − boxed(I nền)|` < **.05**.
+(H88f cho boxed .944–.974, giãn .030 ⇒ ngưỡng này khả thi, không phải đặt hú hoạ.)
+
+### BẢNG KHOÁ — chính: so `g*` của MATH với `g*` = .0913 của MBPP
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng lần chạy trượt, hoặc < 10 cặp hợp lệ | **VOID** |
+| 1 | `δ₁ < 0`, p < .05, `R² ≥ .50`, **và** `g*` ∈ [.061, .121] | **LUẬT CHUYỂN ĐƯỢC.** `g*` ≈ .09 ở cả hai miền ⇒ đây là luật về **giao thức**, không phải về code. README giữ nguyên |
+| 2 | `δ₁ < 0`, p < .05, `R² ≥ .50`, **và** `g*` < .061 | **CHUYỂN VỀ DẠNG, KHÔNG VỀ SỐ.** MATH khắc nghiệt hơn ⇒ `g*` **phụ thuộc miền**. **Phải thu hẹp luật ở README thành "trên code"** và nêu `g*` riêng từng miền |
+| 3 | `δ₁ < 0`, p < .05, `R² ≥ .50`, **và** `g*` > .121 | MATH **dễ hơn** MBPP — **mâu thuẫn H88f**; không kết luận, phải điều tra vì sao #174 lệch |
+| 4 | p(`δ₁`) ≥ .05 **hoặc** `R²` < .50 | **Chênh KHÔNG dự báo `Δ_ceil` trên MATH** ⇒ luật #185 là **đặc thù code**. **Phải rút luật khỏi README** hoặc gắn nhãn "chỉ code" |
+
+**Phụ (khoá riêng):** `R²` của `B ~ chênh` trên MATH, so với **.3451** của MBPP.
+Nếu MATH cũng < .50 ⇒ hai miền cùng nói `B` không bị chênh định đoạt (củng cố chỗ mở cho giao thức).
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 2 **~50%** · hàng 4 **~25%** · hàng 1 **~20%** · hàng 3 **~5%**.
+Nghiêng hàng 2 vì điểm H88f nằm **âm hơn 4 lần** so với đường MBPP tại cùng mức chênh — nếu độ dốc
+tương tự thì hệ số chặn của MATH phải thấp hơn nhiều, đẩy `g*` xuống dưới .06 (có thể xuống **âm**,
+tức không có vùng dương nào). Hàng 4 cao thứ nhì vì MATH có thể ồn hơn: `A` trên MATH ở #181 chỉ
+**.0160**, tức dải `A` hẹp hơn hẳn MBPP (.028–.084) ⇒ ít phương sai để hồi quy bắt.
+**Nếu hàng 2 hoặc hàng 4 xảy ra, tôi phải sửa README đã công bố ở #185 — trong cùng vòng.**
+
+**Tỉ lệ prior đúng: 20/41** (cộng dồn, xem #167).
