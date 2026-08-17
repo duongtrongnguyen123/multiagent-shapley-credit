@@ -198,6 +198,12 @@ hàng đó **không nổ ở cả hai lần chạy**.
 > | cổng ORACLE so với `I` | **−.0641** (p .0016) — thua | **+.0060** (p .82) — **hoà** |
 > | sửa-có-cổng so với `I` | −.0842 | −.0160 (p .44) |
 >
+> **⚠️ #189 — HAI CỘT TRÊN CHẠY KHÁC ĐỘ CHÍNH XÁC SỐ.** Cột 1.5B→7B đo trên **T4 (nf4, lượng tử
+> hoá 4-bit)**; cột 7B→32B đo trên **RTX 6000 (bf16, không lượng tử hoá)**. Đo trực tiếp cho thấy
+> nf4 hạ `acc` **3–5 điểm** và dịch `Δ_ceil` tới **.032** trên cùng cặp, cùng giao thức.
+> Khoảng cách ở đây là **.088**, nên **dấu vẫn đứng**, nhưng **độ lớn không đáng tin tới chữ số thứ hai**,
+> và bảng này **trộn quy mô model với độ chính xác số**. Cần một lần đo 1.5B→7B trên bf16 để tách.
+>
 > ⇒ **"Cổng không cứu được việc sửa" chỉ đúng ở 1.5B→7B.** Ở 32B cổng **cứu được rõ rệt**
 > (phá hoại ở đó **nằm đúng trong tập cổng-đạt**: 55/57). Phần **giữ nguyên ở cả hai quy mô**:
 > sửa-có-cổng **vẫn không vượt** việc chỉ gọi thẳng model mạnh.
@@ -262,9 +268,13 @@ hàng đó **không nổ ở cả hai lần chạy**.
 > của đường hồi quy, không cặp riêng lẻ nào chứng minh, và một cặp dưới `g*` còn đi **ngược**
 > (Llama→DeepSeek, chênh .080 ⇒ **−.022**).
 >
-> **Tái lập #169:** cùng cặp, cùng dải bài, lần chạy độc lập ⇒ `Δ_ceil` = **+.0301, p = .133**
-> (gốc: +.0421, p .042). **Dấu và độ lớn tái lập; ý nghĩa thống kê KHÔNG.**
-> Đúng như cảnh báo về dải p .01–.05 ở trên. **#169 hạ xuống mức "gợi ý, chưa xác lập".**
+> **Tái lập #169 — CÓ ĐIỀU KIỆN (sửa ở #189):** cùng cặp, cùng dải bài, lần chạy độc lập ⇒
+> `Δ_ceil` = **+.0301, p = .133** (gốc: +.0421, p .042). Dấu và độ lớn giữ; ý nghĩa thống kê **mất**.
+> **Nhưng hai lần chạy KHÔNG cùng độ chính xác số** — gốc chạy **nf4**, lần này **bf16** — nên việc
+> `p` rơi **không tách được** giữa dao động lấy mẫu và đổi lượng tử hoá. Đây **không phải** một phép
+> tái lập sạch theo cả hai chiều.
+> **Kết luận vẫn là hạ cấp**, và lý do còn mạnh hơn: bằng chứng xác nhận **sạch** cho #169 hiện là
+> **KHÔNG CÓ**, chứ không phải "có nhưng yếu". **#169 ở mức "gợi ý, chưa xác lập".**
 > Kiểm định độc lập cho biết các con số **không dùng được** đó **chỉ theo hướng NGƯỢC LẠI**.
 > Chúng tôi **không trích chúng làm bằng chứng** — chúng VOID — nhưng **giấu sự tồn tại của
 > chúng thì tệ hơn nhiều**. Kết luận đúng là:
