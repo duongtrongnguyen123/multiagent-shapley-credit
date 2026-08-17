@@ -285,8 +285,11 @@ BigCodeBench dài gấp ~4 lần MBPP (prompt trung vị 607 ký tự, phải gh
 | **SINH** code mới (H35) | **+6 đến +11 điểm** |
 | **REFACTOR** (#93) | **+1.9 điểm** (dù dùng TB 2.70 vòng) |
 
-Trên refactor, ~26% vẫn làm hỏng hành vi **ngay cả khi có oracle**, và **lượt LLM tự nhận xét làm
-TỆ ĐI** (.7116 vs .7378 khi không xem lại) — tái lập ở hai lần chạy.
+Trên refactor, **~21–23%** vẫn làm hỏng hành vi **ngay cả khi có oracle** (`ref_exec` preserve .7707,
+`ref_exec3` .7903), và **lượt LLM tự nhận xét làm TỆ ĐI** (.7116 vs .7378 khi không xem lại) —
+tái lập ở hai lần chạy.
+<sub>**Sửa ở #161:** bản cũ ghi "~26%" và gán cho nhánh **có oracle**. 26% (chính xác 69/266 = 25.9%)
+là nhánh **KHÔNG có oracle** (`ref1`). Lỗi này có sẵn trong `IDEAS.md:3279` và bị chép lên đây.</sub>
 => Bổ sung điều kiện cho phát biểu #1: **oracle phải KHU TRÚ được lỗi thì model mới sửa được.**
 Lỗi khi sinh code thì thô; lỗi khi refactor là **trôi ngữ nghĩa tinh vi**, stack trace chỉ nêu triệu chứng.
 
@@ -294,9 +297,14 @@ Lỗi khi sinh code thì thô; lỗi khi refactor là **trôi ngữ nghĩa tinh 
 | đại lượng | lần 1 | lần 2 | lệch |
 |---|---|---|---|
 | lấy mẫu − tuần tự (code, nhóm escalate) | +.1159 | +.1164 | **.0005** |
-| `preserve` của refactor có oracle | .7707 | .7715 | **.0008** |
+| `preserve` của refactor có oracle | .7707 | .7715 | **.0008** ⁑ |
 
-Hai tách dữ liệu rời nhau / hai loạt kernel riêng biệt.
+Dòng 1 là **hai tách dữ liệu RỜI NHAU** (MBPP 11–510 vs 511–974) — tái lập thật.
+
+<sub>⁑ **Sửa ở #161:** dòng 2 **KHÔNG** phải tách dữ liệu rời nhau. H52 (266 bài) và H53 (267 bài)
+chạy trên **CÙNG một tập BigCodeBench**, chỉ khác lượt kernel. Đó là **ổn định theo hạt giống**,
+không phải tái lập giữ-lại. Tiêu đề cũ gộp chung hai dòng và **nâng cấp** dòng 2 thành thứ nó không phải.
+Và xem thêm #160: độ khớp tới .0008 nằm sâu trong nhiễu lấy mẫu, **không** phải bằng chứng về độ chính xác.</sub>
 
 ### G. Đã RÚT LẠI trong ngày (chi tiết ở `IDEAS.md`)
 1. **"Trần/bão hoà theo ĐỘ KHÓ giải thích được định tuyến"** — chết ở #83, **ngược hẳn dấu**.
