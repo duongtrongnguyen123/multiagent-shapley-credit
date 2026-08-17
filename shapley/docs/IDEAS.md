@@ -7064,3 +7064,61 @@ TONG_HOP. `A` là **tính chất của cặp model** (không đổi được n�
 
 **Chưa đưa vào TONG_HOP** — n=4, và `B` vs `A` tương quan mạnh với nhau nên chưa tách được ảnh
 hưởng riêng. Ghi nhận như **quan sát mô tả** cần thêm điểm.
+
+---
+
+## Vòng #182 — H96 (#106): **HÀNG 2**. "Khác họ" là **tương quan giả**; biến thật là **chênh năng lực**
+
+`results_H96` niêm phong trước khi đọc (`docs/RESULT_SEALS.md`).
+
+### CỔNG — đạt cả 5, `VOID` rỗng
+`n` = **499** · trích xuất .996–1.000 (giãn **.004** < .05) · cắt cụt ≤ .002 · mọi `acc` ∈ [.30, .90]:
+1.5B .4369 · 7B .6633 · 14B .7134 · 32B .7535 · Llama-8B .5351 · DSCoder .6152. Sáu model, **cùng 499 bài**.
+
+### Đại lượng đã khoá — `A ~ β₀ + β₁·(I−S) + β₂·khác_họ`, 15 cặp
+Chạy lại độc lập bằng `numpy`/`scipy` (kernel tự viết phương trình chuẩn — khớp tới 5 chữ số):
+
+| hệ số | ước lượng | se | p |
+|---|---|---|---|
+| `β₁` chênh | **−.1922** | .0260 | **~0** |
+| `β₂` khác họ | **+.00446** | .0044 | **.329** |
+
+`|β₂|` < .02 **và** p ≥ .05, `β₁` p < .05 ⇒ **HÀNG 2**. `R²` = .838, nhưng **chênh một mình đã .824** —
+thêm biến họ được **+.014**.
+
+### Đây là **null CÓ THÔNG TIN**, không phải "thiếu lực"
+KTC 95% của `β₂` = **[−.0051, +.0140]** — **nằm trọn dưới ngưỡng +.02** tôi đã khoá là "đáng kể".
+Không phải "chưa đủ n để thấy"; là "nếu có hiệu ứng họ thì nó **nhỏ hơn mức tôi tuyên bố là quan trọng**".
+Hàng 3 (thiếu lực) **không** áp dụng.
+
+### Vì sao #179 nhìn ra "họ" — con số làm chứng
+Thô, **không** kiểm soát: `A` khác họ **.0597** vs cùng họ **.0481** → trông như họ có tác dụng.
+Nhưng cặp khác họ trong thiết kế có chênh **NHỎ hơn**: **.1296** vs **.1666**.
+Tương quan `(chênh, A)` = **−.908**. Chính ô giao mà #106 thêm vào đã tách được:
+
+| | khác họ | cùng họ |
+|---|---|---|
+| chênh < .10 | .0737 (n=4) | .0668 (n=3) |
+| chênh ≥ .10 | .0485 (n=5) | .0294 (n=3) |
+
+**Khớp chênh rồi thì khoảng cách còn +.007 / +.019** — cùng cỡ với se, và cùng dấu nhưng không phân biệt được.
+
+### Tôi phải sửa cái gì — và **không** được sửa cái gì
+
+**#169 — SỬA NHÃN CƠ CHẾ.** `Δ_ceil` = +.0421 ở 1.5B→Llama-8B **vẫn đúng** (số không đổi). Nhưng lý do
+**không phải "khác họ"**: cặp đó có chênh .0982, và mô hình chỉ-dùng-chênh dự báo `A` = .0657 so với
+.0762 thực tế. Phát biểu đúng: **`Δ_ceil` dương vì chênh năng lực NHỎ, không vì khác họ.**
+Hệ quả kiểm được: **7B→14B (cùng họ, chênh .050) phải cũng có dư địa** — `A` = .0681, đúng là cao.
+
+**#145 — CHƯA ĐƯỢC PHÉP SỬA, và phải nói rõ vì sao.** H96 đo **`A`**, tức kênh **dư địa**.
+#145 đo **đa dạng ứng viên ở tầng chuỗi** (2.70/3 vs 1.91/3 ứng viên phân biệt) — **kênh khác**,
+H96 **không chạm tới**. Pool `B_family` của H86c là Qwen-7B + Llama + DSCoder; đối chứng đúng phải là
+Qwen-7B + Qwen-1.5B + Qwen-14B (**khác model, cùng họ**) — **chưa bao giờ chạy**.
+⇒ Ghi #145 là **"khác MODEL"**, và đánh dấu quy kết "họ" là **CHƯA KIỂM**. Suy luận từ H96 sang #145
+sẽ là **đúng loại lỗi mà H96 vừa bắt được**: kết luận từ biến bị trộn.
+
+### Tiên nghiệm
+Đặt hàng 2 ở **45%** (modal), và hàng 2 xảy ra. **19/40.**
+Nhưng thành thật: tôi đã **công bố trước** (mục cuối #106) rằng OLS trên 7 cặp cũ cho `β₂` = +.022
+sát ngưỡng hàng 1 — và tôi vẫn đặt hàng 2 cao nhất. Lần này tiên nghiệm **đi ngược** dữ liệu tôi đã thấy,
+nên đây là một điểm prior **có giá trị**, không phải đoán theo số đã biết.
