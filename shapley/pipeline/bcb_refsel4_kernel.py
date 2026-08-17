@@ -188,8 +188,23 @@ res = {"n": len(KEEP), "orig_mean_nodes": orig_nodes, "K": K, "rows": rows,
        "zero_pass": sum(1 for v in npass if v == 0),
        "exec3_mean_rounds": round(sum(rounds.values())/max(sum(1 for i in KEEP if not p1[i]), 1), 2)}
 json.dump(res, open(f"/kaggle/working/res_{RUN}.json", "w"), indent=2)
+# #164: PHAI luu vector ket qua NHI PHAN tung bai cho MOI nhanh — khong chi artifact.
+# #158 phai RUT LAI ca hai con so vi trace chi co chuoi code, khong cham diem lai duoc.
+def _nd(c):
+    n = nodes(c)
+    return n
+_arms = {"ref1": r1, "exec3": e3, "sel4": {i: (sel[i] or "") for i in KEEP},
+         "sel4_first": {i: (selfirst[i] or "") for i in KEEP}}
+_okm = {"ref1": p1, "exec3": pe3, "sel4": okmap_sel, "sel4_first": okmap_sel}
 json.dump({str(i): {"src": SRC[i][:2500], "ref1": r1[i][:2500], "exec3": e3[i][:2500],
-                    "sel4": (sel[i] or "")[:2500], "npass": len(PASS[i])} for i in KEEP},
+                    "sel4": (sel[i] or "")[:2500], "npass": len(PASS[i]),
+                    # vector nhi phan: preserve va simpler cho TUNG nhanh
+                    **{f"preserve_{a}": bool(_okm[a][i]) for a in _arms},
+                    **{f"simpler_{a}": bool(_okm[a][i] and _nd(_arms[a][i]) is not None
+                                            and N0[i] is not None and _nd(_arms[a][i]) < N0[i])
+                       for a in _arms},
+                    "n0": N0[i], **{f"nodes_{a}": _nd(_arms[a][i]) for a in _arms}}
+           for i in KEEP},
           open(f"/kaggle/working/traces_{RUN}.json", "w"))
 
 print("\n==== H63 TONG KET ====")

@@ -479,3 +479,19 @@ phủ hết trục số**; `E2` rơi đúng khe giữa. Đây là lần thứ **
 > đại diện phủ MỌI khoảng của đại lượng chính (âm / 0 / dưới ngưỡng / tại ngưỡng / trên ngưỡng,
 > × có ý nghĩa / không). Chạy nó. Không giá trị nào được rơi vào "không hàng nào".**
 > Làm được trước khi phóng, mất 2 phút, và nó cứu được cả một lần chạy.
+
+16. **#164 — trace phải lưu VECTOR KẾT QUẢ, không chỉ artifact**
+
+#158 phải **rút lại cả hai con số** vì `traces_H85b.json` chỉ có **chuỗi code**, không có
+`preserve`/`simpler` từng bài ⇒ **không chạy McNemar hậu kiểm được**, dù dữ liệu "còn đó".
+
+> **Quy tắc cứng: mỗi `traces_*.json` phải chứa, cho MỌI nhánh, vector nhị phân đúng/sai
+> TỪNG BÀI** (và mọi đại lượng trung gian dùng để tính nó).
+> Lưu artifact là để **đọc lại**; lưu vector là để **kiểm định lại**. Hai mục đích khác nhau.
+> Không có vector thì mọi con số của lần chạy đó **không thể phòng thủ** khi bị chất vấn.
+
+17. **#164 — một lần poll hỏng KHÔNG phải một sự kiện**
+
+Bốn job cùng báo `UNKNOWN` một lúc rồi cả bốn quay lại `RUNNING` — lỗi API tạm thời, nhưng
+monitor bắn bốn cảnh báo. Cùng bài học với #134-c (bộ kiểm báo động giả sẽ bị phớt lờ).
+Monitor giờ chỉ báo `UNKNOWN` khi nó **lặp lại hai lần liên tiếp**.
