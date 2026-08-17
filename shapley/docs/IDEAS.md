@@ -6528,3 +6528,25 @@ chúng sẽ bị đếm nhầm là **giống nhau**, làm **thổi phồng** đ�
 > từ phía người đọc, hai thứ đó KHÔNG phân biệt được.**
 > Tôi đã bỏ 4 vòng (#152, #159, #161, #163) để kiểm số liệu; chỉ vòng này mới lộ ra rằng
 > vấn đề không phải con số mà là **thiếu phương pháp kèm theo**.
+
+---
+
+## Vòng #165 — Phóng lại nhánh Llama để **vá đúng lỗ hổng mà kiểm định vừa chỉ ra**
+
+#161 buộc tôi thêm khối **PHẠM VI** vào README: mục 5 chỉ đứng trên **một cặp model cùng họ**.
+Cách sửa thật không phải viết thêm cảnh báo — mà là **lấy cho được một điểm dữ liệu khác họ HỢP LỆ**.
+
+Xem lại H89d (Llama-3.1-8B, MBPP 11–510): **ba cổng trượt đều là cổng CŨ** —
+`has_block` (đo rào markdown, sửa ở #97-c) và `test_runnable ≥ .70` (nới về .60 ở #97-c).
+**Cổng NĂNG LỰC thì ĐẠT**: `I − S` = **+.0661**, p **.0027**.
+
+> Khác hẳn H89e (dải 511–974) vốn trượt **đúng cổng năng lực** (+.0410, p .101) — **đó** mới là
+> lý do khoa học để loại. Còn H89d chỉ vướng **lỗi đo lường của tôi**, và lỗi đó đã sửa.
+
+⇒ **H89g** = Llama-8B, MBPP 11–510, kernel hiện tại (cổng `compiles`, `MAXNEW`=4096,
+chuỗi dừng chỉ-rào-đóng, kiểm tỉnh táo lô 1). Cùng với **H89f** (DeepSeek) đang chạy, đây là
+**hai cặp khác họ** để trả lời #98 — và để biết mục 5 có tổng quát ra ngoài Qwen hay không.
+
+**Rủi ro đã cân nhắc:** thay đổi cơ chế sinh (`stop_strings`) **chưa được kiểm chứng trên máy thật**
+— H91e đang chạy nhưng chưa xong. Chấp nhận phóng vì **kiểm tỉnh táo lô 1** (#155) sẽ giết sớm
+trong vài phút nếu sinh lại hỏng, thay vì đốt hết khe như H91d.
