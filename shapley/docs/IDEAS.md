@@ -7618,3 +7618,46 @@ mà là **chạy công cụ trên mã thật**.
 
 ### Tiên nghiệm
 Không phải phép thử ⇒ **20/41** giữ nguyên.
+
+---
+
+## Vòng #193 — H100b **ERROR đúng như dự đoán** — nhưng log **bác một niềm tin của dự án**
+
+H100b chết ở đúng chỗ #192 nói nó sẽ chết. Nhưng hai dòng log lại sửa chẩn đoán của chính #191:
+
+```
+[ 220s]   ban sao 1: gpu0 3.61 GB          <- dscoder
+[1083s]   sau giai phong: gpu0 0.01 GB | gpu1 0.01 GB
+[1143s] === NEN llama8b ===
+[1317s] torch.OutOfMemoryError ... GPU 0 (14.56 GiB) chi con 10.81 MiB tu do
+```
+
+### Ba điều đọc được, hai trong đó ngược với những gì tôi đã viết
+1. **DeepSeek-Coder-6.7B nạp hết 3.61 GB ⇒ CÓ lượng tử hoá nf4.**
+   (6.7B × 0.54 GB/B — đúng dải nf4; fp16 sẽ là ~13.4 GB.)
+   ⇒ Phát biểu *"model không-Qwen không lượng tử hoá được"* (#135, và nằm trong ghi chú dự án)
+   **QUÁ RỘNG**. Nó đúng với **Llama**, **sai với DeepSeek**.
+2. **Bộ nhớ được giải phóng SẠCH** (0.01 GB cả hai thẻ). Bản vá giải phóng của #191 **chạy đúng** —
+   phần chẩn đoán "bản sao trước chưa được giải phóng" của #191 là **SAI**.
+3. Vậy OOM là **hoàn toàn do `llama8b`**: nạp một bản trên thẻ trống 14.5 GB vẫn chết
+   ⇒ nó **thật sự** vào fp16 ~16 GB.
+
+⇒ **#191 đúng kết luận (llama8b không lọt) nhưng sai hai lý do phụ.** Ghi lại vì tôi đã dùng hai lý
+do sai ấy để viết luật #29 và để hiệu chỉnh `preflight`.
+
+### Sửa `preflight.py`: **dùng số ĐO ĐƯỢC, đừng đoán theo họ**
+Bảng mới chỉ chứa số **thực đo** (`dscoder` = 3.61 GB, từ H100b @220s); thiếu thì mới đoán, và
+**nhãn nói rõ đang đoán**: `[DO DUOC]` · `[nf4 (doan)]` · `[fp16 (khong luong tu hoa)]` ·
+`[fp16? (doan THAN TRONG — chua do)]`.
+Kiểm lại: `llama8b` vẫn báo động (16 GB > 14.6), `dscoder` **thôi báo động giả** (3.6 GB),
+H97 trên RTX 6000 vẫn **RC=0**.
+
+> **Luật rút ra: một con số ĐO ĐƯỢC ăn đứt một quy tắc theo họ.** Quy tắc theo họ tiện, và nó vừa
+> làm tôi (a) chẩn đoán sai nguyên nhân H100, (b) viết một luật quy trình dựa trên chẩn đoán sai,
+> (c) suýt cấu hình sai các lần chạy sau. Mỗi lần nạp model **in dung lượng** (luật #30) chính là
+> thứ đã cứu — chỉ tiếc là nó mới có từ #191, sau khi H100 đã chết.
+
+H100c đang chạy với bản vá đúng (bắt OOM **của chính lần nạp đầu** rồi chia thẻ).
+
+### Tiên nghiệm
+Lỗi hạ tầng ⇒ **20/41** giữ nguyên.

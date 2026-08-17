@@ -26,7 +26,14 @@ VRAM = {"NvidiaTeslaT4": 14.6, "NvidiaRtxPro6000": 95.0, "NvidiaTeslaP100": 16.0
 # ty tham so uoc luong tu ten thu muc/needle
 SIZE_HINTS = [("32b", 32), ("14b", 14), ("8b", 8), ("7b", 7), ("6-7b", 6.7), ("6.7b", 6.7),
               ("3b", 3), ("1-5b", 1.5), ("1_5b", 1.5), ("1.5b", 1.5), ("0-5b", 0.5)]
-# #135: model KHONG-Qwen KHONG luong tu hoa duoc tren ban transformers nay -> fp16
+# #193: DUNG SO DO DUOC, dung doan theo ho.
+# H100b in ra truc tiep: DeepSeek-Coder-6.7B nap het **3.61 GB** => CO luong tu hoa nf4.
+# Nen phat bieu "khong-Qwen khong luong tu hoa" (#135) la QUA RONG — no dung cho Llama, sai cho
+# DeepSeek. Bang duoi chi chua so DA DO; thieu thi moi quay ve doan theo ho, va NOI RO la doan.
+DO_DUOC_GB = {          # GB thuc te, nf4 tren T4, do bang torch.cuda.memory_allocated
+    "dscoder": 3.61,    # H100b @220s
+}
+KHONG_LUONG_TU_HOA = ("llama",)   # H100/H100b: OOM khi nap 1 ban tren the 14.6 GB => ~16 GB fp16
 QUANTIZABLE = ("qwen",)
 
 def gates_in_kernel(src):
@@ -89,10 +96,15 @@ def est_gb(tag, needles, big_card=False):
     Tren the lon (>=40 GB) moi kernel cua du an di nhanh BIG_CARD -> bf16, KHONG luong tu hoa.
     """
     hay = " ".join([tag] + list(needles)).lower()
+    if not big_card:
+        for k, gb in DO_DUOC_GB.items():
+            if k in hay: return gb, "DO DUOC"
     b = next((v for k, v in SIZE_HINTS if k in hay), None)
     if b is None: return None, None
-    quant = (not big_card) and any(q in hay for q in QUANTIZABLE)
-    return (b * 0.6 if quant else b * 2.0), quant   # nf4 ~0.6 GB/B ; fp16 ~2.0 GB/B
+    if big_card: return b * 2.0, "bf16"
+    if any(q in hay for q in KHONG_LUONG_TU_HOA): return b * 2.0, "fp16 (khong luong tu hoa)"
+    if any(q in hay for q in QUANTIZABLE): return b * 0.6, "nf4 (doan)"
+    return b * 2.0, "fp16? (doan THAN TRONG — chua do)"
 
 def main():
     ap = argparse.ArgumentParser()
@@ -144,7 +156,7 @@ def main():
             print(f"      {tag:12s} ? khong doan duoc so tham so tu {nds}"); continue
         tot = gb * a.copies
         bad = cap is not None and tot > cap * 0.85
-        print(f"      {tag:12s} ~{gb:5.1f} GB ({'nf4' if q else 'fp16 — KHONG luong tu hoa, #135'})"
+        print(f"      {tag:12s} ~{gb:5.1f} GB [{q}]"
               f"  x{a.copies} ban sao = {tot:5.1f} GB" + ("   <-- KHONG LOT" if bad else ""))
         if bad: warn.append(f"{tag}: {tot:.1f} GB vuot 85% cua {cap} GB/the (loi cua H100)")
 
