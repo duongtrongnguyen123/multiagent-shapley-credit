@@ -583,3 +583,14 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
     "tái lập #169" của #185) đang đặt cạnh nhau số nf4 với số bf16. **Khác độ chính xác thì hoặc
     gắn cảnh báo, hoặc đừng đặt cạnh nhau.** So sánh **trong cùng một lần chạy** thì miễn nhiễm —
     thêm một lý do để thiết kế ghép cặp trong-một-lần-chạy.
+
+27. **KIỂM RẰNG KERNEL HIỆN THỰC ĐÚNG DANH SÁCH CỔNG CỦA ĐĂNG KÝ TRƯỚC — trước khi phóng.** (#190)
+    H94c hiện thực 3/5 cổng của #104, bỏ sót 2, và **thêm** một cổng thừa kế (`p_esc`) rồi trượt
+    chính cổng thừa đó. Kiểm AST, kiểm placeholder, kiểm phủ bảng khoá — **cả ba đều không bắt được**.
+    Thêm vào danh mục trước khi phóng: *đối chiếu từng dòng mục **CỔNG** của đăng ký trước với
+    `gates = {...}` trong kernel; số lượng và nội dung phải khớp.*
+
+28. **Đếm số lần liên tiếp đi qua một `VOID` do kernel in ra. Từ lần thứ ba, DỪNG.** (#190)
+    Mỗi lần đều có lý do nghe hợp lý (#110 thu phạm vi cổng; #190 cổng ngoài đăng ký). **Chuỗi mới
+    là dữ liệu**, không phải từng lần riêng lẻ. Ba lần liên tiếp = hình dạng của **hợp lý hoá**.
+    Khi chạm ngưỡng: ghi "không đánh giá được", **chạy lại cho đúng**, không phân tích thứ cấp.

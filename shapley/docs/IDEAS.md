@@ -7479,3 +7479,51 @@ H97 (bf16) và H98 (nf4) chạy **cùng giao thức R0, cùng hai cặp**:
 ### Luật mới
 Đưa vào quy trình: **mọi bảng đặt cạnh nhau hai con số phải ghi máy/độ chính xác của từng số**;
 nếu khác nhau thì **hoặc gắn cảnh báo, hoặc đừng đặt cạnh nhau**.
+
+---
+
+## Vòng #190 — H94c (#104): **KHÔNG ĐÁNH GIÁ ĐƯỢC** — kernel đã chạy **không hiện thực bộ cổng của chính đăng ký trước**
+
+`results_H94c` niêm phong trước khi mở. Đây **không phải VOID**; nó **tệ hơn VOID**.
+
+#104 khoá **năm** cổng. Kernel đã phóng hiện thực **một bộ khác**:
+
+| cổng #104 | kernel có? | kết quả |
+|---|---|---|
+| 1. `\boxed` ≥ .80 mọi nhánh, giãn < .05 | có | đạt (.966/.980/.984, giãn .018) |
+| 2. **block/đáp án CHƯA ĐÓNG < .05** | **KHÔNG ĐO** | — |
+| 3. `n ≥ 450` | có | đạt (500) |
+| 4. **`I − S ≥ .05` và p < .05** | **KHÔNG có cổng** | (tính ra được: .220, p 0 ⇒ sẽ đạt) |
+| 5. `S` sai ≥ 30% và đúng ≥ 20% | có | đạt |
+| — | **kernel THÊM `.15 ≤ p_esc ≤ .90`** | **trượt (p_esc = .034)** |
+
+⇒ **Không thể phán bảng khoá #104**, vì cổng 2 **chưa từng được đo**. Và cái làm kernel in `VOID`
+lại là một cổng **không nằm trong #104** — nó thuộc dòng kernel *định tuyến*, thừa kế khi tôi
+sửa `exposure_math_kernel` từ họ `gated_repair`.
+
+### Lỗi quy trình, gọi đúng tên
+Tôi đã kiểm AST, kiểm placeholder trong bản đã đẩy, kiểm phủ bảng khoá — **nhưng chưa bao giờ kiểm
+rằng kernel hiện thực ĐÚNG DANH SÁCH CỔNG của đăng ký trước của nó.** Ba loại kiểm kia đều không
+bắt được lỗi này. Nó tiêu một suất GPU dài.
+
+### Tôi **KHÔNG** đọc số vòng này, và lý do quan trọng hơn con số
+Cổng 2 **tính lại được offline** (`traces_H94c` có `raw` cho cả `S`/`I`/`V`), và `p_esc` **không phải**
+cổng của #104 — nên tồn tại một lập luận rằng tôi được phép hoàn tất bộ cổng rồi đọc.
+
+**Tôi không làm vậy trong vòng này.** Lý do: đây sẽ là **lần thứ BA liên tiếp** tôi đi qua một chữ
+`VOID` do kernel in ra (H98 → #110, và giờ H94c). **Bản thân cái chuỗi đó là bằng chứng chống lại
+phán đoán của tôi**, bất kể mỗi lần lập luận riêng lẻ nghe hợp lý tới đâu. Ba lần "có lý do chính
+đáng" liên tiếp chính là hình dạng của việc **hợp lý hoá**, nhìn từ bên ngoài.
+
+**Ghi nhận trạng thái: KHÔNG ĐÁNH GIÁ ĐƯỢC.** `Δ(SAI)`/`Δ(ĐÚNG)` **chưa được đọc**.
+#150 **vẫn là thăm dò**, **vẫn không lên TONG_HOP** — đúng như hàng 4 của #104 yêu cầu khi không
+tái lập được, và ở đây còn yếu hơn: **chưa có phép thử nào hoàn tất.**
+
+### Cách sửa đúng — chạy lại, không cứu vớt
+Sửa kernel để hiện thực **đúng năm cổng của #104** (thêm cổng 2 và cổng 4, **bỏ `p_esc`** vì #104
+không có nó và nhánh định tuyến không phải đại lượng của #104), rồi **chạy lại**. Ở đây chạy lại
+**có nghĩa** — khác H98 — vì thứ hỏng là **phép đo**, không phải dữ liệu, và một kernel khác sẽ
+sinh ra dữ liệu khác chứ không phải cùng byte.
+
+### Tiên nghiệm
+Không đánh giá được ⇒ **không cập nhật**. Vẫn **20/41**.
