@@ -32,7 +32,7 @@ Báo cáo `V − S` là so với **lựa chọn tệ nhất**, không phải l�
 
 | miền | `V − S` (hay được báo) | **`V − I`** | p |
 |---|---|---|---|
-| GSM8K (1.5B→7B) | +.1620 | **−.0740** | 3e-4 |
+| GSM8K (1.5B→7B) | +.1620 | **−.0740** | **2.2e-05** |
 | MBPP (1.5B→7B) | +.1380 | **−.0740** | 3e-4 |
 | MATH-500 (1.5B→7B) | — | **−.1260** | 2.7e-10 |
 
@@ -243,7 +243,7 @@ Ba cực, không phải hai:
    > Việc phải làm: (1) chốt quy ước, (2) tính lại 3 điểm, (3) đăng ký trước rồi mới đo điểm thứ tư.
 
 ## 4. KHÔNG được kết luận từ tài liệu này
-- Không có điểm nào ở **32B trở lên** — hai lần HUỶ vì hạ tầng (#123, #130), chưa vì khoa học.
+- Không có điểm nào ở **32B trở lên** — **NĂM lần HUỶ** (#123 cổng cắt ngắn · #130 cắt cụt phạt `I` · #139 soundness .4509 · #146 cắt cụt phạt `V` · #153 cắt cụt phạt `V` lần hai), **chưa lần nào vì khoa học**. (Sửa ở #161: bản cũ ghi "hai lần" và gọi tất cả là "hạ tầng" — #146/#153 là **cắt cụt**, không phải hạ tầng.)
 - `SEL − I` chỉ **+.0220** [+.008, +.038] (p .0074) và **+.0151** [+.002, +.028] (p .039),
   gộp Fisher p .0026 — **sát ngưỡng .02 mà mục 5 gọi là nhiễu**, và **lật 6 bài là xoá sạch**
   hiệu ứng ở H69c (kiểm định #125-D bắt buộc nêu kèm CI). Kết luận vững là **`SEL − V_review`**

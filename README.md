@@ -63,7 +63,7 @@ Khi cho model **mạnh** xem lời giải của model **yếu** rồi kiểm/s�
 | bộ | cặp model | `V − S` (hay được báo) | **`V − I`** (đúng) | p (McNemar) |
 |---|---|---|---|---|
 | GSM8K | 0.5B → 1.5B | +.1700 | **−.1040** | — |
-| GSM8K | 1.5B → 7B | +.1620 | **−.0740** | 3e-4 |
+| GSM8K | 1.5B → 7B | +.1620 | **−.0740** | **2.2e-05** |
 | MBPP (code) | 1.5B → 7B | +.1380 | **−.0740** | 3e-4 |
 | MATH-500 | 1.5B → 7B | — | **−.1260** | 2.7e-10 |
 
@@ -155,6 +155,28 @@ ngữ cảnh thêm vào:
 Hai dải bài **tách rời**, hai mức độ khó khác nhau. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
 hàng đó **không nổ ở cả hai lần chạy**.
 
+> ### ⚠️ PHẠM VI — đọc trước khi trích mục 5 (thêm ở #161 sau kiểm định độc lập)
+>
+> **Mục 5 được đo trên ĐÚNG MỘT cặp model: Qwen2.5-1.5B → Qwen2.5-7B, CÙNG họ.**
+> Nó **không** phải phát biểu về mọi hệ hai-model, dù văn phong ở trên nghe như vậy.
+>
+> Chúng tôi **đã thử** các cặp khác — DeepSeek-Coder-6.7B, Llama-3.1-8B, Qwen2.5-32B — và
+> **TẤT CẢ đều VOID** theo cổng đã đăng ký trước (cắt cụt, soundness, hoặc cổng năng lực).
+> Kiểm định độc lập cho biết các con số **không dùng được** đó **chỉ theo hướng NGƯỢC LẠI**.
+> Chúng tôi **không trích chúng làm bằng chứng** — chúng VOID — nhưng **giấu sự tồn tại của
+> chúng thì tệ hơn nhiều**. Kết luận đúng là:
+>
+> **"Cổng không cứu được việc SỬA" đã được xác lập cho 1.5B→7B cùng họ, và CHƯA được xác lập
+> cho bất kỳ cặp nào khác.** Phải chạy lại đàng hoàng ở cặp khác họ và ở 32B trước khi
+> phát biểu như một quy luật cấu trúc.
+>
+> ### ⚠️ MỘT CỔNG ĐÃ ĐƯỢC NỚI
+> Lần chạy đầu (H88/H88b) VOID, một phần vì `test_runnable` = **.6994**, hụt ngưỡng **.70**
+> đúng **.0006**. Ngưỡng sau đó được nới xuống **.60** (#97-c) và lần chạy lại đạt.
+> Việc nới **được công bố công khai** trong nhật ký, nhưng trước #161 **không** xuất hiện ở đây.
+> `test_runnable` chỉ mô tả **cổng `z` mạnh cỡ nào**; đại lượng CHÍNH `Δ_ceil` dùng **cổng ORACLE**
+> nên **không phụ thuộc `z`**. Ai không chấp nhận việc nới thì **chỉ đọc `Δ_ceil`**.
+>
 > ⚠️ **Đừng đọc quá mức độ chính xác.** Hai biên độ (−.0782 và −.0778) khớp nhau tới .0004,
 > nhưng sai số chuẩn của **hiệu** giữa hai lần chạy là ≈ **.028** — nên độ khớp đó là **may mắn**,
 > không phải bằng chứng. Điều được xác lập là **cả hai đều âm rõ rệt và có ý nghĩa**, không phải
