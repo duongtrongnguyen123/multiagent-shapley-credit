@@ -7320,3 +7320,48 @@ lời nhắc hoài nghi (R1 của H98) sẽ chữa được. Nếu nguyên nhân
 **Không đưa vào TONG_HOP:** thăm dò, một miền, một giao thức, và `ρ`/`r*_C` là **hàm của cùng những
 `A`,`B`,`C`** đã dùng để dựng `Δ_ceil` — nên "giải thích" ở đây là **tái phát biểu**, chưa phải
 bằng chứng độc lập. H99 (MATH) sẽ cho biết độ dốc có ổn định qua miền không.
+
+---
+
+## Vòng #187 — H98 (#108): **VOID** vì giãn trích xuất **.0501** so với ngưỡng **< .05**. Không đọc số.
+
+`results_H98` niêm phong trước khi mở.
+
+| cổng lần chạy | kết quả |
+|---|---|
+| `n ≥ 480` | đạt (499) |
+| trích xuất min ≥ .80 | đạt (.9499) |
+| **giãn trích xuất < .05** | **TRƯỢT — .0501** |
+| cắt cụt < .05 mọi nhánh | đạt (max .0421) |
+
+Cổng **theo cặp** thì **cả hai cặp ĐẠT** (cặp P: `A` = .0882, `I−S` = .0501 p .024; cặp Q: `A` = .0301,
+`I−S` = .2545 p 0). Nhưng bảng khoá #108 hàng 0 nói: **cổng lần chạy trượt ⇒ VOID.**
+
+⇒ **HÀNG 0: VOID.** Tôi **không đọc** `D`, không đọc `Δ_ceil` của sáu ô.
+
+### Trượt **0.0001**. Tôi không làm tròn.
+`.9499` (nhánh nền Qwen-1.5B) so với `1.0` (nhánh `P:R1`) = **.05010**. Ngưỡng **< .05**.
+Thiếu **một phần vạn** — tức **chưa tới một bài** trên 499.
+
+Ở #106 tôi đã tự viết: *"Tôi sẽ không được phép làm tròn về phía hàng nào — nếu `β₂` = +.019
+hoặc p = .051 thì đó là hàng 2 hoặc hàng 3, không phải hàng 1."* **Điều đó áp dụng ở đây, chống lại tôi.**
+
+### Chạy lại **KHÔNG** cứu được — và đây là hệ quả của #185
+Greedy **tất định**: #185 đã chứng minh H97 tái lập H96 **tới chữ số cuối**. Chạy lại H98 y nguyên
+sẽ cho **đúng từng byte**, nên cổng sẽ trượt **y hệt**. "Chạy lại cho may hơn" là **vô nghĩa** ở đây.
+
+### Nhưng lỗi là của TÔI, ở chỗ ĐẶC TẢ cổng — không phải ở dữ liệu
+Cổng giãn trích xuất tồn tại để bảo đảm **các nhánh ĐEM SO SÁNH** đo được như nhau.
+**Phép so sánh đã đăng ký của #108 là GIAO THỨC với GIAO THỨC** (R0 vs R1 vs R2). Sáu nhánh ấy có
+trích xuất **.998–1.000, giãn .002**. Nhánh làm trượt cổng là **`qwen1.5b`** — một nhánh **NỀN**,
+không nằm trong phép so sánh nào của bảng khoá.
+
+Tôi đã chép cổng này từ **H96**, nơi **mọi** nhánh nền **đều** được đem so (15 cặp giữa 6 model).
+Ở H98 thì không. Đó là **lỗi sao chép đặc tả**, và nó **chẩn đoán được mà không cần nhìn kết quả**.
+Ở H97 tôi đã làm đúng: cổng **theo cặp**, so `V` với chính `I` nền của nó.
+
+**Điều này KHÔNG cho phép tôi sửa cổng rồi đọc số như thể không có gì xảy ra.** Kết quả đã đăng ký
+của H98 là **VOID**, và nó **ở lại là VOID**. Xem #110.
+
+### Tiên nghiệm
+Cổng không đạt ⇒ **không cập nhật**. Vẫn **20/41**.
