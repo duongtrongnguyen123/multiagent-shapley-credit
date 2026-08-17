@@ -163,7 +163,7 @@ hàng đó **không nổ ở cả hai lần chạy**.
 >
 > | phát hiện | số lần chạy | p |
 > |---|---|---|
-> | #169 `Δ_ceil` **dương** ở cặp **chênh nhỏ** (nhãn "khác họ" rút ở #182) | **1** (H89g) | **.042** — nằm trong dải .01–.05 mà kiểm định #125-B4 gọi là vùng dương tính giả |
+> | #169 `Δ_ceil` **dương** ở cặp **chênh nhỏ** (nhãn "khác họ" rút ở #182) | **2** (H89g, H97) | **.042** rồi **.133** — lần lặp độc lập giữ dấu nhưng **mất ý nghĩa**; xem khối #185 |
 > | #168 cổng **có tác dụng** ở 32B | **1** (H91e) | ≈0 (mạnh) |
 >
 > Chúng có mặt ở đây vì chúng **RÚT LẠI** một phát biểu cũ (*"không có gì để khai thác"*) —
@@ -238,6 +238,33 @@ hàng đó **không nổ ở cả hai lần chạy**.
 > **Giới hạn của việc rút này:** phép thử đo kênh **dư địa**. Kết quả *đa dạng ứng viên* ở mục 6
 > là **kênh khác** và **không** bị nó bác — nhưng vì cùng dạng lỗi, mục 6 nay ghi là
 > **"khác MODEL"** cho tới khi có đối chứng khác-model-cùng-họ.
+
+> ### ⚠️ #185 — 15 CẶP TRONG MỘT LẦN CHẠY: chênh dự báo `Δ_ceil`, và **#169 chỉ tái lập một nửa**
+>
+> Sáu model, **15 cặp có hướng, cùng 499 bài, một lần chạy** (mọi cổng đạt; 15/15 cặp hợp lệ;
+> nhánh nền tái lập **chính xác** lần chạy trước — greedy tất định).
+>
+> ```
+> Δ_ceil  ~  +.0218 − .2392 · (chênh năng lực)      R² = .60   p = 1e-05
+> điểm đổi dấu  g* = .091
+> ```
+>
+> **Nhưng phải đọc kèm bảng này, nếu không sẽ hiểu ngược:**
+>
+> | | |
+> |---|---|
+> | cặp có `Δ_ceil` **dương CÓ Ý NGHĨA** | **0 / 15** |
+> | cặp có `Δ_ceil` **âm CÓ Ý NGHĨA** | **3 / 15** (đều ở chênh ≥ .218) |
+> | `Δ_ceil` dự báo lớn nhất (chênh → 0) | **+.022** |
+>
+> ⇒ **Luật dùng được là luật PHỦ ĐỊNH: chênh > .09 thì đừng sửa.**
+> Chiều khẳng định — *"chênh nhỏ thì sửa THẮNG"* — **chưa được xác lập**: nó chỉ là hệ số chặn
+> của đường hồi quy, không cặp riêng lẻ nào chứng minh, và một cặp dưới `g*` còn đi **ngược**
+> (Llama→DeepSeek, chênh .080 ⇒ **−.022**).
+>
+> **Tái lập #169:** cùng cặp, cùng dải bài, lần chạy độc lập ⇒ `Δ_ceil` = **+.0301, p = .133**
+> (gốc: +.0421, p .042). **Dấu và độ lớn tái lập; ý nghĩa thống kê KHÔNG.**
+> Đúng như cảnh báo về dải p .01–.05 ở trên. **#169 hạ xuống mức "gợi ý, chưa xác lập".**
 > Kiểm định độc lập cho biết các con số **không dùng được** đó **chỉ theo hướng NGƯỢC LẠI**.
 > Chúng tôi **không trích chúng làm bằng chứng** — chúng VOID — nhưng **giấu sự tồn tại của
 > chúng thì tệ hơn nhiều**. Kết luận đúng là:
