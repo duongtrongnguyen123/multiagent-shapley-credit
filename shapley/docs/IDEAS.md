@@ -6671,3 +6671,46 @@ kết luận UNKNOWN. Chống chớp nhoáng phải đặt ở **tầng gọi AP
 
 > Bản vá #164 của tôi xử lý **triệu chứng** (đếm lần lặp) thay vì **nguyên nhân** (một lần gọi
 > có thể hỏng). Đúng lỗi tôi vừa mắc ở #146/#153 với `MAXNEW` — vá triệu chứng, phải vá hai lần.
+
+---
+
+## Vòng #172 — H89f **VOID**: `MAXNEW` lần này phạt nhánh `I`, vì **DeepSeek viết dài**
+
+Niêm phong **16:46:13 TRƯỚC khi đọc** (#166). Chạy **10.2 giờ**, kịp trước tường 12h.
+
+**VOID** ở hai cổng: `extract_spread` = **.0521 > .05** và cổng cắt cụt.
+Cổng `extract_spread` tính bằng định nghĩa **đúng** (`compiles(extract)`) ⇒ **VOID không mập mờ**,
+không phụ thuộc tranh cãi về định nghĩa cắt cụt.
+
+### Cắt cụt, tính lại bằng định nghĩa ĐÚNG (#154)
+| nhánh | định nghĩa CŨ (kernel chạy) | **ĐÚNG** | dài TB | p95 | max |
+|---|---|---|---|---|---|
+| `S` | .8617 | **.0000** | 149 | 439 | 1314 |
+| **`I`** | .1443 | **.1443** | **3093** | **5784** | 7145 |
+| `V` | .0501 | .0441 | 1125 | 4490 | 7738 |
+
+`S` = .8617 chỉ là lỗi định nghĩa cũ (1.5B **không rào code** — #138), đã sửa ở #154.
+Vấn đề **thật**: **`I` bị cắt 14.4%** — DeepSeek-Coder tự giải thì **viết rất dài** (TB 3093 ký tự,
+gấp **2.7×** nhánh `V`), và `MAXNEW`=1536 (≈2765 ký tự cho code) cắt mất một phần bảy.
+
+### Đây là chiều THỨ BA của cùng một confound
+| vòng | model | nhánh bị phạt |
+|---|---|---|
+| #130 | Qwen-7B trên MATH | **`I`** (phải suy từ đầu) |
+| #146/#153 | Qwen-32B trên MBPP | **`V`** (được cho xem code thì viết dài) |
+| **#172** | **DeepSeek-6.7B trên MBPP** | **`I`** (model này vốn dài dòng) |
+
+> **`MAXNEW` không phải tham số của THIẾT KẾ — nó là tham số của TỪNG MODEL.**
+> Nhánh nào bị phạt đổi theo **model**, không chỉ theo **thiết kế**. Ba lần, ba tổ hợp khác nhau.
+> Bài học #153 (*"đừng ước ngưỡng từ dữ liệu đã bị cắt"*) đúng nhưng **chưa đủ**:
+> phải **đo độ dài của TỪNG model trước**, hoặc dùng cơ chế dừng không phụ thuộc độ dài.
+
+### Chạy lại: H89h
+Kernel hiện tại đã có `MAXNEW`=**4096** và **chuỗi dừng tại rào đóng** (#155) — đúng hai thứ cần.
+Chuỗi dừng quan trọng hơn ở đây: nó cắt phần **văn xuôi thừa** của DeepSeek nên độ dài thực tế
+sẽ **giảm**, chứ không phải tăng theo cap.
+
+**Rủi ro đã cân nhắc và ghi rõ:** H89f chạy **10.2h/12h**. Nếu chuỗi dừng **không** rút ngắn được
+`I`, bản chạy lại có thể **đụng tường**. Chấp nhận vì: (a) kernel có **4 điểm lưu** raw sau mỗi
+chặng nên hỏng vẫn cứu được `S/TESTS/I/V`, (b) đây là nhánh **duy nhất** còn trả lời được #98
+bằng một model khác họ **thứ hai** (cạnh H89g/Llama).
