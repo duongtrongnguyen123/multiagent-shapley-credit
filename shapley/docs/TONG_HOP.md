@@ -70,8 +70,17 @@ Nếu `D > 0` vì `M` ghi đè lên bản **vốn đã đúng**, thì **chặn g
    > ⇒ *"Cổng không khử được `D`"* đúng cho **1.5B→7B**, **SAI cho 7B→32B**.
    > Phần **nhất quán** giữa hai quy mô: `Δ_honest` vẫn ≤ 0 (−.0842 ở 7B; −.0160, p .44 ở 32B)
    > ⇒ **cổng cứu được sửa, nhưng sửa-có-cổng vẫn KHÔNG vượt `I`.**
-2. **Ở 7B, cổng ORACLE THUA `I`** (−.0641 / −.0583, p ≤ .007) ⇒ ở quy mô đó không có gì để
-   khai thác qua đường SỬA.
+2. **Ở 7B cùng họ, cổng ORACLE THUA `I`** (−.0641 / −.0583, p ≤ .007).
+   > **⚠️ #169 — `Δ_ceil` ĐỔI DẤU theo cặp model:**
+   > | cặp | `Δ_ceil` |
+   > |---|---|
+   > | 1.5B→7B (Qwen→Qwen) | **−.0641** (p .0016) thua |
+   > | 1.5B→Llama-8B (**khác họ**) | **+.0421** (p .042) **thắng** |
+   > | 7B→32B (Qwen→Qwen) | +.0060 (p .82) hoà |
+   >
+   > ⇒ **"Không có gì để khai thác" là SAI** — ở cặp khác họ **có** dư địa, và cổng **khả thi**
+   > mới là thứ không lấy được (`Δ_honest` = −.0080, p .77) ⇒ **nút thắt là `κ`, không phải `H`**.
+   > **Điều đúng ở CẢ BA cặp:** `Δ_honest` ≤ 0 — sửa-có-cổng **chưa bao giờ** vượt `I`.
    > **⚠️ Ở 32B thì KHÔNG thua mà HOÀ:** `Δ_ceil` = **+.0060, p .82** — không phân biệt được với 0.
    > "Thua rõ rệt" và "hoà" là **hai kết cục khác nhau**; bản trước gộp cả hai thành
    > *"giết cả dòng sửa ở mọi quy mô"*. **Phát biểu đúng: chưa xác lập được dư địa khai thác ở 32B.**

@@ -133,8 +133,9 @@ chi goi model manh mot luot                                        = .6413
 
 1. **Cổng không làm gì cả** — null ở cả hai dải. Phá hoại **không nằm** ở chỗ cổng với tới:
    `V` phá 12 bài mà model yếu làm đúng, chỉ **4** bài nằm trong tập cổng-đạt.
-2. **Ngay cả cổng hoàn hảo cũng thua** việc chỉ gọi model mạnh ⇒ **không có gì để khai thác**.
-   Cải thiện tín hiệu cổng là vô ích — đây là **chặn trên**, và nó âm.
+2. ~~**Ngay cả cổng hoàn hảo cũng thua** … **không có gì để khai thác**.~~
+   **RÚT Ở #169.** Đúng cho **cặp 1.5B→7B cùng họ** (−.0641, p .0016). **SAI** cho cặp **khác họ**,
+   nơi cổng ORACLE **thắng** (+.0421, p .042). Xem khối cập nhật #169 ở trên.
 3. **Thiệt hại nằm ở nhánh leo thang:** khi đã quyết định can thiệp, cho model mạnh
    **giải lại từ đầu** hơn cho nó **sửa** khoảng **+.09**. Cùng ngân sách, cùng bài; khác
    **duy nhất** ở chỗ model mạnh **có nhìn thấy** bản của model yếu hay không.
@@ -155,7 +156,25 @@ ngữ cảnh thêm vào:
 Hai dải bài **tách rời**, hai mức độ khó khác nhau. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
 hàng đó **không nổ ở cả hai lần chạy**.
 
-> ### ⚠️ CẬP NHẬT #168 — có điểm 32B rồi, và nó KHÁC
+> ### ⚠️ CẬP NHẬT #169 — có điểm KHÁC HỌ rồi, và nó ĐẢO DẤU kết luận chính
+> Ba cặp model, **cùng một thiết kế, mọi cổng đều đạt**:
+>
+> | cặp | cổng có cứu được "sửa"? | **cổng ORACLE so với `I`** | sửa-có-cổng so với `I` |
+> |---|---|---|---|
+> | 1.5B → 7B (Qwen→Qwen) | +.0040 (p .69) | **−.0641** (p .0016) — **thua** | −.0842 |
+> | 1.5B → **Llama-8B** (khác họ) | +.0160 (p .039) | **+.0421** (p **.042**) — **THẮNG** | −.0080 (p .77) |
+> | 7B → 32B (Qwen→Qwen) | **+.0922** (p ≈0) | +.0060 (p .82) — hoà | −.0160 (p .44) |
+>
+> **`Δ_ceil` đổi DẤU giữa các cặp.** Ở cặp **khác họ**, cổng ORACLE **vượt** `I` — nghĩa là
+> **CÓ dư địa khai thác** từ sản phẩm của model yếu, đúng thứ mục 5 từng tuyên là **không tồn tại**.
+>
+> ⇒ **PHÁT BIỂU CŨ "không có gì để khai thác" là SAI và đã bị rút.**
+> **Phát biểu còn đứng, đúng ở cả ba cặp:** *sửa-có-cổng **chưa bao giờ vượt** việc gọi thẳng
+> model mạnh* (`Δ_honest` ≤ 0 ở cả ba, không lần nào dương có ý nghĩa).
+> Khác biệt quan trọng: **"không có gì để lấy"** ⇒ đóng hướng; **"có mà cổng khả thi chưa lấy được"**
+> ⇒ **nút thắt là BỘ CHỌN**, và hướng đó vẫn còn sống.
+>
+> ### ⚠️ CẬP NHẬT #168 — điểm 32B
 > Điểm 32B đầu tiên (Qwen-7B → Qwen-32B, **mọi cổng đạt**) cho kết quả **khác 7B**:
 >
 > | | 1.5B→7B | **7B→32B** |
