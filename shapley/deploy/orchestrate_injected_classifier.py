@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deploy injected_classifier kernel (H37/pre-reg #43: train on injected errors, eval on real).
 
-  KERNEL=injected_classifier TASK=math NTR=200 NTE=300 BS=4 QUANT=1 MB=4 ACCOUNT=TrgDinKai python deploy/orchestrate_injected_classifier.py
+  KERNEL=injected_classifier TASK=math NTR=200 NTE=300 BS=4 MB=4 ACCOUNT=TrgDinKai python deploy/orchestrate_injected_classifier.py
 """
 import os, re, json, shutil, subprocess
 from pathlib import Path
@@ -22,7 +22,7 @@ TASK = os.environ.get("TASK", "math")
 NTR = int(os.environ.get("NTR", "200"))
 NTE = int(os.environ.get("NTE", "300"))
 BS = int(os.environ.get("BS", "4"))
-QUANT = int(os.environ.get("QUANT", "1"))
+QUANT = 0  # deprecated, kept for compat — always fp16 now
 MB = int(os.environ.get("MB", "4"))
 
 def accounts():

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Deploy disc_leakfix kernel (H27-fix: verifier phân biệt + rerank, sửa lỗi rò rỉ adapter #36/#37).
 
-  KERNEL=disc_leakfix TASK=gsm8k NTR=300 NTE=300 BS=4 QUANT=0 MB=4 ACCOUNT=TrgDinKai python deploy/orchestrate_disc_leakfix.py
-  KERNEL=disc_leakfix TASK=math  NTR=300 NTE=300 BS=4 QUANT=1 MB=4 ACCOUNT=TrgDinKai python deploy/orchestrate_disc_leakfix.py
+  KERNEL=disc_leakfix TASK=gsm8k NTR=300 NTE=300 BS=4 MB=4 ACCOUNT=TrgDinKai python deploy/orchestrate_disc_leakfix.py
+  KERNEL=disc_leakfix TASK=math  NTR=300 NTE=300 BS=4 MB=4 ACCOUNT=TrgDinKai python deploy/orchestrate_disc_leakfix.py
 """
 import os, re, json, shutil, subprocess
 from pathlib import Path
@@ -23,7 +23,7 @@ KDIR = ROOT / f"kernels_{KERNEL}_{TASK}"
 NTR = int(os.environ.get("NTR", "300"))
 NTE = int(os.environ.get("NTE", "300"))
 BS = int(os.environ.get("BS", "4"))
-QUANT = int(os.environ.get("QUANT", "0"))
+QUANT = 0  # deprecated, kept for compat — always fp16 now
 MB = int(os.environ.get("MB", "4"))
 
 def accounts():

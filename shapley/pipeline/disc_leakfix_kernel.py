@@ -14,18 +14,17 @@
 # GSM8K 1.5B, 5 fold, K=8.
 import os, re, csv, json, glob, random, subprocess, sys, statistics as st
 
-subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "torchao>=0.16.0"], check=False)
-subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "bitsandbytes>=0.46.1"], check=False)
+# torchao/bitsandbytes only needed for 4-bit quant; 1.5B fp16 doesn't need them.
+# Kaggle offline mode can't pip install, so skip entirely.
 
 import torch, torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model
 
 TASK = "__TASK__"
 NTR = __NTR__
 NTE = __NTE__
 BS = __BS__
-QUANT = __QUANT__
 MB = __MB__
 K = 8
 NF = 5
@@ -39,27 +38,30 @@ MODEL = os.path.dirname(sorted(_c, key=len)[0])
 
 FNAME = "math_500_test.csv" if TASK == "math" else "main_test.csv"
 FTRAIN = "math_500_train.csv" if TASK == "math" else "main_train.csv"
-_tr = sorted(glob.glob(f"/kaggle/input/**/{FTRAIN}", recursive=True), key=len)
 _te = sorted(glob.glob(f"/kaggle/input/**/{FNAME}", recursive=True), key=len)
+_tr = sorted(glob.glob(f"/kaggle/input/**/{FTRAIN}", recursive=True), key=len)
 if not _tr:
-    # fallback: dùng test set cho cả train và test (GSM8K có main_train.csv)
-    _tr = sorted(glob.glob("/kaggle/input/**/main_train.csv", recursive=True), key=len)
-TRROWS = list(csv.DictReader(open(_tr[0])))[:NTR]
-TEROWS = list(csv.DictReader(open(_te[0])))[:NTE]
+    # MATH-500 has no train split; use GSM8K train for GSM8K, or split MATH test for MATH
+    if TASK == "math":
+        # Split MATH test: first half = train, second half = test
+        _all = list(csv.DictReader(open(_te[0])))
+        mid = len(_all) // 2
+        TRROWS = _all[:mid][:NTR]
+        TEROWS = _all[mid:][:NTE]
+    else:
+        _tr = sorted(glob.glob("/kaggle/input/**/main_train.csv", recursive=True), key=len)
+        TRROWS = list(csv.DictReader(open(_tr[0])))[:NTR]
+        TEROWS = list(csv.DictReader(open(_te[0])))[:NTE]
+else:
+    TRROWS = list(csv.DictReader(open(_tr[0])))[:NTR]
+    TEROWS = list(csv.DictReader(open(_te[0])))[:NTE]
 
 tok = AutoTokenizer.from_pretrained(MODEL)
 tok.padding_side = "left"
 if tok.pad_token is None:
     tok.pad_token = tok.eos_token
 
-if QUANT:
-    from transformers import BitsAndBytesConfig
-    _b = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
-                            bnb_4bit_compute_dtype=torch.float16,
-                            bnb_4bit_use_double_quant=True)
-    model = AutoModelForCausalLM.from_pretrained(MODEL, quantization_config=_b, device_map="auto")
-else:
-    model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16, device_map="auto")
+model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float16, device_map="auto")
 print(f"MODEL={MODEL} train={len(TRROWS)} test={len(TEROWS)}", flush=True)
 
 NUM = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
@@ -179,8 +181,6 @@ pos = sum(1 for d in DATA if d[2])
 print(f"  cap={len(DATA)} đúng={pos} ({pos / len(DATA):.3f})", flush=True)
 
 # ============ 3) HUẤN LUYỆN LoRA ============
-if QUANT:
-    model = prepare_model_for_kbit_training(model)
 model.gradient_checkpointing_enable()
 model.enable_input_require_grads()
 model = get_peft_model(model, LoraConfig(
