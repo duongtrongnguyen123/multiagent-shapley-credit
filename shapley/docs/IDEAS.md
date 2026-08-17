@@ -6341,3 +6341,69 @@ Trần `H` = +.0690 **không** dùng phá hoà nên **không bị ảnh hưởng
 >
 > **Quy tắc: mỗi hàm bảo vệ mới phải kèm một dòng chứng minh nó CHẠY** — hoặc in ra khi chạy,
 > hoặc một `assert` ở cuối kernel rằng nó đã được gọi. "Đã thêm hàm" ≠ "đã được bảo vệ".
+
+---
+
+## Vòng #160 — Hai agent còn lại: **tôi vi phạm chính luật mình vừa đặt**, và một hàng khoá bị viết ngược dấu
+
+### A. #158 KHÔNG có phép thử nào — vi phạm luật #140 do chính tôi đặt
+Ở **#140** tôi viết: *"mọi hàng trong bảng khoá phải nêu ĐỒNG THỜI ngưỡng hiệu ứng VÀ ngưỡng ý nghĩa"*.
+**#158 là vòng duy nhất trong #137–#158 không có một p-value hay CI nào.** `#94` khoá **chỉ**
+ngưỡng hiệu ứng (+.08/+.02) — đúng khuyết tật tôi đã đặt tên là thất bại thiết kế thứ ba.
+
+Con số tôi tuyên là "dùng được" — `good(sel4_first) − good(exec3)` = **+.0380** trên n=263 —
+là **10 bài ròng**. McNemar tuỳ mức bất đồng:
+
+| bất đồng | p |
+|---|---|
+| 20 | .041 |
+| 40 | .154 |
+| 60 | .245 |
+| 80 | .314 |
+
+⇒ **p nằm đâu đó trong .04–.31. KHÔNG xác lập được.**
+Và phát biểu phụ *"lọc giữ ngữ nghĩa tốt hơn sửa (+.0152)"* = **4 bài ròng** ⇒ p **.34–.64**.
+Đó là **nhiễu**, và nó dưới sàn nhiễu của chính dự án (.02 ở n=500 ⇒ ~.03–.04 ở n=263).
+
+**Không tính lại được:** `traces_H85b.json` lưu **chuỗi code**, không lưu **vector đúng/sai từng bài**.
+
+> **Rút lại cả hai con số của #158.** Điều còn đứng từ H85b: phần **+.1749** là vòng tròn (đã ghi),
+> và **không có bằng chứng có ý nghĩa nào cho "CHỌN hơn SỬA trên refactor"**.
+>
+> **Luật mới: trace PHẢI lưu vector kết quả nhị phân TỪNG BÀI của mọi nhánh**, không chỉ artifact.
+> Không có nó thì không thể kiểm định hậu kiểm — đúng tình cảnh này.
+
+### B. #97 hàng 5 **viết ngược dấu**, và #142 đã viết kết luận của nó dù điều kiện KHÔNG thoả
+```
+dinh nghia:  Δ_cont = acc(G_I) − acc(G_V)     G_I = KHONG nhin thay | G_V = CO nhin thay
+=> Δ_cont > 0  nghia la  nhin thay HAI
+hang 5 khoa: Δ_cont < −.02  ->  ket luan "nhin thay van nhiem doc"   <-- NGUOC DAU
+do duoc:     +.0902 / +.0994  ->  dieu kien hang 5 KHONG thoa
+```
+**#142 vẫn viết đúng kết luận của hàng 5** mà không hề nhắc tới hàng 5, rồi nó lan sang
+`TONG_HOP` như *"bằng chứng trực tiếp"*.
+
+**Kết luận vẫn ĐÚNG** theo định nghĩa (`Δ_cont > 0` ⟺ nhìn thấy hại) và đã được **xác nhận độc lập**
+ở #149 bằng một hàng-giết khoá đúng (bác ở p 8.7e−05 / 1.5e−04). **Nhưng quy trình thì sai**:
+tôi viết kết luận từ một hàng chưa khớp.
+⇒ **Thất bại thiết kế bảng khoá thứ BẢY** (#99, #116, #140, #90, #102, #94, nay **#97 hàng 5**).
+
+### C. #103-b của tôi làm **HÀNG 4 không bao giờ tới được**
+Bản vá "bịt lỗ hổng" ở #101-c/#103-b viết lại hàng 1 thành *"C hơn A **và KHÔNG** xác lập được
+B hơn C"*. Nếu `H(C) − H(B)` = +.05 (p<.05) thì mệnh đề "B hơn C" sai ⇒ **hàng 1 nổ trước**,
+và **hàng 4** — *"cỡ khác thắng họ khác ⇒ phải điều tra lại #145"* — **không bao giờ chạy tới**.
+Đó đúng là hàng buộc tôi xem lại kết quả dương chủ lực. **Đã sửa: đưa hàng 4 lên TRƯỚC hàng 1.**
+
+### D. Ba chỗ tôi đọc quá mức độ chính xác
+| tôi đã viết | thực tế |
+|---|---|
+| #149: *"lệch nhau **.0004**"* (−.0782 vs −.0778) | SE của hiệu ≈ **.028** ⇒ .0004 là **0.01 SE**, là **may mắn**, không phải độ chính xác |
+| #150: *"tái lập tới **.003**"* (−.1900 vs −.1927) | cùng vấn đề |
+| #145: *"biên độ **LỚN HƠN** ở 511–974"* (+.0690 vs +.0500) | SE hiệu ≈ .0198, chênh .0190 = **0.96 SE, p ≈ .34** ⇒ **không phân biệt được**. Câu tự phê *"prior sai đúng chiều làm kết quả mạnh hơn"* **dựa trên hư không** |
+
+**Không hàng nào đổi** — các hiệu ứng nền đều mạnh. Nhưng độ chính xác không có thật đang được
+dùng làm luận cứ tu từ. **Đã sửa cả ba chỗ.**
+
+### E. `TONG_HOP` mở đầu bằng một câu SAI
+*"**Mọi con số đều có kiểm định ghép cặp McNemar**"* — không đúng cho bảng M1 (−.1080/+.0220),
+bảng M2 (−.0840/−.0640), và các số từ #158. **Đã sửa câu đó.**
