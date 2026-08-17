@@ -11,7 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt"))
 KERNEL = os.environ.get("KERNEL", "disc_leakfix")
 SRC = ROOT / "pipeline" / f"{KERNEL}_kernel.py"
-KDIR = ROOT / f"kernels_{KERNEL}"
 
 DS_MODEL_15B = "xatri007/qwen2-5-1-5b-instruct"
 DS_GSM8K = "thedevastator/grade-school-math-8k-q-a"
@@ -20,6 +19,7 @@ DS = {"gsm8k": [DS_MODEL_15B, DS_GSM8K],
       "math":  [DS_MODEL_15B, DS_MATH]}
 
 TASK = os.environ.get("TASK", "gsm8k")
+KDIR = ROOT / f"kernels_{KERNEL}_{TASK}"
 NTR = int(os.environ.get("NTR", "300"))
 NTE = int(os.environ.get("NTE", "300"))
 BS = int(os.environ.get("BS", "4"))
