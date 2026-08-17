@@ -7219,3 +7219,58 @@ hoặc đổi estimand — và **phải đăng ký trước**, không chữa ch�
 ### Tiên nghiệm
 Prior của #105 đặt trên hàng 1–4 **với điều kiện cổng đạt**. Cổng không đạt ⇒ **không cập nhật**.
 Vẫn **19/40**.
+
+---
+
+## Vòng #185 — H97 (#107): **HÀNG 1**. Chênh dự báo `Δ_ceil`, `g*` = **.0913**. Nhưng **không cặp nào dương có ý nghĩa**
+
+`results_H97` niêm phong trước khi mở. **Cổng đạt hết, 15/15 cặp hợp lệ, 0 cặp bị loại.**
+Đẳng thức `A − B + C = Δ_ceil` **khớp tuyệt đối cả 15 cặp** (kiểm trong kernel).
+
+### Kiểm tính nhất quán mà tôi không đăng ký trước nhưng phải ghi
+`A` của H97 **trùng H96 tới chữ số cuối ở CẢ 15 CẶP**, `acc` nền trùng cả sáu model.
+Greedy là **tất định** ⇒ hai lần chạy độc lập tái lập y hệt nhánh nền. Đây là bằng chứng
+**hai lần chạy thật sự so sánh được**, và loại trừ lỗi nạp model/lọc bài.
+
+### Đại lượng đã khoá
+```
+Δ_ceil ~ +.02184 − .23922·chênh     R² = .5998   p(δ₁) = 1e-05   dof = 13
+g* = .0913
+```
+`δ₁ < 0`, p < .05, `R² ≥ .50`, `g*` ∈ [.04, .32] ⇒ **HÀNG 1**.
+Cảnh báo `MAXNEW` của #107(b) **không cắn**: cắt cụt nhánh `V` tối đa **.0060**, trích xuất ≥ .984.
+(Và thiên lệch đó đẩy về **hàng 2**, nên hàng 1 nếu sai lệch thì là **thận trọng**.)
+
+### Nhưng đọc hàng 1 cho ĐÚNG — chỗ này rất dễ thổi phồng
+| | |
+|---|---|
+| cặp `Δ_ceil` **dương có ý nghĩa** | **0 / 15** |
+| cặp `Δ_ceil` **âm có ý nghĩa** | **3 / 15** (1.5B→7B −.0441 · 1.5B→32B −.0401 · Llama→32B −.0401) |
+| `Δ_ceil` dự báo lớn nhất (tại chênh = 0) | **+.0218** |
+
+**Quan hệ là thật (p = 1e-05); vùng dương thì KHÔNG được xác lập.** Bằng chứng cho "dương khi
+chênh nhỏ" là **hệ số chặn của đường hồi quy**, không phải một cặp nào đứng riêng.
+Và một cặp **dưới** `g*` đi ngược hẳn: Llama→DSCoder (chênh .080) cho **−.0220**.
+
+> **Phát biểu đúng: `g*` = .091 là ranh giới nơi "sửa" **bớt tệ nhất**, KHÔNG phải nơi nó **thắng**.**
+> Luật quyết định dùng được là dạng **phủ định**: **chênh > .09 thì đừng sửa** (3/15 cặp âm có ý
+> nghĩa đều nằm ở chênh ≥ .218). Chiều khẳng định chưa có bằng chứng.
+
+### #169 tái lập **một nửa**
+1.5B→Llama-8B, cùng dải bài, lần chạy độc lập: `Δ_ceil` = **+.0301, p = .133**
+(gốc #169: +.0421, p .042). **Dấu và độ lớn tái lập; ý nghĩa thống kê thì KHÔNG.**
+Đúng như #125-B4 cảnh báo với p nằm dải .01–.05. Phải cập nhật README.
+
+### PHỤ (đã khoá riêng) — chỗ mở cho giao thức
+```
+B ~ chênh    R² = .3451   b₁ = +.1357 (p .0089)
+```
+`R² < .50` ⇒ **`B` còn phương sai KHÔNG do chênh — hai phần ba.** `B` **có** tăng theo chênh
+(p .009) nhưng chênh giải thích được **35%**.
+So với `A`: `R²` = **.8237**. ⇒ **`A` gần như bị cặp model định đoạt; `B` thì không.**
+Đây đúng là chỗ #181 dự đoán có đòn bẩy — và **H98 (#108) đang chạy để kiểm**, đăng ký **trước**
+khi có số này. Không được coi `R²` thấp là bằng chứng cho đòn bẩy: **một** giao thức duy nhất
+thì phương sai còn lại cũng có thể chỉ là nhiễu cặp-model. H98 mới trả lời được.
+
+### Tiên nghiệm
+Hàng 1 đặt **45%** (modal) — đúng. **20/41.**
