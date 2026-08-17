@@ -6458,3 +6458,40 @@ thiếu `res` đều là crash có ghi nhận vòng tương ứng.
 > Nhưng ba agent độc lập vẫn tìm ra **một kernel đang chạy sinh dữ liệu giả**, **một hàng khoá viết
 > ngược dấu**, **hai con số gán nhầm nhánh**, **một nhãn tái lập sai**, và **một phạm vi bị bỏ trống**.
 > **Tự kiểm bắt được sai lệch SAO CHÉP. Nó không bắt được sai lệch DIỄN GIẢI.**
+
+---
+
+## Vòng #162 — H88c HUỶ: **hai kernel MATH chưa bao giờ có đường lượng tử hoá**
+
+```
+nap cheap (fp16): 2.88 GB      -> OK
+S greedy xong (2351s) | S mau-2 xong (4792s)
+nap dear  (fp16): 14.21 GB     <-- Qwen-7B fp16 tren card 14.56 GB
+  OOM -> lo 12 -> lo 6 -> lo 3 -> lo 1 -> chet
+```
+
+`gated_repair_math_kernel.py` (và `exposure_math_kernel.py` **phái sinh từ nó**) chỉ có:
+```python
+dt = torch.bfloat16 if CC[0] >= 8 else torch.float16
+```
+**Không hề có nhánh nf4.** Trên T4 (sm_75) nó chọn fp16 ⇒ 7B chiếm **14.21/14.56 GB**, còn
+**0.35 GB** cho KV cache ⇒ OOM ngay cả ở **lô = 1**.
+
+### Điều đáng nói: H94 ĐANG CHẠY cùng lỗi đó
+`exposure_math` được tôi tạo ở #104 **bằng cách sửa** `gated_repair_math` — nên nó thừa hưởng
+nguyên khuyết tật. H94 chắc chắn sẽ chết y hệt sau khi tiêu ~80 phút cho nhánh `S`.
+**Đã giết H94 ngay** thay vì để nó chạy hết.
+
+> **Lỗi này tồn tại từ #97-b (H88c) và tôi đã nhân bản nó sang H94 ở #104.**
+> `gated_repair_kernel.py` (bản MBPP) **có** đủ nhánh nf4 từ #131 — tôi đã sửa **bản MBPP**
+> rồi viết bản MATH **riêng**, và bản MATH không bao giờ nhận được bản vá ấy.
+>
+> **Quy tắc: khi tạo kernel MỚI bằng cách sửa kernel CŨ, phải đối chiếu danh sách bản vá của
+> kernel ANH EM cùng họ — không phải chỉ của kernel gốc.** `gated_repair` (MBPP) và
+> `gated_repair_math` là anh em; mọi bài học hạ tầng phải áp cho **cả hai**.
+
+**Đã sửa cả hai**: thêm `BIG_CARD` + `_BNB` nf4 y như bản MBPP, in rõ dtype thực tế (`bf16`/`fp16`/`nf4`)
+để lần sau nhìn log là thấy ngay. Cũng bỏ f-string lồng dấu nháy (chỉ hợp lệ từ Python 3.12).
+**Phóng lại: H88f và H94b.**
+
+**Cứu được:** `partial_H88c.json` **1.6 MB** — trọn `S_raw` + `S2_raw` (2 lượt sinh, ~80 phút).
