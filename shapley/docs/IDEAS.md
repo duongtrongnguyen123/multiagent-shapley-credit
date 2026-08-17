@@ -6182,3 +6182,51 @@ nên **không cần biết tên biến** của từng kernel.
 > Điều quan trọng là **lưu Ở ĐÂU**: một điểm lưu đặt sau toàn bộ phần tốn thời gian thì
 > chỉ bảo vệ đúng phần **không cần bảo vệ**.
 > Quét ở #134-b của tôi hỏi *"có lưu không?"* — lẽ ra phải hỏi *"lưu sau bao nhiêu lượt sinh?"*.
+
+---
+
+## Vòng #157 — H81e: **HÀNG 2 của #90**. Bộ chọn khác họ **không** cải thiện `κ`.
+
+**Mọi cổng ĐẠT** — kể cả cổng độ phủ mới của #90-b:
+
+| | độ phủ | soundness | copy_rate | số test |
+|---|---|---|---|---|
+| `T_self` (Qwen) | **.996** | .9699 | .0000 | 510 |
+| `T_other` (DeepSeek) | **.966** | .8530 | .0085 | **588** |
+
+**Bản vá phân tích cú pháp ở #90-b đúng chẩn đoán:** độ phủ của `T_other` đi từ **.410 → .966**,
+số test từ **229 → 588**. Chênh độ phủ **.030 < .10** ⇒ phép so giờ mới có nghĩa.
+
+### Kết quả
+| | `SEL` | so với base | `κ` |
+|---|---|---|---|
+| `T_self` (Qwen viết test) | **.6680** | +.0220 | 68.8% |
+| `T_other` (DeepSeek viết test) | **.6640** | +.0180 | 56.2% |
+
+**`T_other` − `T_self` = −.0040**, CI95 **[−.0100, +.0000]**, b01=2 b10=0, **p = .50**.
+Trên **tập giao** (n=482): **−.0041**. Hai cách đọc trùng nhau.
+
+Hàng 1 đòi ≥ **+.02**; **cận trên của CI là +.000** ⇒ **loại trừ dứt khoát**.
+⇒ **HÀNG 2: độc lập về HỌ KHÔNG cải thiện `κ`. M2 đúng cho POOL, không cho TÍN HIỆU. Thu hẹp.**
+
+Đây là **dự đoán 1 của TONG_HOP** — và nó **sai**.
+
+### Nhưng phải nói rõ giới hạn: pool gần như KHÔNG cho bộ chọn việc gì
+| | số bài |
+|---|---|
+| cả hai ứng viên ĐÚNG | 296 (59.2%) |
+| cả hai ứng viên SAI | 161 (32.2%) |
+| **HỖN HỢP** (bộ chọn mới có tác dụng) | **43 (8.6%)** |
+| `Q1` ≡ `Q2` **y hệt về chuỗi** | **252 (50.4%)** |
+
+Pool là **hai mẫu từ CÙNG Qwen-7B** — đúng cái #145 đã đo là tương quan tới mức **trùng nguyên văn**
+(ở đây **50.4%**). Trần `H` = .678 so với base .646 ⇒ **toàn bộ dư địa chỉ +.0320**.
+
+> **CI hẹp [−.010, +.000] là thật, nhưng nó hẹp một phần vì bộ chọn chỉ có 43 bài để tạo khác biệt.**
+> Kết luận đúng phải là: **trên một pool tương quan cao, đổi HỌ của bộ chọn không giúp gì** —
+> **chưa** phải "độc lập của tín hiệu không bao giờ quan trọng".
+> Phép thử mạnh hơn cần **pool đa dạng** (khác họ, như #145) để `κ` có chỗ mà khác nhau.
+> Đó là thí nghiệm khác và phải đăng ký riêng.
+
+### Ghi vào TONG_HOP
+Dự đoán 1 chuyển từ *"chưa kiểm"* sang **"đã kiểm, KHÔNG xác nhận trên pool tương quan"**.

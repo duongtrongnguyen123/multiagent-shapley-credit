@@ -202,7 +202,15 @@ Ba cực, không phải hai:
 
 ## 3. Dự đoán KIỂM ĐƯỢC (chưa kiểm)
 
-1. **`κ` phải tăng khi `z` độc lập hơn.** Test do **model KHÁC** viết phải chọn tốt hơn test tự viết.
+1. ~~**`κ` phải tăng khi `z` độc lập hơn.** Test do **model KHÁC** viết phải chọn tốt hơn test tự viết.~~
+   > **ĐÃ KIỂM (#157, H81e) — KHÔNG XÁC NHẬN.** Cùng ứng viên, cùng bài, chỉ đổi **người viết test**:
+   > `SEL(DeepSeek viết test) − SEL(Qwen viết test)` = **−.0040**, CI95 **[−.0100, +.0000]**, p = .50.
+   > Hàng 1 của #90 đòi ≥ +.02; **cận trên CI = +.000 ⇒ loại trừ**.
+   > **Giới hạn phải nêu kèm:** pool là **hai mẫu cùng một model**, chỉ **8.6%** số bài có
+   > bất đồng (50.4% hai ứng viên **trùng nguyên văn**), nên bộ chọn chỉ có **43 bài** để tạo
+   > khác biệt và toàn bộ dư địa là **+.0320**.
+   > ⇒ Phát biểu đúng: **trên pool TƯƠNG QUAN CAO, đổi họ của tín hiệu không giúp.**
+   > Chưa kiểm được trên pool **đa dạng** — cần thí nghiệm riêng.
 2. **`D` phải bằng 0 cho mọi giao thức chỉ-chọn**, kể cả với >2 ứng viên và nguồn hỗn hợp — đã đúng ở k≤8.
    > **ĐÃ KIỂM và ĐÃ BÁC (#142):** dự đoán ngầm rằng *"chặn ghi đè bằng cổng ⇒ `D` → 0"* là **SAI**.
    > `Δ_gate` = +.0040 (p .69) và +.0000 (p 1.00). `D` **không** nằm ở chỗ cổng với tới được.
