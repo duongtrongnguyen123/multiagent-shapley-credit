@@ -7026,3 +7026,41 @@ và `H95b` có hàng buộc **hạ cấp #169**.
 > **Bài học: luật "chưa tái lập thì chưa vào README" có một ngoại lệ hợp lý (rút lại)
 > — nhưng ngoại lệ đó phải được VIẾT RA, không được ngầm hiểu.** Tôi đã áp dụng ngoại lệ
 > mà không tuyên bố nó, nên từ ngoài nhìn vào thì giống hệt việc phá luật.
+
+---
+
+## Vòng #181 — Đẳng thức `Δ_ceil = A − B + C` đúng **4/4 cặp**, và `B` mới là thứ giết dòng "sửa"
+
+Chấm lại H88f (MATH) từ chuỗi thô bằng đúng `_bx`/`norm`/`eq` của kernel — tái tạo `acc` **chính xác**
+(S .4660 · I .7060 · V .5580, khớp `res` tới 4 chữ số) rồi tính ba số hạng.
+
+| cặp | `A` dư địa | `B` V phá | `C` V cứu | `A−B+C` | `Δ_ceil` |
+|---|---|---|---|---|---|
+| **MATH** 1.5B→7B | .0160 | **.1760** | .0220 | **−.1380** | **−.1380** ✓ |
+| MBPP 1.5B→7B | .0441 | .1303 | .0220 | −.0641 | −.0641 ✓ |
+| MBPP 1.5B→Llama | .0782 | **.0762** | .0401 | +.0421 | +.0421 ✓ |
+| MBPP 7B→32B | .0561 | .0762 | .0261 | +.0060 | +.0060 ✓ |
+
+**Đúng tuyệt đối 4/4** — vì là **đẳng thức đại số**, không phải mô hình.
+
+### Điều bảng này cho thấy mà #174/#176 chưa nói
+Tôi đã tập trung vào `A` (dư địa). Nhưng nhìn cột `B`:
+
+| | `A` biến thiên | `B` biến thiên |
+|---|---|---|
+| khoảng | .016 → .078 (**×4.9**) | .076 → .176 (**×2.3**) |
+| tương quan với `Δ_ceil` | +.94 | **−.99** |
+
+**`B` — số bài `V` làm hỏng trong khi `I` vốn làm đúng — bám `Δ_ceil` chặt hơn `A`.**
+Và `B` là thứ **giao thức kiểm soát được**: nó đo mức `V` phá hoại, tức chính là `D` của
+TONG_HOP. `A` là **tính chất của cặp model** (không đổi được nếu không đổi model);
+`B` là **tính chất của giao thức**.
+
+> **Đọc lại cho đúng: dòng "sửa" chết không phải vì thiếu dư địa (`A`), mà vì `V` phá quá nhiều (`B`).**
+> Trên MATH `A` = .016 **và** `B` = .176 — `B` lớn gấp **11 lần** `A`. Kể cả nếu `A` gấp đôi,
+> `Δ_ceil` vẫn âm nặng.
+> Đây là lý do **giao thức CHỌN thắng**: nó đặt `B = 0` theo cấu trúc, trong khi mọi giao thức
+> SỬA đều phải trả giá `B`.
+
+**Chưa đưa vào TONG_HOP** — n=4, và `B` vs `A` tương quan mạnh với nhau nên chưa tách được ảnh
+hưởng riêng. Ghi nhận như **quan sát mô tả** cần thêm điểm.
