@@ -4627,3 +4627,29 @@ Luật #140 (*"mọi hàng phải nêu ĐỒNG THỜI ngưỡng hiệu ứng VÀ
 | +.02 | .5 | C |
 
 Không giá trị nào rơi ngoài bảng.
+
+---
+
+## #97-e — SỬA ĐỔI: hàng 4 của #97 thiếu điều kiện ý nghĩa
+
+**Đăng ký lúc:** H88f và H89f **đang chạy**, chưa có kết quả. Commit **trước** khi chúng xong.
+
+Quét toàn bộ bảng khoá **đang chờ kết quả** (#97, #98-b, #103, #104, #105) để tìm nốt khuyết tật
+"ngưỡng trần trụi" đã cắn ba lần (#93, #94, #98). Bốn bảng kia **đều đạt**. Còn **một** chỗ:
+
+> **#97 hàng 4:** `Δ_ceil > 0` nhưng `Δ_gate < +.04` ⇒ *"M1 SAI NHƯ ĐANG PHÁT BIỂU"*
+
+`Δ_gate < +.04` **không kèm p**. Với ngưỡng dạng "nhỏ hơn", thiếu p còn nguy hiểm hơn: một
+`Δ_gate` = +.02 **có ý nghĩa mạnh** và một `Δ_gate` = +.02 **hoàn toàn nhiễu** đều thoả, mà chúng
+đòi hai kết luận trái ngược về M1.
+
+**SỬA — hàng 4 thành:**
+> `Δ_ceil ≥ +.02` (p<.05) **VÀ** `Δ_gate < +.04` **VÀ KHÔNG** (`Δ_gate ≥ +.02` với p<.05)
+
+Nghĩa: chỉ tuyên *"M1 sai như đang phát biểu"* khi cổng **thật sự không cứu được gì đáng kể** —
+chứ không phải khi nó cứu được **vừa phải nhưng chắc chắn**. (Ở 32B, `Δ_gate` = **+.0922, p≈0**
+đã cho thấy khoảng giữa này **có thật**, không phải giả định.)
+
+**Không đổi hàng nào khác.** Đây là làm **chặt hơn**, không lỏng hơn.
+
+**Tỉ lệ prior đúng: 18/39** (cộng dồn, xem #167).
