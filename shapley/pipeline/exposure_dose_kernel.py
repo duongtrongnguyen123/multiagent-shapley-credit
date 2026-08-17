@@ -194,6 +194,7 @@ for k in ("E0", "E1", "E2", "E3"):
     save_partial(S_raw=S_raw, **{f"{kk}_raw": v for kk, v in OUT.items()})
 mo = None; tk = None; free()
 
+_tr, _tr_sp = trunc_report({**{k: v for k, v in OUT.items()}, "S": S_raw})   # #159: het la ma chet
 P = {k: par(official, [(ALL[i], extract(v[i])) for i in range(N)]) for k, v in OUT.items()}
 PS = par(official, [(ALL[i], S[i]) for i in range(N)])
 A = lambda p: round(sum(p)/N, 4)

@@ -178,7 +178,7 @@ CODE["Q1"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
 CODE["Q2"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS, temp=0.8)]
 T_self_raw = gen(mo, tk, WTEST, PR, BS)                              # test do CHINH Qwen viet
 T_self = [clean_asserts(t) for t in T_self_raw]
-mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
 free()
 print(f"Q xong ({time.time()-t0:.0f}s)", flush=True)
 json.dump({"partial": True, "raw": CODE, "T_self": T_self, "T_self_raw": T_self_raw},
@@ -187,13 +187,14 @@ json.dump({"partial": True, "raw": CODE, "T_self": T_self, "T_self_raw": T_self_
 mo, tk = load("D")
 T_other_raw = gen(mo, tk, WTEST, PR, BS)                             # test do HO KHAC viet
 T_other = [clean_asserts(t) for t in T_other_raw]
-mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
 free()
 print(f"T_other (DeepSeek) xong ({time.time()-t0:.0f}s)", flush=True)
 json.dump({"partial": True, "raw": CODE, "T_self": T_self, "T_self_raw": T_self_raw,
            "T_other": T_other, "T_other_raw": T_other_raw},
           open(f"/kaggle/working/partial_{RUN}.json", "w"))
 
+_tr, _tr_sp = trunc_report(CODE)   # #159: het la ma chet
 PASS = {k: grade(v) for k, v in CODE.items()}
 POOL = ["Q1", "Q2"]
 A = lambda p: round(sum(p)/N, 4)

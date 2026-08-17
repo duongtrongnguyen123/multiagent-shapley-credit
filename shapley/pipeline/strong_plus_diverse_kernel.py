@@ -194,7 +194,7 @@ mo, tk = load("Q")
 CODE["Q1"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
 CODE["Q2"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS, temp=0.8)]
 TESTS = [clean_asserts(t) for t in gen(mo, tk, WTEST, PR, BS)]   # bo chon: CHI do Q viet
-mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
 free()
 print(f"Q xong ({time.time()-t0:.0f}s)", flush=True)
 json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TESTS},
@@ -203,7 +203,7 @@ json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TES
 for tag in ["L", "D"]:
     mo, tk = load(tag)
     CODE[tag] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
-    mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+    mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
     free()
     print(f"{tag} xong ({time.time()-t0:.0f}s)", flush=True)
     json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TESTS},

@@ -121,7 +121,7 @@ t0 = time.time()
 OUT = {}
 mo, tk = load("1.5B")
 OUT["S"] = gen(mo, tk, SOLVE, Q, 64)
-mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
 free()
 print(f"S (1.5B) xong ({time.time()-t0:.0f}s)", flush=True)
 VP = [f"{Q[i]}\n\nProposed solution:\n{OUT['S'][i]}" for i in range(N)]
@@ -132,7 +132,7 @@ for tag in ["7B", "14B", "32B"]:
     print(f"I_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
     OUT[f"V_{tag}"] = gen(mo, tk, VERIFY, VP, BSZ[tag])
     print(f"V_{tag} xong ({time.time()-t0:.0f}s)", flush=True)
-    mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+    mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
     free()
     json.dump({"partial": True, "done": sorted(OUT.keys()), "raw": OUT},
               open(f"/kaggle/working/partial_{RUN}.json", "w"))

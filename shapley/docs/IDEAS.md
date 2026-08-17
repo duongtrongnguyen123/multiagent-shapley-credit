@@ -6321,3 +6321,23 @@ Trần `H` = +.0690 **không** dùng phá hoà nên **không bị ảnh hưởng
 > Nhưng "khớp file" không có nghĩa là "không thiên lệch": con số **và** file **cùng** kế thừa
 > một luật phá hoà thiên vị. **Đối chiếu artifact bắt được sai lệch sao chép, không bắt được
 > sai lệch phương pháp.**
+
+### Vòng #159 (tiếp) — các lỗi khác agent tìm ra, đã xác minh và sửa
+
+| # | lỗi | xác minh | đã sửa |
+|---|---|---|---|
+| 1 | `math_majk4`/`math_majk`: k "mẫu" là k lần **greedy giống hệt** (hai nhánh ba ngôi y hệt, `do_sample=False` cứng) | ✓ | thêm `temp` xuyên suốt `gen`/`_gen1`; mẫu 1..k−1 dùng `temperature=0.8` |
+| 2 | `math_majk4:254` `KeyError` trên `arms["V_self"]` — **chết SAU khi đã `json.dump`** ⇒ file kết quả tồn tại nhưng **cổng boxed chưa từng chạy** | ✓ | đổi sang `.get(...)`, kernel chạy tiếp tới cổng |
+| 3 | `family_vs_size:315` `KeyError` `res["H_diff"]` — tên khoá **tôi đổi ở #103** mà quên sửa chỗ đọc; chết sau dump ⇒ **verdict + cổng `acc∈[.35,.85]` không bao giờ chạy** | ✓ | `H_B_minus_A`/`SEL_B_minus_A` |
+| 4 | `trunc_report()` là **MÃ CHẾT** ở cả 5 kernel tôi thêm nó vào ở #154 — định nghĩa, không gọi | ✓ (xuất hiện đúng **1** lần/file) | đã nối vào cả 5 |
+| 5 | `tk = tk` — no-op, trong khi chú thích nói "thả tham chiếu của caller" (đúng bài học #132 nhưng viết sai) | ✓ 7 kernel | `tk = None` |
+| 6 | `mbpp_peer`: prompt chứa **TOÀN BỘ** `test_list` mà nó bị chấm trên đó; các kernel MBPP khác chỉ đưa `test_list[0]` và chấm trên `[1:3]` | ✓ | **KHÔNG sửa** (H84e đã chạy) — ghi rõ: `acc` của kernel này **không so được** với kernel MBPP khác |
+| 7 | `exposure_dose`: khi `signature_only` trả `None`, nhánh `E2` **nhận đúng prompt của `E0`** ⇒ kéo `E2` về `E0` | ✓ nhưng `n_nosig` = **1/499** và **3/463** | ảnh hưởng ~0.2–0.6%, **không đổi kết luận #149**; đã ghi nhận |
+
+> **Điều đáng sợ nhất trong đợt này: lỗi #2, #3 và #4 đều là MÃ TÔI VỪA VIẾT trong phiên này.**
+> #4 tệ nhất — tôi thêm `trunc_report` ở #154 **chính vì** cổng cũ để lọt H91c, viết chú thích
+> giải thích tại sao nó cần thiết, rồi **không bao giờ gọi nó**. Trong 5 vòng sau đó tôi tin
+> mình đã được bảo vệ.
+>
+> **Quy tắc: mỗi hàm bảo vệ mới phải kèm một dòng chứng minh nó CHẠY** — hoặc in ra khi chạy,
+> hoặc một `assert` ở cuối kernel rằng nó đã được gọi. "Đã thêm hàm" ≠ "đã được bảo vệ".

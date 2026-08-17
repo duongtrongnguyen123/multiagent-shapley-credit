@@ -125,7 +125,7 @@ def load(tag):
     return mos, tk
 
 @torch.no_grad()
-def _gen1(mo, tk, sysm, usrs, bs):
+def _gen1(mo, tk, sysm, usrs, bs, temp=0.0):
     outs, i = [], 0
     while i < len(usrs):
         ch = usrs[i:i+bs]
@@ -133,7 +133,9 @@ def _gen1(mo, tk, sysm, usrs, bs):
             ps = [tk.apply_chat_template([{"role":"system","content":sysm},{"role":"user","content":u}],
                   tokenize=False, add_generation_prompt=True) for u in ch]
             e = tk(ps, return_tensors="pt", padding=True).to(mo.device)
-            o = mo.generate(**e, max_new_tokens=MAXNEW, do_sample=False, pad_token_id=tk.pad_token_id)
+            _kw = dict(max_new_tokens=MAXNEW, pad_token_id=tk.pad_token_id)
+            _kw.update(dict(do_sample=True, temperature=0.8, top_p=0.95) if temp else dict(do_sample=False))
+            o = mo.generate(**e, **_kw)   # #159: truoc day CUNG greedy -> k "mau" la k ban SAO
         except torch.OutOfMemoryError:
             torch.cuda.empty_cache()
             if bs == 1: raise
@@ -154,14 +156,14 @@ def _free_models(mos):
     for _d in range(torch.cuda.device_count()):
         with torch.cuda.device(_d): torch.cuda.empty_cache()
 
-def gen(mos, tk, sysm, usrs, bs):
+def gen(mos, tk, sysm, usrs, bs, temp=0.0):
     """chia deu cho cac ban sao, chay song song, ghep lai dung thu tu"""
     if len(mos) == 1: return _gen1(mos[0], tk, sysm, usrs, bs)
     parts = [list(range(j, len(usrs), len(mos))) for j in range(len(mos))]
     store, errs, lock = {}, [], threading.Lock()
     def work(mo, idxs):
         try:
-            r = _gen1(mo, tk, sysm, [usrs[i] for i in idxs], bs)
+            r = _gen1(mo, tk, sysm, [usrs[i] for i in idxs], bs, temp)
             with lock: store.update(dict(zip(idxs, r)))
         except Exception as e:
             import traceback; traceback.print_exc()
@@ -202,7 +204,7 @@ _snap(SOLS=SOLS, IND=IND, VW=VW)
 CS = []
 for kk in range(4):
     CS.append(gen(m7, tk7, SOLVE, Q, BSZ["7B"]) if kk == 0 else
-              gen(m7, tk7, SOLVE, Q, BSZ["7B"]))
+              gen(m7, tk7, SOLVE, Q, BSZ["7B"], temp=0.8))   # #159: mau 1..k-1 PHAI lay mau
     print(f"mau {kk} xong ({time.time()-t0:.0f}s)", flush=True)
     _snap(SOLS=SOLS, IND=IND, VW=VW, CS=CS)
     json.dump({"partial": True, "done": kk+1, "raw": {"S": SOLS, "I": IND, "V_review": VW,
@@ -251,7 +253,8 @@ json.dump([{"q": Q[i][:500], "gold": GOLD[i], **{k: (OUT[k][i] or "")[:1200] for
             **{k+"_ans": A[k][i] for k in A}} for i in range(N)],
           open(f"/kaggle/working/traces_{RUN}.json", "w"))
 
-ds = res["arms"]["V_self"]["minus_I"]; dw = res["arms"]["V_weak"]["minus_I"]
+# #159: V_self/V_weak khong bao gio duoc tao -> KeyError giet kernel SAU khi da dump
+_a = res["arms"]; ds = _a.get("V_self", {}).get("minus_I"); dw = _a.get("V_weak", {}).get("minus_I")
 BOXR = {k: round(sum(1 for t in OUT[k] if "\\boxed" in (t or "")) / N, 4) for k in OUT}
 res["boxed_rate"] = BOXR
 bmin = min(BOXR.values()); bspread = max(BOXR.values()) - bmin

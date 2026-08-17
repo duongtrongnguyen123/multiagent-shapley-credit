@@ -214,6 +214,7 @@ print(f"V_peer xong ({time.time()-t0:.0f}s)", flush=True)
 free_models(m7); m7 = None; tk7 = None; gc.collect()
 save_partial(S_RAW=S_RAW, PEER_RAW=PEER_RAW, I_RAW=I_RAW, V_RAW=V_RAW, VPEER_RAW=VPEER_RAW)
 
+_tr, _tr_sp = trunc_report({"S": S_RAW, "I": I_RAW, "V": V_RAW, "PEER": PEER_RAW, "VPEER": VPEER_RAW})
 PS, PI, PV = grade(S), grade(I), grade(V)
 PPEER, PVPEER = grade(PEER), grade(VPEER)
 comp = sum(compiles(c) for c in S + I + V) / (3*N)

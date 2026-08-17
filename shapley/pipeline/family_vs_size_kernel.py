@@ -206,7 +206,7 @@ CODE["Q1"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
 CODE["Q2"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS, temp=0.8)]
 CODE["Q3"] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS, temp=0.8)]
 TESTS = [clean_asserts(t) for t in gen(mo, tk, WTEST, PR, BS)]   # bo chon: CHI do Q viet
-mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
 free()
 print(f"Q xong ({time.time()-t0:.0f}s)", flush=True)
 json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TESTS},
@@ -215,12 +215,13 @@ json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TES
 for tag in ["L", "D", "XS", "XL"]:
     mo, tk = load(tag)
     CODE[tag] = [extract(t) for t in gen(mo, tk, SOLVE, PR, BS)]
-    mo = None; tk = tk   # thao tham chieu cua CALLER truoc khi gc
+    mo = None; tk = None   # #159: 'tk = tk' la no-op, khong ha refcount
     free()
     print(f"{tag} xong ({time.time()-t0:.0f}s)", flush=True)
     json.dump({"partial": True, "raw": {k: v for k, v in CODE.items()}, "TESTS": TESTS},
               open(f"/kaggle/working/partial_{RUN}.json", "w"))
 
+_tr, _tr_sp = trunc_report(CODE)   # #159: het la ma chet
 PASS = {k: grade(v) for k, v in CODE.items()}
 CNT = {k: par(_run, [(v[i], TESTS[i], "cnt") for i in range(N)]) for k, v in CODE.items()}
 A = lambda p: round(sum(p)/N, 4)
@@ -312,7 +313,7 @@ for name, r in RES.items():
     print(f"    TRAN H = {r['H']:.4f} (+{r['H_minus_base']:.4f})  |  SEL = {r['SEL']:.4f} (+{r['SEL_minus_base']:.4f})  |  kappa = {r['kappa']}%")
     print(f"    phan bo so ung vien dung: {r['dist_n_correct']}  (cung sai {r['all_wrong']} / cung dung {r['all_right']} / hon hop {r['mixed']})")
     print(f"    tie_rate = {r['tie_rate']:.4f}")
-hd, sd = res["H_diff"], res["SEL_diff"]
+hd, sd = res["H_B_minus_A"], res["SEL_B_minus_A"]   # #159: ten cu H_diff/SEL_diff da doi
 print(f"\n  H(B) - H(A)   = {hd:+.4f}   <-- DAI LUONG CHINH (#89)")
 print(f"  SEL(B) - SEL(A) = {sd:+.4f}")
 mn = min(A(PASS[k]) for k in CODE)
