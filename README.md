@@ -209,6 +209,12 @@ mà ứng viên đầu **chính là** mốc `Q1` ⇒ thiên vị. Tính lại: p
 | số ứng viên **phân biệt** (trung bình) | **1.91** / 3 | **2.70** / 3 |
 | bài chỉ có **MỘT** ứng viên duy nhất | **36.2%** | **6.5%** |
 
+<sub>**Chuẩn hoá (khoá ở #99, cần để tái tạo):** bỏ chú thích `#...`, gộp mọi khoảng trắng thành
+một dấu cách, rồi so khớp **chính xác**. Con số phụ thuộc bước này: chuẩn hoá **thô** cho 47.6%,
+**chỉ gộp khoảng trắng** cho 48.8%, **bỏ chú thích + gộp** cho **50.4%** (đây là bản đã khoá).
+Một kiểm định độc lập dùng chuẩn hoá khác đã ra số khác — nên ghi rõ ở đây (#163).
+Đã kiểm: dùng code **đầy đủ** hay code **cắt 800 ký tự** trong `traces_` đều cho **cùng** kết quả.</sub>
+
 > **Lấy mẫu lại từ cùng một model, 3 lượt, chỉ mua được ~1.9 ứng viên khác nhau —
 > và 36% số bài chỉ có ĐÚNG MỘT.** Ở những bài ấy, mọi giao thức "sinh nhiều rồi chọn"
 > đều **bất lực về cấu trúc**: không có gì để chọn giữa.

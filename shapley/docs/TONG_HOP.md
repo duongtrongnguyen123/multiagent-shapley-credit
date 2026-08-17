@@ -144,7 +144,7 @@ giá trị của agent thứ hai  =  H(pool)  ×  κ(z)  −  D(giao thức)
 | `SEL` test tự sinh | >0 | **~.5–.9** | **0** | **+.015 … +.022** ✓ |
 | `SEL` + nhiều ứng viên | **lớn hơn** | ~.7 | 0 | **+.0496** (dải giữ lại) ✓ |
 | test **chạy được** | >0 | **cao** (oracle thật) | 0 | **+.0401 / +.0388** ✓ |
-| **`SEL` pool KHÁC HỌ** (#145) | **lớn nhất đo được** (+.069 trần) | **~.63** | 0 | **+.0452** ✓ **tái lập 2/2** |
+| **`SEL` pool KHÁC HỌ** (#145) | **lớn nhất đo được** (+.069 trần) | **~.63** | 0 | **+.0453** ✓ **tái lập 2/2** |
 
 **Mọi kết quả ÂM là `D > 0` hoặc `κ ≈ 0`. Mọi kết quả DƯƠNG là `D = 0` và `κ > 0`.**
 
