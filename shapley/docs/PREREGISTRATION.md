@@ -4725,3 +4725,61 @@ bộ bài** — dữ liệu cũ là **7 cặp gộp từ nhiều lần chạy kh
 **Một hệ quả tôi phải nhận:** kết quả cũ nằm **sát cả hai ngưỡng**, nên H96 rất có thể rơi vào
 vùng biên. **Tôi sẽ không được phép "làm tròn về phía" hàng nào** — nếu `β₂` = +.019 hoặc
 p = .051 thì đó là **hàng 2 hoặc hàng 3**, không phải hàng 1.
+
+---
+
+## #107 — H97: **`Δ_ceil` có đọc được TỪ CHÊNH NĂNG LỰC không?** — phân rã `A/B/C` trên 15 cặp, CÙNG bộ bài
+
+**Đăng ký lúc:** trước khi viết kernel, trước khi phóng. Xuất phát từ #181 + #182.
+
+### Vì sao — hai kết quả vừa xong ghép lại thành một câu hỏi trả lời được
+- **#182**: `A` ≈ `.080 − .192·chênh`, `R²` = **.82**. Dư địa **đọc được từ chênh năng lực**.
+- **#181**: đẳng thức `Δ_ceil = A − B + C` đúng 4/4, và **`B` bám `Δ_ceil` chặt hơn `A`** (r −.99 vs +.94).
+  `B` là số hạng **giao thức kiểm soát được** (`D` của TONG_HOP); `A` là tính chất của cặp model.
+
+Nếu `B` **cũng** đọc được từ chênh thì `Δ_ceil` bị **cặp model quyết định hoàn toàn** ⇒ **không có
+đòn bẩy giao thức nào**, dòng "sửa" chết bằng số học. Nếu `B` **không** đọc được từ chênh thì có thứ
+khác chi phối ⇒ đòn bẩy giao thức **còn khả năng tồn tại**.
+
+**Tất cả các số `Δ_ceil` của dự án tới nay là 4 điểm GỘP TỪ 4 LẦN CHẠY, khác dải bài** — đúng thứ
+#179/#182 vừa chứng minh là không tách được. Đây là lần đầu đo **trong MỘT lần chạy, cùng 499 bài**.
+
+### Thiết kế — RTX 6000, sáu model, 15 cặp có hướng, **cùng MBPP 11–510**
+1. **Nền:** mỗi model một lượt greedy ⇒ `PASS[model]` (giống H96).
+2. **Nhánh `V`:** với mỗi cặp có hướng (S, I), nạp `I` **một lần** rồi cho `I` **sửa** artifact của `S`
+   trên toàn bộ bài ⇒ `PASS_V[(S,I)]`. Gom theo `I` để không nạp lại. Thứ tự `I` từ **rẻ đến đắt**
+   (llama8b → dscoder → 7b → 14b → 32b) để nếu hết giờ vẫn còn cặp dùng được.
+3. `Δ_ceil` = `P(S ∨ (¬S ∧ V)) − P(I)`, kernel **tự kiểm** lại bằng `A − B + C` (phải khớp tuyệt đối).
+
+### CỔNG — **theo từng CẶP**, không phải cả lần chạy
+Bài học #177: DeepSeek-Coder sinh code sai cú pháp ở nhánh review đã VOID hai lần. Một nhánh hỏng
+**không được phép** giết 14 cặp tốt.
+- **cặp hợp lệ** ⇔ `compiles(extract(V)) ≥ .90` **và** `|trích(V) − trích(I nền)| < .05` **và** cắt cụt(`V`) < .05
+- **cả lần chạy**: `n ≥ 480` · mọi `acc` nền ∈ [.30, .90] · **còn ≥ 10 cặp hợp lệ** (dưới đó không hồi quy)
+- Cặp trượt được **liệt kê** trong `res`, **không** bị lặng lẽ bỏ.
+
+### BẢNG KHOÁ — chính: `Δ_ceil ~ δ₀ + δ₁·chênh` trên các cặp hợp lệ
+`g*` = `−δ₀/δ₁` = mức chênh mà `Δ_ceil` đổi dấu. Dải chênh quan sát được ở H96 là **[.040, .317]**.
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng lần chạy trượt, hoặc < 10 cặp hợp lệ | **VOID** |
+| 1 | `δ₁ < 0`, p < .05, `R² ≥ .50`, **và** `g*` ∈ [.04, .32] | **Chênh năng lực dự báo `Δ_ceil`** ⇒ có **luật quyết định dùng được**: chỉ đáng thử "sửa" khi chênh < `g*` |
+| 2 | `δ₁ < 0`, p < .05, **nhưng** `g*` < .04 (⇒ `Δ_ceil` < 0 trên **toàn dải đo được**) | **GIẾT DÒNG "SỬA"**: không có cặp nào trong dải đo có dư địa ròng; #169 là ngoại lệ của dải bài, không phải của quy luật |
+| 3 | p(`δ₁`) ≥ .05 **hoặc** `R²` < .50 | **Chênh KHÔNG dự báo `Δ_ceil`** ⇒ `B` hoặc `C` mang phương sai chênh không giải thích được ⇒ **đòn bẩy giao thức còn khả năng**; báo cáo bảng mô tả |
+| 4 | `δ₁ > 0`, p < .05 | **NGƯỢC** — chênh lớn cho dư địa ròng NHIỀU hơn; mâu thuẫn luật `A` của #182, phải điều tra |
+
+**Phụ (khoá riêng, đọc SAU hàng chính):** `R²` của `B ~ chênh`.
+`R² ≥ .50` ⇒ **`B` phần lớn do cặp model quyết định**, đòn bẩy giao thức hẹp.
+`R² < .50` ⇒ **`B` còn phương sai không do chênh** ⇒ chỗ cho giao thức tác động.
+⚠️ Đây là **một** giao thức sửa duy nhất. `R²` thấp **không chứng minh** giao thức là nguyên nhân —
+nó chỉ **không loại trừ**. Muốn chứng minh phải **đổi giao thức ở chênh cố định**, và đó là lần sau.
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 1 **~45%** · hàng 3 **~30%** · hàng 2 **~20%** · hàng 4 **~5%**.
+Nghiêng hàng 1 vì ba điểm `Δ_ceil` cũ (chênh .090 → +.0060; .098 → +.0421; .226 → −.0641) khớp một
+đường dốc âm với `g*` ≈ **.13**, nằm gọn trong dải. **Nhưng ba điểm ấy là cross-run** — đúng loại bằng
+chứng vừa lừa tôi ở #179. Nên hàng 3 được đặt cao thứ nhì: `B` có thể ồn hơn `A` nhiều.
+**Nếu hàng 2 xảy ra tôi phải rút phần "nút thắt là `κ` chứ không phải `H`" của #169 trong TONG_HOP.**
+
+**Tỉ lệ prior đúng: 19/40** (cộng dồn, xem #167).
