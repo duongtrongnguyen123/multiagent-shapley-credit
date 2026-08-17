@@ -93,3 +93,12 @@
 | `partial_H89h.json` | 642335 | `47033f9fd0bfcd1af3fce99b75b9c8047a77dd52415d0c39eebdc07f3ea60b0f` |
 | `res_H89h.json` | 1669 | `a29dbd1690b51cb99614295ac113efb308c3fe8492d6b6eba01e66755b5b6536` |
 | `traces_H89h.json` | 356840 | `14301b7adcc6d1bab36a7b0678895eb22d51eabdd5ec0c334df73bbe1fd1ce86` |
+
+### `results_H96` — niêm phong 2026-08-17 21:26:04 +0700
+
+| tệp | bytes | sha256 |
+|---|---|---|
+| `headroom-map-h96.log` | 927544 | `023e49a42eed94c47f62378525eaf1fe216d7387b7da1236f8ca8b15d781ac8c` |
+| `partial_H96.json` | 701056 | `e06c3cfdb72e4c6884c4bec0263897f9b800f70455ef508ed4f062be78d6fd7e` |
+| `res_H96.json` | 3694 | `4e800300f00a05d19ea43f1634bebc4acf1a6a1012299ccaf6bac7dac46634b1` |
+| `traces_H96.json` | 21743 | `e28d9d2333a6fd038282880432728eb1d9b60c6135260d19b05bc049c754c7a1` |
