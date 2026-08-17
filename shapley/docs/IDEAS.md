@@ -7365,3 +7365,66 @@ của H98 là **VOID**, và nó **ở lại là VOID**. Xem #110.
 
 ### Tiên nghiệm
 Cổng không đạt ⇒ **không cập nhật**. Vẫn **20/41**.
+
+---
+
+## Vòng #188 — **THỨ CẤP (#110), từ một lần chạy VOID**: giao thức **ĐỘC LẬP-TRƯỚC** hạ `B` rất mạnh
+
+> **⚠️ NHÃN BẮT BUỘC: phân tích THỨ CẤP của lần chạy H98 đã VOID (#187).**
+> **KHÔNG xác nhận. KHÔNG ra README. KHÔNG vào TONG_HOP. KHÔNG tính vào prior (giữ 20/41).**
+> Đặc tả cổng thu hẹp đã commit **trước** khi tính (#110), kèm công bố rằng *"tôi chưa đọc `D`"*
+> là **cam đoan không kiểm chứng được**.
+
+Cổng thứ cấp đạt: giãn trong sáu nhánh giao thức **.0020**; mỗi nhánh so với `I` nền lệch tối đa **.0040**.
+
+| ô | `A` | `B` | `C` | `Δ_ceil` |
+|---|---|---|---|---|
+| P:R0 (mốc) | .0882 | .0802 | .0220 | +.0301 |
+| P:R1 hoài nghi | .0882 | .0641 | .0281 | **+.0521** |
+| P:R2 độc lập-trước | .0882 | **.0301** | .0080 | **+.0661** |
+| Q:R0 (mốc) | .0301 | .1363 | .0301 | −.0762 |
+| Q:R1 hoài nghi | .0301 | .1242 | .0461 | −.0481 |
+| Q:R2 độc lập-trước | .0301 | **.0261** | .0180 | **+.0220** |
+
+| so sánh | `D` | p | `ΔB` | `ΔC` |
+|---|---|---|---|---|
+| P:R1−R0 | +.0220 | .019 | −.0161 | +.0061 |
+| P:R2−R0 | +.0360 | .0079 | −.0501 | −.0140 |
+| Q:R1−R0 | +.0281 | .024 | −.0121 | +.0160 |
+| **Q:R2−R0** | **+.0982** | **~0** | **−.1102** | −.0121 |
+
+⇒ **HÀNG 1** theo bảng khoá #108 (giữ nguyên chữ). Cả **4/4** so sánh dương và có ý nghĩa.
+
+### Cái này trả lời đúng câu hỏi #186 đặt ra
+#186 hỏi: "sửa" chết vì **model bị artifact làm hỏng** (⇒ lời nhắc chữa được) hay vì **số học ngân sách**
+(⇒ phải có cổng định tuyến)? Câu trả lời là **cả hai, nhưng không cùng cỡ**:
+- **R1 = lời nhắc thuần** (bảo nó hoài nghi): `ΔB` = −.016 / −.012. **Có tác dụng, nhỏ.**
+- **R2 = thay đổi CẤU TRÚC** (cho model xem lời giải **của chính nó** cạnh ứng viên): `ΔB` = **−.050 / −.110**.
+  Ở cặp Q, `B` sụp từ **.1363 xuống .0261** — **gấp 9 lần** tác dụng của lời nhắc.
+
+**R2 không phải là một lời nhắc khác. Nó là M2 dựng thành giao thức:** nguồn **độc lập** (lời giải
+tự sinh của `I`) đặt cạnh nguồn **tương quan** (ứng viên của `S`). `B` = số bài `I` vốn làm đúng mà
+`V` phá — và khi `I` **nhìn thấy chính đáp án đúng của mình**, nó gần như thôi phá.
+Ở cặp Q, `Δ_ceil` **đổi dấu**: −.0762 → **+.0220**.
+
+### Ba điều làm yếu kết quả này — phải nói trước khi ai đó phấn khích
+1. **Lần chạy VOID.** Đó là lý do đủ để không trích ra ngoài.
+2. **`R2` tốn hơn `R0`.** Nó cần lời giải riêng của `I`. Ở đây tái dùng nhánh `I` nên **không tốn thêm
+   token trong thí nghiệm**, nhưng khi triển khai thì `I` **phải chạy** — mà nếu `I` đã chạy rồi thì
+   câu hỏi *"sửa có hơn gọi thẳng `I` không"* mới là câu đáng hỏi, và đó là **`Δ_honest`**, **không phải
+   `Δ_ceil`**. `Δ_ceil` là **trần oracle**. **R2 làm đẹp trần, chưa chứng minh gì về giao thức khả thi.**
+3. **Lượng tử hoá đổi kết quả.** Cùng giao thức R0, cùng cặp, khác phần cứng:
+
+| | H97 (RTX 6000, bf16) | H98 (T4, nf4) |
+|---|---|---|
+| acc 1.5B / 7B | .4369 / .6633 | **.3828 / .6373** |
+| cặp Q `Δ_ceil` | −.0441 | **−.0762** |
+| cặp P `Δ_ceil` | +.0240 | +.0301 |
+
+nf4 hạ `acc` **3–5 điểm** và làm `Δ_ceil` của cặp Q **âm hơn .032**. ⇒ **Không được so số H98 với số
+H97.** So sánh **trong** H98 (ghép cặp, cùng phần cứng) thì hợp lệ; **chéo lần chạy thì không** —
+đúng bài học đã học bốn lần.
+
+### Việc bắt buộc tiếp theo
+#110 đã ràng: hàng 1 ⇒ **phải chạy XÁC NHẬN**, cổng đúng phạm vi, **cặp khác**, đăng ký trước.
+Đang thiết kế ngay (#111). Cho tới lúc đó, **kết quả này chỉ tồn tại trong `IDEAS.md`.**
