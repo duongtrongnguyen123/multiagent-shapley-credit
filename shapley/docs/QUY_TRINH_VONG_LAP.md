@@ -567,3 +567,13 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
     +.02 đã khoá ⇒ đây là **null CÓ THÔNG TIN**. **Luôn in KTC cạnh p**, và khi đăng ký trước
     hãy khoá **ngưỡng hiệu ứng**, không chỉ khoá `p < .05` — nếu không sẽ không phân biệt được
     "không có hiệu ứng" với "chưa nhìn thấy hiệu ứng".
+
+24. **Đại lượng có hai cách tính ⇒ cổng dùng cách NGHIÊM KHẮC, `res` in CẢ HAI.** (#184)
+    H95b có `coverage` = 1.0 (bài không chạy được test bị coi là trượt cổng ⇒ luôn có quyết định)
+    **và** `cov_z_self` = .699 (test chạy được thật). Cổng đã dùng số .699 nên VOID đúng; nếu dùng
+    1.0 thì một kết quả **không hợp lệ đã lọt qua**. In cả hai để người đọc thấy được khe hở.
+
+25. **Một câu hỏi bị chặn HAI LẦN vì cùng một nguyên nhân ⇒ lỗi THIẾT KẾ, đừng chạy lần ba y nguyên.**
+    (#184) Câu hỏi `κ` hỏng ở #157 (pool suy biến) rồi #184 (độ phủ tín hiệu) — cả hai lần vì
+    **model yếu không sinh nổi tín hiệu dùng được**. Phải đổi `S`, hoặc đổi estimand **có đăng ký
+    trước**, chứ không phải hạ ngưỡng cổng sau khi thấy nó trượt (= lỗi #138).

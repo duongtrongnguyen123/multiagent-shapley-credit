@@ -7172,3 +7172,50 @@ cho `g*` = **.076**. Bảng 15 dòng in ra rất thuyết phục.
 H97 kiểm được bằng **15 điểm trong CÙNG một lần chạy**.
 **Vứt bỏ:** mọi dự báo dấu dựa trên `ρ` hằng. **Không đưa `g*` = .076 vào bất kỳ đâu**, và nó
 **không** thay `g*` ≈ .13 của đăng ký trước #107 — bảng khoá #107 **giữ nguyên**.
+
+---
+
+## Vòng #184 — H95b (#105): **VOID** ở cổng ĐỘ PHỦ. Không đọc số.
+
+`results_H95b` niêm phong trước khi mở. Cổng chất lượng #105:
+
+| cổng | kết quả |
+|---|---|
+| trích xuất ≥ .80 mọi nhánh, giãn < .05 | đạt (.982–.998, giãn .016) |
+| cắt cụt < .05 mọi nhánh | đạt (≤ .002) |
+| `n ≥ 480` | đạt (499) |
+| `I − S ≥ .05` **và** p < .05 | đạt |
+| **độ phủ `z_self` ≥ .90** | **TRƯỢT — .6994** |
+| **chênh độ phủ < .10** | **TRƯỢT — \|.988 − .699\| = .289** |
+
+⇒ **HÀNG 0: VOID.** Theo luật, tôi **ghi VOID và KHÔNG đọc** `Δ_honest` của ba cổng, **cũng không đọc**
+`Δ_ceil`. Chúng nằm cùng file JSON nên tôi **có nhìn thấy** — và tôi **không dùng**, không trích,
+không để chúng chạm vào bất kỳ kết luận nào. (Chính chỗ này #114/#121/#123 đã gãy.)
+
+### Vì sao trượt — và vì sao chạy lại KHÔNG cứu được
+`z_self` là test do **Qwen2.5-1.5B** viết. Chỉ **69.9%** số bài có test **chạy được thật**
+(`test_runnable` = .6994). Trong khi `z_dear` (Llama viết) phủ **98.8%**.
+Đây là **tính chất của model 1.5B**, giống hệt việc DeepSeek sinh code sai cú pháp ở #177 —
+**không phải lỗi đo**, nên **chạy lại y nguyên sẽ trượt y nguyên**.
+
+**Cổng #105 số 5 là BẤT KHẢ THI với `S` = Qwen2.5-1.5B.** Đó là kết luận của vòng này.
+Ghi nhận, không hạ ngưỡng. (Hạ ngưỡng sau khi thấy nó trượt = đúng lỗi #138.)
+
+### Một chi tiết cài đặt suýt che mất cổng
+Trong `res`, mỗi cổng ở `gates_105` báo `"coverage": 1.0`, vì bài **không chạy được test** bị mặc
+định coi là **trượt cổng** ⇒ luôn có quyết định ⇒ "phủ 100%". Nhưng `cov_z_self` = **.6994** mới là
+**độ phủ thật** (test chạy được). Kernel đã dùng **đúng số nghiêm khắc** cho quyết định VOID.
+Nếu nó dùng `1.0` thì cổng đã **lọt**, và tôi đã đọc một kết quả không hợp lệ.
+⇒ **Luật: khi một đại lượng có hai cách tính, cổng phải dùng cách NGHIÊM KHẮC hơn, và `res` phải
+in CẢ HAI.** Đưa vào quy trình.
+
+### Câu hỏi `κ` giờ bị chặn **hai lần**
+#157: `z_dear` không giúp, **nhưng pool suy biến** (8.6% bất đồng) ⇒ không kết luận được.
+#184: thiết kế đủ mạnh, **nhưng độ phủ tín hiệu không đạt** ⇒ VOID.
+**Hai lần chặn là tín hiệu về THIẾT KẾ, không phải xui.** Cả hai lần, thứ hỏng đều là
+**model yếu không sinh nổi tín hiệu dùng được**. Lần sau phải chọn `S` sinh được test chạy được,
+hoặc đổi estimand — và **phải đăng ký trước**, không chữa cháy.
+
+### Tiên nghiệm
+Prior của #105 đặt trên hàng 1–4 **với điều kiện cổng đạt**. Cổng không đạt ⇒ **không cập nhật**.
+Vẫn **19/40**.
