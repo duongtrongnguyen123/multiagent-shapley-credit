@@ -614,3 +614,12 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
     **không phát hiện nổi một model nào** trên đúng kernel đã gây OOM (regex bỏ sót `SPEC` dạng dict).
     Chuẩn nghiệm thu: **báo động trên ca đã hỏng** VÀ **im lặng trên ca đã chạy tốt**. Thiếu vế thứ
     hai thì công cụ chỉ là tiếng ồn, và tiếng ồn thì bị phớt lờ.
+
+33. **So chéo lần chạy: hợp lệ ⇔ trùng (máy + độ chính xác) VÀ trùng bộ bài.** (#196) Hai tài khoản
+    khác nhau, hai ngày khác nhau, cùng T4/nf4, cùng dải bài ⇒ **499/499 giống hệt từng bài**.
+    Lệch phần cứng ⇒ nhiễu tới .03 (#189). Lệch bộ bài ⇒ không so được (đó là lỗi của #179).
+    **Hai confound RIÊNG BIỆT** — trước đây tôi gộp làm một.
+
+34. **Greedy tất định ⇒ "chạy lại y nguyên để xác nhận" là VÔ NGHĨA.** (#196) Không có nhiễu lấy mẫu
+    để trung bình; lần chạy thứ hai cho **đúng từng bài**. Mọi phép xác nhận **phải** đổi ít nhất
+    một trong: bộ bài, cặp model, giao thức. Nếu không đổi gì thì đó không phải bằng chứng độc lập.

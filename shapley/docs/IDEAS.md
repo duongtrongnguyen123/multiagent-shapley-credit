@@ -7770,3 +7770,50 @@ miễn phí giữa hai lần chạy).
 
 ### Tiên nghiệm
 Lỗi hạ tầng ⇒ **20/41** giữ nguyên.
+
+---
+
+## Vòng #196 — **KIỂM ĐỊNH**: hai tài khoản khác nhau, hai ngày khác nhau ⇒ **giống nhau 499/499 từng bài**
+
+Miễn phí. H98 (tài khoản `dfbjdsbds`) và H100c (tài khoản `tuetrandoanminh`) đều chạy nhánh nền
+`dscoder` và `qwen7b` trên **T4/nf4**, cùng MBPP 11–510.
+
+| model | acc H98 | acc H100c | khớp **từng bài** |
+|---|---|---|---|
+| dscoder | .5872 | .5872 | **499/499** |
+| qwen7b | .6373 | .6373 | **499/499** |
+
+Không phải trùng `acc` — **trùng vector kết quả từng bài, tuyệt đối.**
+
+### Luật "đừng so chéo lần chạy" giờ **sắc hơn**, và nó tách làm hai
+Bốn lần dự án bị lừa bởi so chéo. Nhưng #185 (RTX 6000 tái lập chính xác), #189 (nf4 vs bf16 lệch
+3–5 điểm) và vòng này gộp lại cho một phát biểu **chính xác hơn**:
+
+> **So chéo lần chạy HỢP LỆ khi và chỉ khi trùng CẢ HAI: (1) loại máy + độ chính xác số,
+> (2) đúng bộ bài.** Greedy tất định ⇒ trùng cả hai thì kết quả **giống hệt từng bài**, và
+> gộp là hợp pháp. Lệch (1) ⇒ nhiễu loạn tới **.03** (#189). Lệch (2) ⇒ không so được, **bất kể**
+> phần cứng.
+
+Nhìn lại bốn lần bị lừa: #179 (7 cặp, **khác dải bài**) hỏng vì (2), không phải (1).
+**Hai confound khác nhau, tôi từng gộp chúng làm một.** Tất định **không** cứu được (2).
+
+### Hệ quả thực dụng tôi bỏ lỡ
+H100c đã tốn **3.648 giây** sinh nhánh nền `llama8b` (chia thẻ, chậm). H100d **đang sinh lại y hệt** —
+và theo kết quả trên, nó sẽ ra **đúng từng bài**. Đó là **hơn một giờ GPU tiêu phí**, trong khi
+`partial_H100c.json` đã giữ nguyên `raw`.
+
+⇒ Cần một đường **nạp lại nhánh nền từ `partial_*.json` của lần chạy trước** khi
+(máy, độ chính xác, dải bài, model) trùng khớp — có **kiểm tra khớp tường minh**, không nạp mù.
+Ghi vào việc phải làm; **không** sửa H100d đang chạy.
+
+### Điều này KHÔNG cho phép
+**Không** cho phép so H98 với H97 (khác phần cứng — #189 vẫn nguyên hiệu lực).
+**Không** cho phép so #179 kiểu cũ (khác dải bài).
+**Không** cho phép coi hai lần chạy khác *lời nhắc* là "lặp lại" — chúng khác thiết kế, không phải
+khác nhiễu. Tất định nghĩa là **không có nhiễu lấy mẫu nào để trung bình đi**: một lần chạy greedy
+là **một điểm duy nhất**, và lặp lại nó **không** làm khoảng tin cậy hẹp lại.
+
+> **Điểm cuối này quan trọng hơn phần còn lại.** Vì greedy tất định, *"chạy lại để xác nhận"*
+> trên **cùng** cấu hình là **vô nghĩa hoàn toàn** — nó không phải bằng chứng độc lập.
+> Xác nhận thật **bắt buộc** phải đổi thứ gì đó: bộ bài, cặp model, hoặc giao thức.
+> H100d đổi **cặp model** ⇒ hợp lệ. Nếu tôi từng định "chạy lại y nguyên cho chắc", đó là ảo tưởng.
