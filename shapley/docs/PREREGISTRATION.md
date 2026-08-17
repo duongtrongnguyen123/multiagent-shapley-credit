@@ -4529,3 +4529,58 @@ làm cho độ trung thực của tiên nghiệm kiểm được bằng mắt**.
 
 **Từ nay mọi đăng ký trước PHẢI kết thúc bằng dòng `Tỉ lệ prior đúng: N/M`.**
 Bỏ dòng đó — dù vô tình — là **xoá bằng chứng chống lại chính mình**.
+
+---
+
+## #105 — H95: **CÓ TÍN HIỆU CỔNG KHẢ THI NÀO LẤY ĐƯỢC DƯ ĐỊA KHÁC HỌ KHÔNG?**
+
+**Đăng ký lúc:** trước khi phóng. Xuất phát trực tiếp từ #169.
+
+### Vì sao hỏi câu này
+#169 (H89g, cặp **khác họ** 1.5B→Llama-8B, mọi cổng đạt) cho:
+- `Δ_ceil` = **+.0421** (p .042) ⇒ **CÓ dư địa** để khai thác từ artifact của model yếu
+- `Δ_honest` = **−.0080** (p .77) ⇒ **cổng khả thi lấy được ~0**
+
+⇒ nút thắt là **`κ`**, không phải `H`. #157 đã cho thấy đổi **họ của người viết test** không giúp —
+nhưng pool ở đó **suy biến** (chỉ 8.6% bài có bất đồng, 50.4% ứng viên **trùng nguyên văn**).
+Giờ mới có một cặp **thật sự có dư địa** để thử.
+
+### Thiết kế — MỘT lần chạy, cùng artifact, đổi DUY NHẤT tín hiệu cổng
+`S` = Qwen2.5-1.5B, `M` = Llama-3.1-8B, MBPP 11–510 (đúng cặp và dải của H89g).
+Sinh **một lần**: `S`, `I`, `V`. Rồi ba tín hiệu cổng, **cùng áp lên cùng artifact**:
+
+| cổng | tín hiệu | khả thi? |
+|---|---|---|
+| `z_self` | test do **chính `S`** viết, chạy thật | có (mốc hiện tại) |
+| `z_dear` | test do **`M`** viết (khác họ), chạy thật | có |
+| `z_agree` | đáp án của `S` và `I` **khớp nhau** (đồng thuận) | có |
+| `z_oracle` | `S` đúng THẬT | **không** — chỉ là chặn trên |
+
+Với mỗi cổng: `G_V` = (cổng đạt → giữ `S`; trượt → `V`), và `Δ_honest` = `acc(G_V) − acc(I)`.
+
+### CỔNG CHẤT LƯỢNG (hiệu ứng + ý nghĩa + độ phủ — luật #140/#144)
+1. `compiles(extract(t)) ≥ .80` mọi nhánh, chênh **< .05** · 2. cắt cụt **< .05** mọi nhánh
+3. `n ≥ 480` · 4. **`I − S ≥ .05` VÀ p < .05**
+5. **độ phủ ≥ .90** cho `z_self` và `z_dear` (bài học #144), chênh độ phủ **< .10**
+6. **`Δ_ceil` (cổng oracle) ≥ +.02 VÀ p < .05** — nếu lần này không tái lập được dư địa của #169
+   thì **không có gì để đi tìm**, và bảng dưới **không áp dụng**.
+
+### BẢNG KHOÁ (đã KIỂM PHỦ — mô phỏng kèm khi phóng)
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | bất kỳ cổng chất lượng nào trượt | **VOID** |
+| 1 | **có ít nhất một** cổng khả thi đạt `Δ_honest ≥ +.02` **và** p < .05 | **`κ` SỬA ĐƯỢC.** Tồn tại tín hiệu khả thi lấy được dư địa khác họ ⇒ dòng "sửa" **chưa chết**, chỉ cần đúng tín hiệu. Nêu rõ cổng nào. |
+| 2 | mọi cổng khả thi có `Δ_honest < +.02` **hoặc** p ≥ .05, **nhưng** `Δ_ceil ≥ +.02` (p<.05) | **`κ` LÀ NÚT THẮT THẬT.** Dư địa có thật nhưng **ba tín hiệu khả thi khác nhau đều không lấy được** ⇒ vấn đề nằm ở **bản chất tín hiệu**, không ở việc chọn sai tín hiệu. |
+| 3 | `Δ_ceil` < +.02 hoặc p ≥ .05 (cổng 6 trượt) | **KHÔNG tái lập được dư địa của #169** ⇒ `+.0421` của H89g có thể là dương tính giả (p .042, đơn lẻ). **Phải hạ cấp #169.** |
+| 4 | một cổng khả thi có `Δ_honest ≤ −.02` (p<.05) | cổng đó **chủ động hại** — ghi rõ, đây là cảnh báo triển khai. |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 2 **~45%** · hàng 3 **~30%** · hàng 1 **~20%** · hàng 4 **~5%**.
+Hàng 3 được đặt cao vì `+.0421` của #169 có **p = .042**, đơn lẻ, và nằm đúng dải .01–.05 mà
+kiểm định #125-B4 cảnh báo là vùng dương tính giả. **Tôi tự đặt cho mình cơ hội bác bỏ chính
+kết quả vừa dùng để sửa README.**
+Hàng 1 thấp vì #157 đã cho thấy `z_dear` không giúp (dù trên pool suy biến), và `z_agree` là
+tín hiệu **tương quan** mà M2 dự đoán sẽ yếu.
+
+**Tỉ lệ prior đúng: 18/39** (cộng dồn; xem #167).
