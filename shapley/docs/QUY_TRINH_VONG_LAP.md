@@ -555,3 +555,15 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
 > ĐANG CHỜ KẾT QUẢ để tìm cùng khuyết tật — và sửa TRƯỚC khi dữ liệu về.**
 > Sửa sau khi dữ liệu về thì dù đúng cũng **không thể phân biệt** với việc chỉnh bảng cho vừa
 > kết quả. Cửa sổ duy nhất để sửa một bảng **mà không mất tính chính danh** là lúc nó chưa có số.
+
+22. **Khi rút một nhãn CƠ CHẾ, phải nói rõ nó phủ tới ĐÂU.** (#182) H96 bác "khác họ" ở kênh
+    **dư địa `A`**. Cám dỗ là quét luôn mọi kết quả có chữ "khác họ" — kể cả #145, vốn đo
+    **đa dạng ứng viên**, một kênh H96 **không chạm tới**. Suy như thế chính là **đúng loại lỗi**
+    H96 vừa bắt được: kết luận từ biến bị trộn. **Rút đúng phạm vi đã đo; chỗ chưa đo thì hạ nhãn
+    xuống mức kiểm được** (ở #145: "khác họ" → "khác MODEL") **và ghi rõ đối chứng còn thiếu.**
+
+23. **Null có KTC loại trừ ngưỡng ≠ "thiếu lực".** (#182) `β₂` = +.0045, p = .33 — nếu chỉ nhìn p
+    thì rơi vào hàng "không đủ lực". Nhưng KTC 95% **[−.005, +.014]** nằm **trọn dưới** ngưỡng
+    +.02 đã khoá ⇒ đây là **null CÓ THÔNG TIN**. **Luôn in KTC cạnh p**, và khi đăng ký trước
+    hãy khoá **ngưỡng hiệu ứng**, không chỉ khoá `p < .05` — nếu không sẽ không phân biệt được
+    "không có hiệu ứng" với "chưa nhìn thấy hiệu ứng".

@@ -4525,7 +4525,8 @@ làm cho độ trung thực của tiên nghiệm kiểm được bằng mắt**.
 | #101 | ~25% VOID | VOID **năm** lần | phần phòng hờ trúng |
 
 > **Tỉ lệ prior đúng: 2/7** (chưa tính #101 vì nó là phòng hờ, không phải hàng chính).
-> Cộng dồn từ #57: **18/39**.
+> Cộng dồn từ #57: **19/40** (cập nhật #182: H96 rơi đúng hàng 2 — hàng tôi đặt modal 45%,
+> và đặt **ngược** với dữ liệu cũ mà chính tôi đã công bố trước ở cuối #106).
 
 **Từ nay mọi đăng ký trước PHẢI kết thúc bằng dòng `Tỉ lệ prior đúng: N/M`.**
 Bỏ dòng đó — dù vô tình — là **xoá bằng chứng chống lại chính mình**.

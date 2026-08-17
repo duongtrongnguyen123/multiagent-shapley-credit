@@ -134,8 +134,9 @@ chi goi model manh mot luot                                        = .6413
 1. **Cổng không làm gì cả** — null ở cả hai dải. Phá hoại **không nằm** ở chỗ cổng với tới:
    `V` phá 12 bài mà model yếu làm đúng, chỉ **4** bài nằm trong tập cổng-đạt.
 2. ~~**Ngay cả cổng hoàn hảo cũng thua** … **không có gì để khai thác**.~~
-   **RÚT Ở #169.** Đúng cho **cặp 1.5B→7B cùng họ** (−.0641, p .0016). **SAI** cho cặp **khác họ**,
-   nơi cổng ORACLE **thắng** (+.0421, p .042). Xem khối cập nhật #169 ở trên.
+   **RÚT Ở #169.** Đúng cho **cặp 1.5B→7B** (chênh **lớn**, .226 ⇒ −.0641, p .0016). **SAI** cho cặp
+   **chênh nhỏ** (1.5B→Llama-8B, chênh .098), nơi cổng ORACLE **thắng** (+.0421, p .042).
+   Nhãn "khác họ" đã bị **rút ở #182** — xem khối RÚT #182 ở dưới.
 3. **Thiệt hại nằm ở nhánh leo thang:** khi đã quyết định can thiệp, cho model mạnh
    **giải lại từ đầu** hơn cho nó **sửa** khoảng **+.09**. Cùng ngân sách, cùng bài; khác
    **duy nhất** ở chỗ model mạnh **có nhìn thấy** bản của model yếu hay không.
@@ -162,7 +163,7 @@ hàng đó **không nổ ở cả hai lần chạy**.
 >
 > | phát hiện | số lần chạy | p |
 > |---|---|---|
-> | #169 `Δ_ceil` **dương** ở cặp khác họ | **1** (H89g) | **.042** — nằm trong dải .01–.05 mà kiểm định #125-B4 gọi là vùng dương tính giả |
+> | #169 `Δ_ceil` **dương** ở cặp **chênh nhỏ** (nhãn "khác họ" rút ở #182) | **1** (H89g) | **.042** — nằm trong dải .01–.05 mà kiểm định #125-B4 gọi là vùng dương tính giả |
 > | #168 cổng **có tác dụng** ở 32B | **1** (H91e) | ≈0 (mạnh) |
 >
 > Chúng có mặt ở đây vì chúng **RÚT LẠI** một phát biểu cũ (*"không có gì để khai thác"*) —
@@ -176,10 +177,10 @@ hàng đó **không nổ ở cả hai lần chạy**.
 > | cặp | cổng có cứu được "sửa"? | **cổng ORACLE so với `I`** | sửa-có-cổng so với `I` |
 > |---|---|---|---|
 > | 1.5B → 7B (Qwen→Qwen) | +.0040 (p .69) | **−.0641** (p .0016) — **thua** | −.0842 |
-> | 1.5B → **Llama-8B** (khác họ) | +.0160 (p .039) | **+.0421** (p **.042**) — **THẮNG** | −.0080 (p .77) |
+> | 1.5B → **Llama-8B** (chênh **nhỏ**, .098) | +.0160 (p .039) | **+.0421** (p **.042**) — **THẮNG** | −.0080 (p .77) |
 > | 7B → 32B (Qwen→Qwen) | **+.0922** (p ≈0) | +.0060 (p .82) — hoà | −.0160 (p .44) |
 >
-> **`Δ_ceil` đổi DẤU giữa các cặp.** Ở cặp **khác họ**, cổng ORACLE **vượt** `I` — nghĩa là
+> **`Δ_ceil` đổi DẤU giữa các cặp.** Ở cặp **chênh năng lực nhỏ**, cổng ORACLE **vượt** `I` — nghĩa là
 > **CÓ dư địa khai thác** từ sản phẩm của model yếu, đúng thứ mục 5 từng tuyên là **không tồn tại**.
 >
 > ⇒ **PHÁT BIỂU CŨ "không có gì để khai thác" là SAI và đã bị rút.**
@@ -212,6 +213,31 @@ hàng đó **không nổ ở cả hai lần chạy**.
 > sinh code **sai cú pháp 6%** ở nhánh review, vi phạm cổng đối xứng — đó là **tính chất của model**,
 > không phải lỗi đo, nên chạy lại cũng vô ích.
 > ⇒ **Mọi phát biểu "khác họ" của dự án đứng trên ĐÚNG MỘT cặp (Llama).**
+>
+> ### ⚠️ RÚT #182 — "khác họ" là TƯƠNG QUAN GIẢ; biến thật là CHÊNH NĂNG LỰC
+>
+> Nghi ngờ ở trên đã được kiểm trực tiếp. Một lần chạy, **sáu model, cùng 499 bài MBPP**,
+> **15 cặp có hướng** ⇒ hồi quy dư địa `A = P(yếu đúng ∧ mạnh sai)` theo **chênh năng lực** và **họ**:
+>
+> | hệ số | ước lượng | KTC 95% | p |
+> |---|---|---|---|
+> | chênh năng lực | **−.192** | — | **~0** |
+> | **khác họ** | **+.0045** | **[−.005, +.014]** | **.33** |
+>
+> KTC của hệ số họ **nằm trọn dưới ngưỡng +.02** đã đăng ký trước là "đáng kể" ⇒ đây là
+> **null CÓ THÔNG TIN**, không phải "mẫu quá nhỏ". Chênh năng lực một mình giải thích **`R²` = .82**.
+>
+> **Vì sao trước đó trông như có hiệu ứng họ:** thô thì `A` khác họ **.0597** > cùng họ **.0481** —
+> nhưng các cặp khác họ **cũng có chênh nhỏ hơn** (.130 vs .167), và tương quan (chênh, `A`) = **−.908**.
+> Khớp chênh rồi thì khoảng cách còn **+.007 / +.019**, cùng cỡ sai số chuẩn.
+>
+> ⇒ **Kết quả +.0421 ở cặp Llama vẫn đúng, nhưng lý do thì không.** Đọc đúng là
+> ***chênh năng lực nhỏ***, không phải *khác họ*. Dự báo kiểm được đã đạt: **7B→14B, CÙNG họ,
+> chênh .050** cho `A` = **.0681** — ngang cặp khác-họ-chênh-nhỏ (.0842).
+>
+> **Giới hạn của việc rút này:** phép thử đo kênh **dư địa**. Kết quả *đa dạng ứng viên* ở mục 6
+> là **kênh khác** và **không** bị nó bác — nhưng vì cùng dạng lỗi, mục 6 nay ghi là
+> **"khác MODEL"** cho tới khi có đối chứng khác-model-cùng-họ.
 > Kiểm định độc lập cho biết các con số **không dùng được** đó **chỉ theo hướng NGƯỢC LẠI**.
 > Chúng tôi **không trích chúng làm bằng chứng** — chúng VOID — nhưng **giấu sự tồn tại của
 > chúng thì tệ hơn nhiều**. Kết luận đúng là:
@@ -242,8 +268,15 @@ Giữ **nguyên** bộ chọn và **nguyên** ngân sách; chỉ đổi **nguồ
 
 | | MBPP 11–510 | MBPP 511–974 (**tách rời**) |
 |---|---|---|
-| **trần `H`**: pool khác họ − pool lấy mẫu | **+.0500** (p 6.2e-4) | **+.0690** (p **9.4e-07**) |
-| **`SEL`**: pool khác họ − pool lấy mẫu | **+.0320** (p 7.0e-3) | **+.0453** (p **4.9e-05**) ⁂ |
+| **trần `H`**: pool khác **MODEL** − pool lấy mẫu | **+.0500** (p 6.2e-4) | **+.0690** (p **9.4e-07**) |
+| **`SEL`**: pool khác **MODEL** − pool lấy mẫu | **+.0320** (p 7.0e-3) | **+.0453** (p **4.9e-05**) ⁂ |
+
+> **⚠️ #182 — vì sao "khác MODEL" chứ không phải "khác HỌ".** Pool đối chứng ở đây là
+> Qwen-7B + Llama-8B + DeepSeek-6.7B, khác pool lấy mẫu ở **cả** họ **lẫn** danh tính model.
+> Đối chứng tách được hai thứ đó — Qwen-7B + Qwen-1.5B + Qwen-14B (**khác model, CÙNG họ**) —
+> **chưa chạy**. Vì #182 vừa cho thấy nhãn "khác họ" ở mục 5 là **tương quan giả**, chúng tôi
+> hạ nhãn ở đây xuống mức **kiểm được**: cái đo được là **khác model**, còn "họ" **chưa kiểm**.
+> Lưu ý #182 **không bác** kết quả này — nó đo kênh **dư địa**, không đo **đa dạng ứng viên**.
 
 <sub>⁂ **Phụ thuộc luật phá hoà** (kiểm định #159). Bộ chọn hiện phá hoà bằng "lấy ứng viên đầu",
 mà ứng viên đầu **chính là** mốc `Q1` ⇒ thiên vị. Tính lại: phá hoà **ngẫu nhiên** cho **+.0375**
@@ -268,7 +301,7 @@ Một kiểm định độc lập dùng chuẩn hoá khác đã ra số khác �
 > **Lấy mẫu lại từ cùng một model, 3 lượt, chỉ mua được ~1.9 ứng viên khác nhau —
 > và 36% số bài chỉ có ĐÚNG MỘT.** Ở những bài ấy, mọi giao thức "sinh nhiều rồi chọn"
 > đều **bất lực về cấu trúc**: không có gì để chọn giữa.
-> Dùng ba model **khác họ** đưa con số đó xuống **6.5%**.
+> Dùng ba model **khác nhau** đưa con số đó xuống **6.5%**.
 > Nói cách khác: phần lớn cái ta gọi là "lỗi tương quan" giữa các mẫu cùng model là dạng
 > mạnh nhất có thể — **chúng trả về cùng một chuỗi ký tự**.
 

@@ -75,10 +75,10 @@ Nếu `D > 0` vì `M` ghi đè lên bản **vốn đã đúng**, thì **chặn g
    > | cặp | `Δ_ceil` |
    > |---|---|
    > | 1.5B→7B (Qwen→Qwen) | **−.0641** (p .0016) thua |
-   > | 1.5B→Llama-8B (**khác họ**) | **+.0421** (p .042) **thắng** |
+   > | 1.5B→Llama-8B (chênh **NHỎ**, .098) | **+.0421** (p .042) **thắng** |
    > | 7B→32B (Qwen→Qwen) | +.0060 (p .82) hoà |
    >
-   > ⇒ **"Không có gì để khai thác" là SAI** — ở cặp khác họ **có** dư địa, và cổng **khả thi**
+   > ⇒ **"Không có gì để khai thác" là SAI** — ở cặp **chênh nhỏ** **có** dư địa, và cổng **khả thi**
    > mới là thứ không lấy được (`Δ_honest` = −.0080, p .77) ⇒ **nút thắt là `κ`, không phải `H`**.
    > **Điều đúng ở CẢ BA cặp:** `Δ_honest` ≤ 0 — sửa-có-cổng **chưa bao giờ** vượt `I`.
    > **⚠️ Ở 32B thì KHÔNG thua mà HOÀ:** `Δ_ceil` = **+.0060, p .82** — không phân biệt được với 0.
@@ -175,7 +175,16 @@ Bốn cặp, cùng thiết kế, `Δ_ceil` = cổng ORACLE so với `I`:
 | MATH 1.5B→7B (cùng họ) | **−.1380** (p 0) | **1.6%** |
 | MBPP 1.5B→7B (cùng họ) | −.0641 (p .0016) | — |
 | MBPP 7B→32B (cùng họ) | +.0060 (p .82) | — |
-| MBPP 1.5B→Llama-8B (**khác họ**) | **+.0421** (p .042) | — |
+| MBPP 1.5B→Llama-8B (chênh **nhỏ** .098) | **+.0421** (p .042) | — |
+
+> **⚠️ #182 (H96, #106) — SỬA NHÃN CƠ CHẾ CỦA HÀNG CUỐI.** Hàng đó **KHÔNG** phải bằng chứng cho
+> *"khác họ"*. Hồi quy `A ~ chênh + khác_họ` trên **15 cặp có hướng, cùng 499 bài**:
+> `β_khác_họ` = **+.0045**, KTC 95% **[−.005, +.014]** — **nằm trọn dưới ngưỡng +.02 đã khoá**
+> (null **có thông tin**, không phải thiếu lực). `β_chênh` = **−.192** (p ~0), `R²` chênh-một-mình = **.824**.
+> Thô thì `A` khác họ .0597 > cùng họ .0481 — **nhưng** cặp khác họ có chênh nhỏ hơn (.130 vs .167),
+> tương quan (chênh, `A`) = **−.908**. **Khớp chênh rồi thì hiệu ứng họ biến mất.**
+> ⇒ **Biến quyết định dư địa là CHÊNH NĂNG LỰC, không phải HỌ.** Dự báo kiểm được đã đạt:
+> 7B→14B **cùng họ**, chênh .050 ⇒ `A` = **.0681**, cao ngang cặp khác-họ chênh-nhỏ (.0842).
 
 **SỬA Ở #176 — phát biểu ở trên (bản #174) QUÁ MẠNH.** Đẳng thức **chính xác** là:
 
@@ -283,7 +292,11 @@ Ba cực, không phải hai:
    >
    > **Cơ chế đo được ở TẦNG CHUỖI (#99/#145):** 3 mẫu từ **cùng** model chỉ cho **1.91/3** ứng viên
    > phân biệt, **36.2%** số bài chỉ có **MỘT** ứng viên duy nhất — ở đó mọi giao thức chỉ-CHỌN
-   > **bất lực về cấu trúc**. Pool **khác họ**: **2.70/3** ứng viên, chỉ **6.5%** số bài đơn-ứng-viên.
+   > **bất lực về cấu trúc**. Pool **khác MODEL**: **2.70/3** ứng viên, chỉ **6.5%** số bài đơn-ứng-viên.
+   > **⚠️ #182 — quy kết cho "HỌ" là CHƯA KIỂM.** Pool `B` của H86c (Qwen-7B + Llama + DSCoder) khác
+   > pool `A` ở **cả** họ **lẫn** danh tính model. Đối chứng tách được — Qwen-7B + Qwen-1.5B + Qwen-14B
+   > (**khác model, CÙNG họ**) — **chưa chạy**. H96 bác "họ" ở kênh **dư địa `A`**, **không** đo kênh
+   > **đa dạng ứng viên** này, nên **không được** suy sang. Đọc kết quả này là **"khác MODEL"**.
    > ⇒ phần lớn "lỗi tương quan" của mẫu cùng model là dạng mạnh nhất: **trùng nguyên văn**.
 4. ~~**M3 định lượng:** định tuyến hoà vốn khi `p_esc < 1 − (chi phí rẻ)/(chi phí đắt)` …
    **Công thức khớp cả hai trường hợp đã có.**~~
