@@ -6911,3 +6911,47 @@ hỏng. Đó là **kết quả**, không phải **artifact**.
 
 ⇒ Mọi phát biểu về "khác họ" trong dự án đứng trên **đúng một** cặp. **Đã ghi vào README ở #161**
 và điều đó **vẫn đúng nguyên** — không được nới ra thành "các model khác họ".
+
+---
+
+## Vòng #178 — H94b **đụng tường 12h**: một nhánh thừa và một GPU bỏ không
+
+Bản vá nf4 ở #162 **hoạt động** (`nap dear (nf4): 5.21 GB` thay vì 14.21 GB fp16). Nhưng:
+
+| chặng | thời gian |
+|---|---|
+| `S` greedy | 50 phút |
+| **`S2`** (mẫu thứ hai) | **44 phút** |
+| **`E0`** | **5.7 giờ** |
+| `E3` | chưa kịp — **CANCEL ở tường 12h** |
+
+Cứu được `S_raw`, `S2_raw`, `E0_raw` (mỗi cái 500 bài, 2.4 MB) nhờ luật #128.
+**Mất `E3_raw`** — đúng nhánh mà #104 cần.
+
+### Hai lỗi, cả hai đều là "không nhìn lại thiết kế khi đổi mục đích"
+1. **`S2` là nhánh THỪA.** `exposure_math` được tôi tạo ở #104 **bằng cách sửa** `gated_repair_math`,
+   nơi `S2` phục vụ cổng tự-nhất-quán. **#104 chỉ cần `S`, `E0`, `E3`** — `S2` không xuất hiện
+   trong bất kỳ hàng nào của bảng khoá. **44 phút đốt cho một nhánh không ai đọc.**
+2. **Chỉ dùng MỘT GPU.** `device_map={"": 0}` trong khi Kaggle cấp **hai** card —
+   đúng lỗi tôi đã ghi vào bộ nhớ từ lâu và đã sửa cho `gated_repair` ở #134, nhưng
+   **bản MATH chưa bao giờ nhận bản vá đó** (giống hệt #162 với nf4).
+
+> **Cùng một khuyết tật hệ thống, lần thứ hai: `gated_repair` (MBPP) và `gated_repair_math`/
+> `exposure_math` là anh em, nhưng mọi bài học hạ tầng chỉ chảy vào nhánh MBPP.**
+> #162 đã ghi quy tắc *"đối chiếu bản vá của kernel ANH EM"* — và tôi vẫn bỏ sót GPU thứ hai.
+> Lần này quét luôn: `device_map={"": 0}` + `BSZ` + số lượt `gen()` cho **cả ba** kernel MATH.
+
+### Sửa và ước tính
+Bỏ `S2` (không ai đọc) + **song song dữ liệu trên 2 card** (mẫu `mbpp_peer`, **không** dùng
+`expandable_segments` vì #135 cho thấy nó phá kernel đa luồng):
+
+| | H94b | **H94c** |
+|---|---|---|
+| ước tổng | ~12h+ (chết) | **~6.4h** |
+| biên an toàn so với tường | 0 | **~1.9×** |
+
+### Một lỗi nữa bắt được TRƯỚC khi phóng
+Sau khi xoá `S2`, dòng 243 vẫn `json.dump({... "S2": S2_raw ...})` ⇒ **`NameError` ở cuối kernel**,
+đúng lớp lỗi đã giết H95 sau 4.1 giờ (#175). Lần này bắt được bằng **kiểm AST tên-chưa-gán**
+chạy trước khi phóng (`ten dung ma KHONG bao gio gan: khong co`).
+**Quy tắc: xoá một nhánh sinh thì phải quét MỌI tham chiếu tới biến của nó, bằng AST chứ không bằng mắt.**

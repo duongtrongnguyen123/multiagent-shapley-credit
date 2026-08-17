@@ -94,19 +94,23 @@ if not BIG_CARD:
                               bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
 print(f"CHE DO: {'card lon -> bf16' if BIG_CARD else 'card nho -> nf4 cho model dat'}", flush=True)
 
+NG = torch.cuda.device_count(); DEVS = [f"cuda:{i}" for i in range(NG)]
 def load(tag):
     p = M[tag]
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
     if tk.pad_token is None: tk.pad_token = tk.eos_token
-    if BIG_CARD:
-        mo = AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": 0}).eval()
-    elif tag == "cheap":
-        mo = AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16, device_map={"": 0}).eval()
-    else:   # #162: model DAT phai nf4 tren card nho
-        mo = AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": 0}).eval()
+    # #178: dung CA HAI card (song song DU LIEU). H94b chet o tuong 12h vi chi dung 1 card:
+    # E0 mat 5.7h, E3 chua kip chay. Hai ban sao -> ~2x nhanh.
+    def _one(d):
+        if BIG_CARD:
+            return AutoModelForCausalLM.from_pretrained(p, dtype=torch.bfloat16, device_map={"": d}).eval()
+        if tag == "cheap":
+            return AutoModelForCausalLM.from_pretrained(p, torch_dtype=torch.float16).to(d).eval()
+        return AutoModelForCausalLM.from_pretrained(p, quantization_config=_BNB, device_map={"": d}).eval()
+    mo = [_one(d) for d in DEVS]
     _dtlab = "bf16" if BIG_CARD else ("fp16" if tag == "cheap" else "nf4")
-    print(f"  nap {tag} ({_dtlab}): cap phat {torch.cuda.memory_allocated(0)/2**30:.2f} GB | "
-          f"giu cho {torch.cuda.memory_reserved(0)/2**30:.2f} GB", flush=True)
+    print(f"  nap {tag} ({_dtlab}) x{len(mo)} ban sao: " + " | ".join(
+        f"gpu{d} cap phat {torch.cuda.memory_allocated(d)/2**30:.2f}" for d in range(NG)), flush=True)
     return mo, tk
 def free():
     """#132: caller PHAI gan mo=None TRUOC khi goi — 'del mo' trong ham chi xoa ten cuc bo."""
@@ -118,7 +122,7 @@ def free():
         for d in range(torch.cuda.device_count())), flush=True)
 
 @torch.no_grad()
-def gen(mo, tk, sysm, usrs, bs, sample=False):
+def _g1(mo, tk, sysm, usrs, bs, sample=False):
     outs, i = [], 0
     if sample: torch.manual_seed(SEED)
     while i < len(usrs):
@@ -139,6 +143,27 @@ def gen(mo, tk, sysm, usrs, bs, sample=False):
         del e, o; torch.cuda.empty_cache(); i += bs
     return outs
 
+def gen(mos, tk, sysm, usrs, bs, sample=False):
+    """#178: chia deu bai cho cac ban sao, chay song song."""
+    if not isinstance(mos, list): mos = [mos]
+    if len(mos) == 1: return _g1(mos[0], tk, sysm, usrs, bs, sample)
+    import threading
+    parts = [list(range(j, len(usrs), len(mos))) for j in range(len(mos))]
+    store, errs, lock = {}, [], threading.Lock()
+    def work(mo, idxs):
+        try:
+            r = _g1(mo, tk, sysm, [usrs[i] for i in idxs], bs, sample)
+            with lock: store.update(dict(zip(idxs, r)))
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            with lock: errs.append(e)
+    ths = [threading.Thread(target=work, args=(mos[j], parts[j])) for j in range(len(mos)) if parts[j]]
+    for t in ths: t.start()
+    for t in ths: t.join()
+    if errs: raise RuntimeError(errs[0])
+    if len(store) != len(usrs): raise RuntimeError("thieu dau ra")
+    return [store[i] for i in range(len(usrs))]
+
 t0 = time.time()
 def save_partial(**kw):
     json.dump({"partial": True, "run": RUN, "n": N, **kw},
@@ -147,16 +172,14 @@ def save_partial(**kw):
 mo, tk = load("cheap")
 S_raw  = gen(mo, tk, SOLVE, Q, BSZ["cheap"])
 print(f"S greedy xong ({time.time()-t0:.0f}s)", flush=True)
-S2_raw = gen(mo, tk, SOLVE, Q, BSZ["cheap"], sample=True)   # mau thu 2 -> cong tu-nhat-quan
-print(f"S mau-2 (T=0.8) xong ({time.time()-t0:.0f}s)", flush=True)
 mo = None; tk = None
 free()
-save_partial(S_raw=S_raw, S2_raw=S2_raw)
+save_partial(S_raw=S_raw)
 
 mo, tk = load("dear")
 E0_raw = gen(mo, tk, SOLVE, Q, BSZ["dear"])
 print(f"E0 xong ({time.time()-t0:.0f}s)", flush=True)
-save_partial(S_raw=S_raw, S2_raw=S2_raw, E0_raw=E0_raw)
+save_partial(S_raw=S_raw, E0_raw=E0_raw)
 # #104: CUNG lenh SOLVE, chi THEM ngu canh — tach NHIN THAY khoi DUOC LENH SUA
 EP = [f"{Q[i]}\n\nA smaller model's attempt:\n{S_raw[i]}" for i in range(N)]
 E3_raw = gen(mo, tk, SOLVE, EP, BSZ["dear"])
@@ -164,10 +187,11 @@ print(f"E3 xong ({time.time()-t0:.0f}s)", flush=True)
 I_raw, V_raw = E0_raw, E3_raw
 mo = None; tk = None
 free()
-save_partial(S_raw=S_raw, S2_raw=S2_raw, E0_raw=E0_raw, E3_raw=E3_raw)
+save_partial(S_raw=S_raw, E0_raw=E0_raw, E3_raw=E3_raw)
 
-ansS, ansS2, ansI, ansV = (_bx(t) for t in S_raw), (_bx(t) for t in S2_raw), (_bx(t) for t in I_raw), (_bx(t) for t in V_raw)
-AS, AS2, AI, AV = list(ansS), list(ansS2), list(ansI), list(ansV)
+ansS, ansI, ansV = (_bx(t) for t in S_raw), (_bx(t) for t in I_raw), (_bx(t) for t in V_raw)
+AS, AI, AV = list(ansS), list(ansI), list(ansV)
+AS2 = AS   # #178: bo nhanh S2 (khong dung cho #104); giu ten cho phan con lai
 PS = [eq(AS[i],  GOLD[i]) for i in range(N)]
 PI = [eq(AI[i],  GOLD[i]) for i in range(N)]
 PV = [eq(AV[i],  GOLD[i]) for i in range(N)]
@@ -216,7 +240,7 @@ res["strat"] = {"artifact_DUNG": strat(RIGHT), "artifact_SAI": strat(WRONG)}
 res["gates"]["S sai >=30% va dung >=20%"] = (len(WRONG)/N >= .30 and len(RIGHT)/N >= .20)
 res["VOID"] = [k for k, v in res["gates"].items() if not v]
 json.dump(res, open(f"/kaggle/working/res_{RUN}.json", "w"), indent=2)
-json.dump({"raw": {"S": S_raw, "S2": S2_raw, "I": I_raw, "V": V_raw}, "gold": GOLD},
+json.dump({"raw": {"S": S_raw, "I": I_raw, "V": V_raw}, "gold": GOLD},   # #178: bo S2
           open(f"/kaggle/working/traces_{RUN}.json", "w"))
 
 print(f"\n==== H88c {RUN} (MATH-500) ====")
