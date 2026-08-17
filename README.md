@@ -152,9 +152,14 @@ ngữ cảnh thêm vào:
 |---|---|---|
 | **toàn bộ code của model yếu** | **−.0782** (p 1.5e−04) | **−.0778** (p 8.7e−05) |
 
-Hai dải tách rời, lệch nhau **.0004**. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
+Hai dải bài **tách rời**, hai mức độ khó khác nhau. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
 hàng đó **không nổ ở cả hai lần chạy**.
 
+> ⚠️ **Đừng đọc quá mức độ chính xác.** Hai biên độ (−.0782 và −.0778) khớp nhau tới .0004,
+> nhưng sai số chuẩn của **hiệu** giữa hai lần chạy là ≈ **.028** — nên độ khớp đó là **may mắn**,
+> không phải bằng chứng. Điều được xác lập là **cả hai đều âm rõ rệt và có ý nghĩa**, không phải
+> việc chúng bằng nhau tới bốn chữ số.
+>
 > ⚠️ **Chưa biết là LIỀU hay NGƯỠNG.** Mức phơi nhiễm trung gian (chỉ cho xem **chữ ký hàm**)
 > cho −.0140 (p .48) và −.0324 (p .072) — **không có ý nghĩa ở cả hai dải**.
 > **Đừng trích "càng nhìn nhiều càng hại"** — dữ liệu hiện tại không phân định được.

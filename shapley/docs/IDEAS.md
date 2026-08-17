@@ -5888,7 +5888,8 @@ H92 **mọi cổng ĐẠT** (n=499, chênh trích .004). H92b đạt theo #102-b
 | `E3` | **toàn bộ code** | .5631 (**−.0782**, p **1.5e−04**) | .6371 (**−.0778**, p **8.7e−05**) |
 
 ### Điều DUY NHẤT vững: `E3`
-**−.0782 và −.0778** — hai dải tách rời, hai độ khó khác nhau, lệch nhau **.0004**.
+**−.0782 và −.0778** — hai dải tách rời, hai độ khó khác nhau.
+(**Sửa ở #160:** tôi từng nhấn mạnh *"lệch nhau .0004"*; SE của **hiệu** ≈ .028 nên độ khớp đó là **may mắn**, không phải độ chính xác. Cái được xác lập là **cả hai đều âm và có ý nghĩa**.)
 p ≤ 1.5e−04 cả hai. **Không nhánh nào được lệnh "review".**
 
 > **Chỉ NHÌN THẤY code của model yếu đã làm model mạnh mất ~.078, không cần bất kỳ lệnh sửa nào.**
