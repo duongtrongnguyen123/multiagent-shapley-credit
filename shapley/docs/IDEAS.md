@@ -6495,3 +6495,36 @@ nguyên khuyết tật. H94 chắc chắn sẽ chết y hệt sau khi tiêu ~80 
 **Phóng lại: H88f và H94b.**
 
 **Cứu được:** `partial_H88c.json` **1.6 MB** — trọn `S_raw` + `S2_raw` (2 lượt sinh, ~80 phút).
+
+---
+
+## Vòng #163 — Hai "sai lệch" agent báo hoá ra là **KHÁC CHUẨN HOÁ**, không phải sai
+
+Agent kiểm số liệu báo hai chỗ *"không tái tạo được"*:
+- README §6: pool A = 1.91 / 36.2% — agent tính ra **1.9289 / 35.78%**
+- TONG_HOP §3.1: *"50.4% trùng nguyên văn"* — agent tính ra **47.6% / 48.8%**
+
+**Tôi kiểm lại và cả hai con số của tôi ĐỀU ĐÚNG** — dưới **chuẩn hoá đã khoá ở #99**
+(bỏ chú thích `#...`, gộp khoảng trắng, so khớp chính xác):
+
+| chuẩn hoá | `Q1 ≡ Q2` |
+|---|---|
+| thô | 238/500 = **47.6%** ← agent |
+| chỉ gộp khoảng trắng | 244/500 = **48.8%** ← agent |
+| **bỏ chú thích + gộp (KHOÁ ở #99)** | **252/500 = 50.4%** ← tôi |
+
+### Nhưng agent vẫn đúng ở chỗ quan trọng hơn
+**Con số phụ thuộc một bước xử lý mà tài liệu công khai KHÔNG hề nêu.** Một người kiểm chứng
+độc lập, đọc README, chạy lại, sẽ ra **số khác** và kết luận tôi sai — đúng như điều đã xảy ra.
+**Đã thêm định nghĩa chuẩn hoá vào README**, kèm cả ba biến thể để ai cũng đối chiếu được.
+
+### Một mối lo được loại trừ luôn
+`traces_*.json` **cắt code ở 800 ký tự**. Nếu hai ứng viên chỉ khác nhau **sau** ký tự 800 thì
+chúng sẽ bị đếm nhầm là **giống nhau**, làm **thổi phồng** độ tương đồng. Đã tính lại từ
+`partial_*.json` (**code đầy đủ**): kết quả **y hệt** (1.9138 / .3621 / 2.6961 / .0647)
+⇒ **hàng 1 của #99 vẫn đứng**, và bảng README không bị ảnh hưởng bởi việc cắt.
+
+> **Bài học: một con số không tái tạo được thì hoặc là SAI, hoặc là THIẾU ĐỊNH NGHĨA — và
+> từ phía người đọc, hai thứ đó KHÔNG phân biệt được.**
+> Tôi đã bỏ 4 vòng (#152, #159, #161, #163) để kiểm số liệu; chỉ vòng này mới lộ ra rằng
+> vấn đề không phải con số mà là **thiếu phương pháp kèm theo**.
