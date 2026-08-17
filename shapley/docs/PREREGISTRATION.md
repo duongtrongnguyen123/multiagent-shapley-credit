@@ -4922,3 +4922,43 @@ tức không có vùng dương nào). Hàng 4 cao thứ nhì vì MATH có thể 
 **Nếu hàng 2 hoặc hàng 4 xảy ra, tôi phải sửa README đã công bố ở #185 — trong cùng vòng.**
 
 **Tỉ lệ prior đúng: 20/41** (cộng dồn, xem #167).
+
+---
+
+## #110 — PHÂN TÍCH THỨ CẤP của H98: cổng giãn **thu về đúng các nhánh ĐEM SO SÁNH**
+
+**⚠️ ĐÂY KHÔNG PHẢI ĐĂNG KÝ TRƯỚC. Dữ liệu H98 ĐÃ TỒN TẠI và đã niêm phong.**
+**Mọi kết luận từ mục này là THỨ CẤP, KHÔNG XÁC NHẬN, và không bao giờ được nâng cấp.**
+**Kết quả đã đăng ký của H98 là VOID (#187) và vĩnh viễn là VOID.**
+
+### Công bố đầy đủ, gồm cả phần không kiểm được
+1. Tôi **đã đọc** các đại lượng **CỔNG** của H98: `n`, trích xuất từng nhánh, cắt cụt, `A`, `I−S`, p.
+   Cần thiết để chẩn đoán VOID.
+2. Tôi **chưa đọc** `D`, `d_ceil`, `B`, `C` của sáu ô. **Đây là lời cam đoan của tôi, KHÔNG kiểm
+   chứng được** — khác hẳn hash niêm phong (ai cũng kiểm bằng `sha256sum`). Đúng giới hạn mà
+   `deploy/seal_results.py` đã tự nêu. Người đọc phải hạ trọng số cho mục này tương ứng.
+3. Sửa đổi này commit **trước** khi tính `D`.
+
+### Vì sao sửa — lý do ĐỘC LẬP với kết quả
+Cổng "giãn trích xuất < .05" của #108 bao **mọi** nhánh, kể cả nhánh **nền**. Phép so sánh đã khoá
+của #108 là **R1/R2 so với R0** — sáu nhánh giao thức, giãn **.002**. Nhánh làm trượt là `qwen1.5b`
+(nền), **không nằm trong phép so sánh nào**. Cổng chép từ H96, nơi mọi nhánh nền **đều** được đem so.
+Ở H97 tôi đã đặt đúng: cổng **theo cặp**, `V` so với `I` nền của chính nó.
+⇒ Sai sót **chẩn đoán được mà không nhìn kết quả**, và đã ghi ở #187 **trước** mục này.
+
+### Cổng thứ cấp (thu hẹp — chỉ đổi PHẠM VI, giữ nguyên NGƯỠNG .05)
+- giãn trích xuất **trong nhóm sáu nhánh giao thức** < .05
+- **thêm**: mỗi nhánh giao thức so với **nhánh `I` nền của cặp đó**, |chênh trích xuất| < .05
+- các cổng khác của #108 **giữ nguyên**, cổng theo cặp **giữ nguyên** (cả hai cặp đã đạt)
+
+### Bảng khoá: **y hệt #108**, không đổi một chữ
+Hàng 1/2/3/4 **giữ nguyên ngưỡng và câu chữ**. Chỉ phạm vi cổng đổi.
+**Nhãn bắt buộc khi trích:** *"phân tích thứ cấp của một lần chạy VOID"*.
+
+### Điều mục này KHÔNG được dùng để làm
+- **Không** thay kết luận VOID của #187.
+- **Không** vào README công khai.
+- **Không** vào TONG_HOP.
+- **Không** tính vào tỉ lệ prior (**20/41 giữ nguyên**) — prior chỉ tính trên phép thử đăng ký trước.
+- Nếu ra hàng 1 (**có** đòn bẩy giao thức), **bắt buộc phải chạy một lần XÁC NHẬN** với cổng đúng
+  và cặp khác trước khi phát biểu bất cứ điều gì ra ngoài `IDEAS.md`.
