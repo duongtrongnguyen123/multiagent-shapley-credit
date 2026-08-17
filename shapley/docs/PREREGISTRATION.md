@@ -4584,3 +4584,46 @@ Hàng 1 thấp vì #157 đã cho thấy `z_dear` không giúp (dù trên pool su
 tín hiệu **tương quan** mà M2 dự đoán sẽ yếu.
 
 **Tỉ lệ prior đúng: 18/39** (cộng dồn; xem #167).
+
+---
+
+## #98-b — SỬA ĐỔI: #98 khoá ngưỡng TRẦN TRỤI, thiếu điều kiện ý nghĩa
+
+**Đăng ký lúc:** H89f **đang chạy**, chưa có kết quả. Sửa đổi này commit **trước** khi nó xong.
+
+### Vấn đề (lộ ra ở #169)
+Bảng #98 khoá bốn hàng **chỉ bằng ngưỡng hiệu ứng**, **không** đòi p. Ở #169 (H89g, Llama):
+`V − I` = **−.0240** khớp hàng D theo chữ (*"âm nhưng yếu hơn rõ rệt"*) — nhưng **p = .266**,
+tức **không phân biệt được với 0**. Tôi đã phải **từ chối viết hàng D** và chỉ nói *"chưa xác lập"*.
+
+Đây là **lần thứ BA** cùng một khuyết tật: **#93** (bắt ở #140) → **#94** (bắt ở #158) → **#98**.
+Luật #140 (*"mọi hàng phải nêu ĐỒNG THỜI ngưỡng hiệu ứng VÀ ngưỡng ý nghĩa"*) ra đời **sau khi**
+#98 đã viết, và tôi **đã có cơ hội sửa #98 ở #161 mà không làm**.
+
+### Sửa — thêm điều kiện p vào MỌI hàng của #98
+| # | điều kiện (đã sửa) | kết luận (giữ nguyên chữ) |
+|---|---|---|
+| A | `V−I ≤ −.104` **VÀ p < .05** | cơ chế "nguồn lạ" được củng cố |
+| B | `\|V−I − (−.0740)\| < .03` **VÀ** `V−I < −.02` **VÀ p < .05** | phá hoại không phụ thuộc họ |
+| C | `V−I ≥ −.02` **HOẶC p ≥ .05** | **đầu độc KHÔNG được xác lập ở cặp này** ⇒ kết quả trung tâm chỉ đúng trong họ Qwen (hàng giết) |
+| D | còn lại (âm, có ý nghĩa, nhưng yếu hơn mốc) | phá hoại yếu hơn rõ rệt |
+
+**Thay đổi thực chất duy nhất:** hàng **C** giờ nuốt cả trường hợp *"âm nhưng không có ý nghĩa"* —
+đúng cái đã xảy ra ở #169 và đúng cái tôi đã **thực sự** kết luận ở đó. Ba hàng còn lại chỉ
+**thêm** điều kiện, tức **chặt hơn**, không lỏng hơn.
+
+**Áp dụng hồi tố cho #169:** `V−I` = −.0240 với p .266 ⇒ **hàng C**, khớp đúng điều tôi đã viết
+(*"đầu độc KHÔNG được xác lập trên cặp khác họ này"*). Không đổi kết luận nào — chỉ khiến bảng
+**nói ra** điều tôi phải suy luận bằng tay.
+
+### KIỂM PHỦ
+| `V−I` | p | hàng |
+|---|---|---|
+| −.15 | .001 | A |
+| −.075 | .01 | B |
+| −.024 | .27 | **C** (đúng ca #169) |
+| −.01 | .01 | C |
+| −.05 | .01 | D |
+| +.02 | .5 | C |
+
+Không giá trị nào rơi ngoài bảng.
