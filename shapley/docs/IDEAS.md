@@ -7122,3 +7122,53 @@ sẽ là **đúng loại lỗi mà H96 vừa bắt được**: kết luận từ
 Nhưng thành thật: tôi đã **công bố trước** (mục cuối #106) rằng OLS trên 7 cặp cũ cho `β₂` = +.022
 sát ngưỡng hàng 1 — và tôi vẫn đặt hàng 2 cao nhất. Lần này tiên nghiệm **đi ngược** dữ liệu tôi đã thấy,
 nên đây là một điểm prior **có giá trị**, không phải đoán theo số đã biết.
+
+---
+
+## Vòng #183 — **THĂM DÒ** (chưa có nhánh `V` nào): `r*` — mức bảo toàn mà `V` buộc phải đạt
+
+Không kết quả nào mới về; phân tích **miễn phí** trên `results_H96` **đã niêm phong**.
+**Nhãn: THĂM DÒ.** Không có đăng ký trước, **không** được trích như kết quả xác nhận.
+
+### Đại lượng: tính từ NHÁNH NỀN, không cần chạy `V`
+`Δ_ceil > 0` ⇔ `B − C < A`. Bỏ `C` (nó chỉ giúp `V`, nên đây là điều kiện **chặt hơn thực tế**):
+`B < A`. Mà `B` bị chặn trên bởi **ngân sách** của nó, `P(¬S ∧ I)`. Viết `B = (1−ρ)·P(¬S∧I)` với
+`ρ` = **tỉ lệ `V` BẢO TOÀN được trên đúng những bài chỉ `I` làm đúng**, ta có ngưỡng
+
+```
+ρ  >  r*  =  1 − A / P(¬S ∧ I)
+```
+
+`r*` tính được **hoàn toàn từ hai lượt nền** — không tốn một token sinh nào cho `V`.
+
+| cặp (chênh nhỏ nhất) | `r*` | | cặp (chênh lớn nhất) | `r*` |
+|---|---|---|---|---|
+| dscoder→7B (.048) | **.363** | | 1.5B→32B (.317) | **.913** |
+| 14B→32B (.040) | .371 | | 1.5B→14B (.277) | .908 |
+
+**`r*` ~ .359 + 2.13·chênh, `R²` = .89.** ⇒ **cơ chế** khiến chênh dự báo `Δ_ceil`:
+chênh càng lớn, `V` càng phải **gần như hoàn hảo** mới hoà vốn. Ở chênh .04 chỉ cần giữ **36%**;
+ở chênh .32 phải giữ **91%**.
+
+### Hai chặn tầm thường — và điều chúng nói
+`Δ_ceil ≤ A + P(¬S∧¬I)` **luôn ≥ 0**; `Δ_ceil ≥ A − P(¬S∧I)` **luôn ≤ 0**, ở **cả 15 cặp**.
+⇒ **Dấu của `Δ_ceil` KHÔNG BAO GIỜ suy được từ lượt nền.** Luôn phải chạy `V`. Đây là lý do
+H97 không thể thay bằng phân tích lại H96.
+
+### Tôi suýt viết một bảng dự báo 15 dòng — và nó SAI
+Bước tiếp theo hiển nhiên: giả sử `ρ` là **hằng số**, ước từ ba `B` đã biết (#181), rồi dự báo dấu
+cho cả 15 cặp. Tôi đã tính. `ρ` = .492 / .506 / .563 — trông rất ổn định, trung bình **.520**,
+cho `g*` = **.076**. Bảng 15 dòng in ra rất thuyết phục.
+
+**Nó không đứng được:**
+1. Ba `ρ` ấy có tử số `B` từ **ba lần chạy khác**, mẫu số `P(¬S∧I)` từ **H96** — **trộn lần chạy**,
+   đúng loại bằng chứng vừa lừa tôi ở #179/#182.
+2. Kiểm ngay trên chính ba điểm ấy: dự báo **"âm, âm, âm"**, thực tế **−.0641 · +.0060 (p .82) · +.0421 (p .042)**.
+   **Đúng 1, gần đúng 1, SAI 1.**
+3. `ρ` **không hằng**: ba giá trị .492/.506/.563 tăng **cùng nhịp** với `r*` (.883/.585/.563) —
+   ở điểm thứ ba `ρ` = `r*` tới ba chữ số. Mô hình gần như **suy biến**, không phải "ổn định".
+
+**Giữ lại:** `r*` là đại lượng chẩn đoán rẻ, và **`Δ_ceil` phải giảm đơn điệu theo `r*`** —
+H97 kiểm được bằng **15 điểm trong CÙNG một lần chạy**.
+**Vứt bỏ:** mọi dự báo dấu dựa trên `ρ` hằng. **Không đưa `g*` = .076 vào bất kỳ đâu**, và nó
+**không** thay `g*` ≈ .13 của đăng ký trước #107 — bảng khoá #107 **giữ nguyên**.
