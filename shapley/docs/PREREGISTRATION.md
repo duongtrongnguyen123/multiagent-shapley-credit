@@ -4962,3 +4962,52 @@ Hàng 1/2/3/4 **giữ nguyên ngưỡng và câu chữ**. Chỉ phạm vi cổng
 - **Không** tính vào tỉ lệ prior (**20/41 giữ nguyên**) — prior chỉ tính trên phép thử đăng ký trước.
 - Nếu ra hàng 1 (**có** đòn bẩy giao thức), **bắt buộc phải chạy một lần XÁC NHẬN** với cổng đúng
   và cặp khác trước khi phát biểu bất cứ điều gì ra ngoài `IDEAS.md`.
+
+---
+
+## #111 — H100: **XÁC NHẬN R2, và hỏi câu ĐÁNG hỏi: `Δ_honest`, không phải `Δ_ceil`**
+
+**Đăng ký lúc:** trước khi viết kernel. Bắt buộc bởi #110 (hàng 1 ở phân tích thứ cấp ⇒ phải xác nhận).
+
+### Vì sao đổi đại lượng chính
+#188 cho thấy R2 (**độc lập-trước**) hạ `B` rất mạnh. Nhưng #188 tự nêu khuyết điểm số 2:
+`Δ_ceil` là **trần ORACLE**. Và R2 **buộc `I` phải chạy** — nên nếu `I` đã chạy rồi thì câu hỏi
+duy nhất đáng hỏi là: **sản phẩm của R2 có hơn việc chỉ dùng thẳng `I` không?**
+Đó là `Δ_honest` = `acc(R2) − acc(I)`, **không cần oracle nào**, và là thứ **triển khai được**.
+
+Cả dự án tới nay `Δ_honest` **chưa bao giờ dương có ý nghĩa** (ba cặp ở #169, và #142/#168).
+Nếu R2 làm được, đó là **kết quả dương đầu tiên thuộc loại dùng được**.
+
+### Thiết kế — cặp MỚI, không dùng lại cặp của H98
+T4, **nf4** (khớp phần cứng H98 để so sánh nội bộ hợp lệ), MBPP 11–510.
+Ba cặp **chưa dùng ở H98**: `llama8b→qwen7b` · `qwen7b→qwen14b` · `dscoder→qwen14b`.
+Hai giao thức: **R0** (sửa, mốc) và **R2** (độc lập-trước). Bỏ R1 (tác dụng nhỏ) để đổi lấy cặp thứ ba.
+
+### CỔNG — phạm vi ĐÚNG (bài học #187)
+- **giãn trích xuất < .05 chỉ trong nhóm nhánh ĐEM SO SÁNH**: `{R0, R2, I}` của từng cặp
+- `S` chỉ bị ràng: trích xuất ≥ .80 và cắt cụt < .05 (nó **không** nằm trong so sánh nào)
+- cắt cụt < .05 mọi nhánh · `n ≥ 480` · `I − S ≥ .02` và p < .05 (theo cặp)
+- Cổng **theo cặp**: một cặp trượt không giết cặp khác. Cả lần chạy VOID nếu **cả ba** cặp trượt.
+
+### BẢNG KHOÁ — chính: `Δ_honest` = `acc(R2) − acc(I)`, McNemar ghép cặp, đọc theo TỪNG cặp
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cả ba cặp trượt cổng | **VOID** |
+| 1 | `Δ_honest ≥ +.02` **và** p < .05 ở **≥ 2/3** cặp | **GIAO THỨC KHẢ THI ĐẦU TIÊN THẮNG `I`.** Kết quả dương dùng được đầu tiên của dự án ⇒ vào README kèm số cặp |
+| 2 | `Δ_honest ≥ +.02` và p < .05 ở **đúng 1/3** cặp | **gợi ý, chưa xác lập** — ghi cặp nào, và nêu rõ 1/3 không đủ |
+| 3 | **mọi** cặp có \|`Δ_honest`\| < .02 **hoặc** p ≥ .05 | **R2 KHÔNG thắng `I`.** Lợi ích ở #188 chỉ tồn tại ở **trần oracle** ⇒ **rút mọi hàm ý triển khai của #188** |
+| 4 | có cặp `Δ_honest ≤ −.02` (p<.05) và **không** cặp nào dương có ý nghĩa | **R2 chủ động HẠI** so với gọi thẳng `I` — cảnh báo triển khai |
+
+**Phụ (khoá riêng, xác nhận #188):** `D` = `Δ_ceil^R2 − Δ_ceil^R0`, ghép cặp.
+`D ≥ +.02` với p < .05 ở ≥ 2/3 cặp ⇒ **#188 tái lập trên cặp mới**. Dưới đó ⇒ **#188 không tái lập**,
+và phải ghi rõ trong `IDEAS.md` rằng kết quả thứ cấp ấy **không đứng**.
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 3 **~45%** · hàng 1 **~25%** · hàng 2 **~20%** · hàng 4 **~10%**.
+Nghiêng hàng 3 vì `Δ_honest` **chưa bao giờ** dương có ý nghĩa trong toàn dự án, và vì #188 cho thấy
+R2 hạ `B` **nhưng cũng hạ `C`** (−.014 / −.012) — tức nó **bảo thủ hơn**, mà bảo thủ thì tiệm cận
+**chính `I`**, chứ không vượt `I`. Trần oracle đẹp lên là vì `S` được giữ khi `S` đúng — **oracle**
+mới biết điều đó, giao thức thật thì không.
+**Nếu hàng 3 xảy ra, #188 mất phần lớn ý nghĩa và tôi phải ghi điều đó vào chính #188.**
+
+**Tỉ lệ prior đúng: 20/41** (cộng dồn, xem #167).
