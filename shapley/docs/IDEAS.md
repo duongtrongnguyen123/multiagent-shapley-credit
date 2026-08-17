@@ -6230,3 +6230,50 @@ Pool là **hai mẫu từ CÙNG Qwen-7B** — đúng cái #145 đã đo là tư�
 
 ### Ghi vào TONG_HOP
 Dự đoán 1 chuyển từ *"chưa kiểm"* sang **"đã kiểm, KHÔNG xác nhận trên pool tương quan"**.
+
+---
+
+## Vòng #158 — H85b: hàng 1 khớp, **nhưng phần lớn hiệu ứng là VÒNG TRÒN**
+
+Cổng ĐẠT: `preserve(ref1)` = **.7681** ∈ [.70, .85] (tái lập được H52/H53). n=263, AST parse .981–1.0.
+
+| nhánh | preserve | simpler\|p | **GOOD** |
+|---|---|---|---|
+| `ref1` (một lượt) | .7681 | .3416 | .2624 |
+| `ref_exec3` (**SỬA**, ~2.23 vòng) | .8707 | .3275 | .2852 |
+| `ref_sel4_first` (lọc bằng test, **không** xếp hạng) | .8859 | .3648 | **.3232** |
+| `ref_sel4` (lọc + **xếp hạng theo số nút**) | .8859 | **.5622** | **.4981** |
+
+**Đại lượng đã khoá:** `good(sel4) − good(exec3)` = **+.2129** ≥ +.08 ⇒ **hàng 1 khớp về số**.
+
+### Nhưng phải tách ra trước khi tin
+```
+good(sel4) - good(exec3)       = +.2129   (dai luong khoa)
+  = LOC bang test              = +.0380   (sel4_first - exec3)
+  + XEP HANG theo so nut       = +.1749   (sel4 - sel4_first)   <-- VONG TRON
+```
+`ref_sel4` chọn ứng viên **ít nút AST nhất**; `simpler` được định nghĩa là **ít nút hơn bản gốc**.
+**Bộ chọn tối ưu ĐÚNG thước đo mà nó bị chấm.** Phần **+.1749** là **tất yếu theo cấu trúc**,
+không phải bằng chứng cho "CHỌN hơn SỬA".
+
+> **Câu hỏi thật của #94 là CHỌN vs SỬA. Câu trả lời không thiên vị là `sel4_first` vs `exec3`
+> = +.0380** — thuộc **hàng 2** ("hơn nhưng khiêm tốn"), **không phải hàng 1**.
+
+**Tôi vẫn ghi hàng 1 là hàng khớp theo chữ đã khoá**, nhưng **không được trích +.2129 như bằng
+chứng cho quy tắc CHỌN-hơn-SỬA**. Con số dùng được là **+.0380**.
+
+**Công bằng với thiết kế:** chính #94 đã đặt sẵn nhánh `ref_sel4_first` và kernel in sẵn dòng
+*"LỌC hay XẾP HẠNG?"* — nên khả năng vòng tròn **đã được lường trước**, chỉ là **bảng khoá lại
+khoá nhầm đại lượng** (`sel4` thay vì `sel4_first`).
+
+> **Lỗi thiết kế thứ SÁU của bảng khoá** (#99, #116, #140, #90, #102, nay #94).
+> Dạng mới: **khoá một đại lượng mà giao thức có thể tối ưu trực tiếp.**
+> **Quy tắc: trước khi khoá, hỏi "giao thức này có thể tối ưu thẳng vào thước đo không?"
+> Nếu CÓ, đại lượng khoá phải là nhánh KHÔNG được tối ưu theo thước đo đó.**
+
+### Điều còn lại, và nó có giá trị
+`preserve`: `ref1` .7681 → `exec3` .8707 → `sel4_first` **.8859**.
+**Lọc bằng test giữ ngữ nghĩa tốt hơn sửa lặp** (+.0152), và cả hai hơn một lượt.
+Đây **không** vòng tròn: `preserve` đo bằng **test hành vi**, còn `sel4_first` chọn **ứng viên
+đầu tiên qua test** — nó lọc theo cùng tín hiệu, nên vẫn phải nêu là **có liên hệ**, dù không
+đồng nhất với thước đo `simpler`.
