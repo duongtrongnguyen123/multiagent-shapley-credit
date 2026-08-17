@@ -4653,3 +4653,52 @@ chứ không phải khi nó cứu được **vừa phải nhưng chắc chắn**
 **Không đổi hàng nào khác.** Đây là làm **chặt hơn**, không lỏng hơn.
 
 **Tỉ lệ prior đúng: 18/39** (cộng dồn, xem #167).
+
+---
+
+## #106 — H96: **BẢN ĐỒ DƯ ĐỊA** — tách HỌ khỏi CHÊNH NĂNG LỰC
+
+**Đăng ký lúc:** trước khi phóng. Xuất phát từ #179.
+
+### Vì sao
+`A = P(S đúng ∧ I sai)` là số hạng đầu của đẳng thức chính xác `Δ_ceil = A − B + C` (#176).
+Ở #179 tôi thấy `A` khác họ (.0777) gấp đôi cùng họ (.0387) — **nhưng** các cặp khác họ trong mẫu
+**cũng có `I−S` nhỏ hơn** (.0908 vs .1769), và tương quan `(I−S, A)` = **−.859**.
+**Hai lời giải thích bị trộn hoàn toàn, n=7 không tách được.**
+
+### Thiết kế — MỘT lần chạy, sáu model, CÙNG bộ bài
+RTX 6000 (95 GB) nạp **tuần tự** sáu model, mỗi model **một lượt greedy** trên **MBPP 11–510**:
+`Qwen2.5-1.5B` · `Qwen2.5-7B` · `Qwen2.5-14B` · `Qwen2.5-32B` · `Llama-3.1-8B` · `DeepSeek-Coder-6.7B`
+
+⇒ **15 cặp có hướng** (mọi cặp `I` mạnh hơn `S`), mỗi cặp có `A` và `I−S`, **tất cả trên cùng 499 bài**.
+**Không nhánh `V` nào** — chỉ cần `A`, nên rẻ.
+
+**Ô quan trọng mà #179 thiếu:**
+- **cùng họ, chênh NHỎ**: 7B→14B, 14B→32B
+- **khác họ, chênh LỚN**: 1.5B→Llama-8B (gap ~.12), DeepSeek→32B
+
+### CỔNG
+1. `compiles(extract(t)) ≥ .80` **mọi** model, chênh **< .05**
+2. cắt cụt < .05 mọi model · 3. `n ≥ 480`
+4. `acc` mỗi model ∈ [.30, .90] — model sập hoặc bão hoà thì `A` vô nghĩa
+
+### BẢNG KHOÁ (đại lượng chính: hệ số hồi quy của HỌ khi ĐÃ kiểm soát `I−S`)
+Hồi quy `A ~ β₀ + β₁·(I−S) + β₂·khác_họ` trên 15 cặp.
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng trượt | **VOID** |
+| 1 | `β₂ ≥ +.02` **và** p < .05 | **HỌ có tác dụng RIÊNG**, không chỉ là chênh năng lực ⇒ #145/#169 có nền cơ chế thật |
+| 2 | \|`β₂`\| < .02 **hoặc** p ≥ .05, **và** `β₁` có p < .05 | **CHỈ CHÊNH NĂNG LỰC quan trọng.** "Khác họ" ở #179 là **giả tương quan** ⇒ phải sửa cách diễn giải #145/#169 trong TONG_HOP |
+| 3 | cả `β₁` và `β₂` đều p ≥ .05 | 15 cặp **không đủ lực**; không kết luận, báo cáo bảng mô tả |
+| 4 | `β₂ ≤ −.02` với p < .05 | khác họ có `A` **THẤP hơn** khi đã kiểm soát chênh — ngược hẳn, phải điều tra |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 2 **~45%** · hàng 3 **~30%** · hàng 1 **~20%** · hàng 4 **~5%**.
+Tôi nghiêng về **hàng 2**: quan hệ `(I−S, A)` = −.859 quá mạnh và **cơ học** (model mạnh vượt xa
+thì model yếu hiếm khi thắng ở bài nào), còn "họ" cần một cơ chế bổ sung mà tôi **chưa đo được**.
+**Nếu hàng 2 xảy ra, tôi phải viết lại phần diễn giải của #145 và #169** — hai kết quả dương
+chủ lực của dự án — thành *"chênh năng lực nhỏ"* thay vì *"khác họ"*.
+15 cặp với 2 biến là **ít**; hàng 3 hoàn toàn có thể.
+
+**Tỉ lệ prior đúng: 18/39** (cộng dồn, xem #167).
