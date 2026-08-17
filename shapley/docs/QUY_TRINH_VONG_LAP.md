@@ -495,3 +495,13 @@ phủ hết trục số**; `E2` rơi đúng khe giữa. Đây là lần thứ **
 Bốn job cùng báo `UNKNOWN` một lúc rồi cả bốn quay lại `RUNNING` — lỗi API tạm thời, nhưng
 monitor bắn bốn cảnh báo. Cùng bài học với #134-c (bộ kiểm báo động giả sẽ bị phớt lờ).
 Monitor giờ chỉ báo `UNKNOWN` khi nó **lặp lại hai lần liên tiếp**.
+
+18. **#165 — mỗi tài khoản Kaggle chỉ chạy ĐỒNG THỜI 2 phiên GPU**
+
+Phóng H89g lên `truongdinhduc06` bị từ chối: *"Maximum batch GPU session count of 2 reached"* —
+dù **không** kernel nào của tài khoản đó đang `RUNNING` theo API. Giới hạn này đếm cả phiên
+**vừa kết thúc / đang thu dọn**, nên trạng thái API **trễ hơn** giới hạn thực.
+
+> **Quy tắc: coi mỗi tài khoản là có ĐÚNG 2 khe, và khi bị từ chối thì ĐỔI TÀI KHOẢN ngay
+> thay vì thử lại** — thử lại chỉ tốn thời gian vì trạng thái không cập nhật tức thì.
+> Bộ phóng nên tự xoay vòng qua danh sách tài khoản rảnh (đã làm thủ công ở #165).
