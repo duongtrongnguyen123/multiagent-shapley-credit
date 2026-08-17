@@ -6599,3 +6599,45 @@ Kernel in *"cùng họ = False"* vì `SAME_FAMILY = any("qwen" in n for n in DEA
 ⇒ dòng *"HÀNG A: nguồn ngoại họ phá mạnh hơn"* mà kernel in ra là **VÔ HIỆU**. Đã ghi nhận,
 **không** đưa vào bất cứ đâu. (`V − I` = −.1082 ở đây là điểm **cùng họ, cặp 7B→32B**, không so
 được với mốc 1.5B→7B.)
+
+---
+
+## Vòng #169 — H89g: **điểm KHÁC HỌ hợp lệ**, và nó lật ngược mục 5 lần nữa
+
+**MỌI CỔNG ĐẠT** (trích .982–.998 chênh .016 · cắt cụt ≤ .002 · n=499 · `I − S` = **+.0701**,
+p **.0013**). Niêm phong **11:46:11 TRƯỚC khi đọc** (#166). `same_family=False` lần này **đúng** —
+Llama-3.1-8B thật sự khác họ Qwen.
+
+### Ba lần chạy hợp lệ, cùng một thiết kế
+
+| lần chạy | `Δ_gate` | `Δ_ceil` (cổng ORACLE vs `I`) | `Δ_honest` |
+|---|---|---|---|
+| **1.5B→7B** (Qwen→Qwen) | +.0040 (p .69) | **−.0641** (p .0016) ← **THUA** | −.0842 (p 4.7e−05) |
+| **1.5B→Llama-8B** (khác họ) | +.0160 (p .039) | **+.0421** (p **.042**) ← **THẮNG** | −.0080 (p .77) |
+| **7B→32B** (Qwen→Qwen) | +.0922 (p ≈0) | +.0060 (p .82) ← hoà | −.0160 (p .44) |
+
+> **`Δ_ceil` đổi DẤU giữa các cặp model: −.064 → +.042.**
+> Ở cặp **khác họ**, cổng ORACLE **vượt** `I` một cách có ý nghĩa ⇒ **CÓ dư địa để khai thác**
+> từ artifact của model yếu — đúng thứ mà #142 tuyên bố là **không tồn tại**.
+
+**Bảng khoá #101 (bản #101-c) ⇒ HÀNG 3**: *"có chỗ khai thác nhưng cổng KHẢ THI không lấy được
+⇒ nút thắt là `κ`"*. `Δ_honest` = −.0080 (p .77): sửa-có-cổng **hoà** với `I`, không vượt.
+
+### Điều NHẤT QUÁN qua cả ba cặp — và đó là phát biểu duy nhất còn an toàn
+`Δ_honest` ≤ 0 ở **cả ba** (−.0842 / −.0080 / −.0160), **không lần nào dương có ý nghĩa**.
+
+> **Phát biểu đúng: sửa-có-cổng CHƯA BAO GIỜ vượt được việc gọi thẳng model mạnh, ở cả ba cặp.**
+> **Phát biểu SAI (đã từng viết ở #142): "không có gì để khai thác".** Ở cặp khác họ **có**
+> (`Δ_ceil` = +.0421, p .042) — chỉ là **cổng khả thi không lấy được**.
+> Đây là khác biệt lớn: "không có gì để lấy" ⇒ ngừng nghiên cứu; "có mà chưa lấy được" ⇒
+> **nút thắt là bộ chọn**, và đó là hướng nghiên cứu còn sống.
+
+### Bảng #98 (phá hoại có phụ thuộc họ?) — hàng D theo chữ, nhưng KHÔNG kết luận được
+`V − I` = **−.0240**, p = **.266**. Hàng D khớp theo chữ (*"âm nhưng yếu hơn rõ rệt"* so với mốc
+−.0740). **Nhưng p = .27 ⇒ không phân biệt được với 0.**
+⇒ **Tôi KHÔNG viết kết luận hàng D.** Phát biểu được phép: *"trên cặp khác họ này, đầu độc
+KHÔNG được xác lập"*.
+
+**#98 lại khoá ngưỡng TRẦN TRỤI không kèm điều kiện p** — **lần thứ ba** cùng một khuyết tật
+(#93 → #140, #94 → #158, nay #98). Luật #140 tôi đặt **sau khi** #98 đã viết, nhưng tôi đã có
+cơ hội sửa #98 ở #161 và **không làm**.
