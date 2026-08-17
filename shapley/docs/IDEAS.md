@@ -6406,3 +6406,55 @@ dùng làm luận cứ tu từ. **Đã sửa cả ba chỗ.**
 ### E. `TONG_HOP` mở đầu bằng một câu SAI
 *"**Mọi con số đều có kiểm định ghép cặp McNemar**"* — không đúng cho bảng M1 (−.1080/+.0220),
 bảng M2 (−.0840/−.0640), và các số từ #158. **Đã sửa câu đó.**
+
+---
+
+## Vòng #161 — Agent thứ tư: **năm lần chạy VOID đều chỉ NGƯỢC hướng với mục 5 của README**
+
+Agent kiểm số liệu **tái tạo độc lập cả ba đại lượng chủ lực từ `traces_*.json`** và khớp **chính xác**
+(`d_ceil` −0.064128 / −0.058315 · `E3−E0` −0.078156 / −0.077754 · `H(B)−H(A)` +0.068966).
+Nhưng nó tìm ra hai vấn đề nặng mà tôi tự kiểm không thấy.
+
+### A. HIGH — mọi cặp model KHÁC đều VOID, và tất cả đều chỉ NGƯỢC
+| lần chạy | model đắt | tình trạng |
+|---|---|---|
+| H89b | DeepSeek-Coder-6.7B | VOID (cổng #97-c cũ) |
+| H89d, H89e | Llama-3.1-8B | VOID (cắt cụt, năng lực) |
+| H91b, H91c | Qwen2.5-32B | VOID (cắt cụt nhánh `V`) |
+
+Cả năm **VOID theo cổng đã đăng ký trước** — kỷ luật đó là thật, và tôi **không** dùng số của chúng.
+Nhưng agent chỉ ra: **hướng của chúng đồng loạt ngược với mục 5**, trong khi README phát biểu mục 5
+như một **quy luật cấu trúc** không nêu phạm vi model nào.
+
+> **Tôi không được trích số VOID. Nhưng GIẤU việc chúng tồn tại và đồng loạt ngược hướng thì tệ hơn nhiều.**
+> Mục 5 thực chất đứng trên **ĐÚNG MỘT cặp: Qwen2.5-1.5B → Qwen2.5-7B, CÙNG họ.**
+
+**Đã sửa README**: thêm khối **PHẠM VI** nói rõ (a) chỉ một cặp model, (b) các cặp khác đã thử và
+VOID hết, (c) kiểm định độc lập cho biết chúng ngược hướng, (d) **phải chạy lại đàng hoàng** trước
+khi phát biểu như quy luật.
+
+### B. HIGH — một cổng **đã được nới**, và README không hề nhắc
+H88/H88b VOID một phần vì `test_runnable` = **.6994**, hụt **.70** đúng **.0006**. #97-c nới xuống
+**.60**, lần chạy lại đạt. Việc nới **có công bố** ở nhật ký (và tôi có ghi *"đây là NỚI ngưỡng"*),
+nhưng **README thì không** — người đọc README thấy một kết quả "qua đăng ký trước" mà không biết
+ngưỡng đã đổi. **Đã thêm vào README**, kèm lối thoát: `Δ_ceil` dùng **cổng ORACLE** nên không
+phụ thuộc `z`; ai không chấp nhận việc nới thì chỉ đọc `Δ_ceil`.
+
+### C. Ba lỗi số liệu trong tài liệu CÔNG KHAI
+| lỗi | đúng ra là |
+|---|---|
+| hàng GSM8K in **p = 3e-4** | **2.2e-05** — con số 3e-4 là của hàng **MBPP**, bị chép lên một dòng (tự tính lại từ `res_h61`: b01=56 b10=19) |
+| mục E: *"~26% hỏng hành vi **ngay cả khi có oracle**"* | 26% (69/266) là nhánh **KHÔNG** oracle (`ref1`); có oracle là **~21–23%**. Lỗi có sẵn ở `IDEAS.md:3279` và bị chép lên README |
+| mục F: *"hai tách dữ liệu rời nhau"* cho **cả hai** dòng | chỉ **dòng 1** rời nhau. Dòng 2 (H52/H53) là **cùng tập BigCodeBench**, khác lượt kernel ⇒ **ổn định theo hạt giống**, không phải tái lập |
+| TONG_HOP: *"hai lần HUỶ vì hạ tầng"* ở 32B | **năm lần**, và #146/#153 là **cắt cụt**, không phải hạ tầng |
+
+### D. Điều agent xác nhận ĐÚNG (đáng ghi không kém)
+Toàn bộ mục 1–4 của README, mục 2 (`SEL−V_review` +.1300, p **9.04e-13**), mục 4 (test chạy được
++.0401/+.0388), danh sách rút lại, và **mọi bảng của TONG_HOP** đều tái tạo được từ dữ liệu thô.
+Quét chọn-lọc-báo-cáo: **không có lần chạy nào có `res_*.json` mà bị bỏ qua hoàn toàn**; mọi thư mục
+thiếu `res` đều là crash có ghi nhận vòng tương ứng.
+
+> **Bài học lớn nhất của #159–#161:** tôi đã tự kiểm README khớp file kết quả ở **#152** và nó khớp.
+> Nhưng ba agent độc lập vẫn tìm ra **một kernel đang chạy sinh dữ liệu giả**, **một hàng khoá viết
+> ngược dấu**, **hai con số gán nhầm nhánh**, **một nhãn tái lập sai**, và **một phạm vi bị bỏ trống**.
+> **Tự kiểm bắt được sai lệch SAO CHÉP. Nó không bắt được sai lệch DIỄN GIẢI.**
