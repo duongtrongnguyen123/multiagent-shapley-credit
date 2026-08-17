@@ -241,6 +241,21 @@ def gen(mo, tk, sysm, usrs, bs):
                 raise SystemExit(f"HUY SOM (#155): lo dau tien co do dai TB {_avg:.1f} ky tu "
                                  f"(<20) — sinh bi hong. Mau: {outs[0][:80]!r}")
             print(f"    [kiem lo 1] do dai TB {_avg:.0f} ky tu — binh thuong", flush=True)
+        # #173: CAT CUT phai kiem TICH LUY, khong phai o lo dau.
+        # Do tren du lieu THAT: lo dau cua H89f cat cut 0.0% trong khi ca nhanh la 14.4%
+        # => kiem lo-dau BAT KHONG DUOC. Sau 96 mau moi phan biet duoc:
+        #   H89f 10.4% | H91c 8.3%  (ca hai VOID that)   <- chan
+        #   H91e 2.1%  | H89g 0.0%  (ca hai DAT that)    <- cho qua
+        # Nguong .05 = dung nguong cong cat cut, nen chan som chinh xac cai se VOID.
+        if len(outs) >= 96 and not globals().get("_TRUNC_OK_" + str(id(usrs))):
+            _trc = sum((x or "").count("```") % 2 != 0 for x in outs)/len(outs)
+            if _trc > 0.05:
+                raise SystemExit(
+                    f"HUY SOM (#173): sau {len(outs)} mau, cat cut {_trc:.1%} > 5% o MAXNEW={MAXNEW}. "
+                    f"Nhanh nay se VOID theo cong cat cut — dung ngay thay vi chay het "
+                    f"(H89f mat 10.2h, H91c mat 1.8h vi khong co phep kiem nay).")
+            globals()["_TRUNC_OK_" + str(id(usrs))] = True
+            print(f"    [kiem cat cut] sau {len(outs)} mau: {_trc:.1%} — dat", flush=True)
         del e, o; torch.cuda.empty_cache(); i += bs
     return outs
 

@@ -6714,3 +6714,40 @@ sẽ **giảm**, chứ không phải tăng theo cap.
 `I`, bản chạy lại có thể **đụng tường**. Chấp nhận vì: (a) kernel có **4 điểm lưu** raw sau mỗi
 chặng nên hỏng vẫn cứu được `S/TESTS/I/V`, (b) đây là nhánh **duy nhất** còn trả lời được #98
 bằng một model khác họ **thứ hai** (cạnh H89g/Llama).
+
+---
+
+## Vòng #173 — Tôi suýt ship một phép kiểm KHÔNG hoạt động, và chính script của tôi in ra kết luận SAI
+
+### Ý định
+Bốn lần VOID (#130, #146, #153, #172) đều vì `MAXNEW` quá nhỏ cho **một** nhánh, và đều chỉ lộ ra
+sau **nhiều giờ**. Tôi thêm phép kiểm cắt cụt vào **lô đầu tiên** (chỗ đã có sẵn kiểm tỉnh táo #155)
+— tưởng là bắt được, miễn phí.
+
+### Kiểm chứng trên dữ liệu THẬT — và nó bác bỏ chính bản vá
+| nhánh | **lô 1** | cả nhánh | ngưỡng 10% ở lô 1 |
+|---|---|---|---|
+| H89f `I` (DeepSeek) | **0.0%** | **14.4%** | **KHÔNG chặn** |
+| H91c `V` (32B) | 6.2% | 6.4% | **KHÔNG chặn** |
+
+**Lô đầu không đại diện** — bài MBPP đầu dải ngắn hơn. Phép kiểm của tôi **vô dụng**.
+
+> **Tệ hơn: script kiểm chứng của tôi in ra `"H89f va H91c deu se bi chan NGAY"` — trong khi
+> chính bảng nó vừa tính ra nói `"chay tiep"` cho cả hai.** Tôi viết câu kết luận đó **cùng lúc**
+> viết phép thử, và nó **không** đọc kết quả phép thử. Nếu không đọc kỹ bảng số, tôi đã ghi vào
+> nhật ký một bản vá hỏng kèm bằng chứng giả.
+>
+> **Quy tắc: câu kết luận trong script kiểm chứng phải được TÍNH TỪ dữ liệu, không được viết tay
+> song song.** Một dòng `print` hằng số nằm cạnh một bảng số là **bằng chứng giả**.
+
+### Bản vá đúng (đã đo trước khi chọn ngưỡng)
+Kiểm **tích luỹ sau 96 mẫu**, ngưỡng **.05** (đúng ngưỡng cổng cắt cụt):
+
+| nhánh | sau 48 | **sau 96** | cả nhánh | thực tế | quyết định |
+|---|---|---|---|---|---|
+| H89f `I` | 6.2% | **10.4%** | 14.4% | VOID | **chặn** ✓ |
+| H91c `V` | 8.3% | **8.3%** | 6.4% | VOID | **chặn** ✓ |
+| H91e `V` | 2.1% | **2.1%** | 2.0% | ĐẠT | cho qua ✓ |
+| H89g `V` | 0.0% | **0.0%** | 0.0% | ĐẠT | cho qua ✓ |
+
+**4/4 đúng** trên bốn lần chạy đã biết kết cục. Sẽ cứu được **10.2 giờ** (H89f) và **1.8 giờ** (H91c).
