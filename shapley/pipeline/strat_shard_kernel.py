@@ -20,6 +20,7 @@ SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
 K, MAXNEW = 8, 512
 BSS, BSB = 48, 16          # tinh tu VRAM, khong chep lai: xem ghi chu cuoi file
                            # BSB=16 (tu 32): giam de tranh OOM o pha 3 (prompt dai)
+BSB_SEQ = 4               # batch rieng cho pha 3: prompt rat dai (Q + solution + verify)
 TEMP = 0.8
 
 M15 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors", recursive=True), key=len)[0])
@@ -162,13 +163,23 @@ torch.cuda.empty_cache()   # giai phong KV cache giua pha 2 va 3
 
 SEQ_TXT, SEQ = {}, {}
 if ESC:
+    torch.cuda.empty_cache()
     anch = {i: ANCH.replace("@@A@@", str(vote3(S_PRED[i])[0])) + f"\n\n{Q[i]}" for i in ESC}
-    s1 = parallel_gen(bigs, T7, SOLVE, anch, BSB, 0.0, 1)
-    ver = {i: f"{Q[i]}\n\nProposed solution:\n{s1[i][0]}" for i in ESC}
-    s2 = parallel_gen(bigs, T7, VERIFY, ver, BSB, 0.0, 1)
+    s1 = parallel_gen(bigs, T7, SOLVE, anch, BSB_SEQ, 0.0, 1)
+    torch.cuda.empty_cache()
+    # Xay dung verify prompts chi cho nhung key co ket qua pass1
+    ver = {i: f"{Q[i]}\n\nProposed solution:\n{s1[i][0]}" for i in ESC if i in s1 and s1[i]}
+    s2 = parallel_gen(bigs, T7, VERIFY, ver, BSB_SEQ, 0.0, 1)
+    torch.cuda.empty_cache()
     for i in ESC:
-        SEQ_TXT[i] = {"pass1": s1[i][0], "pass2": s2[i][0]}
-        SEQ[i] = pred(s2[i][0]) if pred(s2[i][0]) is not None else pred(s1[i][0])
+        if i in s1 and s1[i] and i in s2 and s2[i]:
+            SEQ_TXT[i] = {"pass1": s1[i][0], "pass2": s2[i][0]}
+            SEQ[i] = pred(s2[i][0]) if pred(s2[i][0]) is not None else pred(s1[i][0])
+        elif i in s1 and s1[i]:
+            SEQ_TXT[i] = {"pass1": s1[i][0]}
+            SEQ[i] = pred(s1[i][0])
+        else:
+            print(f"WARNING: shard {SHARD} key {i} missing seq results (OOM?)", flush=True)
 print("xong pha 3", flush=True)
 
 CAP = 4000
