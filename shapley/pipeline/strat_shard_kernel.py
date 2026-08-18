@@ -7,12 +7,19 @@
 #   7B   nf4   = ~5  GB  -> moi GPU mot ban sao   (fp16 15.2 GB KHONG vua 1 the T4)
 # device_map="auto" chi chia lop (pipeline) = suc chua, KHONG phai toc do. O day ta muon toc do.
 import os, re, csv, json, glob, threading, hashlib, torch, subprocess, sys
-subprocess.run([sys.executable,"-m","pip","install","-q","-U","bitsandbytes>=0.46.1"])
+# Install bitsandbytes OFFLINE tu wheel trong dataset Kaggle (khong can Internet)
+_wheels = glob.glob("/kaggle/input/**/bitsandbytes*.whl", recursive=True)
+if _wheels:
+    subprocess.run([sys.executable,"-m","pip","install","-q",_wheels[0]], check=True)
+    print(f"installed bitsandbytes from {_wheels[0]}", flush=True)
+else:
+    print("WARNING: khong tim thay bitsandbytes wheel trong input — se fallback fp16", flush=True)
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
 K, MAXNEW = 8, 512
-BSS, BSB = 48, 32          # tinh tu VRAM, khong chep lai: xem ghi chu cuoi file
+BSS, BSB = 48, 16          # tinh tu VRAM, khong chep lai: xem ghi chu cuoi file
+                           # BSB=16 (tu 32): giam de tranh OOM o pha 3 (prompt dai)
 TEMP = 0.8
 
 M15 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors", recursive=True), key=len)[0])
@@ -151,6 +158,7 @@ QUANT = "nf4" if len(bigs) == NG else "fp16-fallback"
 
 B_TXT = parallel_gen(bigs, T7, SOLVE, Q, BSB, TEMP, K)
 print("xong pha 2", flush=True)
+torch.cuda.empty_cache()   # giai phong KV cache giua pha 2 va 3
 
 SEQ_TXT, SEQ = {}, {}
 if ESC:
