@@ -24,6 +24,7 @@ K       = __K__             # cau/outer loop
 OUTER   = __OUTER__         # so vong ngoai (rollout + reward recompute)
 E       = __E__             # so epoch inner (multi-epoch PPO)
 LR      = __LR__
+LR_A    = __LR_A__          # (khong dung: A frozen=base, chi train S/V)
 EPS     = __EPS__           # PPO ratio clip
 BETA    = __BETA__          # he so KL vs ref
 TEMP    = __TEMP__          # nhiet do sampling khi rollout (exploration)
@@ -85,12 +86,24 @@ def _lora_cfg():
                       target_modules=["q_proj", "k_proj", "v_proj", "o_proj"])
 model = get_peft_model(base, _lora_cfg(), adapter_name="s")
 model.add_adapter("v", _lora_cfg())
-model.add_adapter("a", _lora_cfg())
 model.set_adapter("s")
+for pn, p in model.named_parameters():
+    if ".lora_A." in pn or ".lora_B." in pn:
+        p.requires_grad = True
 model.config.use_cache = True
-opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=LR)
-print(f"LoRA co-train S/V/A; trainable tensors: "
-      f"{sum(1 for n, p in model.named_parameters() if p.requires_grad)}", flush=True)
+def _adapter_params(name):
+    return [p for n, p in model.named_parameters()
+            if p.requires_grad
+            and (f".lora_A.{name}." in n or f".lora_B.{name}." in n)]
+pS, pV = _adapter_params("s"), _adapter_params("v")
+if not (pS and pV):
+    names = [n for n, p in model.named_parameters() if p.requires_grad]
+    print("TRAINABLE PARAM NAMES:", names[:40], flush=True)
+    raise AssertionError(f"adapter params rong: s={len(pS)} v={len(pV)}")
+opt = torch.optim.AdamW(
+    [{"params": pS, "lr": LR}, {"params": pV, "lr": LR}])
+print(f"LoRA co-train S/V (A frozen=base); params: S={len(pS)} V={len(pV)} "
+      f"| lr={LR}", flush=True)
 
 if TASK == "math":
     PLAN_SYS   = ("You are a math planning assistant. Read the competition problem and give a "
@@ -305,16 +318,16 @@ for outer in range(OUTER):
     model.eval()
     idxs = random.sample(range(n), min(K, n))
 
-    # ---- rollout (S/V/A = LoRA sampling, P = base plan da precompute) ----
+    # ---- rollout (S/V = LoRA sampling, A = base frozen, P = base plan) ----
     plan_t = [PRE_PLAN[i] for i in idxs]
     sol, sol_p, sol_r = gen([s_wp(qs[i], plan_t[j]) for j, i in enumerate(idxs)],
                             MX_S, True, do_sample=TEMP > 0, temp=TEMP, adapter="s")
     v,   v_p,   v_r   = gen([v_vwp(qs[i], sol[j]) for j, i in enumerate(idxs)],
                             MX_V, True, do_sample=TEMP > 0, temp=TEMP, adapter="v")
     a,   a_p,   a_r   = gen([a_svwp(qs[i], sol[j], v[j]) for j, i in enumerate(idxs)],
-                            MX_A, True, do_sample=TEMP > 0, temp=TEMP, adapter="a")
+                            MX_A, False)
 
-    # ---- reward influence-aware (soft + anti-hack) ----
+    # ---- reward influence-aware (soft; A dung base, khong train) ----
     ss = [soft_ok(sol[j], gs[idxs[j]]) for j in range(len(idxs))]
     sv = [soft_ok(v[j], gs[idxs[j]]) for j in range(len(idxs))]
     sa = [soft_ok(a[j], gs[idxs[j]]) for j in range(len(idxs))]
@@ -322,20 +335,18 @@ for outer in range(OUTER):
     rV = [sv[j] + BETA_V * sa[j] for j in range(len(idxs))]
     rA = list(sa)
 
-    # ---- group advantage per cau (GRPO): normalize {r_S, r_V, r_A} ----
+    # ---- group advantage per cau (GRPO): normalize {r_S, r_V} ----
     samples = []
     for t in range(len(idxs)):
-        grp = [rS[t], rV[t], rA[t]]
-        mean = sum(grp) / 3
-        std = (sum((x - mean) ** 2 for x in grp) / 3) ** 0.5
+        grp = [rS[t], rV[t]]
+        mean = sum(grp) / 2
+        std = (sum((x - mean) ** 2 for x in grp) / 2) ** 0.5
         sd = max(std, 1e-4)
-        adv = lambda x: (x - mean) / sd
+        adv = lambda x: max(-3.0, min(3.0, (x - mean) / sd))
         samples.append({"pid": sol_p[t], "rid": sol_r[t], "advs": [adv(rS[t])],
                         "adapter": "s"})
         samples.append({"pid": v_p[t], "rid": v_r[t], "advs": [adv(rV[t])],
                         "adapter": "v"})
-        samples.append({"pid": a_p[t], "rid": a_r[t], "advs": [adv(rA[t])],
-                        "adapter": "a"})
 
     # ---- logp_old (policy rollout) & logp_ref (base) - cache truoc update ----
     torch.cuda.empty_cache()
@@ -356,24 +367,44 @@ for outer in range(OUTER):
             for s in batch:
                 lp = logp(s["pid"], s["rid"], use_lora=True, grad=True,
                           adapter=s["adapter"])
-                ratio = torch.exp(lp - s["lp_old"])
+                d = torch.clamp(lp - s["lp_old"], -5.0, 5.0)
+                ratio = torch.exp(d)
                 rc = torch.clamp(ratio, 1 - EPS, 1 + EPS)
                 surr = torch.zeros_like(ratio)
                 for advv in s["advs"]:
                     surr = surr + torch.min(ratio * advv, rc * advv)
                 surr = surr / len(s["advs"])
-                kl = torch.exp(s["lp_ref"] - lp) - (s["lp_ref"] - lp) - 1.0
+                kd = torch.clamp(s["lp_ref"] - lp, -5.0, 5.0)
+                kl = torch.exp(kd) - kd - 1.0
                 loss_s = (-surr.mean() + BETA * kl.mean()) / len(batch)
-                loss_s.backward()
+                if torch.isfinite(loss_s):
+                    loss_s.backward()
                 del lp
                 torch.cuda.empty_cache()
+            with torch.no_grad():
+                for pn, p in model.named_parameters():
+                    if p.grad is not None and not torch.isfinite(p.grad).all():
+                        p.grad = torch.zeros_like(p.grad)
             torch.nn.utils.clip_grad_norm_(
                 [p for p in model.parameters() if p.requires_grad], 1.0)
             opt.step()
+            with torch.no_grad():
+                nbad = 0
+                for pn, p in model.named_parameters():
+                    if ".lora_A." in pn or ".lora_B." in pn:
+                        if not torch.isfinite(p).all():
+                            nbad += 1
+                        p.data = torch.nan_to_num(
+                            p.data, nan=0.0, posinf=0.05, neginf=-0.05)
+                        p.data.clamp_(-1.0, 1.0)
+                if nbad:
+                    print(f"NaN/Inf adapter params repaired: {nbad} tensors", flush=True)
     model.eval()
 
     # ---- log ----
     el = time.time() - t0
+    has_ok = sum(1 for j in range(len(idxs))
+                 if ok(sol[j], gs[idxs[j]]) or ok(v[j], gs[idxs[j]])) / len(idxs)
     hist.append({
         "outer": outer + 1,
         "mean_rS": round(sum(rS) / len(rS), 4),
@@ -382,12 +413,13 @@ for outer in range(OUTER):
         "acc_sol": round(sum(ss) / len(ss), 4),
         "acc_v":   round(sum(sv) / len(sv), 4),
         "acc_a":   round(sum(sa) / len(sa), 4),
+        "has_ok":  round(has_ok, 4),
         "samples": len(samples), "seconds": round(el, 1)})
-    print(f"[SVA outer {outer+1}/{OUTER}] rS={hist[-1]['mean_rS']:+.4f} "
-          f"rV={hist[-1]['mean_rV']:+.4f} rA={hist[-1]['mean_rA']:+.4f} "
+    print(f"[SV outer {outer+1}/{OUTER}] rS={hist[-1]['mean_rS']:+.4f} "
+          f"rV={hist[-1]['mean_rV']:+.4f} rA(base)={hist[-1]['mean_rA']:+.4f} "
           f"acc S/V/A={hist[-1]['acc_sol']:.3f}/{hist[-1]['acc_v']:.3f}/"
-          f"{hist[-1]['acc_a']:.3f} samples={len(samples)} "
-          f"elapsed={el/60:.1f}m", flush=True)
+          f"{hist[-1]['acc_a']:.3f} has_ok={hist[-1]['has_ok']:.3f} "
+          f"samples={len(samples)} elapsed={el/60:.1f}m", flush=True)
     if (outer + 1) % 5 == 0 or outer == OUTER - 1:
         with open("/kaggle/working/hist.json", "w") as f:
             json.dump(hist, f)
@@ -410,7 +442,8 @@ else:
 tp = text_only(gen([p_plan(q) for q in tq], MX_P, False))
 
 def run_pipe(full):
-    """full = {"S": bool, "V": bool, "A": bool}: vai nao dung adapter da train."""
+    """full = {"S": bool, "V": bool}: vai nao dung adapter da train.
+    A luon dung base (A frozen, khong co adapter)."""
     if full["S"]:
         ts1 = text_only(gen([s_wp(q, p) for q, p in zip(tq, tp)], MX_S, True,
                             adapter="s"))
@@ -421,32 +454,25 @@ def run_pipe(full):
                            adapter="v"))
     else:
         tv = text_only(gen([v_vwp(q, s) for q, s in zip(tq, ts1)], MX_V, False))
-    if full["A"]:
-        ta = text_only(gen([a_svwp(q, s, v) for q, s, v in zip(tq, ts1, tv)], MX_A,
-                           True, adapter="a"))
-    else:
-        ta = text_only(gen([a_svwp(q, s, v) for q, s, v in zip(tq, ts1, tv)], MX_A,
-                           False))
-    return ta
+    return text_only(gen([a_svwp(q, s, v) for q, s, v in zip(tq, ts1, tv)], MX_A,
+                         False))
 
-_REF = {"S": False, "V": False, "A": False}
-_FULL = {"S": True, "V": True, "A": True}
+_REF = {"S": False, "V": False}
+_FULL = {"S": True, "V": True}
 t_ref = run_pipe(_REF)
 t_full = run_pipe(_FULL)
-t_s = run_pipe({"S": True, "V": False, "A": False})
-t_v = run_pipe({"S": False, "V": True, "A": False})
-t_a = run_pipe({"S": False, "V": False, "A": True})
+t_s = run_pipe({"S": True, "V": False})
+t_v = run_pipe({"S": False, "V": True})
 
 acc_ref = sum(ok(t, g) for t, g in zip(t_ref, tg)) / len(tg)
 acc_full = sum(ok(t, g) for t, g in zip(t_full, tg)) / len(tg)
 acc_s = sum(ok(t, g) for t, g in zip(t_s, tg)) / len(tg)
 acc_v = sum(ok(t, g) for t, g in zip(t_v, tg)) / len(tg)
-acc_a = sum(ok(t, g) for t, g in zip(t_a, tg)) / len(tg)
-print(f"  base acc={acc_ref:.4f} | co-train(SVA) acc={acc_full:.4f} "
+print(f"  base acc={acc_ref:.4f} | co-train(SV) acc={acc_full:.4f} "
       f"gain={acc_full - acc_ref:+.4f}", flush=True)
 print(f"  solo: S={acc_s:.4f} (gain {acc_s - acc_ref:+.4f}) | "
       f"V={acc_v:.4f} (gain {acc_v - acc_ref:+.4f}) | "
-      f"A={acc_a:.4f} (gain {acc_a - acc_ref:+.4f})", flush=True)
+      f"A=base (frozen)={acc_ref:.4f}", flush=True)
 
 ADAPTER = "/kaggle/working/adapter"
 model.save_pretrained(ADAPTER)
@@ -456,7 +482,7 @@ out = {"n_train": n, "K": K, "OUTER": OUTER, "E": E,
        "beta_s": BETA_S, "beta_v": BETA_V, "seed": SEED, "hist": hist,
        "quick_eval": {"acc_ref": acc_ref, "acc_full": acc_full,
                       "gain": acc_full - acc_ref,
-                      "solo": {"S": acc_s, "V": acc_v, "A": acc_a}},
+                      "solo": {"S": acc_s, "V": acc_v, "A": "base_frozen"}},
        "seconds": round(time.time() - t0, 1)}
 json.dump(out, open("/kaggle/working/summary.json", "w"), indent=2)
 print("SUMMARY", json.dumps({"quick_eval": out["quick_eval"],

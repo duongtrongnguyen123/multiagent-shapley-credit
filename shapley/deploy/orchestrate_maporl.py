@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Deploy the MAPoRL co-train (S/V/A) kernel.
+"""Deploy the MAPoRL co-train (S/V) kernel.
 
   ACCOUNT=viettran12 python deploy/orchestrate_maporl.py
 
-Co-trains S, V, A simultaneously via 3 LoRA adapters on 1 base model (P stays
-base). Reward is influence-aware (correctness + influence on downstream agents),
+Co-trains S, V via 2 LoRA adapters on 1 base model (P base; A frozen=base).
+Reward is influence-aware (correctness + influence on downstream agents),
 grouped per question (GRPO advantage). Internet is enabled (peft installed at
 runtime).
 
@@ -17,11 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 ACCOUNTS = Path(os.environ.get("ACCOUNTS_FILE", ROOT / "accounts.txt")).expanduser()
 SRC = ROOT / "pipeline" / "maporl_kernel.py"
 TASK = os.environ.get("TASK", "gsm8k")
-N_TRAIN = os.environ.get("N_TRAIN", "256")
+N_TRAIN = os.environ.get("N_TRAIN", "512")
 K = os.environ.get("K", "32")
-OUTER = os.environ.get("OUTER", "16")
+OUTER = os.environ.get("OUTER", "32")
 E = os.environ.get("E", "3")
 LR = os.environ.get("LR", "5e-5")
+LR_A = os.environ.get("LR_A", "1e-4")
 EPS = os.environ.get("EPS", "0.2")
 BETA = os.environ.get("BETA", "0.04")
 TEMP = os.environ.get("V_TEMP", "0.7")
@@ -69,6 +70,7 @@ def main():
               .replace("__N_TRAIN__", N_TRAIN).replace("__K__", K)
               .replace("__OUTER__", OUTER).replace("__E__", E)
               .replace("__LR__", LR)   # literal: 5e-5
+              .replace("__LR_A__", LR_A)
               .replace("__EPS__", EPS)
               .replace("__BETA__", BETA)
               .replace("__TEMP__", TEMP)
@@ -84,7 +86,7 @@ def main():
                 if TASK == "math" else
                 ["xatri007/qwen2-5-1-5b-instruct", GSM_DS])
     suffix = "math" if TASK == "math" else "gsm8k"
-    slug = os.environ.get("SLUG", f"maporl-cotrain-sva-{suffix}")
+    slug = os.environ.get("SLUG", f"maporl-cotrain-sv-{suffix}")
     shutil.rmtree(KDIR, ignore_errors=True)
     d = KDIR / "train"
     d.mkdir(parents=True)
@@ -99,9 +101,9 @@ def main():
                        env=dict(os.environ, KAGGLE_API_TOKEN=token),
                        capture_output=True, text=True)
     ok = "successfully pushed" in (r.stdout or "")
-    print(f"[{slug}] task={TASK} n={N_TRAIN} k={K} outer={OUTER} e={E} lr={LR} eps={EPS} "
-          f"beta={BETA} temp={TEMP} beta_s={BETA_S} beta_v={BETA_V} -> {user} "
-          f"{'OK' if ok else 'FAIL'} "
+    print(f"[{slug}] task={TASK} n={N_TRAIN} k={K} outer={OUTER} e={E} lr={LR} "
+          f"(A frozen=base) eps={EPS} beta={BETA} temp={TEMP} beta_s={BETA_S} "
+          f"beta_v={BETA_V} -> {user} {'OK' if ok else 'FAIL'} "
           f"{(r.stdout or r.stderr).strip().splitlines()[-1][:70]}", flush=True)
     man = ROOT / "manifest_maporl.json"
     man.write_text(json.dumps([{"user": user, "token": token, "slug": slug,

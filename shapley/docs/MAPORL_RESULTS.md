@@ -81,6 +81,52 @@ quick_eval (100 câu test):
 
 Adapter lưu tại `Temp\opencode\maporl_full\adapter\` (s/ v/ a/).
 
+### 3.3 V2: co-train S/V/A có siết A (N=512, K=32, OUTER=32, ~9h)
+
+Sau v1 phát hiện v1 thực ra **chỉ train được adapter S** (PEFT chỉ set
+`requires_grad=True` cho adapter active "s"; V/A bị freeze vô tình) — đây là lý do
+v1 không gain. V2 sửa để co-train thật cả S/V/A: `requires_grad=True` cho mọi
+lora params, **siết A** qua A-cond reward (+1.0 đúng / −2.0 sai khi có candidate
+đúng, LR_A=1e-4 gấp đôi), tăng compute N=512/OUTER=32.
+Kernel `tbmdemi/maporl-cotrain-sva-gsm8k-v2` (v1–v4 ERROR: assert adapter params →
+NaN trong PPO → TypeError shadowing biến `n`; v5 chạy trọn).
+
+quick_eval (100 câu test):
+
+| pipeline | acc | gain |
+|---|---|---|
+| base (P→S→V→A, P base) | **0.690** | — |
+| co-train (S/V/A adapters) | **0.000** | **−0.690** |
+| solo S | 0.720 | +0.030 |
+| solo V | 0.210 | −0.480 |
+| solo A | 0.000 | −0.690 |
+
+Hist: outer 1 acc_v=0.766/acc_a=0.781 (adapter mới init = base) nhưng từ outer 2
+trở đi **acc_v ≈ 0.0 và acc_a = 0.0 suốt 31 outer** — V và A **collapse hoàn toàn**
+sau đúng 1 PPO update (S vẫn ổn, acc_sol 0.4–0.6).
+
+### 3.4 V3: co-train S/V, A frozen=base (N=512, K=32, OUTER=32, ~3.7h)
+
+Nguyên nhân nghi vấn ban đầu là penalty −2.0 trong rV (A sai kéo V xuống) → thử
+bỏ hẳn adapter A (A luôn base, sa=soft 0/1 không penalty), chỉ co-train S/V.
+Kernel `viettran12/maporl-cotrain-sv-gsm8k` (COMPLETE).
+
+quick_eval (100 câu test):
+
+| pipeline | acc | gain |
+|---|---|---|
+| base (P→S→V→A, P base) | **0.690** | — |
+| co-train (S/V adapters, A base) | **0.480** | **−0.210** |
+| solo S | 0.710 | +0.020 |
+| solo V | 0.450 | −0.240 |
+
+Hist: outer 1 acc_v=0.766 (V base) → outer 2 **acc_v=0.094** rồi ~0.000 suốt 30
+outer còn lại. **V collapse vẫn xảy ra dù A không còn penalty** → root cause không
+phải reward A. Log ghi `NaN/Inf adapter params repaired: 49 tensors` lặp **mỗi
+step** suốt run (1453 lần), lần đầu ngay outer 1 (`224 tensors` = toàn bộ S+V).
+
+Output: `Temp\opencode\maporl_sv_log1\` (summary.json, hist.json, adapter\{s,v}\).
+
 ---
 
 ## 4. Phân tích
@@ -105,18 +151,24 @@ Adapter lưu tại `Temp\opencode\maporl_full\adapter\` (s/ v/ a/).
 - **Bác bỏ giả thuyết** rằng co-train 3 agent bằng multi-agent PPO với reward
   correctness + influence term (phiên bản T4, không verifier RL) cải thiện được
   pipeline 1.5B trên GSM8K.
-- Khâu **Aggregator (A)** không học được dù S/V có tín hiệu — cần siết riêng
-  (vd: penalty khi A bỏ qua candidate đúng, LR riêng cho A) trước khi chạy lại.
-- Hướng còn lại nếu muốn tiếp tục: (a) siết A như trên; (b) tăng data/compute
-  (N=512–1024, OUTER=32, ~2–4h T4); (c) dừng và ghi nhận như kết quả âm
-  (như train-MATH Giai đoạn 2).
+- **v2/v3 xác nhận V/A collapse không phải do reward A**: dù bỏ penalty A và để A
+  frozen=base, adapter V vẫn bị NaN mỗi step (`repaired: 49 tensors` ~ mỗi 2.3s,
+  1453 lần) và collapse tới acc_v ≈ 0 từ outer 2. Chỉ S học được nhẹ (solo +0.02).
+  Nghi vấn kỹ thuật: `clip_grad_norm_` toàn cục có thể lan NaN từ 1 grad sang toàn
+  bộ params (total_norm=NaN) — chưa được chẩn đoán sâu (đã dừng theo quyết định).
+- Hướng còn lại nếu muốn tiếp tục: (a) sửa clip_grad theo từng param group + chẩn
+  đoán nguồn NaN V; (b) tăng data/compute; (c) **dừng và ghi nhận như kết quả âm**
+  (đã chọn — MAPoRL co-train kết thúc ở đây).
 
 ## 6. Trạng thái
 
-- Kernel: `shapley/pipeline/maporl_kernel.py` (co-train S/V/A, P base).
+- Kernel: `shapley/pipeline/maporl_kernel.py` (co-train S/V, A frozen=base — bản
+  cuối).
 - Deploy: `shapley/deploy/orchestrate_maporl.py` (KDIR `kernels_maporl` — riêng, tránh
   xung đột KDIR như asel-vs-vote).
 - Kernel đã chạy: `viettran12/maporl-cotrain-sva-gsm8k-smoke` (COMPLETE),
-  `viettran12/maporl-cotrain-sva-gsm8k` (COMPLETE). Output: `Temp\opencode\maporl_full\`.
+  `viettran12/maporl-cotrain-sva-gsm8k` (COMPLETE), `tbmdemi/maporl-cotrain-sva-gsm8k-v2`
+  (COMPLETE), `viettran12/maporl-cotrain-sv-gsm8k` (COMPLETE). Output:
+  `Temp\opencode\maporl_full\`, `maporl_v2_log5b\`, `maporl_sv_log1\`.
 - Adapter (chưa upload dataset): trong output kernel `adapter\{s,v,a}\`.
 - Paper đọc: `Temp\opencode\maporl.pdf` + `maporl.txt` (đầy đủ method/verifier/training).
