@@ -4525,8 +4525,12 @@ làm cho độ trung thực của tiên nghiệm kiểm được bằng mắt**.
 | #101 | ~25% VOID | VOID **năm** lần | phần phòng hờ trúng |
 
 > **Tỉ lệ prior đúng: 2/7** (chưa tính #101 vì nó là phòng hờ, không phải hàng chính).
-> Cộng dồn từ #57: **19/40** (cập nhật #182: H96 rơi đúng hàng 2 — hàng tôi đặt modal 45%,
-> và đặt **ngược** với dữ liệu cũ mà chính tôi đã công bố trước ở cuối #106).
+> Cộng dồn từ #57: **20/41** (#182: H96 rơi đúng hàng 2 — hàng tôi đặt modal 45%, và đặt **ngược**
+> với dữ liệu cũ mà chính tôi đã công bố trước ở cuối #106. #185: H97 rơi đúng hàng 1, cũng là hàng
+> modal 45%).
+> **Không tính vào tỉ lệ này:** VOID (#184 H95b, #187 H98), không đánh giá được (#190 H94c),
+> lỗi hạ tầng (#191/#193/#195 H100/b/c), và mọi phân tích thứ cấp/thăm dò (#188, #194) —
+> tiên nghiệm chỉ được tính khi phép thử **đăng ký trước** chạy tới nơi.
 
 **Từ nay mọi đăng ký trước PHẢI kết thúc bằng dòng `Tỉ lệ prior đúng: N/M`.**
 Bỏ dòng đó — dù vô tình — là **xoá bằng chứng chống lại chính mình**.
