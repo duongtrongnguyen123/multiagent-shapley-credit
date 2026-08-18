@@ -15,7 +15,9 @@
 import os, re, csv, json, glob, random, subprocess, sys, statistics as st
 
 # torchao/bitsandbytes only needed for 4-bit quant; 1.5B fp16 doesn't need them.
-# Kaggle offline mode can't pip install, so skip entirely.
+# Kaggle ships torchao 0.10 which crashes peft — uninstall before import.
+subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "torchao"], check=False,
+               capture_output=True)
 
 import torch, torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -108,6 +110,7 @@ def eq(p, g):
 gold_of = lambda r: boxed(r["Answer"])
 q_of = lambda r: r["Question"]
 gold_chain = lambda r: r["Answer"].strip()
+ok = lambda x, g: eq(x, g)  # alias for disc_leakfix compat
 
 S_SYS = "Solve step by step. Put the final answer in \\boxed{}."
 J_SYS = "You judge whether a proposed solution is correct. Answer with one word: Yes or No."

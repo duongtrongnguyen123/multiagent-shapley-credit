@@ -15,7 +15,9 @@
 import os, re, csv, json, glob, random, subprocess, sys, statistics as st
 
 # torchao/bitsandbytes only needed for 4-bit quant; 1.5B fp16 doesn't need them.
-# Kaggle offline mode can't pip install, so skip entirely.
+# Kaggle ships torchao 0.10 which crashes peft — uninstall before import.
+subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "torchao"], check=False,
+               capture_output=True)
 
 import torch, torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
