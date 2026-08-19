@@ -7884,3 +7884,45 @@ hội tụ với #181 từ một hướng đo khác hẳn.
 
 Ghi lại vì trình tự này là điều tôi muốn lặp lại: **công bố hệ quả → tính trần của nó → hạ kỳ vọng
 NGAY**, chứ không đợi ai đó thử rồi mới phát hiện trần chỉ +.018.
+
+---
+
+## Vòng #198 — H99 (#109): **VOID**, ba lỗi độc lập, **cả ba đều đoán trước được**
+
+`results_H99` niêm phong trước khi mở. Cổng lần chạy: `n ≥ 480` **đạt**;
+**`acc` nền ∈ [.10,.90] TRƯỢT**; **còn ≥ 10 cặp hợp lệ TRƯỢT** (còn 9).
+⇒ **HÀNG 0: VOID.** Không đọc hồi quy, không đọc `g*`.
+
+| model | `acc` | tỉ lệ có `\boxed` |
+|---|---|---|
+| qwen14b | .750 | .992 |
+| qwen7b | .704 | .992 |
+| **qwen32b** | .568 | **.642** |
+| qwen1.5b | .462 | .986 |
+| **llama8b** | .392 | **.800** |
+| **dscoder** | **.012** | **.098** |
+
+### Lỗi 1 — DeepSeek-**Coder** trên **TOÁN**: `acc` = .012
+Nó sinh `\boxed{}` chỉ **9.8%** số bài. Đây **không phải** hỏng hóc kỹ thuật — nó là **model code**,
+còn MATH-500 là toán thi. **Tôi bê nguyên danh sách sáu model từ H96/H97 (MBPP) sang MATH mà không
+hỏi model nào phù hợp với miền nào.** Đoán trước được từ **tên model**.
+
+### Lỗi 2 — `qwen32b` chỉ `\boxed` **64.2%**, và tôi **không hề đặt cổng cho nhánh NỀN**
+Cổng của #109 kiểm `boxed` của nhánh **`V`** (≥.90, lệch <.05 so với `I`) nhưng **không kiểm nhánh nền**.
+Nên `acc` = .568 của 32B **không so được** với .704 của 7B: chúng có tỉ lệ trích xuất **.642 vs .992**.
+Đây **đúng là confound của #138** (trích xuất khác nhau ⇒ `acc` không so được), và tôi đã đặt cổng
+cho một nửa số nhánh rồi quên nửa kia.
+Nguyên nhân sâu hơn: `MAXNEW` = 2048 **vẫn không đủ** cho 32B trên toán — **lần thứ ba** bài học
+#130 quay lại. Tôi đã nâng từ 1280 lên 2048 và **vẫn thiếu**.
+
+### Lỗi 3 — chạm chặn 10.5h, mất **3 cặp** (mọi cặp `qwen32b` sửa)
+`[10.61h] DUNG SINH o 38172s`. Ước lượng thời gian của tôi (~6–7h) sai vì MATH **không có
+`stop_strings`** — mọi lượt sinh chạy tới EOS hoặc tới trần token.
+
+### Cả ba đều đoán trước được — và `preflight` chưa hỏi những câu này
+Mục [4] của `preflight.py` hỏi *"model yếu có sinh nổi tín hiệu không"* nhưng **không** hỏi
+*"model có hợp MIỀN không"*, *"nhánh NỀN có bị gác trích xuất không"*, *"ngân sách thời gian là bao nhiêu"*.
+Bổ sung cả ba.
+
+### Tiên nghiệm
+Cổng không đạt ⇒ **không cập nhật**. Vẫn **21/42**.

@@ -623,3 +623,13 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
 34. **Greedy tất định ⇒ "chạy lại y nguyên để xác nhận" là VÔ NGHĨA.** (#196) Không có nhiễu lấy mẫu
     để trung bình; lần chạy thứ hai cho **đúng từng bài**. Mọi phép xác nhận **phải** đổi ít nhất
     một trong: bộ bài, cặp model, giao thức. Nếu không đổi gì thì đó không phải bằng chứng độc lập.
+
+35. **Đừng bê nguyên danh sách model từ miền này sang miền khác.** (#198) Sáu model của H96/H97 (MBPP)
+    được bê thẳng sang MATH; DeepSeek-**Coder** cho `acc` **.012**, `\boxed` **9.8%**. Đoán trước
+    được **từ tên model**. Trước khi thêm một model vào miền mới: hỏi nó có được huấn luyện cho
+    miền đó không, và nó có sinh đúng **định dạng đáp án** của miền đó không.
+
+36. **Gác trích xuất cho MỌI nhánh đem so, kể cả nhánh NỀN.** (#198) #109 gác `boxed` của nhánh `V`
+    nhưng quên nhánh nền ⇒ `acc` .568 (boxed .642) bị đặt cạnh .704 (boxed .992) như thể so được.
+    Đúng confound #138, mắc lại sau khi đã có luật. **Nếu hai con số sẽ nằm cùng một bảng thì cả hai
+    phải qua cùng một cổng trích xuất.**

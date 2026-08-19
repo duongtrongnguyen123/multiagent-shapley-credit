@@ -176,6 +176,12 @@ def main():
     print(f"\n[4] KHA THI (khong tu dong kiem duoc — TRA LOI TRUOC KHI PHONG):")
     print("      - Model yeu co sinh noi tin hieu ma cong doi khong? (#184: 1.5B viet test chay duoc 70%)")
     print("      - Da co lan chay nao cho biet nguong cong nay dat duoc chua?")
+    print("      - MODEL CO HOP MIEN khong? (#198: DeepSeek-*Coder* tren MATH -> acc .012, boxed .098.")
+    print("        Doan truoc duoc tu TEN MODEL. Dung bung danh sach model tu lan chay mien khac.)")
+    print("      - Nhanh NEN co bi gac trich xuat khong, hay chi gac nhanh V? (#198: gac nua so nhanh")
+    print("        roi quen nua kia -> acc cua hai model KHONG so duoc. Day la confound #138.)")
+    print("      - NGAN SACH THOI GIAN: uoc bao nhieu gio? Co `stop_strings` khong? (#198: MATH khong")
+    print("        co rao ``` nen moi luot chay toi tran token -> ~4x MBPP, cham chan 10.5h, mat 3 cap.)")
 
     print("\n" + "="*60)
     if warn:
