@@ -52,5 +52,5 @@ Bằng chứng hai chiều, **ngược dấu nhau** — và đó chính là đi�
 
 1. **Bước 0** của `QUY_TRINH_VIET_BAO_CAO.md` — cả nhóm chốt một câu luận điểm *(chưa làm)*
 2. **H99b** và **H100e** đang chạy — xem Bước 6 để biết cách nối vào, và mục nào **bắt buộc** phải sửa
-3. **`EFFICIENCY.md`** *(nhánh `nguoi3-router`)* (Tùng Dương) chỉ có trên nhánh `nguoi3-router`, **chưa có trên `main`** —
-   cần cho §5.3. Chủ nhánh quyết định có gộp không.
+3. **`EFFICIENCY.md`** (Tùng Dương, 210 dòng) — **chỉ có trên nhánh `nguoi3-router`, chưa có trên `main`**.
+   Cần cho §5.3. Là nhánh của Tùng Dương nên **chủ nhánh quyết định** có gộp không.
