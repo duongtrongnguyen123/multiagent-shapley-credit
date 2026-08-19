@@ -76,12 +76,20 @@ bỏ phiếu không?**
 bỏ phiếu cơ học **0,19** trên 1.5B và **0,26** trên 7B. Trên 7B, aggregator LLM thậm chí còn **kém
 hơn cả greedy một lượt** (0,47 so với 0,72).
 
-Kết quả ở quy mô nhỏ hơn cũng cùng hướng: với 5 ứng viên, bỏ phiếu cơ học đạt **0,507** trong khi
-aggregator LLM đạt **0,460**.
+**Nhưng kết quả này PHỤ THUỘC TASK — cần nêu rõ, không được khái quát hoá.** Đo trực tiếp
+`vote5` so với `llm_agg` trên cùng ứng viên:
 
-**Đây là phép đo trung tâm của báo cáo.** Nó cho thấy giá trị quan sát được ở [1] đến từ **việc sinh
-thêm lượt**, không từ việc bổ sung vai trò. Khi kiểm soát ngân sách, thành phần LLM làm nhiệm vụ
-tổng hợp không những không cộng thêm giá trị mà còn **trừ đi** một lượng lớn.
+| Task | `vote5` − `llm_agg` |
+|---|---|
+| MATH 1.5B | **+0,075** (bỏ phiếu thắng) |
+| GSM8K 1.5B | **−0,056** (aggregator LLM thắng) |
+
+Trên **MATH**, bỏ phiếu cơ học thắng rõ rệt và nhất quán ở cả hai cỡ model. Trên **GSM8K**,
+aggregator LLM lại nhỉnh hơn. Phát biểu đúng là: **thành phần LLM tổng hợp không mang lại giá trị
+ổn định; ở miền khó nó gây hại đáng kể.**
+
+Điều này cho thấy giá trị quan sát được ở [1] chủ yếu đến từ **việc sinh thêm lượt**, không từ việc
+bổ sung vai trò tổng hợp.
 
 **Câu hỏi để lại:** liệu lợi ích có đến từ phản hồi của verifier không, hay chỉ từ lượt sinh thêm?
 
@@ -140,7 +148,80 @@ hiệu ứng dương duy nhất đạt 5/5 trong nhóm thí nghiệm đó. Tuy n
 
 ---
 
-## [5] Phân rã theo vai: hoá ra biến quyết định không phải vai
+## [5] Mẫu số: 57% số câu không thể có hiệu ứng
+
+**Câu hỏi.** Suốt [1]–[4], mọi can thiệp đều cho hiệu ứng 0–5 điểm và phần lớn chìm dưới sàn nhiễu.
+Có phải phối hợp thực sự vô dụng, hay phép đo đang dùng sai mẫu số?
+
+**Thiết kế.** Phân tầng theo độ khó **đối với chính model**: đếm số lời giải đúng trong `K` = 5 mẫu
+độc lập của solver. Tính offline trên trace đã có, không tốn GPU.
+
+| Số mẫu đúng trên 5 | n | Solver | vote5 | Δ |
+|---|---|---|---|---|
+| **0/5** (quá sức) | 48 (32%) | 0,000 | 0,000 | **0,000** |
+| 1/5 | 20 | 0,000 | 0,000 | 0,000 |
+| 2/5 | 15 | 0,333 | 0,600 | +0,267 |
+| 3/5 | 12 | 0,583 | 1,000 | +0,417 |
+| 4/5 | 18 | 0,722 | 1,000 | +0,278 |
+| **5/5** (quá dễ) | 37 (25%) | 1,000 | 1,000 | **0,000** |
+
+**57% số câu không thể có hiệu ứng vì lý do toán học, không phải vì phương pháp kém:** 32% số câu
+không mẫu nào đúng nên không có gì để chọn; 25% số câu mọi mẫu đều đúng nên không có gì để cải
+thiện hay phá hỏng.
+
+Trên **30% số câu** mà cơ chế chọn lọc có thể tác động (tầng 2–4/5), hiệu ứng là **+31,1 điểm** —
+gấp hơn sáu lần sàn nhiễu. Nhưng khi lấy trung bình trên toàn bộ 150 câu, con số đó bị pha loãng
+**3,3 lần** thành **+9,3 điểm**.
+
+> **Đây không phải "phối hợp vô dụng" mà là "đo sai mẫu số".** Một can thiệp mạnh +31 điểm trên tập
+> nó có thể tác động sẽ hiện ra thành +9 điểm trên tập đầy đủ; một can thiệp trung bình +10 điểm sẽ
+> thành +3 điểm, chìm dưới sàn nhiễu, và bị kết luận là "không có tác dụng".
+
+**Đây là kiểm soát thứ ba, bên cạnh ngân sách token ở [2] và mốc so sánh ở [9].** Ba kiểm soát này
+phải đi cùng nhau: thiếu kiểm soát mẫu số thì mọi hiệu ứng bị đánh giá thấp; thiếu kiểm soát ngân
+sách và mốc so sánh thì mọi hiệu ứng bị đánh giá cao.
+
+**Câu hỏi để lại:** nếu chỉ 30% số câu là nơi phối hợp có ý nghĩa, thì trong số đó vai nào đóng góp?
+
+---
+
+## [6] Các vai có thực sự chuyên biệt không?
+
+**Câu hỏi.** Toàn bộ phân tích theo vai giả định mỗi vai làm đúng việc mà tên gọi mô tả. Giả định
+này chưa từng được kiểm.
+
+**Thiết kế.** Đọc chỉ số **hành vi** từ trace, không dùng accuracy.
+
+| Chỉ số | GSM8K 1.5B | MATH 1.5B | GSM8K 7B | MATH 7B |
+|---|---|---|---|---|
+| Planner (được yêu cầu *không* tính đáp án) chứa sẵn đáp án đúng | 14,0% | **34,7%** | 1,0% | 4,0% |
+| Planner có `\boxed{}` | 3,3% | **45,3%** | 0,0% | 0,0% |
+| Solver không sinh số mới nào | **60,7%** | **62,0%** | 1,0% | 11,0% |
+| Độ dài lời giải của Solver (median, ký tự) | **19** | 344 | 821 | 1247 |
+| …khi không có plan | 664 | 1384 | 754 | 1264 |
+
+Ở 1.5B, solver sinh lời giải dài **19 ký tự** khi có plan, so với **664 ký tự** khi không có plan.
+Nó không giải, nó chép.
+
+> **Với model yếu, phân công lao động sụp đổ: planner giải hộ, solver chép lại. Ở 7B hai vai hồi
+> phục đúng chức năng — nhưng ở mức năng lực đó pipeline lại thua chính solver chạy một mình.**
+>
+> Nói cách khác: multi-agent có phân công thật ở nơi **không cần**, và mất phân công ở nơi **được
+> kỳ vọng giúp**.
+
+**Một quan sát bổ sung, cùng hình dạng với [12].** Phân tầng theo nội dung của plan trên MATH 1.5B:
+solver đúng **97,3%** khi plan chứa đáp án đúng (n = 37), nhưng chỉ **31,9%** khi plan sai (n = 163).
+Ở 7B khoảng cách hẹp hơn: 92,9% so với 60,2%.
+
+⚠️ Quan sát này **bị nhiễu bởi độ khó**: những câu mà planner làm đúng có thể vốn dễ hơn. Nó chưa
+có nhánh đối chứng "không thấy plan" như thiết kế ở [12], nên chỉ là **gợi ý cùng hướng**, không
+phải bằng chứng độc lập.
+
+**Câu hỏi để lại:** trong số các vai, vai nào đóng góp giá trị?
+
+---
+
+## [7] Phân rã theo vai: hoá ra biến quyết định không phải vai
 
 **Câu hỏi.** Dùng giá trị Shapley để tính đóng góp biên của từng vai.
 
@@ -152,7 +233,14 @@ hiệu ứng dương duy nhất đạt 5/5 trong nhóm thí nghiệm đó. Tuy n
 | Solver 1.5B + Verifier **1.5B** (cùng cỡ) | +3,0 điểm, khoảng **chạm 0** | không xác lập |
 | Riêng phần do verifier mạnh hơn | **+11,0 điểm**, khoảng [+3,3; +16,7] | 5/5 fold |
 
-Verifier 7B sửa đúng **43 bài** và làm hỏng **1 bài** trên 300 bài.
+Đối chiếu trực tiếp trên cùng 300 bài (5 fold × 60):
+
+| Verifier | Sửa đúng | Làm hỏng | Tỷ lệ |
+|---|---|---|---|
+| **V7B** (lớn hơn) | **43** | **1** | 43 : 1 |
+| V1.5B (cùng cỡ) | 15 | 6 | 2,5 : 1 |
+
+Verifier lớn hơn không chỉ sửa nhiều hơn mà còn **phá ít hơn sáu lần**.
 
 **Đây là lần đầu khái niệm bất đối xứng năng lực xuất hiện trong dự án**, và nó đến từ phía phân
 tích vai, hoàn toàn độc lập với nhánh nghiên cứu sau này.
@@ -188,7 +276,7 @@ gian qua các phép đo đang so với baseline nào?
 
 ---
 
-## [6] Chi phí: phối hợp chỉ trả tiền ở nơi ít cần nó nhất
+## [8] Chi phí: phối hợp chỉ trả tiền ở nơi ít cần nó nhất
 
 **Câu hỏi.** Pipeline đầy đủ tốn gấp ba lần solver đơn lẻ. Có cách nào giữ phần lớn lợi ích với chi
 phí thấp hơn không?
@@ -214,7 +302,7 @@ GSM8K nhưng chỉ **25,0%** trên MATH.
 
 ---
 
-## [7] Bước ngoặt: đang so với baseline nào?
+## [9] Bước ngoặt: đang so với baseline nào?
 
 **Quan sát.** Toàn bộ các phép đo ở [1]–[6] đều so với **model yếu** hoặc với solver đơn lẻ. Nhưng
 nếu pipeline đã chứa một model mạnh, thì lựa chọn thực tế của người triển khai là: chạy pipeline,
@@ -237,7 +325,7 @@ cứu tiếp theo.
 
 ---
 
-## [8] Công cụ: đẳng thức phân rã
+## [10] Công cụ: đẳng thức phân rã
 
 Để trả lời "mất ở đâu", cần một cách tách giá trị thành các phần đo được. Với `S` là model yếu,
 `I` là model mạnh, `V` là kết quả khi `I` sửa artifact của `S`, và trần lý tưởng
@@ -260,7 +348,7 @@ Từ đây mọi câu hỏi đều có dạng: **số hạng nào đang gây ra 
 
 ---
 
-## [9] Số hạng A: một tương quan giả bị phát hiện
+## [11] Số hạng A: một tương quan giả bị phát hiện
 
 **Giả thuyết ban đầu.** Quan sát trên 7 cặp cho thấy cặp **khác họ model** có `A` cao gần gấp đôi
 cặp cùng họ (0,0597 so với 0,0481). Giả thuyết: đa dạng họ model tạo ra dư địa.
@@ -288,7 +376,7 @@ luận: **biến quyết định là chênh lệch năng lực, không phải c�
 
 ---
 
-## [10] Số hạng B: thiệt hại đến từ nội dung sai, không từ việc nhìn thấy
+## [12] Số hạng B: thiệt hại đến từ nội dung sai, không từ việc nhìn thấy
 
 **Giả thuyết ban đầu (thăm dò).** Trên MBPP, tách theo nội dung artifact cho thấy hai tầng phản ứng
 ngược nhau. Nhưng đây là phân rã hậu nghiệm, chưa đủ tin cậy.
@@ -316,7 +404,7 @@ trên MATH model yếu sai nhiều hơn, nên aggregator tiếp xúc với nhi�
 
 ---
 
-## [11] Quy luật và tính chuyển miền
+## [13] Quy luật và tính chuyển miền
 
 **Trên MBPP**, 15 cặp, một lần chạy:
 
@@ -349,7 +437,7 @@ phát biểu là *không bác bỏ được* chứ không phải *đã xác nh�
 
 ---
 
-## [12] Có chặn được B không: giới hạn trên của cơ chế định tuyến
+## [14] Có chặn được B không: giới hạn trên của cơ chế định tuyến
 
 **Ý tưởng tự nhiên.** Chỉ cho model mạnh xem artifact khi artifact có vẻ đúng.
 
@@ -371,7 +459,7 @@ Thêm vào đó, hai lần thử tìm tín hiệu cổng khả thi đều bị c
 
 ---
 
-## [13] Khép mạch: nghịch lý giữa [2] và [8]
+## [15] Khép mạch: nghịch lý giữa [2] và [8]
 
 **Nghịch lý.** [2] nói chênh lệch năng lực lớn mang lại +14,0 điểm. [8] nói chênh lệch năng lực lớn
 làm `Δ_ceil` âm. Cùng một biến, hai dấu ngược nhau.
