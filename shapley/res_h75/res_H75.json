@@ -1,0 +1,73 @@
+{
+  "tag": "H75",
+  "n": 500,
+  "pools": {
+    "SEL_test": {
+      "acc": 0.69,
+      "union_ceiling": 0.734,
+      "picked": {
+        "I": 414,
+        "I2": 23,
+        "S1": 29,
+        "S2": 10,
+        "S3": 9,
+        "S4": 6,
+        "S5": 9
+      },
+      "captured_pct": 53.2,
+      "minus_I": 0.05
+    },
+    "SEL_cons": {
+      "acc": 0.606,
+      "union_ceiling": 0.734,
+      "picked": {
+        "I": 396,
+        "I2": 23,
+        "S1": 65,
+        "S2": 11,
+        "S3": 3,
+        "S4": 2,
+        "S5": 0
+      },
+      "captured_pct": -36.2,
+      "minus_I": -0.034
+    },
+    "SEL_hyb": {
+      "acc": 0.606,
+      "union_ceiling": 0.734,
+      "picked": {
+        "I": 384,
+        "I2": 25,
+        "S1": 71,
+        "S2": 13,
+        "S3": 4,
+        "S4": 2,
+        "S5": 1
+      },
+      "captured_pct": -36.2,
+      "minus_I": -0.034
+    }
+  },
+  "cons_minus_test": -0.084,
+  "hyb_gain": -0.084,
+  "split_rate": 0.9986,
+  "costs": {
+    "SEL_test": 20.21,
+    "SEL_cons": 20.21,
+    "SEL_hyb": 20.21
+  },
+  "acc_raw": {
+    "I": 0.64,
+    "I2": 0.642,
+    "S1": 0.44,
+    "S2": 0.406,
+    "S3": 0.41,
+    "S4": 0.414,
+    "S5": 0.424
+  },
+  "only_S_solves": 30,
+  "test_copy_rate": 0.0258,
+  "test_soundness": 0.7214,
+  "n_tests_gen": 1395,
+  "compile_rate": 0.9863
+}

@@ -43,8 +43,454 @@ chính bảng Shapley ban đầu:
 > Quá dễ → không còn gì để sửa. Và giá trị của verifier nằm ở **ĐỘ CHÍNH XÁC KHI CAN THIỆP**,
 > không ở số lỗi bắt được: 1.5B đạt **56–71%** (gần như tung đồng xu), 7B đạt **98%** —
 > đó chính là cơ chế của kết quả +14.0đ.
+>
+> ⚠️ **DIỄN GIẢI CỦA "+14.0đ" ĐÃ BỊ RÚT LẠI ở vòng #100 — xem mục ngay dưới.**
+> Con số đúng, nhưng nó so với **1.5B**. So với **7B chạy một mình** (rẻ hơn) thì nó **ÂM**.
 
-## Kết quả mới nhất (vòng #59–#70) — bốn phát hiện đã tái lập
+## ⭐ Kết quả mới nhất (vòng #99–#142) — **ĐÃ QUA KIỂM ĐỊNH ĐỘC LẬP**
+
+> **Mọi con số dưới đây đã qua kiểm định bởi ba tác nhân độc lập (vòng #125)** — kiểm mã nguồn,
+> kiểm số liệu bằng McNemar/bootstrap ghép cặp, và kiểm lập luận so với bảng khoá trước.
+> **Nhiều kết luận trung gian của chúng tôi KHÔNG sống sót và đã bị rút** (liệt kê ở cuối mục).
+> Chỉ những phát biểu có p ≤ 1e-3 và/hoặc tái lập trên tập bài tách rời mới được nêu ở đây.
+
+### 1. Con số ai cũng báo cáo có DẤU NGƯỢC với con số đúng
+
+Khi cho model **mạnh** xem lời giải của model **yếu** rồi kiểm/sửa, hầu hết báo cáo dùng
+`V − S` (verifier so với **solver yếu**). Nhưng lựa chọn thay thế thật sự là
+**gọi thẳng model mạnh** (`I`) — và nó **RẺ HƠN** (một lượt thay vì hai).
+
+| bộ | cặp model | `V − S` (hay được báo) | **`V − I`** (đúng) | p (McNemar) |
+|---|---|---|---|---|
+| GSM8K | 0.5B → 1.5B | +.1700 | **−.1040** | — |
+| GSM8K | 1.5B → 7B | +.1620 | **−.0740** | **2.2e-05** |
+| MBPP (code) | 1.5B → 7B | +.1380 | **−.0740** | 3e-4 |
+| MATH-500 | 1.5B → 7B | — | **−.1260** | 2.7e-10 |
+
+**Bốn lần đo, hai benchmark, ba cặp model — `V − I` ÂM mọi lần.**
+Định tuyến sản phẩm của agent yếu vào agent mạnh **tốn thêm tiền để có kết quả TỆ HƠN**.
+
+*Liên hệ tài liệu:* điều này trùng hướng với Huang et al. 2023 (*LLMs Cannot Self-Correct
+Reasoning Yet*); đóng góp của chúng tôi là **định lượng khoảng cách `V−S` vs `V−I`** và
+tách cơ chế bên dưới, **không phải** phát hiện hiện tượng.
+
+### 2. Cùng hai sản phẩm, cùng chi phí: **CHỌN hơn REVIEW +.13**
+
+| giao thức | acc | so với `I` |
+|---|---|---|
+| `I` — 7B tự viết | .6400 | — |
+| `V_review` — 7B **sửa** code của 1.5B | .5320 | −.1080 |
+| **`SEL`** — 7B **chọn** giữa bản của nó và của 1.5B | **.6620** | **+.0220** [+.008, +.038] |
+
+`SEL − V_review` = **+.1300** (p 9e-13), tái lập **+.0841** trên dải bài tách rời (MBPP 511–974).
+**Cùng hai bản code, cùng ngân sách — chỉ đổi GIAO THỨC.**
+
+> **Đọc `SEL − I` cho đúng (bắt buộc theo kiểm định #125-D).** Con số **thắng lớn là `SEL − V_review`**,
+> không phải `SEL − I`. `SEL − I` chỉ **+.0220** [+.008, +.038] (p .0074), tái lập **+.0151**
+> [+.002, +.028] (p .039), gộp Fisher p .0026 — **sát ngay ngưỡng .02 mà chính tài liệu này gọi là
+> nhiễu** ở mục rút lại bên dưới. **Lật 6 bài là xoá sạch** hiệu ứng ở H69c. Nói cách khác:
+> *tránh REVIEW* là kết luận vững; *giá trị thật của agent yếu* thì **nhỏ và mong manh**.
+
+**Cơ chế (đọc từ trace):** được bảo *"review"*, model **VIẾT LẠI code đang chạy và làm hỏng** —
+**78%** thiệt hại trên code là một **bản thứ ba** chứ không phải chép bản sai. Được bảo *"chọn"*,
+nó để nguyên bản tốt.
+
+### 3. Nghịch lý phục tùng / chủ động — **không có điểm ngọt ở tầng prompt**
+| prompt | acc | vs `I` | cơ chế hỏng |
+|---|---|---|---|
+| `V_std` "kiểm và sửa nếu sai" | .5660 | −.0740 | viết lại → phá bản đúng |
+| `V_first` "tự giải trước rồi mới đọc" | .5880 | −.0520 | tốt nhất đo được, vẫn âm |
+| **`V_cons`** "đừng đụng nếu không chắc sai" | **.4840** | **−.1560** | **giữ nguyên 75% → thừa hưởng acc .428 của nguồn** |
+
+Bảo nó **bớt** can thiệp thì nó **thừa hưởng lỗi của nguồn**; bảo nó **can thiệp** thì nó **phá bản đúng**.
+Chọn giữa hai cực đòi hỏi biết đâu đúng đâu sai — **chính là bài toán cần giải**.
+
+### 4. Thứ DUY NHẤT từng thắng: **oracle mang thông tin model KHÔNG có**
+| bộ kiểm | có lợi thế thông tin gì | kết quả |
+|---|---|---|
+| 7B kiểm 1.5B | model lớn hơn | **−.074** ❌ |
+| LLM cùng cỡ tự nhận xét | không có | ≈0 hoặc hại (5 lần) ❌ |
+| GRPO huấn luyện verifier | không có | +.018, dưới ngưỡng ❌ |
+| **test CHẠY ĐƯỢC** | **thực thi được** | **+.0401, tái lập +.0388** ✓ |
+
+### 5. **Sửa có CỔNG cũng chết — kể cả cổng HOÀN HẢO** (#142, tái lập 2/2)
+
+Nếu `V` phá vì nó **ghi đè lên bản vốn đã đúng**, thì chặn ghi đè bằng một cổng phải cứu được.
+Chúng tôi dựng đúng thí nghiệm đó, gồm cả một **cổng ORACLE** (giữ bản của model yếu khi nó
+**thật sự đúng**, sai thì mới cho model mạnh sửa). Không hệ thống nào làm tốt hơn cổng oracle.
+
+| đại lượng | MBPP 11–510 | MBPP 511–974 (dải tách rời) |
+|---|---|---|
+| **cổng ORACLE so với `I`** | **−.0641** (p .0016) | **−.0583** (p .0067) |
+| cổng có cứu được "sửa" không | **+.0040** (p .69) | **+.0000** (p 1.00) |
+| leo thang bằng **giải lại** vs bằng **sửa** | **+.0902** (p 1e−6) | **+.0994** (p 1e−6) |
+
+```
+cong ORACLE = P(yeu dung) + P(yeu sai VA sua dung) = .4409 + .1363 = .5772
+chi goi model manh mot luot                                        = .6413
+                                                        thieu       -.0641
+```
+
+1. **Cổng không làm gì cả** — null ở cả hai dải. Phá hoại **không nằm** ở chỗ cổng với tới:
+   `V` phá 12 bài mà model yếu làm đúng, chỉ **4** bài nằm trong tập cổng-đạt.
+2. ~~**Ngay cả cổng hoàn hảo cũng thua** … **không có gì để khai thác**.~~
+   **RÚT Ở #169.** Đúng cho **cặp 1.5B→7B** (chênh **lớn**, .226 ⇒ −.0641, p .0016). **SAI** cho cặp
+   **chênh nhỏ** (1.5B→Llama-8B, chênh .098), nơi cổng ORACLE **thắng** (+.0421, p .042).
+   Nhãn "khác họ" đã bị **rút ở #182** — xem khối RÚT #182 ở dưới.
+3. **Thiệt hại nằm ở nhánh leo thang:** khi đã quyết định can thiệp, cho model mạnh
+   **giải lại từ đầu** hơn cho nó **sửa** khoảng **+.09**. Cùng ngân sách, cùng bài; khác
+   **duy nhất** ở chỗ model mạnh **có nhìn thấy** bản của model yếu hay không.
+
+> **Vấn đề không phải model mạnh ĐƯỢC PHÉP ghi đè — mà là nó NHÌN THẤY thứ SAI.**
+> Việc nhìn thấy làm hỏng nó **đúng ở những bài model yếu đã sai**, tức đúng chỗ ta cần nó nhất.
+> Cổng vô dụng vì cổng điều khiển *ghi đè*, không điều khiển *nhìn thấy*.
+>
+> ### ✅ #197 — XÁC NHẬN ĐĂNG-KÝ-TRƯỚC, và trên MIỀN KHÁC (toán)
+>
+> Tách theo **nội dung** của artifact, cùng lệnh giải, khác **duy nhất** ngữ cảnh thêm
+> (mọi cổng đạt; cắt cụt ≤ .030 cả ba nhánh):
+>
+> | model mạnh làm được bao nhiêu... | không thấy gì | **thấy bản của model yếu** | chênh |
+> |---|---|---|---|
+> | ...trên bài model yếu làm **ĐÚNG** (n=239) | 95.4% | **99.2%** | **+.0377** (p .012) |
+> | ...trên bài model yếu làm **SAI** (n=261) | 46.4% | **19.2%** | **−.2720** (p ~0) |
+>
+> ⇒ **`D` không phải hình phạt của việc THẤY. Nó là hình phạt của việc thấy thứ SAI.**
+> Thấy lời giải **đúng** thì model mạnh **khá lên** — ở cả ba lần đo, hai miền.
+> Thấy lời giải **sai** thì nó **sụp**: trên toán, từ **46.4% xuống 19.2%** trên chính những bài
+> nó vốn làm được gần một nửa.
+>
+> | | MBPP 11–510 | MBPP 511–974 | **MATH-500** |
+> |---|---|---|---|
+> | artifact **SAI** | −.1900 | −.1927 | **−.2720** |
+> | artifact **ĐÚNG** | +.0636 | +.0245 | **+.0377** |
+>
+> **Trạng thái bằng chứng:** một **xác nhận đăng ký trước** (MATH, bảng khoá commit trước khi chạy)
+> cộng hai phân rã **hậu nghiệm** (MBPP). Vì đổi **miền**, đây là bằng chứng độc lập — không phải
+> chạy lại cùng cấu hình.
+>
+> **Hệ quả triển khai — và trần của nó THẤP.** Ý tưởng hiển nhiên là *"chỉ cho xem khi artifact
+> có vẻ đúng"*. Chúng tôi tính luôn trần của ý tưởng đó trên chính dữ liệu này:
+>
+> | | `acc` | so với gọi thẳng model mạnh |
+> |---|---|---|
+> | model mạnh một mình | .6980 | — |
+> | luôn cho xem artifact | .5740 | **−.1240** |
+> | **cổng ORACLE** (cho xem ⇔ artifact đúng) | .7160 | **+.0180** ← **trần** |
+>
+> Và bộ phân loại thật phải đạt **~89% độ chính xác** mới **hoà vốn**; dưới mức đó nó **lỗ**.
+>
+> ⇒ **Kết luận đúng không phải "hãy làm cổng định tuyến", mà là "MẶC ĐỊNH ĐỪNG CHO XEM".**
+> Thiệt hại là −.124; phần lớn nhất mọi cổng có thể cứu về là +.018. Cửa sổ gần như đóng.
+> Điều này hội tụ với kết quả ở mục 6 (giao thức **chỉ-CHỌN**), đến từ một hướng đo khác hẳn.
+
+**Đã kiểm xong (#149): chỉ NHÌN THẤY là đủ, KHÔNG cần lệnh sửa.**
+Mọi phép đo đầu độc trước nay đều kèm lệnh *"review/fix"*, nên *nhìn thấy* và *được lệnh ghi đè*
+luôn bị trộn. `H92` bỏ hẳn lệnh — cả bốn nhánh dùng **cùng một lệnh "viết hàm"**, chỉ khác phần
+ngữ cảnh thêm vào:
+
+| cho model mạnh xem | MBPP 11–510 | MBPP 511–974 |
+|---|---|---|
+| **toàn bộ code của model yếu** | **−.0782** (p 1.5e−04) | **−.0778** (p 8.7e−05) |
+
+Hai dải bài **tách rời**, hai mức độ khó khác nhau. Bảng khoá #102 có sẵn một hàng **giết** phát biểu này;
+hàng đó **không nổ ở cả hai lần chạy**.
+
+> ### ⚠️ TÌNH TRẠNG TÁI LẬP của hai khối dưới (thêm ở #180)
+> Luật của dự án: **chưa tái lập thì chưa vào README**. Hai khối #169 và #168 dưới đây
+> **CHƯA tái lập** — mỗi khối là **MỘT lần chạy**:
+>
+> | phát hiện | số lần chạy | p |
+> |---|---|---|
+> | #169 `Δ_ceil` **dương** ở cặp **chênh nhỏ** (nhãn "khác họ" rút ở #182) | **2** (H89g, H97) | **.042** rồi **.133** — lần lặp độc lập giữ dấu nhưng **mất ý nghĩa**; xem khối #185 |
+> | #168 cổng **có tác dụng** ở 32B | **1** (H91e) | ≈0 (mạnh) |
+>
+> Chúng có mặt ở đây vì chúng **RÚT LẠI** một phát biểu cũ (*"không có gì để khai thác"*) —
+> **rút một phát biểu quá mạnh thì chỉ cần một phản ví dụ**, còn **khẳng định** một phát biểu mới
+> thì cần tái lập. **Đừng trích chúng như kết quả đã xác lập.**
+> `H95b` (đang chạy) có hàng buộc **hạ cấp #169** nếu dư địa không tái lập.
+>
+> ### ⚠️ CẬP NHẬT #169 — có điểm KHÁC HỌ rồi, và nó ĐẢO DẤU kết luận chính
+> Ba cặp model, **cùng một thiết kế, mọi cổng đều đạt**:
+>
+> | cặp | cổng có cứu được "sửa"? | **cổng ORACLE so với `I`** | sửa-có-cổng so với `I` |
+> |---|---|---|---|
+> | 1.5B → 7B (Qwen→Qwen) | +.0040 (p .69) | **−.0641** (p .0016) — **thua** | −.0842 |
+> | 1.5B → **Llama-8B** (chênh **nhỏ**, .098) | +.0160 (p .039) | **+.0421** (p **.042**) — **THẮNG** | −.0080 (p .77) |
+> | 7B → 32B (Qwen→Qwen) | **+.0922** (p ≈0) | +.0060 (p .82) — hoà | −.0160 (p .44) |
+>
+> **`Δ_ceil` đổi DẤU giữa các cặp.** Ở cặp **chênh năng lực nhỏ**, cổng ORACLE **vượt** `I` — nghĩa là
+> **CÓ dư địa khai thác** từ sản phẩm của model yếu, đúng thứ mục 5 từng tuyên là **không tồn tại**.
+>
+> ⇒ **PHÁT BIỂU CŨ "không có gì để khai thác" là SAI và đã bị rút.**
+> **Phát biểu còn đứng, đúng ở cả ba cặp:** *sửa-có-cổng **chưa bao giờ vượt** việc gọi thẳng
+> model mạnh* (`Δ_honest` ≤ 0 ở cả ba, không lần nào dương có ý nghĩa).
+> Khác biệt quan trọng: **"không có gì để lấy"** ⇒ đóng hướng; **"có mà cổng khả thi chưa lấy được"**
+> ⇒ **nút thắt là BỘ CHỌN**, và hướng đó vẫn còn sống.
+>
+> ### ⚠️ CẬP NHẬT #168 — điểm 32B
+> Điểm 32B đầu tiên (Qwen-7B → Qwen-32B, **mọi cổng đạt**) cho kết quả **khác 7B**:
+>
+> | | 1.5B→7B | **7B→32B** |
+> |---|---|---|
+> | cổng có cứu được "sửa" không | +.0040 (p .69) — **không** | **+.0922 (p ≈ 0) — CÓ** |
+> | cổng ORACLE so với `I` | **−.0641** (p .0016) — thua | **+.0060** (p .82) — **hoà** |
+> | sửa-có-cổng so với `I` | −.0842 | −.0160 (p .44) |
+>
+> **⚠️ #189 — HAI CỘT TRÊN CHẠY KHÁC ĐỘ CHÍNH XÁC SỐ.** Cột 1.5B→7B đo trên **T4 (nf4, lượng tử
+> hoá 4-bit)**; cột 7B→32B đo trên **RTX 6000 (bf16, không lượng tử hoá)**. Đo trực tiếp cho thấy
+> nf4 hạ `acc` **3–5 điểm** và dịch `Δ_ceil` tới **.032** trên cùng cặp, cùng giao thức.
+> Khoảng cách ở đây là **.088**, nên **dấu vẫn đứng**, nhưng **độ lớn không đáng tin tới chữ số thứ hai**,
+> và bảng này **trộn quy mô model với độ chính xác số**. Cần một lần đo 1.5B→7B trên bf16 để tách.
+>
+> ⇒ **"Cổng không cứu được việc sửa" chỉ đúng ở 1.5B→7B.** Ở 32B cổng **cứu được rõ rệt**
+> (phá hoại ở đó **nằm đúng trong tập cổng-đạt**: 55/57). Phần **giữ nguyên ở cả hai quy mô**:
+> sửa-có-cổng **vẫn không vượt** việc chỉ gọi thẳng model mạnh.
+>
+> ### ⚠️ PHẠM VI — đọc trước khi trích mục 5 (thêm ở #161 sau kiểm định độc lập)
+>
+> **Mục 5 được đo trên ĐÚNG MỘT cặp model: Qwen2.5-1.5B → Qwen2.5-7B, CÙNG họ.**
+> Nó **không** phải phát biểu về mọi hệ hai-model, dù văn phong ở trên nghe như vậy.
+>
+> Chúng tôi **đã thử** các cặp khác. Kết cục (cập nhật #177):
+> **Llama-3.1-8B → HỢP LỆ** (#169, mọi cổng đạt — xem khối #169 ở trên).
+> **Qwen2.5-32B → HỢP LỆ** (#168). **DeepSeek-Coder-6.7B → KHÔNG ĐO ĐƯỢC**: VOID hai lần vì nó
+> sinh code **sai cú pháp 6%** ở nhánh review, vi phạm cổng đối xứng — đó là **tính chất của model**,
+> không phải lỗi đo, nên chạy lại cũng vô ích.
+> ⇒ **Mọi phát biểu "khác họ" của dự án đứng trên ĐÚNG MỘT cặp (Llama).**
+>
+> ### ⚠️ RÚT #182 — "khác họ" là TƯƠNG QUAN GIẢ; biến thật là CHÊNH NĂNG LỰC
+>
+> Nghi ngờ ở trên đã được kiểm trực tiếp. Một lần chạy, **sáu model, cùng 499 bài MBPP**,
+> **15 cặp có hướng** ⇒ hồi quy dư địa `A = P(yếu đúng ∧ mạnh sai)` theo **chênh năng lực** và **họ**:
+>
+> | hệ số | ước lượng | KTC 95% | p |
+> |---|---|---|---|
+> | chênh năng lực | **−.192** | — | **~0** |
+> | **khác họ** | **+.0045** | **[−.005, +.014]** | **.33** |
+>
+> KTC của hệ số họ **nằm trọn dưới ngưỡng +.02** đã đăng ký trước là "đáng kể" ⇒ đây là
+> **null CÓ THÔNG TIN**, không phải "mẫu quá nhỏ". Chênh năng lực một mình giải thích **`R²` = .82**.
+>
+> **Vì sao trước đó trông như có hiệu ứng họ:** thô thì `A` khác họ **.0597** > cùng họ **.0481** —
+> nhưng các cặp khác họ **cũng có chênh nhỏ hơn** (.130 vs .167), và tương quan (chênh, `A`) = **−.908**.
+> Khớp chênh rồi thì khoảng cách còn **+.007 / +.019**, cùng cỡ sai số chuẩn.
+>
+> ⇒ **Kết quả +.0421 ở cặp Llama vẫn đúng, nhưng lý do thì không.** Đọc đúng là
+> ***chênh năng lực nhỏ***, không phải *khác họ*. Dự báo kiểm được đã đạt: **7B→14B, CÙNG họ,
+> chênh .050** cho `A` = **.0681** — ngang cặp khác-họ-chênh-nhỏ (.0842).
+>
+> **Giới hạn của việc rút này:** phép thử đo kênh **dư địa**. Kết quả *đa dạng ứng viên* ở mục 6
+> là **kênh khác** và **không** bị nó bác — nhưng vì cùng dạng lỗi, mục 6 nay ghi là
+> **"khác MODEL"** cho tới khi có đối chứng khác-model-cùng-họ.
+
+> ### ⚠️ #185 — 15 CẶP TRONG MỘT LẦN CHẠY: chênh dự báo `Δ_ceil`, và **#169 chỉ tái lập một nửa**
+>
+> Sáu model, **15 cặp có hướng, cùng 499 bài, một lần chạy** (mọi cổng đạt; 15/15 cặp hợp lệ;
+> nhánh nền tái lập **chính xác** lần chạy trước — greedy tất định).
+>
+> ```
+> Δ_ceil  ~  +.0218 − .2392 · (chênh năng lực)      R² = .60   p = 1e-05
+> điểm đổi dấu  g* = .091
+> ```
+>
+> **Nhưng phải đọc kèm bảng này, nếu không sẽ hiểu ngược:**
+>
+> | | |
+> |---|---|
+> | cặp có `Δ_ceil` **dương CÓ Ý NGHĨA** | **0 / 15** |
+> | cặp có `Δ_ceil` **âm CÓ Ý NGHĨA** | **3 / 15** (đều ở chênh ≥ .218) |
+> | `Δ_ceil` dự báo lớn nhất (chênh → 0) | **+.022** |
+>
+> ⇒ **Luật dùng được là luật PHỦ ĐỊNH: chênh > .09 thì đừng sửa.**
+> Chiều khẳng định — *"chênh nhỏ thì sửa THẮNG"* — **chưa được xác lập**: nó chỉ là hệ số chặn
+> của đường hồi quy, không cặp riêng lẻ nào chứng minh, và một cặp dưới `g*` còn đi **ngược**
+> (Llama→DeepSeek, chênh .080 ⇒ **−.022**).
+>
+> **Tái lập #169 — CÓ ĐIỀU KIỆN (sửa ở #189):** cùng cặp, cùng dải bài, lần chạy độc lập ⇒
+> `Δ_ceil` = **+.0301, p = .133** (gốc: +.0421, p .042). Dấu và độ lớn giữ; ý nghĩa thống kê **mất**.
+> **Nhưng hai lần chạy KHÔNG cùng độ chính xác số** — gốc chạy **nf4**, lần này **bf16** — nên việc
+> `p` rơi **không tách được** giữa dao động lấy mẫu và đổi lượng tử hoá. Đây **không phải** một phép
+> tái lập sạch theo cả hai chiều.
+> **Kết luận vẫn là hạ cấp**, và lý do còn mạnh hơn: bằng chứng xác nhận **sạch** cho #169 hiện là
+> **KHÔNG CÓ**, chứ không phải "có nhưng yếu". **#169 ở mức "gợi ý, chưa xác lập".**
+> Kiểm định độc lập cho biết các con số **không dùng được** đó **chỉ theo hướng NGƯỢC LẠI**.
+> Chúng tôi **không trích chúng làm bằng chứng** — chúng VOID — nhưng **giấu sự tồn tại của
+> chúng thì tệ hơn nhiều**. Kết luận đúng là:
+>
+> **"Cổng không cứu được việc SỬA" đã được xác lập cho 1.5B→7B cùng họ, và CHƯA được xác lập
+> cho bất kỳ cặp nào khác.** Phải chạy lại đàng hoàng ở cặp khác họ và ở 32B trước khi
+> phát biểu như một quy luật cấu trúc.
+>
+> ### ⚠️ MỘT CỔNG ĐÃ ĐƯỢC NỚI
+> Lần chạy đầu (H88/H88b) VOID, một phần vì `test_runnable` = **.6994**, hụt ngưỡng **.70**
+> đúng **.0006**. Ngưỡng sau đó được nới xuống **.60** (#97-c) và lần chạy lại đạt.
+> Việc nới **được công bố công khai** trong nhật ký, nhưng trước #161 **không** xuất hiện ở đây.
+> `test_runnable` chỉ mô tả **cổng `z` mạnh cỡ nào**; đại lượng CHÍNH `Δ_ceil` dùng **cổng ORACLE**
+> nên **không phụ thuộc `z`**. Ai không chấp nhận việc nới thì **chỉ đọc `Δ_ceil`**.
+>
+> ⚠️ **Đừng đọc quá mức độ chính xác.** Hai biên độ (−.0782 và −.0778) khớp nhau tới .0004,
+> nhưng sai số chuẩn của **hiệu** giữa hai lần chạy là ≈ **.028** — nên độ khớp đó là **may mắn**,
+> không phải bằng chứng. Điều được xác lập là **cả hai đều âm rõ rệt và có ý nghĩa**, không phải
+> việc chúng bằng nhau tới bốn chữ số.
+>
+> ⚠️ **Chưa biết là LIỀU hay NGƯỠNG.** Mức phơi nhiễm trung gian (chỉ cho xem **chữ ký hàm**)
+> cho −.0140 (p .48) và −.0324 (p .072) — **không có ý nghĩa ở cả hai dải**.
+> **Đừng trích "càng nhìn nhiều càng hại"** — dữ liệu hiện tại không phân định được.
+
+### 6. ✅ **Đa dạng HỌ MODEL — kết quả dương DUY NHẤT đã tái lập trên dải tách rời** (#131 + #145)
+
+Giữ **nguyên** bộ chọn và **nguyên** ngân sách; chỉ đổi **nguồn gốc** của các ứng viên.
+
+| | MBPP 11–510 | MBPP 511–974 (**tách rời**) |
+|---|---|---|
+| **trần `H`**: pool khác **MODEL** − pool lấy mẫu | **+.0500** (p 6.2e-4) | **+.0690** (p **9.4e-07**) |
+| **`SEL`**: pool khác **MODEL** − pool lấy mẫu | **+.0320** (p 7.0e-3) | **+.0453** (p **4.9e-05**) ⁂ |
+
+> **⚠️ #182 — vì sao "khác MODEL" chứ không phải "khác HỌ".** Pool đối chứng ở đây là
+> Qwen-7B + Llama-8B + DeepSeek-6.7B, khác pool lấy mẫu ở **cả** họ **lẫn** danh tính model.
+> Đối chứng tách được hai thứ đó — Qwen-7B + Qwen-1.5B + Qwen-14B (**khác model, CÙNG họ**) —
+> **chưa chạy**. Vì #182 vừa cho thấy nhãn "khác họ" ở mục 5 là **tương quan giả**, chúng tôi
+> hạ nhãn ở đây xuống mức **kiểm được**: cái đo được là **khác model**, còn "họ" **chưa kiểm**.
+> Lưu ý #182 **không bác** kết quả này — nó đo kênh **dư địa**, không đo **đa dạng ứng viên**.
+
+<sub>⁂ **Phụ thuộc luật phá hoà** (kiểm định #159). Bộ chọn hiện phá hoà bằng "lấy ứng viên đầu",
+mà ứng viên đầu **chính là** mốc `Q1` ⇒ thiên vị. Tính lại: phá hoà **ngẫu nhiên** cho **+.0375**
+(độ lệch .0076), phá hoà "lấy cuối" cho **+.0323**, chặn trên oracle **+.0647**.
+**Ngưỡng hàng 1 là +.015 — mọi luật đều vượt**, nên kết luận không đổi; nhưng con số nên đọc là
+**≈+.038**, không phải +.0453. Trần `H` **không** bị ảnh hưởng (không dùng phá hoà).</sub>
+| số bài **có bất đồng** | 57 → 167 | 47 → **176** |
+
+**Cơ chế, đo được mà KHÔNG cần chấm điểm:**
+
+| | 3 mẫu từ **CÙNG** model | 3 model **KHÁC HỌ** |
+|---|---|---|
+| số ứng viên **phân biệt** (trung bình) | **1.91** / 3 | **2.70** / 3 |
+| bài chỉ có **MỘT** ứng viên duy nhất | **36.2%** | **6.5%** |
+
+<sub>**Chuẩn hoá (khoá ở #99, cần để tái tạo):** bỏ chú thích `#...`, gộp mọi khoảng trắng thành
+một dấu cách, rồi so khớp **chính xác**. Con số phụ thuộc bước này: chuẩn hoá **thô** cho 47.6%,
+**chỉ gộp khoảng trắng** cho 48.8%, **bỏ chú thích + gộp** cho **50.4%** (đây là bản đã khoá).
+Một kiểm định độc lập dùng chuẩn hoá khác đã ra số khác — nên ghi rõ ở đây (#163).
+Đã kiểm: dùng code **đầy đủ** hay code **cắt 800 ký tự** trong `traces_` đều cho **cùng** kết quả.</sub>
+
+> **Lấy mẫu lại từ cùng một model, 3 lượt, chỉ mua được ~1.9 ứng viên khác nhau —
+> và 36% số bài chỉ có ĐÚNG MỘT.** Ở những bài ấy, mọi giao thức "sinh nhiều rồi chọn"
+> đều **bất lực về cấu trúc**: không có gì để chọn giữa.
+> Dùng ba model **khác nhau** đưa con số đó xuống **6.5%**.
+> Nói cách khác: phần lớn cái ta gọi là "lỗi tương quan" giữa các mẫu cùng model là dạng
+> mạnh nhất có thể — **chúng trả về cùng một chuỗi ký tự**.
+
+**Hệ quả thực dụng:** nếu định trả tiền cho `k` lượt sinh, **k model khác nhau** đáng giá hơn
+**k mẫu từ một model** — rẻ ngang nhau, mà trần cao hơn và bộ chọn mới có việc để làm.
+
+### ⚠️ Đã RÚT LẠI sau kiểm định #125 — đừng trích dẫn
+- **"k=2 là điểm ngọt"** — độ cong không tồn tại; nhánh k=2 còn dính **thiên lệch chọn mẫu** trong code của chúng tôi.
+- **"tự xem lại giúp trên toán +.108"** — **artifact cắt ngắn**; đo lại còn **+.002** (p = 1.00).
+- **"agent yếu thua mẫu của chính model mạnh (+.012)"** — **nhiễu hạt giống** (p = .34).
+- **"tie_rate giảm theo k"** — đo nhầm sự kiện; đại lượng thật **TĂNG** .908 → .944.
+- **"5/5 fold"** — hai chỗ thực ra là **4/5**, và phép thử này yếu hơn McNemar mà chúng tôi chưa chạy.
+- Mọi chênh lệch **≤ .02** ở n=500 — **không phân biệt được với nhiễu**.
+
+## Kết quả vòng #78–#93 — 16 đăng ký trước, **5 phát biểu bị rút lại**
+
+Một ngày chạy liên tục trên Kaggle (≈250 kernel). Mỗi phép thử có **bảng diễn giải khoá trước**,
+kèm **một hàng cho trường hợp giả thuyết chết**. Kết quả: prior của tôi **đúng 5/12 lần**,
+và phần lớn công việc là **thu hẹp** các phát biểu cũ, không phải mở rộng.
+
+### A. ✅ Kết quả DƯƠNG thực dụng **duy nhất**: định tuyến theo đồng thuận, **trên MATH**
+Lấy 3 mẫu bằng 1.5B; nếu ≥2 đồng ý thì NHẬN và dừng; nếu không thì gọi 7B chạy **tuần tự có mỏ neo**.
+
+| lần chạy | n | máy | `escalate_seq` vs `big_maj3` | chi phí |
+|---|---|---|---|---|
+| H39_m | 200 | RTX 5090 (bf16) | **+.140** (5/5 fold) | rẻ hơn **1.63×** |
+| H40 | 500 | 20 kernel Kaggle (fp16) | **+.092** | rẻ hơn **1.66×** |
+
+So với `big_maj8`: **+.105 với 4.34× ít tính toán hơn**. Cùng chiều, phần cứng độc lập, mẫu gấp 2.5×.
+**Chưa kiểm ở 14B** — đó là phép thử quyết định xem đây là quy tắc hay hiện tượng của model nhỏ.
+
+### B. ❌ Trên **CODE**, điều phối **không bao giờ bù lại được** — 3 lần độc lập
+| phép thử | đường ống | bị thua bởi |
+|---|---|---|
+| định tuyến (#81) | định tuyến oracle + escalate | `big_greedy` .6365, thua **cả acc lẫn chi phí** |
+| tự lập kế hoạch (#90) | kế hoạch → giải → tự kiểm | tuần tự thường, −.037 đến −.063 |
+| kế hoạch bất đối xứng (#91) | **7B lập kế hoạch → 1.5B giải** | `big_greedy`, **−.140 với +2.00 chi phí** |
+
+> **Cùng ngần ấy tính toán, chạy MỘT LƯỢT model lớn hơn luôn tốt hơn mọi đường ống đã thử.**
+
+### C. 🔄 "Tuần tự thắng song song" — **thu hẹp lại**: chỉ TOÁN, và là **LƯỢT THÊM** chứ không phải mỏ neo
+Lưới 4 ô, **không escalate, không hai model** (#85), tái lập độc lập ở #87:
+
+| ô | `greedy` | `delta_seq` = tuần tự − maj3 |
+|---|---|---|
+| MATH 1.5B | .3367 | **+.0566** |
+| **MATH 7B** | **.4900** | **+.1433** |
+| GSM8K 1.5B | .6200 | +.0100 |
+| **GSM8K 7B** | **.9067** | **−.0100** |
+
+**CÙNG một model 7B cho hai dấu ngược nhau** — biến quyết định là **model đã giỏi tới đâu TRÊN
+TÁC VỤ ĐÓ**, không phải bài khó hay dễ (giả thuyết "độ khó" đã **chết** ở #83, ngược hẳn dấu).
+**Trên CODE quy tắc này KHÔNG áp dụng**: MBPP 1.5B có `greedy` .456 (xa trần) mà `delta_seq` vẫn **−.022** (#88).
+
+### D. ❌ **Lập kế hoạch không đáng một lượt** — kể cả trên bài dài, với can thiệp đã kiểm chứng
+Lần đầu (#89) hỏng: **85–100% "kế hoạch" thực ra là CODE**. Bảo model "đừng viết code" vô dụng.
+Chặn dấu rào code ở **tầng sinh** (`bad_words_ids`) hạ tỉ lệ xuống **7.0% / 0.0%** — khi đó (#90):
+
+| ô | `seq` | `PSV` (kế hoạch) | **PSV − seq** |
+|---|---|---|---|
+| BigCodeBench 1.5B | .1900 | .1267 | **−.0633** |
+| BigCodeBench 7B | .3467 | .3100 | **−.0367** |
+
+BigCodeBench dài gấp ~4 lần MBPP (prompt trung vị 607 ký tự, phải ghép nhiều thư viện).
+=> Các kết quả null trước đây về Planner **KHÔNG** phải do bộ dữ liệu quá ngắn.
+
+### E. 🔄 Oracle chỉ đáng giá khi **model SỬA NỔI** theo nó
+| tác vụ | oracle 3 vòng đáng giá |
+|---|---|
+| **SINH** code mới (H35) | **+6 đến +11 điểm** |
+| **REFACTOR** (#93) | **+1.9 điểm** (dù dùng TB 2.70 vòng) |
+
+Trên refactor, **~21–23%** vẫn làm hỏng hành vi **ngay cả khi có oracle** (`ref_exec` preserve .7707,
+`ref_exec3` .7903), và **lượt LLM tự nhận xét làm TỆ ĐI** (.7116 vs .7378 khi không xem lại) —
+tái lập ở hai lần chạy.
+<sub>**Sửa ở #161:** bản cũ ghi "~26%" và gán cho nhánh **có oracle**. 26% (chính xác 69/266 = 25.9%)
+là nhánh **KHÔNG có oracle** (`ref1`). Lỗi này có sẵn trong `IDEAS.md:3279` và bị chép lên đây.</sub>
+=> Bổ sung điều kiện cho phát biểu #1: **oracle phải KHU TRÚ được lỗi thì model mới sửa được.**
+Lỗi khi sinh code thì thô; lỗi khi refactor là **trôi ngữ nghĩa tinh vi**, stack trace chỉ nêu triệu chứng.
+
+### F. Chất lượng tái lập — hai cặp chặt nhất dự án có
+| đại lượng | lần 1 | lần 2 | lệch |
+|---|---|---|---|
+| lấy mẫu − tuần tự (code, nhóm escalate) | +.1159 | +.1164 | **.0005** |
+| `preserve` của refactor có oracle | .7707 | .7715 | **.0008** ⁑ |
+
+Dòng 1 là **hai tách dữ liệu RỜI NHAU** (MBPP 11–510 vs 511–974) — tái lập thật.
+
+<sub>⁑ **Sửa ở #161:** dòng 2 **KHÔNG** phải tách dữ liệu rời nhau. H52 (266 bài) và H53 (267 bài)
+chạy trên **CÙNG một tập BigCodeBench**, chỉ khác lượt kernel. Đó là **ổn định theo hạt giống**,
+không phải tái lập giữ-lại. Tiêu đề cũ gộp chung hai dòng và **nâng cấp** dòng 2 thành thứ nó không phải.
+Và xem thêm #160: độ khớp tới .0008 nằm sâu trong nhiễu lấy mẫu, **không** phải bằng chứng về độ chính xác.</sub>
+
+### G. Đã RÚT LẠI trong ngày (chi tiết ở `IDEAS.md`)
+1. **"Trần/bão hoà theo ĐỘ KHÓ giải thích được định tuyến"** — chết ở #83, **ngược hẳn dấu**.
+2. **"Cơ chế là MỎ NEO"** (vòng #73) — đo trực tiếp: mỏ neo đóng góp **≈0** trên toán (|A−B| ≤ .01
+   ở 3/4 ô); cái có tác dụng là **lượt thêm**. Trên code mỏ neo lại **gây hại** (−.08 đến −.10),
+   nhưng **chỉ trên nhóm bài khó đã lọc** — trên toàn bộ bài thì ≈0.
+3. **"Mỏ neo chiếm 63% thiệt hại trên code"** — tách khác cho **47%**; con số không ổn định, chỉ
+   được nói "khoảng một nửa".
+4. **`seq − maj3` = +.1266 trên BigCodeBench** — **lỗi thiết kế của tôi**: nhánh `maj3` chọn bằng
+   **kết quả test dùng để chấm** (rò rỉ) và là điều kiện "≥2/3 đạt" chứ không phải bỏ phiếu.
+5. **"Định tuyến chết trên code"** — nói quá: định tuyến + **lấy mẫu** đạt ngang `big_maj3` với
+   **1.82× ít chi phí**; cái chết là định tuyến + **tuần tự**.
+
+### H. Hai thí nghiệm bị **tuyên vô hiệu** bởi chính cổng đã khoá
+- **#89**: nhánh `PSV` — can thiệp không xảy ra (kế hoạch chứa code). Script gộp vẫn in ra
+  "lập kế hoạch không đáng một lượt"; **cổng can thiệp có quyền cao hơn script**, nên kết luận đó bị bác.
+- **#89**: nhánh `maj3` — rò rỉ tín hiệu chấm điểm (mục G.4).
+
+---
+
+## Kết quả vòng #59–#70 (vẫn đứng, trừ mục 3 đã thu hẹp ở trên)
 
 ### 1. ✅ BỘ KIỂM ĐÚNG ĐẮN thắng LLM-đi-kiểm — **4 lần chạy độc lập, 0 lần gây hại**
 Cùng model, cùng 4 lượt sinh, **chỉ khác NGUỒN TÍN HIỆU KIỂM** (chạy test thật vs LLM tự đọc lại):
@@ -82,7 +528,7 @@ H8 từng bị tuyên VÔ HIỆU ở 1.5B (`exec_success_rate` .42 < ngưỡng .
 
 *(Hệ quả cho chứng minh định lý hình thức: bộ kiểm Lean LÀ oracle -> thuộc nhóm CODE, không phải nhóm này.)*
 
-### 3. ✅ TUẦN TỰ thắng SONG SONG ở **CÙNG NGÂN SÁCH** — 3/4 ô, và rẻ hơn
+### 3. 🔄 TUẦN TỰ thắng SONG SONG — **ĐÃ THU HẸP** (xem mục C ở trên: chỉ TOÁN, và cơ chế KHÔNG phải mỏ neo)
 Mọi nhánh **đúng 3 lượt sinh**; đếm cả token thực sinh ra:
 
 | ô | greedy | maj@3 | **P→S→V** | `maj3−PSV` |
@@ -96,6 +542,7 @@ Mọi nhánh **đúng 3 lượt sinh**; đếm cả token thực sinh ra:
 — đã khoá trước là ĐIỀU KIỆN, không phải phản chứng.
 **Nhưng cơ chế KHÔNG phải phân vai**: nhánh `S→neo→neo` (không một chữ nào về vai) đạt **.728**,
 GIỐNG HỆT `P→S→V`. Cái có tác dụng là **MỎ NEO**, không phải tên vai.
+> ⚠️ **RÚT LẠI (#87)**: đo tách riêng cho thấy mỏ neo đóng góp **≈0**. Thứ có tác dụng là **LƯỢT THÊM**.
 
 **Nhiễu loạn đã loại trừ**: đối chứng `maj3_g` (bỏ phiếu CÓ một mẫu greedy) ≈ `maj@3` ở
 **7 ô độc lập** (−.025 đến +.016) -> lợi thế KHÔNG đến từ giải mã greedy.

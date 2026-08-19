@@ -13,8 +13,12 @@ NEED = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 # ---- do kho tu HF (nguon su that) ----
 from datasets import load_dataset
 hf = load_dataset("HuggingFaceH4/MATH-500", split="test")
-LVL = {hashlib.md5(r["problem"].encode("utf-8")).hexdigest()[:12]: int(r["level"]) for r in hf}
-print(f"HF MATH-500: {len(LVL)} bai co do kho")
+def _qh(t): return hashlib.md5(" ".join(str(t).split()).encode("utf-8")).hexdigest()[:12]
+LVL = {_qh(r["problem"]): int(r["level"]) for r in hf}
+# Dap an chuan LAY TU HF, khong tin cot 'Answer' cua CSV Kaggle (khong ro la dap an cuoi
+# hay ca loi giai). qhash la cau noi duy nhat can tin.
+GOLD = {_qh(r["problem"]): r["answer"] for r in hf}
+print(f"HF MATH-500: {len(LVL)} bai co do kho + dap an chuan")
 
 # ---- gop shard ----
 items, shards, quants = [], set(), set()
@@ -27,8 +31,13 @@ missing = sorted(set(range(NEED)) - shards)
 if missing:
     print(f"THIEU shard: {missing} — KHONG doc ket qua cho den khi du (tranh lech tang do kho)")
 
+nogold = 0
 for it in items:
     it["lv"] = LVL.get(it["qhash"], 0)
+    g = GOLD.get(it["qhash"])
+    if g is not None: it["gold"] = g          # HF la nguon su that
+    else: nogold += 1
+if nogold: print(f"CANH BAO: {nogold} bai khong khop HF -> dung dap an cua shard")
 nolv = sum(1 for it in items if it["lv"] == 0)
 if nolv: print(f"CANH BAO: {nolv} bai khong khop duoc do kho")
 

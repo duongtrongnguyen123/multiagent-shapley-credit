@@ -20,7 +20,8 @@ MAX_PER_ACCOUNT = 2
 
 DATASETS = ["xatri007/qwen2-5-1-5b-instruct",
             "ragnar123/qwen2-5-7b-instruct",
-            "open-benchmarks/math-500-measuring-mathematical-problem-solving"]
+            "open-benchmarks/math-500-measuring-mathematical-problem-solving",
+            "henryjavier/bitsandbytes-0-46-1"]
 
 def main():
     accs = t4_pool()

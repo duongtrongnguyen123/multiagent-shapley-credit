@@ -5,7 +5,7 @@
 #   debate   - 3 sampled plans -> cross-critique -> each planner rewrites its own plan
 #              -> judge produces the final plan [anti-anchoring, "debate"]
 # Solver/Verifier/Aggregator unchanged. P=0 coalitions skip the planner entirely (reuse logic).
-import os, re, csv, json, time, glob
+import os, re, csv, json, time, glob, gc
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -191,38 +191,104 @@ def plan_for_question(q):
     return gen([chat(JUDGE_SYS, q + "\n\n" + merge_body + "\n\n" + crit_body)], 512,
                do_sample=False)[0]
 
+# ---- Checkpoint helpers --------------------------------------------------
+CKPT_DIR = os.path.join(OUT_DIR, "ckpt")
+os.makedirs(CKPT_DIR, exist_ok=True)
+
+def ckpt_path(tag):
+    return os.path.join(CKPT_DIR, f"{tag}.json")
+
+def save_ckpt(tag, data):
+    json.dump(data, open(ckpt_path(tag), "w"))
+    print(f"[CKPT] saved {tag} ({len(data) if isinstance(data, (list, dict)) else 1} items)", flush=True)
+
+def load_ckpt(tag):
+    p = ckpt_path(tag)
+    if os.path.exists(p):
+        d = json.load(open(p))
+        print(f"[CKPT] loaded {tag} ({len(d) if isinstance(d, (list, dict)) else 1} items)", flush=True)
+        return d
+    return None
+
 plans = [None] * n
 if P:
-    plans = [plan_for_question(q) for q in questions]
+    cached = load_ckpt("plans")
+    if cached is not None:
+        plans = cached
+    else:
+        for qi, q in enumerate(questions):
+            plans[qi] = plan_for_question(q)
+            if (qi + 1) % 10 == 0:
+                save_ckpt("plans", plans)
+                print(f"[plan] {qi+1}/{n}", flush=True)
+        save_ckpt("plans", plans)
 
-produced = [[] for _ in range(n)]
+produced = [None] * n  # None = chua xu ly; list = da co output
+
 def solve_user(i):
     u = questions[i]
     if P and plans[i]:
         u += "\n\nSuggested plan:\n" + plans[i]
     return u
 
+# Solve stage (with checkpoint)
+cached = load_ckpt("solve")
+if cached is not None:
+    produced = [c if c else [] for c in cached]
 if S:
-    sol = gen([chat(SOLVE_SYS, solve_user(i)) for i in range(n)], 1024, tag="solve", total=n)
-    for i, t in enumerate(sol):
-        produced[i].append(t)
+    todo = [i for i in range(n) if not produced[i]]
+    for bi in range(0, len(todo), BATCH):
+        batch_idx = todo[bi:bi+BATCH]
+        prompts = [chat(SOLVE_SYS, solve_user(i)) for i in batch_idx]
+        sol = gen(prompts, 1024, tag="solve", total=len(todo))
+        for i, t in zip(batch_idx, sol):
+            produced[i] = [t]
+        if (bi + BATCH) % (BATCH * 3) < BATCH:
+            save_ckpt("solve", produced)
+    save_ckpt("solve", produced)
+
+# Verify stage (with checkpoint)
+cached = load_ckpt("verify")
+if cached is not None:
+    for i, c in enumerate(cached):
+        if c and len(c) > len(produced[i] or []):
+            produced[i] = c
 if V:
-    prompts = [chat(VERIFY_SYS, questions[i] + "\n\nProposed solution:\n" + produced[i][-1])
-               if produced[i] else chat(SOLVE_SYS, solve_user(i)) for i in range(n)]
-    ver = gen(prompts, 1024, tag="verify", total=n)
-    for i, t in enumerate(ver):
-        produced[i].append(t)
+    todo = [i for i in range(n) if produced[i] and len(produced[i]) < 2]
+    for bi in range(0, len(todo), BATCH):
+        batch_idx = todo[bi:bi+BATCH]
+        prompts = [chat(VERIFY_SYS, questions[i] + "\n\nProposed solution:\n" + produced[i][-1])
+                   for i in batch_idx]
+        ver = gen(prompts, 1024, tag="verify", total=len(todo))
+        for i, t in zip(batch_idx, ver):
+            produced[i].append(t)
+        if (bi + BATCH) % (BATCH * 3) < BATCH:
+            save_ckpt("verify", produced)
+    save_ckpt("verify", produced)
+
+# Aggregator stage (with checkpoint)
+cached = load_ckpt("agg")
+if cached is not None:
+    for i, c in enumerate(cached):
+        if c and len(c) > len(produced[i] or []):
+            produced[i] = c
 if A:
-    prompts = []
-    for i in range(n):
-        if produced[i]:
+    todo = [i for i in range(n) if produced[i] and len(produced[i]) < 3]
+    for bi in range(0, len(todo), BATCH):
+        batch_idx = todo[bi:bi+BATCH]
+        prompts = []
+        for i in batch_idx:
             body = "\n\n".join(f"Candidate {j+1}:\n{c}" for j, c in enumerate(produced[i]))
             prompts.append(chat(AGG_SYS, questions[i] + "\n\n" + body))
-        else:
-            prompts.append(chat(SOLVE_SYS, solve_user(i)))
-    agg = gen(prompts, 1024, tag="agg", total=n)
-    for i, t in enumerate(agg):
-        produced[i].append(t)
+        agg = gen(prompts, 1024, tag="agg", total=len(todo))
+        for i, t in zip(batch_idx, agg):
+            produced[i].append(t)
+        if (bi + BATCH) % (BATCH * 3) < BATCH:
+            save_ckpt("agg", produced)
+    save_ckpt("agg", produced)
+
+# Ensure all produced entries are lists
+produced = [p or [] for p in produced]
 
 correct, preds = 0, []
 for i in range(n):

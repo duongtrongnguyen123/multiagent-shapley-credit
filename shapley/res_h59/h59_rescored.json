@@ -1,0 +1,28 @@
+{
+  "old": {
+    "S": 0.622,
+    "V_base": 0.676,
+    "V_lora": 0.698,
+    "fix_base": 45,
+    "break_base": 18,
+    "prec_base": 0.7143,
+    "fix_lora": 42,
+    "break_lora": 4,
+    "prec_lora": 0.913,
+    "gain_base": 0.054,
+    "gain_lora": 0.076
+  },
+  "new": {
+    "S": 0.646,
+    "V_base": 0.688,
+    "V_lora": 0.706,
+    "fix_base": 37,
+    "break_base": 16,
+    "prec_base": 0.6981,
+    "fix_lora": 33,
+    "break_lora": 3,
+    "prec_lora": 0.9167,
+    "gain_base": 0.042,
+    "gain_lora": 0.06
+  }
+}
