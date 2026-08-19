@@ -31,7 +31,22 @@ Aggregator LLM phá vỡ đa số đúng **26 lần** và sửa được đa s�
 model **yếu**. So với model **mạnh chạy một mình** ở ngân sách token thấp hơn, cấu hình đó kém 10
 điểm trên GSM8K và hoà trên MATH.
 
-Sau hai kiểm soát này, phần giá trị còn lại rất nhỏ, và câu hỏi trở thành: **giá trị mất đi đâu?**
+**Kiểm soát 3 — đúng mẫu số.** Phân tầng theo độ khó cho thấy **57% số câu không thể có hiệu ứng**:
+32% quá sức mọi mẫu đều sai (không có gì để chọn), 25% quá dễ mọi mẫu đều đúng (không có gì để cải
+thiện). Trên 30% số câu còn lại, hiệu ứng là **+31,1 điểm**; lấy trung bình toàn bộ thì bị pha loãng
+**3,3 lần** còn +9,3 điểm.
+
+Ba kiểm soát này tác động **ngược chiều nhau**: thiếu kiểm soát mẫu số thì hiệu ứng bị đánh giá
+**thấp**; thiếu kiểm soát ngân sách và mốc so sánh thì bị đánh giá **cao**. Đây là đóng góp phương
+pháp chính của báo cáo.
+
+Sau ba kiểm soát, câu hỏi trở thành: **phần giá trị còn lại nằm ở đâu, và mất đi đâu?**
+
+**Câu trả lời phụ thuộc vào bản chất tín hiệu kiểm.** Trên HumanEval, cùng model và cùng bốn lượt
+sinh, chỉ khác nguồn tín hiệu: chạy test thật đạt **đúng bằng trần oracle** và **phá 0 bài trong
+20 trên 20 fold**; để LLM tự kiểm thì kém hơn 0,10–0,21 điểm và **phá bài ở cả 20 fold**. Ngược lại,
+một bộ phân loại huấn luyện để phát hiện lỗi **không nhận ra nổi một chữ số bị đổi** trong lời giải
+đúng (khả năng phân biệt +0,032, gần bằng ngẫu nhiên).
 
 | Khi chênh lệch năng lực tăng | Kết quả | Nguồn |
 |---|---|---|

@@ -119,7 +119,43 @@ biệt và **6,5%** số bài có một ứng viên.
 Cần ghi là **"khác model"**, không ghi là "khác họ model": đối chứng dùng các model khác nhau trong
 cùng một họ chưa được thực hiện.
 
-### 2.7 Số liệu về phương pháp
+### 2.7 Tín hiệu kiểm: đúng đắn so với học được
+
+**Tín hiệu đúng đắn (chạy test), HumanEval, cùng 4 lượt sinh:**
+
+| Ô | greedy | **exec3** | llm3 | exec3 − llm3 | `exec3` phá | `llm3` phá |
+|---|---|---|---|---|---|---|
+| HE 1.5B (Kaggle) | 0,5375 | **0,6000** | 0,4812 | +0,119 (5/5) | **0,0** | 2,8 |
+| HE 1.5B (5090) | 0,5625 | **0,6438** | 0,4375 | +0,206 (5/5) | **0,0** | 4,6 |
+| HE 7B (5090) | 0,8000 | **0,8812** | 0,7812 | +0,100 (4/5) | **0,0** | 2,6 |
+| HE 7B (Kaggle) | 0,7938 | **0,9000** | 0,7438 | +0,156 (5/5) | **0,0** | 3,2 |
+
+`exec3` đạt **đúng bằng `oracle@4`**; phá 0 bài trong **20 trên 20 fold**.
+⚠️ Mốc trung thực là `greedy` chứ không phải `maj@4` (bỏ phiếu **có hại** trên code: −0,113 và
+−0,131). Theo mốc đúng: `exec3 − greedy` = **+0,063 đến +0,106**.
+
+**Tín hiệu học được (bộ phân loại huấn luyện trên lỗi tiêm):**
+lỗi tiêm (đổi một chữ số) khả năng phân biệt **+0,032**; lỗi thật +0,219 (AUC 0,563); và cả hai
+**không chuyển thành độ chính xác** (bỏ phiếu có trọng số ≈ bỏ phiếu thường).
+
+*Nguồn: `../docs/RESULTS.md` §8.1 và §8.2; `../results_injected_classifier/summary.json`;
+`../docs/IDEAS.md` vòng #72.*
+
+### 2.8 Mẫu số: 57% số câu bất động
+
+| Số mẫu đúng trên 5 | n | Solver | vote5 | Δ |
+|---|---|---|---|---|
+| 0/5 | 48 (32%) | 0,000 | 0,000 | 0,000 |
+| 1/5 | 20 | 0,000 | 0,000 | 0,000 |
+| 2/5 | 15 | 0,333 | 0,600 | +0,267 |
+| 3/5 | 12 | 0,583 | 1,000 | +0,417 |
+| 4/5 | 18 | 0,722 | 1,000 | +0,278 |
+| 5/5 | 37 (25%) | 1,000 | 1,000 | 0,000 |
+
+Tầng 2–4/5 (30% số câu): **+31,1 điểm**. Toàn bộ 150 câu: **+9,3 điểm**. Pha loãng **3,3 lần**.
+*Nguồn: `../docs/DIFFICULTY_STRATA.md`.*
+
+### 2.9 Số liệu về phương pháp
 
 - **31** lần chạy đã niêm phong bằng hash, trong đó **16 lần VOID** (tỷ lệ **52%**)
 - Sổ theo dõi dự đoán trước: **21 đúng trên 43** lần

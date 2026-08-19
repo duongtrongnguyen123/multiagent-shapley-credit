@@ -35,9 +35,12 @@ phần thân báo cáo.
 [11] Số hạng A do đâu quyết định?     → chênh lệch năng lực, không phải họ model
 [12] Số hạng B do đâu mà có?          → tiếp xúc với nội dung SAI
 [13] Quy luật có tổng quát không?     → chuyển được sang miền toán
-[14] Có chặn được B không?            → trần chỉ +0,018
+[14] Tín hiệu kiểm là ĐÚNG ĐẮN hay HỌC ĐƯỢC?
+      ↓ đúng đắn (chạy test): bộ chọn HOÀN HẢO, phá 0 bài trong 20/20 fold
+      ↓ học được (LLM/phân loại): không phát hiện nổi MỘT CHỮ SỐ bị đổi (+0,032)
+[15] Có chặn được B không?            → trần chỉ +0,018
       ↓
-[15] Nghịch lý giữa [7] và [13] được giải bằng [10]
+[16] Nghịch lý giữa [7] và [13] được giải bằng [10]
 
 BA KIỂM SOÁT phải đi cùng nhau:
    ngân sách token [2] · mẫu số [5] · mốc so sánh [9]
@@ -452,7 +455,85 @@ phát biểu là *không bác bỏ được* chứ không phải *đã xác nh�
 
 ---
 
-## [14] Có chặn được B không: giới hạn trên của cơ chế định tuyến
+## [14] Bản chất tín hiệu kiểm: **đúng đắn** hay **học được**?
+
+Các bước [11]–[13] cho thấy `B` là thủ phạm. Trước khi hỏi có chặn được `B` không, cần hỏi:
+**tín hiệu dùng để chặn có chất lượng thế nào?**
+
+### 14a. Khi tín hiệu là ĐÚNG ĐẮN: bộ chọn hoàn hảo, không phá gì
+
+Trên HumanEval, cùng model, **cùng 4 lượt sinh**, khác **duy nhất** ở nguồn tín hiệu kiểm —
+chạy test thật (`exec3`) so với để LLM tự kiểm (`llm3`):
+
+| Ô | greedy | maj@4 | **exec3** | llm3 | exec3 − llm3 | Số bài `exec3` phá | Số bài `llm3` phá |
+|---|---|---|---|---|---|---|---|
+| HE 1.5B (Kaggle) | 0,5375 | 0,4250 | **0,6000** | 0,4812 | +0,119 (5/5) | **0,0** | 2,8 |
+| HE 1.5B (5090) | 0,5625 | 0,4313 | **0,6438** | 0,4375 | +0,206 (5/5) | **0,0** | 4,6 |
+| HE 7B (5090) | 0,8000 | 0,7875 | **0,8812** | 0,7812 | +0,100 (4/5) | **0,0** | 2,6 |
+| HE 7B (Kaggle) | 0,7938 | 0,7375 | **0,9000** | 0,7438 | +0,156 (5/5) | **0,0** | 3,2 |
+
+**`exec3` phá 0 bài trong 20 trên 20 fold; `llm3` phá bài trong 20 trên 20 fold.**
+
+Cơ chế: **`exec3` đạt đúng bằng `oracle@4`** (0,6438 và 0,8812). Tín hiệu đúng đắn là một **bộ chọn
+hoàn hảo** — nó không sửa gì, chỉ chọn, và chọn không sai lần nào.
+
+⚠️ **Mốc so sánh trung thực ở đây là `greedy`, không phải `maj@4`.** Trên code, bỏ phiếu **có hại**
+(−0,113 và −0,131 so với greedy) vì lời giải là chuỗi dài hiếm khi trùng nhau nên "đa số" thành ra
+chọn ngẫu nhiên. Theo mốc đúng, `exec3 − greedy` = **+0,063 đến +0,106**.
+
+Đây là **kết quả được tái lập nhiều nhất của dự án**: 4 cấu hình, 2 model, 2 hệ phần cứng.
+
+Một kết quả bổ sung làm rõ giới hạn: bộ kiểm chỉ có giá trị khi nó là **oracle về tính đúng**, không
+phải khi nó là **một cách tính khác**. Trên MATH, dùng thực thi code (PAL) làm cách giải thay thế
+vẫn **thua** suy luận bằng văn bản.
+
+### 14b. Khi tín hiệu là HỌC ĐƯỢC: không phát hiện nổi một chữ số bị đổi
+
+Thí nghiệm huấn luyện bộ phân loại đúng/sai trên lỗi **tiêm vào** (đổi một chữ số trong lời giải
+vàng), rồi đánh giá khả năng chuyển giao sang lỗi **thật**.
+
+Tiền đăng ký dự đoán: khả năng phân biệt lỗi **tiêm** sẽ **cao** (> 0,6), lỗi **thật** sẽ **thấp**
+(< 0,2) — tức bộ phân loại học được hiện vật bề mặt rồi không chuyển giao được.
+
+**Kết quả ngược hẳn dự đoán:**
+
+| | Khả năng phân biệt |
+|---|---|
+| Lỗi **tiêm vào** (đổi một chữ số) | **+0,032** — gần bằng ngẫu nhiên |
+| Lỗi **thật** | +0,219 (AUC 0,563) |
+
+> **Phát hiện một chữ số bị đổi trong một lời giải vốn hoàn hảo còn khó hơn phân biệt lời giải
+> đúng với lời giải sai thật.**
+
+Và ngay cả khả năng phân biệt lỗi thật cũng **không chuyển thành độ chính xác**: bỏ phiếu có trọng
+số theo điểm của bộ phân loại không hơn bỏ phiếu thường (chênh trung bình ≈ 0 qua các fold).
+AUC 0,563 chỉ nhỉnh hơn mức ngẫu nhiên 0,50.
+
+**Kết luận: đo được ≠ dùng được.**
+
+### 14c. Phát biểu lại M2
+
+Hai kết quả trên gộp lại cho một phát biểu sắc hơn nhiều so với *"tín hiệu độc lập thắng tín hiệu
+tương quan"*:
+
+> **`κ` phụ thuộc vào việc tín hiệu là ĐÚNG ĐẮN hay HỌC ĐƯỢC, không phụ thuộc vào việc nó mạnh
+> hay độc lập.**
+>
+> - Tín hiệu **đúng đắn** (chạy test): `κ` ≈ 1, `B` = 0, đạt đúng trần oracle.
+> - Tín hiệu **học được hoặc do prompt** (LLM kiểm, bộ phân loại huấn luyện): `κ` ≈ 0 (AUC 0,563),
+>   `B` > 0 ở mọi fold.
+
+Điều này giải thích vì sao mọi nỗ lực tìm tín hiệu cổng ở nhánh [14] tiếp theo đều thất bại: chúng
+đều là tín hiệu **học được**, mà loại tín hiệu đó đã được chứng minh là không đủ.
+
+Nó cũng khoanh vùng phạm vi áp dụng: **miền nào có bộ kiểm đúng đắn (code chạy được, chứng minh
+hình thức) thì phối hợp đa tác tử có giá trị thật; miền nào không có thì không.**
+
+**Câu hỏi để lại:** nếu không có tín hiệu đúng đắn, cơ chế định tuyến tốt nhất có thể đạt tới đâu?
+
+---
+
+## [15] Có chặn được B không: giới hạn trên của cơ chế định tuyến
 
 **Ý tưởng tự nhiên.** Chỉ cho model mạnh xem artifact khi artifact có vẻ đúng.
 
@@ -474,7 +555,7 @@ Thêm vào đó, hai lần thử tìm tín hiệu cổng khả thi đều bị c
 
 ---
 
-## [15] Khép mạch: nghịch lý giữa [7] và [13]
+## [16] Khép mạch: nghịch lý giữa [7] và [13]
 
 **Nghịch lý.** [7] nói chênh lệch năng lực lớn mang lại +14,0 điểm so với model yếu. [13] nói chênh
 lệch năng lực lớn làm `Δ_ceil` âm. Cùng một biến, hai dấu ngược nhau.
