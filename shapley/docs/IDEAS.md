@@ -8007,3 +8007,37 @@ Và **không** nạp qua ranh giới phần cứng: partial từ T4/nf4 **không
 chỉ mount partial cùng loại máy. Ghi rõ trong docstring.
 
 *(Chưa áp cho H100e đang chạy — không đụng vào lần chạy đang bay.)*
+
+---
+
+## Vòng #201 — **DỪNG vòng lặp nghiên cứu**, chuyển sang viết báo cáo
+
+Theo yêu cầu. **Không phóng thêm lần chạy nào.** Hai kernel đang bay (**H99b**, **H100e**) để chạy
+tiếp, kết quả nối vào sau — cả hai đã có bảng khoá commit trước nên **không có nguy cơ diễn giải
+hậu nghiệm**.
+
+### Đã lập
+- **`docs/BAO_CAO_CAU_TRUC.md`** — khung 9 mục + phụ lục A–E + danh sách 7 hình, kèm nguồn dữ liệu
+  từng hình. Xương sống: `value = H × κ − D`, và **đẳng thức `Δ_ceil = A − B + C` là viên gạch nối**
+  toàn bộ phần kết quả — mỗi mục §5 trả lời *"số hạng nào đang giết chúng ta?"*
+- **`docs/HUONG_DAN_CONG_TAC.md`** — bàn giao cho người cùng làm: ba tầng bằng chứng,
+  bảng số chốt, bảng **"đừng viết X, hãy viết Y"**, phân công, và mục *"còn đang chạy"*.
+
+### Một cái bẫy phát hiện khi kiểm kê — suýt làm hỏng báo cáo
+**16/31** lần chạy đã niêm phong là **VOID (52%)**. Nhưng hai trong số đó — **H88e** và **H92b** —
+có `res` ghi `VOID: ["n>=480"]` mà **vẫn hợp lệ**: dải giữ lại của MBPP chỉ có **464** bài nên
+cổng `n ≥ 480` **bất khả thi về vật lý**; đăng ký trước đã sửa thành `n ≥ 460` và **commit trước khi
+đọc** (kiểm bằng `git log`: `#97-d`, `#102-b`). **Trường `VOID` trong file bị lỗi thời, không phải
+kết luận.**
+Người cộng tác chỉ nhìn `res_*.json` sẽ **loại nhầm hai kết quả hợp lệ** — hoặc tệ hơn, kết luận
+rằng dự án đã trích số từ lần chạy VOID. Đã ghi cảnh báo này ngay **mục 1** của hướng dẫn.
+
+### Kiểm số trước khi giao
+Viết script đối chiếu **20 con số** trong hướng dẫn với artifact gốc: **20/20 khớp**.
+Làm việc này vì tài liệu bàn giao mà sai số thì **nhân bản lỗi sang người khác** — tốn hơn nhiều
+so với sai trong nhật ký của chính mình.
+
+### Ranh giới đã ghi rõ cho người cộng tác
+Bảng *"đừng viết / hãy viết"*: không "khác họ" (rút ở #182) · không "chênh nhỏ thì sửa **thắng**"
+(chiều khẳng định chưa xác lập) · không "cổng định tuyến là lời giải" (trần chỉ **+.018**) ·
+không trích bất kỳ số nào từ 16 lần chạy VOID.
