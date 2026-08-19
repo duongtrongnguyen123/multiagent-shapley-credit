@@ -1,56 +1,91 @@
-# BÁO CÁO CUỐI KỲ NLP — bắt đầu từ đây
+# Báo cáo cuối kỳ NLP — Tài liệu hướng dẫn
 
-> **Thư mục này CHỈ chứa hướng dẫn viết báo cáo.**
-> **Kết quả thí nghiệm nằm ở `../docs/`** — đừng lẫn hai chỗ.
+Thư mục `report/` chỉ chứa **tài liệu hướng dẫn viết báo cáo**.
+Kết quả thí nghiệm nằm ở thư mục `../docs/`. Không nên dùng lẫn hai thư mục này.
 
 ---
 
-## Bốn tệp, bốn việc
+## Bốn tài liệu
 
-| tệp | trả lời câu hỏi | khi nào đọc |
+| Tài liệu | Trả lời câu hỏi | Thời điểm cần đọc |
 |---|---|---|
-| **`BAO_CAO_CAU_TRUC.md`** | *viết **CÁI GÌ*** — luận điểm hợp nhất, khung `H × κ − D`, 9 mục, 7 hình | **đọc §0 đầu tiên** (1 trang) |
-| **`HUONG_DAN_CONG_TAC.md`** | *được phép viết **CON SỐ NÀO*** — ba tầng bằng chứng, bảng số chốt, điều cấm | trước khi gõ con số đầu tiên |
-| **`QUY_TRINH_VIET_BAO_CAO.md`** | *làm **THEO THỨ TỰ NÀO*** — 7 bước, phân công song song, đường găng | khi bắt tay vào làm |
-| `BAO_CAO.md` | **bản thảo** | chưa có — Bước 1 của quy trình sẽ tạo |
+| `BAO_CAO_CAU_TRUC.md` | **Viết nội dung gì** — luận điểm chính, khung lý thuyết, bố cục 9 chương, danh sách hình | Đọc mục §0 trước tiên (khoảng một trang) |
+| `HUONG_DAN_CONG_TAC.md` | **Được phép trích dẫn số liệu nào** — ba mức độ tin cậy, bảng số liệu đã chốt, các phát biểu cần tránh | Trước khi viết con số đầu tiên |
+| `QUY_TRINH_VIET_BAO_CAO.md` | **Thực hiện theo trình tự nào** — bảy bước, phân công song song, đường găng | Khi bắt đầu viết |
+| `BAO_CAO.md` | Bản thảo báo cáo | Chưa tồn tại; Bước 1 của quy trình sẽ tạo |
 
 ---
 
-## Đọc trong 3 phút
+## Cách bắt đầu
 
-1. **`BAO_CAO_CAU_TRUC.md` §0** — luận điểm một câu của cả báo cáo
-2. **`QUY_TRINH_VIET_BAO_CAO.md` Bước 0** — việc cả nhóm phải làm trước khi ai viết gì
+1. Đọc mục **§0 của `BAO_CAO_CAU_TRUC.md`** — luận điểm chính của toàn bộ báo cáo.
+2. Đọc **Bước 0 của `QUY_TRINH_VIET_BAO_CAO.md`** — phần việc cả nhóm cần thống nhất trước khi
+   bất kỳ ai bắt đầu viết.
 
-Xong hai mục đó là bắt đầu viết được.
-
----
-
-## Luận điểm một câu *(chép từ `BAO_CAO_CAU_TRUC.md` §0)*
-
-> **Chênh lệch năng lực TẠO RA cơ hội; GIAO THỨC quyết định ta thu hoạch hay phá huỷ nó.**
-
-Bằng chứng hai chiều, **ngược dấu nhau** — và đó chính là điểm hay của báo cáo:
-- giao thức **SOÁT/CHỌN**: Solver 1.5B + Verifier 7B = **+14.0đ** MATH, **5/5 fold**
-- giao thức **SỬA**: `Δ_ceil = +.0218 − .2392·chênh`, p = **1e-05**, đổi dấu tại `g*` = .091
+Hoàn thành hai mục trên là có thể bắt đầu.
 
 ---
 
-## Ranh giới hai thư mục — **đừng lẫn**
+## Luận điểm chính
 
-| | `report/` *(đây)* | `../docs/` |
+> **Chênh lệch năng lực giữa hai model tạo ra cơ hội cải thiện; giao thức phối hợp quyết định
+> cơ hội đó được khai thác hay bị phá huỷ.**
+
+Luận điểm được chống đỡ bởi hai nhóm bằng chứng **ngược dấu nhau**. Chính sự ngược dấu này là
+nội dung đáng chú ý nhất của báo cáo:
+
+- Với giao thức **tuyển chọn** (verifier): Solver 1.5B kết hợp Verifier 7B đạt **+14,0 điểm** trên
+  MATH, nhất quán trên **cả 5 fold**.
+- Với giao thức **sửa chữa** (repair): `Δ_ceil = +0,0218 − 0,2392 × (chênh lệch năng lực)`,
+  p = 1e-05, đổi dấu tại `g*` = 0,091.
+
+---
+
+## Phân biệt hai thư mục
+
+| | `report/` (thư mục này) | `../docs/` |
 |---|---|---|
-| chứa gì | **hướng dẫn viết** | **kết quả thí nghiệm** |
-| bao nhiêu tệp | 3 (+ bản thảo) | 38 |
-| ai viết | Nguyên | cả ba người |
-| có được trích số từ đây không | **không** — số nằm ở `../docs/` và `../results_*/` | có, **theo tầng bằng chứng** |
+| Nội dung | Hướng dẫn viết báo cáo | Tài liệu kết quả thí nghiệm |
+| Số lượng tệp | 4 (kể cả bản thảo) | 39 |
+| Người biên soạn | Nguyên | Cả nhóm |
+| Trích số liệu từ đây | Không. Số liệu nằm ở `../docs/` và `../results_*/` | Có, theo đúng mức độ tin cậy tương ứng |
 
-**Cửa vào của `../docs/`:** `../docs/INDEX.md`
+Điểm vào của thư mục kết quả: `../docs/INDEX.md`
 
 ---
 
-## Ba việc đang chờ
+## Các việc còn tồn đọng
 
-1. **Bước 0** của `QUY_TRINH_VIET_BAO_CAO.md` — cả nhóm chốt một câu luận điểm *(chưa làm)*
-2. **H99b** và **H100e** đang chạy — xem Bước 6 để biết cách nối vào, và mục nào **bắt buộc** phải sửa
-3. **`EFFICIENCY.md`** (Tùng Dương, 210 dòng) — **chỉ có trên nhánh `nguoi3-router`, chưa có trên `main`**.
-   Cần cho §5.3. Là nhánh của Tùng Dương nên **chủ nhánh quyết định** có gộp không.
+1. **Bước 0** trong `QUY_TRINH_VIET_BAO_CAO.md`: cả nhóm thống nhất một câu luận điểm. Chưa thực hiện.
+2. Thí nghiệm **H100e** chưa hoàn tất (thiếu 2 trên 6 ô đo). Xem Bước 6 để biết cách bổ sung kết quả
+   và những mục bắt buộc phải sửa lại.
+3. Tệp `EFFICIENCY.md` (Tùng Dương, 210 dòng) hiện chỉ có trên nhánh `nguoi3-router`, chưa có trên
+   `main`. Tài liệu này cần cho mục §5.3. Việc hợp nhất nhánh thuộc quyền quyết định của tác giả nhánh.
+
+---
+
+## Quy ước thuật ngữ
+
+Báo cáo viết bằng tiếng Việt. Các thuật ngữ sau **giữ nguyên tiếng Anh**, vì chưa có bản dịch thống
+nhất trong tài liệu tiếng Việt hoặc vì việc dịch làm giảm tính chính xác:
+
+`prompt` · `pipeline` · `baseline` · `benchmark` · `fold` · `bootstrap` · `greedy decoding` ·
+`solver` · `verifier` · `planner` · `aggregator` · `router` · `artifact` · `self-consistency` ·
+`debate` · `Shapley` · `McNemar` · `VOID`
+
+Các thuật ngữ sau **dịch sang tiếng Việt** và dùng nhất quán trong toàn bộ báo cáo:
+
+| Tiếng Anh | Tiếng Việt |
+|---|---|
+| pre-registration | tiền đăng ký |
+| locked interpretation table | bảng diễn giải đã khoá |
+| quality gate | điều kiện hợp lệ |
+| headroom | dư địa |
+| capability gap | chênh lệch năng lực |
+| repair protocol | giao thức sửa chữa |
+| select protocol | giao thức tuyển chọn |
+| exposure | mức tiếp xúc với artifact |
+| noise floor | sàn nhiễu |
+| hash seal | niêm phong bằng hash |
+| oracle gate | cổng lý tưởng |
+| capability asymmetry | bất đối xứng năng lực |

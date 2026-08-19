@@ -1,194 +1,233 @@
-# HƯỚNG DẪN CHO NGƯỜI CÙNG LÀM BÁO CÁO
+# Hướng dẫn cộng tác — Quy tắc trích dẫn số liệu
 
-> **Ba tệp, ba việc:** `BAO_CAO_CAU_TRUC.md` = *viết cái gì* · tệp này = *được phép viết số nào* ·
-> `QUY_TRINH_VIET_BAO_CAO.md` = *làm theo thứ tự nào*. Bắt đầu ở **§0 `BAO_CAO_CAU_TRUC.md`**.
->
-> Đọc hết mục **1** và **2** trước khi viết bất cứ dòng nào. Hai mục đó quyết định con số nào
-> được phép xuất hiện trong báo cáo. Phần còn lại tra khi cần.
+Ba tài liệu, ba chức năng: `BAO_CAO_CAU_TRUC.md` xác định **viết nội dung gì**; tài liệu này xác định
+**được phép trích dẫn số liệu nào**; `QUY_TRINH_VIET_BAO_CAO.md` xác định **trình tự thực hiện**.
+Điểm khởi đầu: mục §0 của `BAO_CAO_CAU_TRUC.md`.
+
+Cần đọc hết mục 1 và mục 2 của tài liệu này trước khi viết bất kỳ con số nào.
 
 ---
 
-## 1. Ba tầng bằng chứng — **quy tắc bất di bất dịch**
+## 1. Ba mức độ tin cậy
 
-Mỗi con số trong dự án thuộc **đúng một** tầng. Tầng quyết định nó được viết như thế nào.
+Mỗi số liệu trong dự án thuộc **đúng một** mức. Mức độ quyết định cách phát biểu số liệu đó.
 
-| tầng | nghĩa | được viết ở đâu | cách diễn đạt |
+| Mức | Định nghĩa | Vị trí trong báo cáo | Cách diễn đạt |
 |---|---|---|---|
-| **A — XÁC NHẬN** | có đăng ký trước, bảng khoá commit **trước** khi chạy, **mọi cổng đạt** | thân báo cáo, có thể in đậm | *"chúng tôi đo được X"* |
-| **B — THĂM DÒ** | phân tích hậu nghiệm, hoặc không có đăng ký trước | thân báo cáo **có nhãn**, hoặc phụ lục | *"quan sát mô tả, chưa xác nhận"* |
-| **C — VOID** | có ít nhất một cổng chất lượng **trượt** | **chỉ** ở phụ lục C, dạng danh sách | *"không đọc số"* — **tuyệt đối không trích giá trị** |
+| **A — Đã xác nhận** | Có tiền đăng ký, bảng diễn giải được khoá **trước** khi chạy, và **toàn bộ điều kiện hợp lệ đều đạt** | Phần thân báo cáo | *"Kết quả đo được là X"* |
+| **B — Thăm dò** | Phân tích hậu nghiệm, hoặc không có tiền đăng ký | Phần thân, có ghi chú rõ; hoặc phụ lục | *"Quan sát mô tả, chưa được xác nhận"* |
+| **C — VOID** | Có ít nhất một điều kiện hợp lệ không đạt | Chỉ liệt kê ở Phụ lục C | Không trích dẫn giá trị số |
 
-### Vì sao nghiêm đến vậy
-Dự án **đã từng vi phạm** ở các vòng #114 / #121 / #123: đọc số từ lần chạy VOID, và một lần
-tạo ra **kết quả tái lập giả**. Kiểm định #125 bắt được. Toàn bộ kỷ luật này sinh ra từ đó.
-**Nếu bạn thấy một con số hay ho nhưng không rõ tầng nào — hỏi trước khi viết.**
+### Lý do áp dụng quy tắc này
 
-### Cái bẫy phải biết (nếu không sẽ mắc)
-Hai lần chạy **H88e** và **H92b** có `res_*.json` ghi `VOID: ["n>=480"]` **nhưng vẫn HỢP LỆ**.
-Lý do: dải giữ lại của MBPP (`task_id` 511–974) **chỉ có 464 bài**, nên cổng `n ≥ 480` là
-**bất khả thi về mặt vật lý**. Đăng ký trước đã được sửa thành **`n ≥ 460`** cho dải đó, và
-sửa đổi ấy **commit TRƯỚC khi đọc số** (xem `#97-d` và `#102-b`, kiểm bằng `git log`).
-Kernel vẫn cứng `n ≥ 480` nên trường `VOID` trong file bị **lỗi thời**.
-⇒ **Cả hai thuộc tầng A.** Đừng loại chúng, và cũng đừng loại *chỉ vì* file ghi VOID —
-**hãy đọc đăng ký trước tương ứng**.
+Trong quá trình thực hiện, dự án đã từng đọc số liệu từ những lần chạy VOID (các vòng #114, #121,
+#123), một lần trong số đó tạo ra kết quả tái lập không có thật. Sai sót được phát hiện ở vòng kiểm
+định #125. Toàn bộ quy tắc phân mức hiện tại hình thành từ sự cố đó.
+
+Khi gặp một số liệu chưa rõ thuộc mức nào, cần xác định mức trước khi đưa vào báo cáo.
+
+### Một trường hợp ngoại lệ cần lưu ý
+
+Hai lần chạy **H88e** và **H92b** có tệp `res_*.json` ghi trạng thái `VOID: ["n>=480"]` nhưng
+**vẫn hợp lệ**. Nguyên nhân: phần giữ lại của MBPP (`task_id` từ 511 đến 974) chỉ có 464 bài, nên
+điều kiện `n ≥ 480` không thể đạt được về mặt vật lý. Bản tiền đăng ký đã được sửa thành `n ≥ 460`
+cho phần dữ liệu này, và bản sửa được commit **trước khi đọc số liệu** (xem mục `#97-d` và `#102-b`;
+có thể kiểm chứng bằng `git log`). Mã kernel vẫn giữ ngưỡng `n ≥ 480` nên trường `VOID` trong tệp
+kết quả không còn phản ánh đúng trạng thái.
+
+Kết luận: cả hai lần chạy thuộc **mức A**. Không loại bỏ chúng chỉ vì tệp kết quả ghi VOID; cần đối
+chiếu với bản tiền đăng ký tương ứng.
 
 ---
 
-## 2. Bảng số CHỐT — được phép trích thẳng
+## 2. Bảng số liệu đã chốt
 
-Mọi con số dưới đây là **tầng A** trừ khi ghi khác. Copy chính xác, đừng làm tròn lại.
+Toàn bộ số liệu dưới đây thuộc **mức A**, trừ khi có ghi chú khác. Cần sao chép chính xác, không
+làm tròn lại.
 
-### 2.1 `D` — thiệt hại do phơi nhiễm  *(kết quả mạnh nhất)*
+### 2.1 Thiệt hại do mức tiếp xúc với artifact
+
 | | MBPP 11–510 | MBPP 511–974 | MATH-500 |
 |---|---|---|---|
-| artifact **SAI** | −.1900 | −.1927 | **−.2720** (p ≈ 0) |
-| artifact **ĐÚNG** | +.0636 | +.0245 | **+.0377** (p .012) |
+| Artifact **sai** | −0,1900 | −0,1927 | **−0,2720** (p ≈ 0) |
+| Artifact **đúng** | +0,0636 | +0,0245 | **+0,0377** (p = 0,012) |
 
-MATH: `n` = 500 (239 đúng / 261 sai); model mạnh **46.4% → 19.2%** ở tầng SAI.
-Gộp trọng số = `V − I` = **−.1240** (khớp chính xác).
-*Nguồn: `results_H94d/res_H94d.json` → khoá `strat`. Cột MBPP: `results_H92`, `H92b`.*
+Trên MATH: `n` = 500, gồm 239 bài có artifact đúng và 261 bài có artifact sai. Ở tầng artifact sai,
+độ chính xác của model mạnh giảm từ **46,4%** xuống **19,2%**. Tổng hợp hai tầng theo trọng số cho
+`V − I` = **−0,1240**, khớp chính xác với giá trị đo trực tiếp.
 
-### 2.2 `H` — dư địa theo chênh năng lực
-`A = β₀ + β₁·chênh + β₂·khác_họ`, 15 cặp, cùng 499 bài:
-- **β₁ = −.1922** (se .0260, p ≈ 0)
-- **β₂ = +.00446** (se .0044, p = .33), **KTC 95% [−.0051, +.0140]**
-- `R²` chỉ chênh = **.8237**; thêm biến họ = .8377
-*Nguồn: `results_H96/res_H96.json` → `ols`, `pairs`.*
+Nguồn: `../results_H94d/res_H94d.json`, khoá `strat`. Cột MBPP: `../results_H92`, `../results_H92b`.
 
-### 2.3 Luật `Δ_ceil`
-`Δ_ceil = +.02184 − .23922·chênh`, `R²` = **.5998**, p(δ₁) = **1e-05**, **`g*` = .0913**
-- **0/15** cặp dương có ý nghĩa · **3/15** âm có ý nghĩa
-- **Chỉ được phát biểu chiều phủ định:** *chênh > .09 thì đừng sửa*
-*Nguồn: `results_H97/res_H97.json` → `ols_ceil`, `pairs`.*
+### 2.2 Dư địa theo chênh lệch năng lực
 
-**Luật này CHUYỂN sang MATH** *(H99b, #112, mọi cổng đạt, 3/3 cặp)*: **2/3** dự báo nằm trong KTC 95%
-— 7B→14B đo −.0140, KTC [−.046, +.018], dự báo **+.0108**; 1.5B→14B đo −.0680, KTC [−.102, −.034],
-dự báo **−.0471**. Cặp lệch: 1.5B→7B đo **−.1660** so với dự báo −.0361 (`B` = .208).
-⚠️ **Viết là "không bác được luật"; ĐỪNG viết "đã xác nhận luật"** — KTC rộng .064–.084.
-*Nguồn: `results_H99b/res_H99b.json` → `pairs`.*
+Hồi quy `A = β₀ + β₁ × (chênh lệch năng lực) + β₂ × (khác họ model)` trên 15 cặp, cùng 499 bài:
+
+- **β₁ = −0,1922** (sai số chuẩn 0,0260; p ≈ 0)
+- **β₂ = +0,00446** (sai số chuẩn 0,0044; p = 0,33), khoảng tin cậy 95%: **[−0,0051; +0,0140]**
+- `R²` khi chỉ dùng biến chênh lệch năng lực: **0,8237**; thêm biến họ model: 0,8377
+
+Khoảng tin cậy của `β₂` nằm trọn dưới ngưỡng +0,02 đã được khoá trong tiền đăng ký. Đây là kết quả
+**null có thông tin**, không phải trường hợp thiếu lực kiểm định.
+
+Nguồn: `../results_H96/res_H96.json`, khoá `ols` và `pairs`.
+
+### 2.3 Quy luật `Δ_ceil` theo chênh lệch năng lực
+
+`Δ_ceil = +0,0218 − 0,2392 × (chênh lệch năng lực)`; `R²` = **0,5998**; p(δ₁) = **1e-05**;
+điểm đổi dấu `g*` = **0,0913**.
+
+- **0 trên 15** cặp có `Δ_ceil` dương với ý nghĩa thống kê
+- **3 trên 15** cặp có `Δ_ceil` âm với ý nghĩa thống kê
+- Do đó **chỉ phát biểu theo chiều phủ định**: khi chênh lệch năng lực vượt 0,09 thì không nên áp
+  dụng giao thức sửa chữa
+
+Nguồn: `../results_H97/res_H97.json`, khoá `ols_ceil` và `pairs`.
+
+**Quy luật này chuyển được sang miền toán** (thí nghiệm H99b, tiền đăng ký #112, toàn bộ điều kiện
+hợp lệ đều đạt, 3 trên 3 cặp): **2 trên 3** giá trị dự báo nằm trong khoảng tin cậy 95%.
+
+| Cặp | Chênh lệch | `Δ_ceil` đo được | Khoảng tin cậy 95% | Giá trị MBPP dự báo |
+|---|---|---|---|---|
+| 7B → 14B | 0,044 | −0,0140 | [−0,046; +0,018] | **+0,0108** (trong khoảng) |
+| 1.5B → 7B | 0,244 | **−0,1660** | [−0,208; −0,124] | −0,0361 (ngoài khoảng) |
+| 1.5B → 14B | 0,288 | −0,0680 | [−0,102; −0,034] | **−0,0471** (trong khoảng) |
+
+Cần phát biểu là **"không bác bỏ được quy luật"**, không phát biểu là **"đã xác nhận quy luật"**:
+các khoảng tin cậy rộng từ 0,064 đến 0,084 nên phép kiểm này có độ phân giải thấp.
+
+Nguồn: `../results_H99b/res_H99b.json`, khoá `pairs`.
 
 ### 2.4 Đẳng thức phân rã
-`Δ_ceil = A − B + C`, khớp **tuyệt đối 4/4** cặp có trace và **15/15** cặp trong H97.
 
-### 2.5 Trần định tuyến  *(tầng B — dẫn xuất mô tả từ dữ liệu tầng A)*
-`I` = .6980 · `V` = .5740 (−.1240) · **cổng ORACLE = .7160 (+.0180)**
-Bộ phân loại cần **~89%** mới hoà vốn (.90 ⇒ +.0020; .85 ⇒ −.0060).
+`Δ_ceil = A − B + C`. Đẳng thức khớp tuyệt đối trên **4 trên 4** cặp có lưu vết trung gian và
+**15 trên 15** cặp trong thí nghiệm H97.
 
-### 2.6 `M2` — đa dạng ứng viên
-3 mẫu cùng model ⇒ **1.91/3** ứng viên phân biệt, **36.2%** bài chỉ có một.
-Pool khác model ⇒ **2.70/3**, **6.5%**.
-⚠️ **Viết là "khác MODEL"**, không phải "khác họ" — đối chứng khác-model-**cùng**-họ chưa chạy.
+### 2.5 Giới hạn trên của cơ chế định tuyến (mức B — suy ra từ dữ liệu mức A)
 
-### 2.7 Số về phương pháp
-- **31** lần chạy đã niêm phong, **16 VOID** (**52%**)
-- Sổ tiên nghiệm: **21/42**
-- Tất định: **499/499** giống hệt từng bài, hai tài khoản, hai ngày, cùng T4/nf4
+Model mạnh đơn lẻ: 0,6980. Luôn cho xem artifact: 0,5740 (chênh −0,1240).
+**Cổng lý tưởng: 0,7160 (chênh +0,0180).**
+
+Một bộ phân loại thực tế cần đạt độ chính xác khoảng **89%** mới hoà vốn: ở mức 0,90 chênh lệch là
++0,0020; ở mức 0,85 chênh lệch là −0,0060.
+
+### 2.6 Đa dạng ứng viên
+
+Lấy ba mẫu từ cùng một model cho trung bình **1,91 trên 3** ứng viên phân biệt, và **36,2%** số bài
+chỉ có duy nhất một ứng viên. Dùng pool gồm các model khác nhau cho **2,70 trên 3** ứng viên phân
+biệt và **6,5%** số bài có một ứng viên.
+
+Cần ghi là **"khác model"**, không ghi là "khác họ model": đối chứng dùng các model khác nhau trong
+cùng một họ chưa được thực hiện.
+
+### 2.7 Số liệu về phương pháp
+
+- **31** lần chạy đã niêm phong bằng hash, trong đó **16 lần VOID** (tỷ lệ **52%**)
+- Sổ theo dõi dự đoán trước: **21 đúng trên 43** lần
+- Tính tất định của greedy decoding: hai tài khoản khác nhau, hai ngày khác nhau, cùng cấu hình
+  phần cứng cho kết quả **giống nhau trên toàn bộ 499 bài**
 
 ---
 
-## 3. Những điều **KHÔNG** được viết
+## 3. Các phát biểu cần tránh
 
-| đừng viết | viết thế này |
+| Không viết | Viết thay bằng |
 |---|---|
-| *"khác họ model cho nhiều dư địa hơn"* | *"chênh năng lực nhỏ cho nhiều dư địa hơn"* — nhãn họ đã bị **rút** ở #182 |
-| *"chênh nhỏ thì sửa THẮNG"* | *"chênh > .09 thì đừng sửa"* — chiều khẳng định **chưa xác lập** |
-| *"cổng định tuyến là lời giải"* | *"trần của định tuyến chỉ +.018; mặc định là đừng cho xem"* |
-| *"chúng tôi tái lập bằng cách chạy lại"* | greedy **tất định** ⇒ chạy lại **không** phải bằng chứng độc lập |
-| bất kỳ số nào từ **H98, H99, H95b, H94c, H91b/c/d, H88/H88b, H89b/d/e/f/h** | **VOID** — chỉ được nhắc trong phụ lục C |
-| *"pool khác họ"* ở phần M2 | *"pool khác MODEL"* |
+| "Khác họ model cho dư địa lớn hơn" | "Chênh lệch năng lực nhỏ cho dư địa lớn hơn". Nhãn "khác họ" đã bị rút ở vòng #182 |
+| "Chênh lệch nhỏ thì giao thức sửa chữa thắng" | "Khi chênh lệch vượt 0,09 thì không nên sửa chữa". Chiều khẳng định chưa được xác lập |
+| "Đã xác nhận quy luật chuyển được sang toán" | "Không bác bỏ được quy luật trên miền toán". Khoảng tin cậy rộng |
+| "Cơ chế định tuyến là lời giải" | "Giới hạn trên của định tuyến chỉ là +0,018; mặc định nên không cho xem artifact" |
+| "Kết quả được tái lập bằng cách chạy lại" | Greedy decoding có tính tất định, nên chạy lại cùng cấu hình không tạo bằng chứng độc lập |
+| Bất kỳ số liệu nào từ H98, H99, H95b, H94c, H91b/c/d, H88, H88b, H89b/d/e/f/h | Các lần chạy VOID; chỉ được nhắc tên ở Phụ lục C |
+| "Pool khác họ model" ở mục đa dạng ứng viên | "Pool khác model" |
 
 ---
 
-## 4. Phân công đề xuất
+## 4. Phân công
 
-| phần | ai | vì sao |
+| Phần | Người thực hiện | Ghi chú |
 |---|---|---|
-| **§2 Công trình liên quan** | **Đức** (đã có sẵn phần lớn) | ⚠️ **SỬA:** phần này **KHÔNG** trống. Đức đã viết `../docs/RELATED_BASELINES.md` (102 dòng, có số công bố của debate/self-consistency trên GSM8K+MATH) và `../docs/RELATED_PIPELINE.md` (77 dòng, định vị so với MAS_RPSV / SHARP). **Việc còn lại:** bổ sung dòng *sinh-rồi-sửa* (Self-Refine / Reflexion / CRITIC) và **ghi rõ mỗi bài dùng mốc so sánh nào** — đó là chỗ luận điểm của báo cáo đứng hoặc đổ. |
-| **§4 Thiết lập** | bạn của Nguyên | Cơ học: model, benchmark, đại lượng, kiểm định. Nguồn có sẵn hết trong `pipeline/*.py`. |
-| **Hình 3, 5** | bạn của Nguyên | Hai hình quan trọng nhất. Dữ liệu có sẵn trong `results_H97` và `results_H94d`. |
-| **§1, §3, §5, §6** | Nguyên | Cần biết lịch sử từng kết quả và lý do từng nhãn. |
-| **§7 Phương pháp luận, §8 Hạn chế** | Nguyên | Cần nhớ tại sao từng luật ra đời. |
-| **Phụ lục A–E** | trích tự động từ `../docs/` | Gần như copy. |
+| §2 Công trình liên quan | Đức | Phần lớn đã có sẵn: `../docs/RELATED_BASELINES.md` (102 dòng, số liệu công bố về debate và self-consistency trên GSM8K và MATH) và `../docs/RELATED_PIPELINE.md` (77 dòng, định vị so với MAS_RPSV và SHARP). Phần còn thiếu: nhóm phương pháp sinh rồi sửa (Self-Refine, Reflexion, CRITIC), và với mỗi công trình cần ghi rõ nó đo so với baseline nào. Đây là cơ sở cho luận điểm ở §1 |
+| §4 Thiết lập thí nghiệm | Tùng Dương | Nội dung mang tính mô tả: model, benchmark, đại lượng đo, kiểm định. Nguồn có sẵn trong `../pipeline/` |
+| Hình 3, Hình 4 | Tùng Dương | Dữ liệu có sẵn trong `../results_H97/` và `../results_H94d/` |
+| §1, §3, §5, §6 | Nguyên | Cần nắm lịch sử từng kết quả và lý do đặt từng nhãn |
+| §7 Phương pháp luận, §8 Hạn chế | Nguyên | Cần nắm bối cảnh hình thành từng quy tắc |
+| Phụ lục A–G | Trích từ `../docs/` | Chủ yếu là sao chép |
 
 ---
 
-## 4b. Kết quả của các thành viên khác — ĐỌC TRƯỚC KHI GỘP
+## 5. Kết quả của các thành viên khác
 
-Dự án có **hai khối công việc** trên hai nhánh khác nhau, **hai chuẩn bằng chứng khác nhau**:
+Dự án gồm **hai khối công việc** trên các nhánh khác nhau, sử dụng **hai chuẩn kiểm chứng khác nhau**:
 
-| khối | nhánh | nội dung | chuẩn bằng chứng |
+| Khối | Nhánh | Nội dung | Chuẩn kiểm chứng |
 |---|---|---|---|
-| **Credit/Shapley + repair-vs-select** (Nguyên) | `nguyen` | vòng #97–#201 | **có đăng ký trước + cổng + niêm phong + VOID** |
-| **Vai trò, debate, credit-RL, router** (Đức, Tùng Dương) | `duc`, `nguoi3-router`, `main` | ~30 tài liệu kết quả | **KHÔNG** dùng đăng ký trước/cổng/VOID |
+| Credit assignment, Shapley, sửa chữa so với tuyển chọn (Nguyên) | `nguyen` | Các vòng #97–#203 | Tiền đăng ký, điều kiện hợp lệ, niêm phong hash, trạng thái VOID |
+| Phân tích vai trò, debate, credit-RL, router (Đức, Tùng Dương) | `duc`, `nguoi3-router`, `main` | Khoảng 30 tài liệu kết quả | Thanh sai số qua 5 fold, sàn nhiễu 5 điểm |
 
-⚠️ **Đây không phải chê ai.** Kỷ luật đăng-ký-trước chỉ ra đời từ vòng **#97** trên nhánh `nguyen`;
-phần lớn công việc kia làm song song hoặc trước đó.
+Đây là hai chuẩn **bổ sung cho nhau**, không phải một chuẩn tốt hơn chuẩn kia. Quy trình tiền đăng ký
+chỉ hình thành từ vòng #97 trên nhánh `nguyen`; phần lớn công việc của khối còn lại được thực hiện
+song song hoặc trước thời điểm đó.
 
-**Hệ quả bắt buộc cho báo cáo:** kết quả của hai khối **không được đặt cùng một tầng bằng chứng**
-mà không kiểm lại. Ba lựa chọn, chọn một và **nói rõ trong báo cáo**:
-1. Ghi rõ hai chuẩn khác nhau, để kết quả khối kia ở **tầng B (thăm dò)**;
-2. Kiểm lại hậu kỳ: dựng cổng chất lượng tương đương rồi báo cáo cái nào qua;
-3. Tách thành hai phần riêng, mỗi phần nêu chuẩn của mình.
+**Yêu cầu đối với báo cáo:** không đặt kết quả của hai khối vào cùng một mức tin cậy nếu chưa kiểm
+tra lại. Có ba phương án, cần chọn một và nêu rõ trong báo cáo:
 
-**Khuyến nghị: lựa chọn 1** — rẻ, trung thực, và không đòi chạy lại.
+1. Ghi rõ hai chuẩn khác nhau và xếp kết quả khối còn lại vào mức B.
+2. Kiểm tra lại hậu kỳ: xây dựng điều kiện hợp lệ tương đương rồi báo cáo kết quả nào đạt.
+3. Tách thành hai phần riêng, mỗi phần nêu chuẩn kiểm chứng của mình.
 
-### Hai kết quả của thành viên khác nên đưa vào báo cáo
-- **`EFFICIENCY.md` **(chỉ có trên nhánh `nguoi3-router`)**** (Tùng Dương, 210 dòng, tự viết toàn bộ): Consensus Router đạt
-  **.7200 acc / 2.32 cost** trên GSM8K so với full pipeline **.7233 / 3** — tức **gần bằng độ chính
-  xác với 77% chi phí**; nhưng **vô dụng trên MATH** (router .4133 = đúng bằng Solver một mình).
-  Kèm phân tích cơ chế: khi `S`,`V` bất đồng thì `A` cứu được **45.4%** ở GSM8K nhưng chỉ **25.0%**
-  ở MATH. → **Đây là bằng chứng độc lập cho M3** ("định tuyến tiết kiệm ở chỗ ít cần nhất") và
-  nên vào **§5** hoặc thành mục riêng.
-- **`../docs/RELATED_BASELINES.md`** (Đức): literature cho thấy **debate thua self-consistency ở 3/4 ô**,
-  và **sụp 16 điểm** với Llama3.1-8B trên GSM8K. → **Trùng hướng với kết luận "CHỌN thắng SỬA"**,
-  đến từ nguồn hoàn toàn độc lập. Rất mạnh cho **§2** và **§6**.
+Phương án 1 được khuyến nghị: chi phí thấp, trung thực, và không đòi hỏi chạy lại thí nghiệm.
 
-## 5. Nguồn ở đâu
+### Hai kết quả nên đưa vào phần thân báo cáo
+
+- **`EFFICIENCY.md`** (Tùng Dương, 210 dòng, tác giả duy nhất; hiện chỉ có trên nhánh
+  `nguoi3-router`): Consensus Router đạt độ chính xác 0,7200 với chi phí 2,32 lần, so với pipeline
+  đầy đủ đạt 0,7233 với chi phí 3 lần — tức gần bằng độ chính xác với 77% chi phí. Trên MATH, router
+  đạt 0,4133, đúng bằng solver đơn lẻ, tức không mang lại lợi ích. Phân tích cơ chế cho thấy khi
+  solver và verifier bất đồng, aggregator sửa đúng được 45,4% trường hợp trên GSM8K nhưng chỉ 25,0%
+  trên MATH. Đây là bằng chứng độc lập cho mệnh đề M3, nên đưa vào §5.3.
+
+- **`../docs/RELATED_BASELINES.md`** (Đức): tổng hợp số liệu công bố cho thấy debate kém hơn
+  self-consistency ở 3 trên 4 ô so sánh, và giảm 16 điểm với Llama-3.1-8B trên GSM8K. Kết quả này
+  trùng hướng với kết luận của dự án về ưu thế của giao thức tuyển chọn, nhưng đến từ nguồn hoàn toàn
+  độc lập. Phù hợp cho §2 và §6.
+
+---
+
+## 6. Vị trí các nguồn
 
 ```
 shapley/
-├─ report/                     ← BA TEP HUONG DAN VIET BAO CAO (thu muc nay)
-│  ├─ README.md                ← bat dau tu day
-│  ├─ BAO_CAO_CAU_TRUC.md      ← viet CAI GI
-│  ├─ HUONG_DAN_CONG_TAC.md    ← duoc phep viet CON SO NAO (tep nay)
-│  ├─ QUY_TRINH_VIET_BAO_CAO.md← lam THEO THU TU NAO
-│  └─ BAO_CAO.md               ← BAN THAO (chua co — Buoc 1 tao)
-├─ docs/                       ← TAI LIEU KET QUA (38 tep) — KHONG phai huong dan viet
-│  ├─ INDEX.md                 ← muc luc cua docs/
-│  ├─ TONG_HOP.md              ← KHUNG ly thuyet. Doc truoc tien.
-│  ├─ RESULTS.md               ← bang ket qua mang nhom (co thanh sai so 5 fold)
-│  ├─ PREREGISTRATION.md       ← moi bang khoa
-│  ├─ IDEAS.md                 ← nhat ky 201 vong
-│  ├─ QUY_TRINH_VONG_LAP.md    ← 37 luat quy trinh
-│  ├─ RESULT_SEALS.md          ← hash niem phong
-│  └─ (29 tep ket qua cua Duc: CREDIT_RL, ORPO, SOLVEJUDGE, RELATED_*, ...)
-├─ results_*/                  ← artifact tho (KHONG nam trong git)
-└─ pipeline/ deploy/ analysis/ ← code
+├─ report/                        Hướng dẫn viết báo cáo (thư mục này)
+│  ├─ README.md                   Điểm vào
+│  ├─ BAO_CAO_CAU_TRUC.md         Viết nội dung gì
+│  ├─ HUONG_DAN_CONG_TAC.md       Được trích số liệu nào (tài liệu này)
+│  ├─ QUY_TRINH_VIET_BAO_CAO.md   Trình tự thực hiện
+│  └─ BAO_CAO.md                  Bản thảo (chưa có; Bước 1 tạo)
+├─ docs/                          Tài liệu kết quả (39 tệp)
+│  ├─ INDEX.md                    Mục lục của docs/
+│  ├─ TONG_HOP.md                 Khung lý thuyết. Nên đọc trước tiên
+│  ├─ RESULTS.md                  Bảng kết quả khối nhóm, có thanh sai số 5 fold
+│  ├─ PREREGISTRATION.md          Toàn bộ bảng diễn giải đã khoá
+│  ├─ IDEAS.md                    Nhật ký nghiên cứu, 203 vòng
+│  ├─ QUY_TRINH_VONG_LAP.md       37 quy tắc quy trình
+│  ├─ RESULT_SEALS.md             Niêm phong hash
+│  └─ (29 tệp kết quả của Đức: CREDIT_RL, ORPO, SOLVEJUDGE, RELATED_*, ...)
+├─ results_*/                     Dữ liệu thô (không nằm trong git)
+└─ pipeline/ deploy/ analysis/    Mã nguồn
 ```
 
-**Ba vòng nên đọc trước:** **#197** (`D` là hình phạt của nội dung sai) · **#185** (luật chênh) ·
-**#182** (rút nhãn "khác họ"). Ba vòng đó là xương sống của §5.
+Ba vòng nên đọc trước trong `../docs/IDEAS.md`: **#197** (thiệt hại do tiếp xúc với nội dung sai),
+**#185** (quy luật theo chênh lệch năng lực), **#182** (rút nhãn "khác họ model"). Ba vòng này là
+cơ sở của §5.
 
 ---
 
-## 6. Còn đang chạy — sẽ nối vào sau
+## 7. Nguyên tắc chung
 
-| lần chạy | câu hỏi | nối vào đâu |
-|---|---|---|
-| **H100e** | `Δ_honest` — giao thức **độc lập-trước** có thắng việc gọi thẳng `I` không? | §5 mục mới, và §8 nếu âm |
-| **H99b** | luật chênh có chuyển sang **toán** không? | §5.4; nếu không chuyển thì **phải thu hẹp luật thành "trên code"** ở §5.4 **và** §6 |
-
-**Cả hai đều có bảng khoá đã commit.** Khi có kết quả: đọc bảng khoá **trước**, rồi mới đọc số.
-**Đừng viết trước phần này** — nếu H99b rơi vào hàng 1 thì §5.4 và §6 phải sửa câu chữ.
-
----
-
-## 7. Quy tắc làm việc chung
-
-1. **Mỗi con số phải kèm nguồn** — `results_X/res_X.json`, khoá nào. Người chấm hỏi được.
-2. **Đừng làm tròn lại.** Nếu nguồn ghi `−.2720` thì đừng viết `−.27` ở bảng (trong câu văn thì được).
-3. **Đừng "làm mượt" kết luận.** Chỗ mạnh nhất của báo cáo là chỗ nói *"chúng tôi đo trần của
-   chính đề xuất của mình và nó chỉ +.018"*. Giữ nguyên những chỗ như vậy.
-4. **Kết quả âm và VOID là nội dung, không phải điều đáng xấu hổ.** Tỉ lệ VOID 52% là **bằng chứng
-   cổng đang làm việc**. Đặt nó vào §7 một cách tự tin.
-5. Có gì không chắc thuộc tầng nào ⇒ **hỏi Nguyên**, đừng đoán.
+1. Mỗi số liệu phải truy được về tệp nguồn cụ thể: `results_X/res_X.json` và tên khoá.
+2. Không làm tròn lại số liệu. Nếu nguồn ghi −0,2720 thì bảng biểu giữ nguyên bốn chữ số.
+3. Giữ nguyên các phát biểu tự giới hạn. Ví dụ, việc báo cáo giới hạn trên của chính đề xuất của
+   nhóm chỉ là +0,018 là một điểm mạnh về phương pháp, không nên lược bỏ.
+4. Kết quả âm và các lần chạy VOID là nội dung khoa học. Tỷ lệ VOID 52% cho thấy hệ thống điều kiện
+   hợp lệ đang hoạt động đúng chức năng, nên trình bày ở §7 với đầy đủ ngữ cảnh.
+5. Khi chưa xác định được một số liệu thuộc mức tin cậy nào, cần làm rõ trước khi đưa vào báo cáo.
