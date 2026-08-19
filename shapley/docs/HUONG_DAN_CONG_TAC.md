@@ -1,5 +1,8 @@
 # HƯỚNG DẪN CHO NGƯỜI CÙNG LÀM BÁO CÁO
 
+> **Ba tệp, ba việc:** `BAO_CAO_CAU_TRUC.md` = *viết cái gì* · tệp này = *được phép viết số nào* ·
+> `QUY_TRINH_VIET_BAO_CAO.md` = *làm theo thứ tự nào*. Bắt đầu ở **§0 `BAO_CAO_CAU_TRUC.md`**.
+>
 > Đọc hết mục **1** và **2** trước khi viết bất cứ dòng nào. Hai mục đó quyết định con số nào
 > được phép xuất hiện trong báo cáo. Phần còn lại tra khi cần.
 

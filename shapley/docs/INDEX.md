@@ -31,8 +31,12 @@
 
 | tệp | nội dung |
 |---|---|
-| **`BAO_CAO_CAU_TRUC.md`** | Cấu trúc báo cáo bản 2 — luận điểm hợp nhất, 9 mục, 7 hình, phân công |
-| **`HUONG_DAN_CONG_TAC.md`** | Bàn giao: **ba tầng bằng chứng**, bảng số chốt, "đừng viết X hãy viết Y" |
+| **`BAO_CAO_CAU_TRUC.md`** | *viết CÁI GÌ* — luận điểm hợp nhất (§0), khung, 9 mục, 7 hình |
+| **`HUONG_DAN_CONG_TAC.md`** | *được phép viết CON SỐ NÀO* — ba tầng bằng chứng, bảng số chốt, "đừng viết X hãy viết Y" |
+| **`QUY_TRINH_VIET_BAO_CAO.md`** | *làm THEO THỨ TỰ NÀO* — 7 bước, phân công song song, cách nối H99b/H100e, đường găng |
+
+> **Bắt đầu từ đâu:** đọc **§0 của `BAO_CAO_CAU_TRUC.md`** (một trang), rồi làm theo
+> **`QUY_TRINH_VIET_BAO_CAO.md`** từ Bước 0.
 
 ## 3. Phương pháp & kỷ luật *(mảng Nguyên)*
 
