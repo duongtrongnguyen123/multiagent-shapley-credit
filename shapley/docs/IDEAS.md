@@ -7817,3 +7817,50 @@ là **một điểm duy nhất**, và lặp lại nó **không** làm khoảng t
 > trên **cùng** cấu hình là **vô nghĩa hoàn toàn** — nó không phải bằng chứng độc lập.
 > Xác nhận thật **bắt buộc** phải đổi thứ gì đó: bộ bài, cặp model, hoặc giao thức.
 > H100d đổi **cặp model** ⇒ hợp lệ. Nếu tôi từng định "chạy lại y nguyên cho chắc", đó là ảo tưởng.
+
+---
+
+## Vòng #197 — H94d (#104): **HÀNG 1**. `D` là hàm của **NỘI DUNG SAI**, và trên TOÁN nó còn nặng hơn
+
+`results_H94d` niêm phong trước khi mở. **Cả 8 cổng đạt, `VOID` rỗng.** Cắt cụt ≤ **.030** ở cả ba
+nhánh ⇒ `MAXNEW` = 1536 (đã khoá ở #104) **đủ rộng** — rủi ro tôi công bố trước ở #104 không xảy ra.
+
+### Đại lượng đã khoá — phân rã theo tầng
+| tầng | `n` | `E0` (không thấy) | `E3` (thấy) | `Δ` | p |
+|---|---|---|---|---|---|
+| artifact **ĐÚNG** | 239 | .9540 | .9916 | **+.0377** | .012 |
+| artifact **SAI** | 261 | .4636 | **.1916** | **−.2720** | ~0 |
+
+`Δ(SAI)` ≤ −.10 với p < .05 **và** `Δ(ĐÚNG)` ≥ 0 ⇒ **HÀNG 1: XÁC NHẬN #150 VÀ TỔNG QUÁT SANG TOÁN.**
+
+**Kiểm nhất quán:** gộp hai tầng theo trọng số = **−.1240**, đúng bằng `V − I` = **−.1240**.
+
+**Rủi ro cổng 5 tôi lo ở #104 KHÔNG xảy ra:** tôi dự đoán `acc(1.5B)` trên MATH ~.30 nên tầng
+"artifact đúng" sẽ mỏng (~150 bài) và thiếu lực. Thực tế `acc(S)` = **.478** ⇒ 239/261, **cân**,
+và `Δ(ĐÚNG)` không chỉ ≥ 0 mà **dương có ý nghĩa** (p .012) — mạnh hơn điều hàng 1 đòi.
+
+### Hai miền, cùng một dấu — và toán nặng hơn
+| | MBPP 11–510 | MBPP 511–974 | **MATH-500** |
+|---|---|---|---|
+| artifact **SAI** | −.1900 | −.1927 | **−.2720** |
+| artifact **ĐÚNG** | +.0636 | +.0245 | **+.0377** |
+
+> **`D` KHÔNG phải hình phạt của việc "thấy". Nó là hình phạt của việc thấy thứ SAI.**
+> Thấy lời giải **đúng** thì model mạnh **khá lên** ở cả ba lần đo. Thấy lời giải **sai** thì nó
+> **sụp** — trên toán, từ **46.4% xuống 19.2%** trên đúng những bài mà nó vốn làm được gần một nửa.
+
+Đây là **xác nhận đăng-ký-trước đầu tiên** của phát hiện #150 (vốn là **phân rã hậu nghiệm** trên
+H92/H92b), và nó **đổi miền** — nên không phải "chạy lại y nguyên" (luật #34).
+
+### Vì sao điều này quan trọng cho dòng chính
+#186 hỏi: "sửa" chết vì **số học ngân sách** hay vì **model bị artifact làm hỏng**?
+#197 trả lời phần thứ hai một cách dứt khoát: **artifact sai LÀM HỎNG model mạnh, rất nặng.**
+Kết hợp với #185 (`Δ_ceil ~ +.0218 − .2392·chênh`): chênh càng lớn thì `S` càng hay sai ⇒ tỉ lệ
+artifact-SAI càng cao ⇒ `D` càng lớn. **Hai kết quả khớp nhau về cơ chế**, đo bằng hai thiết kế khác nhau.
+
+**Hệ quả triển khai — và nó KHÔNG cần oracle:** đừng đưa artifact vào khi nó có khả năng sai.
+Đó chính là một **cổng định tuyến** dựa trên tín hiệu tin cậy, chứ không phải một lời nhắc —
+đúng thứ #186 dự đoán là cần. (Và `κ` — tìm tín hiệu ấy — vẫn là nút thắt chưa gỡ được, #184.)
+
+### Tiên nghiệm
+Hàng 1 đặt **40%** (modal) — đúng. **21/42.**
