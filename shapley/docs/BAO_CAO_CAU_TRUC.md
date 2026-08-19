@@ -1,203 +1,246 @@
-# CẤU TRÚC BÁO CÁO — "Sửa hay Chọn?"
+# CẤU TRÚC BÁO CÁO — bản 2 (hợp nhất ba mảng công việc của nhóm)
 
-> **Trạng thái:** khung + phân công. Số liệu đã chốt; phần viết còn trống.
-> **Đích:** báo cáo cuối kỳ môn NLP. Ước ~18–25 trang kể cả phụ lục.
-> **Ngôn ngữ:** tiếng Việt (mọi tài liệu nguồn đều tiếng Việt). Nếu cần nộp tiếng Anh thì dịch
-> **sau khi** chốt nội dung — đừng dịch song song, sẽ lệch số.
-
----
-
-## 0. Tên và một câu chốt
-
-**Tên đề xuất:** *Sửa hay Chọn? Đo lại lợi ích của kiến trúc đa tác tử LLM bằng đúng mốc so sánh*
-
-**Một câu:** Các hệ đa tác tử LLM thường báo cáo cải thiện so với **model yếu**; khi đo lại so với
-**model mạnh chạy một mình** — mốc mà người triển khai thực sự đối mặt — dấu của hiệu ứng **đảo ngược**,
-và chúng tôi truy được nguyên nhân về một đại lượng đo được: **thiệt hại do nhìn thấy nội dung sai**.
+> **Thay bản 1.** Bản 1 chỉ dựng quanh mảng của Nguyên. Sau khi rà nhánh `duc`, `nguoi3-router`,
+> `main` thì thấy hai mảng còn lại **không phải phụ lục** — chúng là **hai chân còn lại của cùng
+> một luận điểm**. Cấu trúc dưới đây dựng lại từ đầu theo luận điểm hợp nhất đó.
+> **Đích:** báo cáo cuối kỳ NLP, ~20–28 trang kể cả phụ lục. **Ngôn ngữ:** tiếng Việt.
 
 ---
 
-## 1. Mở đầu / Động cơ  *(~2 trang)*
+## 0. LUẬN ĐIỂM HỢP NHẤT — đọc mục này trước khi viết bất cứ gì
 
-**Vấn đề đặt ra.** Self-Refine, Reflexion, debate, LLM-as-judge, agentic pipelines: tất cả đều
-dựng một model **sửa** hoặc **đánh giá** sản phẩm của một model khác. Gần như mọi báo cáo đo
-cải thiện theo `V − S` (so với model **yếu** một mình).
+Ba mảng công việc chạy độc lập, thiết kế khác nhau, **và hội tụ về một câu**:
 
-**Nhưng người triển khai không đứng trước lựa chọn đó.** Nếu pipeline đã có model mạnh `I` bên trong,
-thì lựa chọn thật là: *chạy pipeline*, hay *gọi thẳng `I`*? Đại lượng đúng là **`V − I`**.
+> ### **Chênh lệch năng lực TẠO RA cơ hội; GIAO THỨC quyết định ta thu hoạch hay phá huỷ nó.**
 
-**Phát hiện trung tâm về phương pháp:** `V − I` **đổi dấu** so với `V − S`.
-→ Đây là "hook" của báo cáo. Đặt ngay trang 1, kèm một hình.
+Bằng chứng hai chiều, **ngược dấu nhau và đó chính là điểm hay**:
 
-**Đóng góp** (liệt kê 4 gạch đầu dòng):
-1. Một khung phân rã giá trị: `value = H(pool) × κ(z) − D(protocol)`.
-2. Một **đẳng thức chính xác** phân rã trần lợi ích thành ba số hạng đo được (`A − B + C`).
-3. Bằng chứng **đăng ký trước** rằng `D` là hình phạt của việc thấy nội dung **SAI**, không phải của
-   việc **thấy** — tái lập trên hai miền (code, toán).
-4. Một **luật quyết định** dùng được, và giới hạn trung thực của nó.
+| | chênh năng lực **tăng** thì… | nguồn |
+|---|---|---|
+| giao thức **SOÁT/CHỌN** (verifier) | **giá trị TĂNG mạnh**: Solver 1.5B + Verifier 7B = **+14.0đ** trên MATH, **5/5 fold**, 43 sửa / 1 phá. Verifier **cùng cỡ** chỉ +3.0đ, khoảng **chạm 0** | mảng nhóm (`RESULTS.md` §1a) |
+| giao thức **SỬA** (repair) | **giá trị GIẢM**: `Δ_ceil = +.0218 − .2392·chênh`, p = **1e-05**; đổi dấu tại `g*` = **.091** | mảng Nguyên (H97) |
 
----
+**Cùng một biến (chênh năng lực), hai dấu ngược nhau, khác nhau ở đúng một thứ: giao thức.**
+Và ta **đo được** tại sao — bằng đẳng thức phân rã:
 
-## 2. Nền tảng & công trình liên quan  *(~2 trang)*
+```
+Δ_ceil = A − B + C        B = P(¬S ∧ I đúng ∧ V sai) = thiệt hại do SỬA
+```
+Giao thức **CHỌN** đặt `B = 0` **theo cấu trúc**. Giao thức **SỬA** trả `B` **theo cấu trúc**.
+Và `B` đến từ đâu thì đã đo, đăng ký trước, tái lập hai miền: **nhìn thấy nội dung SAI**
+(MATH: **−.2720**; model mạnh rơi **46.4% → 19.2%**).
 
-- **Sinh–rồi–sửa**: Self-Refine, Reflexion, CRITIC. Nêu rõ mốc so sánh mà mỗi bài dùng.
-- **Sinh–rồi–chọn**: self-consistency, best-of-n, reranking bằng test.
-- **Đa tác tử**: debate, hội đồng, phân rã vai.
-- **Vấn đề mốc so sánh**: đây là chỗ đặt luận điểm — *rất ít công trình báo cáo `V − I`*.
-- **Benchmark**: MBPP (`task_id` 11–510 chính, 511–974 tách rời), MATH-500.
-
-> ⚠️ Phần này **chưa có ai viết**. Cần đọc và trích thật, **không** bịa số của bài khác.
+**⇒ Đó là toàn bộ báo cáo.** Mọi mục §5 chỉ là chứng minh một mảnh của câu trên.
 
 ---
 
-## 3. Khung  *(~2 trang — LÕI LÝ THUYẾT)*
+## 1. Mở đầu / Động cơ *(~2 trang)*
+
+**Câu hỏi thực tế:** thêm một tác tử LLM nữa vào hệ có đáng không? Nếu có thì **giá trị đến từ đâu** —
+từ việc **thêm vai**, hay từ **thứ khác**?
+
+**Ba cách hỏi mà nhóm đã dùng** (giới thiệu ngay, đây là bố cục của báo cáo):
+1. **Theo VAI** — vai nào trong pipeline `P→S→V→A` thực sự trả tiền? *(Shapley credit — Đức)*
+2. **Theo CHI PHÍ** — phối hợp có đáng compute không, và khi nào? *(router — Tùng Dương)*
+3. **Theo LUỒNG THÔNG TIN** — chuyện gì xảy ra khi một tác tử **nhìn thấy** sản phẩm của tác tử khác? *(Nguyên)*
+
+**Phát hiện về mốc so sánh** (giữ nguyên từ bản 1, vẫn là hook mạnh): gần như mọi công trình đo
+`V − S` (so với model **yếu**). Mốc mà người triển khai đối mặt là `V − I` (so với model **mạnh**
+chạy một mình). **Dấu đảo ngược.**
+
+**Đóng góp** — 5 gạch đầu dòng:
+1. Khung `value = H(pool) × κ(z) − D(protocol)` gộp được cả ba cách hỏi.
+2. **Bất đối xứng năng lực** là biến quyết định, **không** phải số lượng vai *(5/5 fold)*.
+3. **Đẳng thức chính xác** `Δ_ceil = A − B + C` tách cơ hội khỏi thiệt hại.
+4. Bằng chứng **đăng ký trước, hai miền**: `D` là hình phạt của việc thấy **nội dung SAI**.
+5. Giải được **nghịch lý biểu kiến**: cùng biến chênh năng lực, SOÁT thắng lớn còn SỬA thua.
+
+---
+
+## 2. Công trình liên quan *(~2 trang)* — **PHẦN LỚN ĐÃ CÓ**
+
+Nguồn sẵn: `docs/RELATED_BASELINES.md` (102 dòng, Đức) + `docs/RELATED_PIPELINE.md` (77 dòng, Đức).
+- **Debate thua self-consistency ở 3/4 ô công bố**; sụp **16 điểm** với Llama3.1-8B trên GSM8K
+  → **độc lập trùng hướng** với kết luận "CHỌN thắng SỬA" của ta.
+- Định vị so với **MAS_RPSV** (gần nhất: 4 vai nối tiếp, cùng cỡ model, cùng benchmark) và **SHARP**
+  (cùng dùng Shapley credit).
+- **Việc còn thiếu:** dòng *sinh-rồi-sửa* — Self-Refine, Reflexion, CRITIC — và với **mỗi bài, ghi
+  rõ nó đo so với mốc nào**. Đây là chỗ luận điểm §1 đứng hoặc đổ.
+
+---
+
+## 3. Khung *(~2.5 trang — LÕI)*
 
 ### 3.1 Phân rã giá trị
 ```
-value  =  H(pool) × κ(z)  −  D(protocol)
+value = H(pool) × κ(z) − D(protocol)
 ```
-- **`H`** — **dư địa**: pool ứng viên có chứa lời giải đúng mà `I` một mình không có không?
-- **`κ`** — **chất lượng bộ chọn**: một tín hiệu **khả thi** (không phải oracle) có lấy được nó không?
-- **`D`** — **thiệt hại**: bản thân giao thức phá đi bao nhiêu?
+`H` **dư địa** — pool có chứa cái `I` một mình không có? ·
+`κ` **bộ chọn khả thi** — có lấy ra được không? · `D` **thiệt hại** — giao thức phá bao nhiêu?
 
-### 3.2 Ba mệnh đề
-- **M1** — Giao thức cho `M` **nhìn thấy** artifact thì mất giá trị. *(bản cuối ở §5.3)*
-- **M2** — Tín hiệu **độc lập** thắng tín hiệu **tương quan**, không phải "tín hiệu mạnh hơn".
-- **M3** — Định tuyến tiết kiệm ở đúng chỗ **ít cần tiết kiệm nhất**.
+### 3.2 Ba mảng = ba số hạng  ← **chỗ hợp nhất báo cáo**
+| mảng | đo số hạng nào | công cụ |
+|---|---|---|
+| Shapley theo vai *(Đức)* | **`H`** — đóng góp biên của từng vai | giá trị Shapley trên `P/S/V/A` |
+| Router hiệu quả *(Tùng Dương)* | **`κ`** — tín hiệu khả thi có rẻ không | consensus router, accuracy-vs-cost |
+| Sửa vs Chọn *(Nguyên)* | **`D`** — phơi nhiễm phá bao nhiêu | phân rã `A/B/C`, phân tầng phơi nhiễm |
 
-### 3.3 Đẳng thức phân rã  ← **viên gạch nối toàn bộ phần kết quả**
-Với `S` yếu, `I` mạnh, `V` = `I` sửa artifact của `S`, và trần oracle
-`CEIL = S ∨ (¬S ∧ V)`:
-
+### 3.3 Đẳng thức phân rã
+`CEIL = S ∨ (¬S ∧ V)`, và
 ```
-Δ_ceil  =  acc(CEIL) − acc(I)  =  A − B + C
-
-A = P(S đúng ∧ I sai)          dư địa
-B = P(¬S ∧ I đúng ∧ V sai)     V PHÁ bài I vốn làm đúng
-C = P(¬S ∧ ¬I ∧ V đúng)        V CỨU bài cả hai đều sai
+Δ_ceil = acc(CEIL) − acc(I) = A − B + C
+A = P(S đúng ∧ I sai)         cơ hội
+B = P(¬S ∧ I đúng ∧ V sai)    SỬA phá bài I vốn làm đúng
+C = P(¬S ∧ ¬I ∧ V đúng)       SỬA cứu bài cả hai đều sai
 ```
-**Đây là đẳng thức đại số, không phải mô hình** — kiểm số trên **4/4** cặp có trace, khớp tuyệt đối.
-`A` là tính chất của **cặp model**; `B` là tính chất của **giao thức**. Mọi kết quả sau đều là câu
-trả lời cho *"số hạng nào đang giết chúng ta?"*
+**Đẳng thức đại số, không phải mô hình** — khớp tuyệt đối **4/4** cặp có trace và **15/15** cặp ở H97.
+`A` là tính chất **cặp model**; `B` là tính chất **giao thức**. → đây là công cụ giải nghịch lý §6.
+
+### 3.4 Ba mệnh đề
+**M1** phơi nhiễm phá giá trị *(bản cuối §5.4)* · **M2** tín hiệu **độc lập** thắng tín hiệu
+**tương quan** · **M3** định tuyến tiết kiệm ở chỗ **ít cần nhất**.
 
 ---
 
-## 4. Thiết lập thực nghiệm  *(~2 trang)*
+## 4. Thiết lập chung *(~2 trang)*
 
-Model · benchmark · giao thức (`S`, `I`, `V`, `CEIL`, `G_V`, các biến thể lời nhắc R0/R1/R2) ·
-đại lượng (`Δ_ceil`, `Δ_honest`, `Δ_gate`, `Δ_cont`) · kiểm định (McNemar chính xác ghép cặp,
-bootstrap ghép cặp theo chỉ số bài) · **cổng chất lượng** và vì sao chúng tồn tại.
-
-> Bảng model + dung lượng VRAM đo được: lấy từ `deploy/preflight.py` (`DO_DUOC_GB`).
+Model (Qwen2.5 1.5B/7B/14B/32B, Llama-3.1-8B, DeepSeek-Coder-6.7B) · benchmark (GSM8K, MATH-500,
+MBPP 11–510 và 511–974, HumanEval) · vai `P/S/V/A` · đại lượng (`Δ_ceil`, `Δ_honest`, `V_gain`,
+`A_gain`, cost/Q) · **hai chuẩn kiểm chứng của nhóm** — xem §7.
 
 ---
 
-## 5. Kết quả  *(~7 trang — PHẦN CHÍNH)*
+## 5. Kết quả *(~8 trang)*
 
-### 5.1 Dấu đảo ngược — đặt vấn đề bằng số
-`V − S` dương ⟷ `V − I` âm. Nêu ngay, rồi dùng đẳng thức §3.3 để hỏi "tại sao".
+### 5.1 `H` — **bất đối xứng năng lực**, không phải số lượng vai  ⟵ *mảng nhóm*
+- Solver 1.5B + Verifier 7B: **+14.0đ** MATH, khoảng **[+8.3, +20.0]**, **5/5 fold**, 43 sửa / 1 phá
+- Verifier **cùng cỡ**: chỉ **+3.0đ**, khoảng **chạm 0** ⇒ **vô giá trị**
+- Riêng phần do verifier mạnh hơn (V7 − V15): **+11.0đ [+3.3, +16.7]**, 5/5
+> **Giá trị nằm ở CHÊNH LỆCH NĂNG LỰC, không ở việc có thêm một vai.**
 
-### 5.2 `H`: dư địa do **chênh năng lực** quyết định, **không** phải "khác họ"
-- 6 model · 15 cặp có hướng · **cùng 499 bài** · một lần chạy *(H96)*
-- `A ~ β₀ + β₁·chênh + β₂·khác_họ` ⇒ **β₁ = −.192 (p ≈ 0)**, **β₂ = +.0045, KTC 95% [−.005, +.014]**
-- `R²` chỉ với chênh = **.824**; thêm biến họ được **+.014**
-- **Null CÓ THÔNG TIN**: KTC nằm trọn dưới ngưỡng +.02 đã đăng ký trước
-- Thô thì khác họ *trông* cao hơn (.0597 vs .0481) **nhưng** cặp khác họ có chênh nhỏ hơn
-  (.130 vs .167), tương quan (chênh, `A`) = **−.908** ⇒ **tương quan giả**
+### 5.2 `H` — cùng kết luận, đo bằng thiết kế hoàn toàn khác  ⟵ *mảng Nguyên*
+- 15 cặp có hướng, **cùng 499 bài**, một lần chạy: `A ~ β₀ + β₁·chênh + β₂·khác_họ`
+- **β₁ = −.1922** (p ≈ 0); **β₂ = +.0045**, KTC **[−.005, +.014]** ⇒ **null CÓ THÔNG TIN**
+- `R²` chỉ với chênh = **.824**
+> **Hai mảng, hai thiết kế, một kết luận: chênh năng lực là biến; kiến trúc/họ model thì không.**
 
-### 5.3 `D`: hình phạt của việc thấy thứ **SAI**  ← **KẾT QUẢ MẠNH NHẤT**
-Phân rã phơi nhiễm theo **nội dung** artifact, **đăng ký trước**, xác nhận trên **miền mới** *(H94d)*:
+### 5.3 `κ` — phối hợp có đáng compute không  ⟵ *mảng Tùng Dương*
+| chiến lược | GSM8K acc | cost/Q | MATH acc | cost/Q |
+|---|---|---|---|---|
+| Solver một mình | .6733 | 1 | .4133 | 1 |
+| Pipeline đầy đủ | .7233 | 3 | .3733 | 3 |
+| **Consensus Router** | **.7200** | **2.32** | .4133 | 2.40 |
+- GSM8K: **gần bằng độ chính xác với 77% chi phí**
+- MATH: router = **đúng bằng Solver một mình** ⇒ **vô dụng**
+- Cơ chế: khi `S`,`V` bất đồng, `A` cứu được **45.4%** (GSM8K) so với **25.0%** (MATH)
+> **M3 được xác nhận:** định tuyến chỉ trả tiền ở nơi **đã** có đồng thuận — tức nơi **ít cần nhất**.
 
-| | MBPP 11–510 | MBPP 511–974 | **MATH-500 (đăng ký trước)** |
+### 5.4 `D` — hình phạt của việc thấy thứ **SAI**  ⟵ *kết quả mạnh nhất, đăng ký trước*
+| | MBPP 11–510 | MBPP 511–974 | **MATH-500** |
 |---|---|---|---|
 | artifact **SAI** | −.1900 | −.1927 | **−.2720** (p ≈ 0) |
 | artifact **ĐÚNG** | +.0636 | +.0245 | **+.0377** (p .012) |
 
-Trên toán: model mạnh rơi **46.4% → 19.2%** trên đúng những bài nó vốn làm được gần một nửa.
-Gộp hai tầng theo trọng số tái tạo **chính xác** `V − I` = −.1240.
+MATH: model mạnh **46.4% → 19.2%**; gộp trọng số tái tạo chính xác `V − I` = **−.1240**.
 
-### 5.4 `Δ_ceil` theo chênh năng lực — và **giới hạn trung thực**
-- 15 cặp, một lần chạy *(H97)*: `Δ_ceil ≈ +.0218 − .2392·chênh`, `R²` = .60, p = 1e-05, **`g*` = .0913**
-- ⚠️ **0/15 cặp dương có ý nghĩa**; **3/15 âm có ý nghĩa** (đều ở chênh ≥ .218)
-- ⇒ chỉ phát biểu chiều **PHỦ ĐỊNH**: **chênh > .09 thì đừng sửa**
-- Tính lực: xác lập vùng dương cần **~8× toàn bộ MBPP** ⇒ **không thể** trên benchmark này
+### 5.5 `D` trả lời `Δ_ceil` theo chênh năng lực
+- `Δ_ceil = +.0218 − .2392·chênh`, `R²` = .60, p = **1e-05**, `g*` = **.0913**
+- ⚠️ **0/15** dương có ý nghĩa · **3/15** âm có ý nghĩa ⇒ **chỉ phát biểu chiều PHỦ ĐỊNH**
+- Lực: xác lập vùng dương cần **~8× toàn bộ MBPP** ⇒ **bất khả thi trên benchmark này**
 
-### 5.5 `κ`: nút thắt, và **trần** của định tuyến
-- Hai lần thử tín hiệu cổng khả thi đều **bị chặn** (pool suy biến; độ phủ tín hiệu .699)
-- **Trần của cổng phơi nhiễm ORACLE = +.0180** so với `I`; bộ phân loại cần **~89%** mới hoà vốn
-- ⇒ kết luận **không** phải "làm cổng tốt hơn" mà **"mặc định đừng cho xem"**
+### 5.6 Trần của định tuyến phơi nhiễm
+`I` = .6980 · `V` = .5740 (−.1240) · **cổng ORACLE = .7160 (+.0180)**; bộ phân loại cần **~89%**
+mới hoà vốn ⇒ **kết luận là "mặc định đừng cho xem"**, không phải "làm cổng tốt hơn".
 
-### 5.6 `M2`: pool **khác model** cho nhiều ứng viên phân biệt hơn
-3 mẫu cùng model ⇒ **1.91/3** ứng viên phân biệt, **36.2%** số bài chỉ có **một**;
-pool khác model ⇒ **2.70/3**, chỉ **6.5%**.
-> ⚠️ Ghi **"khác MODEL"**, không phải "khác họ" — đối chứng khác-model-cùng-họ **chưa chạy**.
+### 5.7 `M2` — pool khác **MODEL** cho nhiều ứng viên phân biệt hơn
+1.91/3 → **2.70/3** ứng viên; **36.2%** → **6.5%** số bài chỉ có một ứng viên.
+⚠️ ghi **"khác MODEL"**, không phải "khác họ".
 
 ---
 
-## 6. Tổng hợp: vì sao **CHỌN** thắng **SỬA**  *(~1.5 trang — CHỖ ĐỂ LẠI ẤN TƯỢNG)*
+## 6. Tổng hợp: giải **nghịch lý biểu kiến** *(~2 trang — ĐIỂM CAO NHẤT CỦA BÁO CÁO)*
 
-Bốn mảnh độc lập chỉ về **cùng một** kết luận:
+**Nghịch lý:** §5.1 nói chênh năng lực lớn ⇒ **+14.0đ**. §5.5 nói chênh năng lực lớn ⇒ `Δ_ceil` **âm**.
 
-1. **Đại số** — `Δ_ceil = A − B + C`. Giao thức **SỬA** trả `B` **theo cấu trúc**;
-   giao thức **CHỈ-CHỌN** đặt `B = 0` **theo cấu trúc**.
-2. **Cỡ** — `B` lớn hơn `A` rất nhiều ở chênh lớn (MATH: `A` = .016 vs `B` = .176, **gấp 11 lần**).
-3. **Xu hướng** — ngưỡng `V` phải vượt (`r*_C`) tăng theo chênh **nhanh gấp đôi** khả năng bảo toàn
-   thực tế của nó (`ρ`): độ dốc **2.177 vs 1.101**, chênh lệch p = .0066.
-4. **Trần** — kể cả cổng phơi nhiễm **hoàn hảo** cũng chỉ cứu về **+.018** trên nền thiệt hại **−.124**.
+**Giải:** hai bên dùng **hai giao thức khác nhau**, và đẳng thức §3.3 tách được:
+- Verifier ở §5.1 là giao thức **SOÁT/CHỌN** → **43 sửa / 1 phá** ⇒ `B ≈ 0`
+- `V` ở §5.5 là giao thức **SỬA/GHI ĐÈ** → trả `B` theo cấu trúc, và `B` **tăng theo chênh**
 
-> **Câu chốt của báo cáo:** *"Đừng cho model mạnh xem bài làm của model yếu. Hãy sinh độc lập rồi chọn."*
+**Chênh năng lực làm tăng `A` lẫn `B`.** Ai thắng là do giao thức:
+```
+CHỌN:  value ≈ A × κ − 0        → chênh tăng thì THẮNG
+SỬA:   value ≈ A − B + C        → B tăng nhanh hơn ⇒ chênh tăng thì THUA
+```
+Bốn mảnh chứng cứ độc lập cho cùng kết luận:
+1. **Đại số** — CHỌN đặt `B = 0` theo cấu trúc.
+2. **Cỡ** — MATH: `A` = .016 vs `B` = .176 (**gấp 11 lần**).
+3. **Xu hướng** — ngưỡng phải vượt (`r*_C`) tăng theo chênh **nhanh gấp đôi** khả năng bảo toàn (`ρ`):
+   độ dốc **2.177 vs 1.101**, p = .0066.
+4. **Trần** — cổng phơi nhiễm **hoàn hảo** cũng chỉ cứu **+.018** trên nền **−.124**.
+5. **Ngoại chứng** — literature: debate thua self-consistency **3/4 ô**, sụp **16đ** ở model nhỏ.
+
+> ### KHUYẾN NGHỊ THỰC DỤNG (đặt vào abstract và kết luận)
+> **Dùng model nhỏ để GIẢI, model lớn để SOÁT — và đừng cho model lớn xem bài làm của model nhỏ
+> khi mục đích là để nó SỬA.** Chênh năng lực là thứ tạo ra giá trị; giao thức CHỌN thu hoạch nó,
+> giao thức SỬA phá nó.
 
 ---
 
-## 7. Phương pháp luận  *(~2 trang — ĐÓNG GÓP RIÊNG, ĐỪNG BỎ)*
+## 7. Phương pháp luận *(~2 trang — ĐÓNG GÓP RIÊNG)*
 
-Với một môn NLP, phần này **có giá trị ngang phần kết quả**:
+**Nhóm dùng HAI chuẩn kiểm chứng bổ sung cho nhau — nói rõ cả hai, đừng giấu:**
 
-- **Đăng ký trước có bảng khoá diễn giải**, gồm **một hàng giết giả thuyết**, commit **trước** khi chạy
-- **Niêm phong hash** artifact **trước** khi đọc số (git chứng minh sửa đổi có trước lúc *viết*,
-  **không** chứng minh có trước lúc *đọc* — hash thì có)
-- **16/31 lần chạy đã niêm phong là VOID (52%)** — và đó là **tính năng**, không phải lỗi
-- **Greedy tất định** ⇒ hai tài khoản, hai ngày, cùng phần cứng ⇒ **499/499 giống hệt từng bài**
+| chuẩn | dùng ở | cách chống tự lừa |
+|---|---|---|
+| **Thanh sai số bằng fold** | mảng nhóm | 5 fold rời nhau; **ngưỡng nhiễu 2σ ≈ 5 điểm**; hiệu ứng < 5đ đo một lần **không** tính là bằng chứng |
+| **Đăng ký trước + cổng + niêm phong** | mảng Nguyên | bảng khoá commit **trước** khi chạy, có **hàng giết giả thuyết**; hash artifact **trước** khi đọc; **VOID** thì không đọc số |
+
+Con số nên nêu:
+- Sàn nhiễu: cùng cấu hình, 5 fold ⇒ `V_gain` từ **+1.0** đến **+8.0** ⇒ ngưỡng **5 điểm**
+- **16/31** lần chạy đã niêm phong là **VOID (52%)** — **tính năng, không phải lỗi**
+- Sổ tiên nghiệm công khai: **21/42**
+- **Greedy tất định**: hai tài khoản, hai ngày, cùng phần cứng ⇒ **499/499 giống hệt từng bài**
   ⇒ **"chạy lại y nguyên" KHÔNG phải xác nhận độc lập**
-- **Sổ tiên nghiệm công khai: 21/42** — mỗi đăng ký trước ghi xác suất cho từng hàng **trước** khi chạy
-- **So chéo lần chạy hợp lệ ⇔ trùng (máy + độ chính xác) VÀ trùng bộ bài** — hai confound riêng biệt
+- So chéo lần chạy hợp lệ ⇔ trùng **(máy + độ chính xác)** VÀ trùng **bộ bài**
+
+> **Bài học chung của cả hai chuẩn:** phần lớn "cải thiện" ban đầu **không sống sót** qua kiểm chứng.
+> Đó là kết quả, không phải thất bại.
 
 ---
 
-## 8. Hạn chế  *(~1 trang — VIẾT THẬT, ĐỪNG LÀM ĐẸP)*
+## 8. Hạn chế *(~1 trang — VIẾT THẬT)*
 
-1. Chủ yếu **MBPP**; MATH mới có phân rã phơi nhiễm, phần `Δ_ceil` trên MATH **chưa xong**
-2. **Chỉ greedy** ⇒ không có phương sai lấy mẫu ⇒ mỗi cấu hình là **một điểm**
+1. Hai mảng dùng hai chuẩn khác nhau; **chưa** kiểm chéo lẫn nhau
+2. Chủ yếu **greedy** ⇒ không có phương sai lấy mẫu ở mảng Nguyên (mảng nhóm có fold)
 3. Pool model bị **VRAM tầng miễn phí** giới hạn (Llama-8B, Qwen-14B không lượng tử hoá được)
-4. Vùng **dương** của luật chênh **chưa xác lập** và **không thể** xác lập trên MBPP (thiếu lực)
-5. **`κ` chưa giải được** — chưa tìm được tín hiệu khả thi nào
-6. `Δ_honest` cho giao thức **độc lập-trước** vẫn **đang chạy** *(H100e)*
+4. Vùng **dương** của luật chênh **chưa xác lập** và **không thể** xác lập trên MBPP
+5. **`κ` chưa giải được** — chưa tìm được tín hiệu khả thi nào ở mảng Nguyên
+6. Đang chạy: **H100e** (`Δ_honest` cho giao thức độc-lập-trước), **H99b** (luật chênh trên toán)
 
 ---
 
-## 9. Kết luận  *(~0.5 trang)*
+## 9. Kết luận *(~0.5 trang)*
 
 ---
 
 ## Phụ lục
-- **A.** Toàn văn các đăng ký trước được trích *(từ `PREREGISTRATION.md`)*
-- **B.** Bảng niêm phong hash *(`RESULT_SEALS.md`)*
-- **C.** Danh sách VOID và lý do — bảng 16 dòng
-- **D.** Sổ tiên nghiệm 21/42
-- **E.** Nhật ký quy trình: 37 luật rút ra từ thất bại *(`QUY_TRINH_VONG_LAP.md`)*
+**A.** Đăng ký trước được trích · **B.** Niêm phong hash · **C.** 16 lần VOID và lý do ·
+**D.** Sổ tiên nghiệm 21/42 · **E.** 37 luật quy trình · **F.** Bảng kết quả đầy đủ của mảng nhóm
+(`RESULTS.md`) · **G.** Shapley theo vai (`docs/` của Đức, 30 tệp)
 
 ---
 
 ## Hình cần vẽ
 
-| # | Hình | Nguồn dữ liệu |
-|---|---|---|
-| 1 | Sơ đồ khung `H × κ − D` | vẽ tay |
-| 2 | **Dấu đảo ngược**: `V−S` so với `V−I` | `results_H88d`, `results_H88f` |
-| 3 | `Δ_ceil` theo chênh, 15 điểm + đường khớp + `g*` | `results_H97/res_H97.json` |
-| 4 | Phân rã `A`/`B`/`C` xếp chồng theo cặp | `results_H97` |
-| 5 | **Phơi nhiễm 2×2** (đúng/sai × thấy/không) | `results_H94d/res_H94d.json` |
-| 6 | `ρ` và `r*_C` — hai đường cắt nhau | `results_H97` |
-| 7 | Trần định tuyến: độ chính xác bộ phân loại → lợi ích ròng | `results_H94d` |
+| # | hình | nguồn | ai |
+|---|---|---|---|
+| 1 | Sơ đồ khung `H × κ − D` **+ ba mảng ứng với ba số hạng** | vẽ tay | Nguyên |
+| 2 | **Nghịch lý**: chênh↑ ⇒ verifier thắng / sửa thua (hai đường ngược nhau) | `RESULTS.md` + `results_H97` | Nguyên |
+| 3 | `Δ_ceil` theo chênh, 15 điểm + đường khớp + `g*` | `results_H97` | bạn |
+| 4 | **Phơi nhiễm 2×2** (đúng/sai × thấy/không) | `results_H94d` | bạn |
+| 5 | Accuracy-vs-cost, có điểm router | `EFFICIENCY.md` | Tùng Dương |
+| 6 | Bất đối xứng năng lực: verifier cùng cỡ vs lớn hơn, có thanh sai số | `RESULTS.md` §1a | Đức |
+| 7 | Trần định tuyến: độ chính xác bộ phân loại → lợi ích ròng | `results_H94d` | bạn |
 
-**Hình 5 và Hình 3 là hai hình quan trọng nhất.** Nếu chỉ kịp vẽ hai hình thì vẽ hai hình đó.
+**Hình 2 là hình quan trọng nhất của báo cáo** — nó *là* luận điểm. Nếu chỉ kịp ba hình:
+**2, 4, 6**.
