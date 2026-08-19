@@ -143,10 +143,27 @@ MBPP 11–510 và 511–974, HumanEval) · vai `P/S/V/A` · đại lượng (`Δ
 
 MATH: model mạnh **46.4% → 19.2%**; gộp trọng số tái tạo chính xác `V − I` = **−.1240**.
 
-### 5.5 `D` trả lời `Δ_ceil` theo chênh năng lực
-- `Δ_ceil = +.0218 − .2392·chênh`, `R²` = .60, p = **1e-05**, `g*` = **.0913**
+### 5.5 `D` trả lời `Δ_ceil` theo chênh — **và luật CHUYỂN sang miền khác**
+- *(H97, MBPP, 15 cặp)* `Δ_ceil = +.0218 − .2392·chênh`, `R²` = .60, p = **1e-05**, `g*` = **.0913**
 - ⚠️ **0/15** dương có ý nghĩa · **3/15** âm có ý nghĩa ⇒ **chỉ phát biểu chiều PHỦ ĐỊNH**
 - Lực: xác lập vùng dương cần **~8× toàn bộ MBPP** ⇒ **bất khả thi trên benchmark này**
+
+**Thử ĐIỂM trên MATH** *(H99b, đăng ký trước #112, mọi cổng đạt, 3/3 cặp)* — lấy đường khớp
+**trên MBPP** đi dự báo `Δ_ceil` **trên MATH**:
+
+| cặp | chênh | `Δ_ceil` đo | KTC 95% | MBPP dự báo | |
+|---|---|---|---|---|---|
+| 7B→14B | .044 | −.0140 | [−.046, +.018] | **+.0108** | trong KTC |
+| 1.5B→7B | .244 | **−.1660** | [−.208, −.124] | −.0361 | **thấp hơn** |
+| 1.5B→14B | .288 | −.0680 | [−.102, −.034] | **−.0471** | trong KTC |
+
+**2/3 ⇒ luật CHUYỂN ĐƯỢC** ⇒ luật về **giao thức**, không phải luật về **code**.
+
+> ⚠️ **Hai cảnh báo BẮT BUỘC đi kèm — đừng cắt khi viết:**
+> **(a)** KTC rộng **.064–.084** so với hiệu ứng **.01–.17** ⇒ phép thử *"dự báo nằm trong KTC"*
+> **dễ dãi**. Hàng 2 nghĩa là **"không bác được luật"**, KHÔNG phải **"đã xác nhận luật"**.
+> **(b)** Cặp 1.5B→7B lệch **hệ thống** (`B` = .208, gấp **10 lần** `A` = .020) và **tái lập H88f**
+> (−.1380 so với −.1660). Luật mô tả **xu hướng**, có **ngoại lệ ở nơi model yếu quá yếu so với bài**.
 
 ### 5.6 Trần của định tuyến phơi nhiễm
 `I` = .6980 · `V` = .5740 (−.1240) · **cổng ORACLE = .7160 (+.0180)**; bộ phân loại cần **~89%**
@@ -178,6 +195,8 @@ Bốn mảnh chứng cứ độc lập cho cùng kết luận:
    độ dốc **2.177 vs 1.101**, p = .0066.
 4. **Trần** — cổng phơi nhiễm **hoàn hảo** cũng chỉ cứu **+.018** trên nền **−.124**.
 5. **Ngoại chứng** — literature: debate thua self-consistency **3/4 ô**, sụp **16đ** ở model nhỏ.
+6. **Liên miền** — luật `Δ_ceil ~ chênh` khớp **trên MBPP** vẫn dự báo được **trên MATH** ở 2/3 cặp
+   *(H99b)* ⇒ cơ chế **không** đặc thù cho code. *(kèm cảnh báo lực ở §5.5)*
 
 > ### KHUYẾN NGHỊ THỰC DỤNG (đặt vào abstract và kết luận)
 > **Dùng model nhỏ để GIẢI, model lớn để SOÁT — và đừng cho model lớn xem bài làm của model nhỏ
@@ -211,6 +230,7 @@ Con số nên nêu:
 ## 8. Hạn chế *(~1 trang — VIẾT THẬT)*
 
 1. Hai mảng dùng hai chuẩn khác nhau; **chưa** kiểm chéo lẫn nhau
+2. Luật chênh "chuyển được" chỉ dựa trên **3 cặp**, **KTC rộng**, và **1/3 lệch hệ thống**
 2. Chủ yếu **greedy** ⇒ không có phương sai lấy mẫu ở mảng Nguyên (mảng nhóm có fold)
 3. Pool model bị **VRAM tầng miễn phí** giới hạn (Llama-8B, Qwen-14B không lượng tử hoá được)
 4. Vùng **dương** của luật chênh **chưa xác lập** và **không thể** xác lập trên MBPP

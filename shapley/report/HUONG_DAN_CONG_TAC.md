@@ -61,6 +61,12 @@ Gộp trọng số = `V − I` = **−.1240** (khớp chính xác).
 - **Chỉ được phát biểu chiều phủ định:** *chênh > .09 thì đừng sửa*
 *Nguồn: `results_H97/res_H97.json` → `ols_ceil`, `pairs`.*
 
+**Luật này CHUYỂN sang MATH** *(H99b, #112, mọi cổng đạt, 3/3 cặp)*: **2/3** dự báo nằm trong KTC 95%
+— 7B→14B đo −.0140, KTC [−.046, +.018], dự báo **+.0108**; 1.5B→14B đo −.0680, KTC [−.102, −.034],
+dự báo **−.0471**. Cặp lệch: 1.5B→7B đo **−.1660** so với dự báo −.0361 (`B` = .208).
+⚠️ **Viết là "không bác được luật"; ĐỪNG viết "đã xác nhận luật"** — KTC rộng .064–.084.
+*Nguồn: `results_H99b/res_H99b.json` → `pairs`.*
+
 ### 2.4 Đẳng thức phân rã
 `Δ_ceil = A − B + C`, khớp **tuyệt đối 4/4** cặp có trace và **15/15** cặp trong H97.
 
