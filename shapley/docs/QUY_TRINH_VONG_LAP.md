@@ -633,3 +633,9 @@ nhiễu-thuần-tuý đều thoả điều kiện, mà chúng đòi hai kết lu
     nhưng quên nhánh nền ⇒ `acc` .568 (boxed .642) bị đặt cạnh .704 (boxed .992) như thể so được.
     Đúng confound #138, mắc lại sau khi đã có luật. **Nếu hai con số sẽ nằm cùng một bảng thì cả hai
     phải qua cùng một cổng trích xuất.**
+
+37. **Nhánh đã sinh rồi thì NẠP LẠI, đừng sinh lại — nhưng phải KIỂM KHỚP tường minh.** (#200)
+    `deploy/stage_partial.py` + `resume_raw()` trong kernel. Điều kiện: cùng `n`, **toàn bộ**
+    `task_id`, đúng độ dài. `res_*.json` **bắt buộc** ghi `nap_lai` / `sinh_moi`.
+    ⚠️ Phép kiểm **KHÔNG** bắt được khác phần cứng/độ chính xác — chỉ mount partial **cùng loại máy**.
+    Nạp lại **không** phải xác nhận (luật #34): cùng dữ liệu thì không thêm bằng chứng.

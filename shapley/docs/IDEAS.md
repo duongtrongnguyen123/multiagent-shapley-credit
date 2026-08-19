@@ -7967,3 +7967,43 @@ dữ liệu **đã có sẵn** trong `partial_H100d.json`.
 
 ### Tiên nghiệm
 Lỗi hạ tầng ⇒ **21/42** giữ nguyên.
+
+---
+
+## Vòng #200 — trả **món nợ đã tính lãi hai lần**: đường NẠP LẠI từ `partial`
+
+Miễn phí, không tốn GPU. #196 phát hiện, #199 tính lãi lần hai — giờ mới làm.
+
+### Vì sao đây không phải "tối ưu vặt"
+Greedy **tất định**: cùng (máy + độ chính xác + bộ bài + model) ⇒ **giống hệt từng bài**
+(kiểm 499/499, hai tài khoản, hai ngày — #196; và base arms của H98/H100c/H100d trùng khớp **ba lần**).
+Nên sinh lại một nhánh đã có là **lãng phí thuần tuý, không mang thêm một bit thông tin nào**.
+H100e đang tạo lại **~4.8 giờ GPU** dữ liệu nằm sẵn trong `partial_H100d.json`.
+
+### Hai mảnh
+- **`deploy/stage_partial.py`** — đưa `partial_*.json` lên thành dataset Kaggle.
+  **Từ chối** nếu partial thiếu `task_id`/`gold` (không có gì để kiểm khớp thì không được dùng).
+- **`resume_raw(key)` trong kernel** — chỉ nạp khi **khớp TƯỜNG MINH**: cùng `n`, **toàn bộ**
+  danh sách `task_id`, và đúng độ dài nhánh. Không khớp ⇒ **sinh mới**, không đoán.
+  `res_*.json` ghi hai trường mới: **`nap_lai`** và **`sinh_moi`** — người đọc thấy được nhánh nào
+  đến từ đâu, không có chuyện nạp lại lặng lẽ.
+
+### Kiểm TRƯỚC khi tin (luật #32) — trên `partial_H100d.json` thật
+| tình huống | kết quả |
+|---|---|
+| khớp hoàn toàn | `dscoder`, `qwen7b`, `P:R2` → **NẠP LẠI**; `R:R2` (ô đã hỏng) → **sinh mới** ✓ |
+| lệch `n` (498 vs 499) | **từ chối tất cả** ✓ |
+| lệch **đúng MỘT** `task_id` | **từ chối tất cả** ✓ |
+| partial rỗng | **từ chối tất cả** ✓ |
+
+**4/4.** Đặc biệt: ô `R:R2` — đúng ô đã giết H100d — được nhận diện là **chưa có** và sẽ sinh mới.
+Đó chính là ca dùng thật.
+
+### Điều đường này **không** được dùng để làm
+**Không** phải "xác nhận". Nạp lại là **cùng dữ liệu**, nên nó **không** làm khoảng tin cậy hẹp lại
+và **không** phải bằng chứng độc lập (luật #34). Nó chỉ tiết kiệm điện.
+Và **không** nạp qua ranh giới phần cứng: partial từ T4/nf4 **không** được dùng cho lần chạy RTX/bf16
+— kiểm `n`+`task_id` **không bắt được** khác biệt đó, nên **người phóng phải tự chịu trách nhiệm**
+chỉ mount partial cùng loại máy. Ghi rõ trong docstring.
+
+*(Chưa áp cho H100e đang chạy — không đụng vào lần chạy đang bay.)*

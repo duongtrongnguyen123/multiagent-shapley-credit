@@ -216,6 +216,37 @@ print(f"loc chuan: {N}/{len(RAWALL)} bai ({time.time()-t_f:.0f}s)", flush=True)
 PR = [f"{r['text']}\n\nYour code must satisfy this test:\n{r['test_list'][0]}" for r in ALL]
 
 RAW, PASS = {}, {}
+RESUMED = []          # #200: ghi ro nhanh nao NAP LAI, nhanh nao SINH MOI
+
+# ---- #200: NAP LAI nhanh da co tu partial cua lan chay truoc (greedy tat dinh, #196) ----
+_RES_SRC = None
+for _f in sorted(glob.glob("/kaggle/input/**/partial_*.json", recursive=True), key=len):
+    try:
+        _d = json.load(open(_f))
+        if _d.get("n") == N and _d.get("task_id") == [r["task_id"] for r in ALL]:
+            _RES_SRC = _d
+            print(f"NGUON NAP LAI: {_f} — khop n={N} va toan bo task_id", flush=True)
+            print(f"   nhanh co san: {sorted(_d.get('raw', {}))}", flush=True)
+            break
+        print(f"  bo qua {_f}: n={_d.get('n')} (can {N}), task_id khop="
+              f"{_d.get('task_id') == [r['task_id'] for r in ALL]}", flush=True)
+    except Exception as e:
+        print(f"  bo qua {_f}: {type(e).__name__}", flush=True)
+if _RES_SRC is None:
+    print("KHONG co nguon nap lai hop le -> sinh moi toan bo", flush=True)
+
+def resume_raw(key):
+    """Tra ve `raw` cua nhanh `key` neu partial da khop TUONG MINH, nguoc lai None.
+
+    KHONG BAO GIO doan: da kiem `n` va TOAN BO danh sach task_id o tren. Chi con kiem do dai.
+    """
+    if _RES_SRC is None: return None
+    v = _RES_SRC.get("raw", {}).get(key)
+    if v is None or len(v) != N: return None
+    RESUMED.append(key)
+    print(f"      NAP LAI {key} tu lan chay truoc ({N} muc) — khong sinh", flush=True)
+    return v
+
 def save_partial():   # #128: BAN LUU CHUA DU LIEU THO
     json.dump({"partial": True, "run": RUN, "n": N, "task_id": [r["task_id"] for r in ALL],
                "raw": RAW, "pass": PASS}, open(f"/kaggle/working/partial_{RUN}.json", "w"))
@@ -223,7 +254,7 @@ def save_partial():   # #128: BAN LUU CHUA DU LIEU THO
 t0 = time.time()
 for tag in ["qwen1.5b", "dscoder", "qwen7b", "llama8b"]:   # nen: re -> dat (llama8b phai chia the)
     print(f"\n=== NEN {tag} ===", flush=True)
-    RAW[tag] = gen_dp(M[tag], SOLVE, PR)
+    RAW[tag] = resume_raw(tag) or gen_dp(M[tag], SOLVE, PR)
     PASS[tag] = par(official, [(ALL[i], extract(RAW[tag][i])) for i in range(N)])
     print(f"  {tag}: acc={sum(PASS[tag])/N:.4f} ({time.time()-t0:.0f}s)", flush=True)
     save_partial()
@@ -244,7 +275,7 @@ for pk, (s, i) in PAIRS.items():
                   for k in range(N)]
         # #199: R2 nhet CA HAI loi giai vao loi nhac => chuoi vao dai gap doi R0 => KV cache gap doi.
         # H100d chet OOM GIUA LUC SINH o o cuoi cung (R:R2). Ha lo rieng cho R2.
-        RAW[key] = gen_dp(M[i], sysm, up, bs=4 if rk == "R2" else 8)
+        RAW[key] = resume_raw(key) or gen_dp(M[i], sysm, up, bs=4 if rk == "R2" else 8)
         PASS[key] = par(official, [(ALL[k], extract(RAW[key][k])) for k in range(N)])
         print(f"  {key}: acc_V={sum(PASS[key])/N:.4f} ({time.time()-t0:.0f}s)", flush=True)
         save_partial()
@@ -309,6 +340,7 @@ pair_ok = {pk: all(v for k, v in g.items() if isinstance(v, bool)) for pk, g in 
 if not any(pair_ok.values()): VOID.append("ca ba cap truot cong rieng")
 
 res = {"tag": RUN, "n": N, "acc": acc, "extract_rate": ext, "truncation_rate": trunc,
+       "nap_lai": sorted(RESUMED), "sinh_moi": sorted(set(RAW) - set(RESUMED)),
        "run_gates": run_gates, "pair_gates": pair_gates, "pair_ok": pair_ok,
        "VOID": VOID, "cells": cells, "d_honest": HON, "D": D}
 json.dump(res, open(f"/kaggle/working/res_{RUN}.json", "w"), indent=2)
@@ -317,6 +349,8 @@ json.dump({"pass": PASS, "acc": acc, "n": N, "task_id": [r["task_id"] for r in A
 
 print(f"\n==== H98 {RUN} ====")
 print(f"  n={N} | acc: {acc}")
+print(f"  NAP LAI: {sorted(RESUMED)}")
+print(f"  SINH MOI: {sorted(set(RAW) - set(RESUMED))}")
 print(f"  cong lan chay: {run_gates}")
 for pk, g in pair_gates.items(): print(f"  cong cap {pk}: {g}  -> {'DAT' if pair_ok[pk] else 'TRUOT'}")
 print(f"\n  {'o':10s}{'A':>8s}{'B':>8s}{'C':>8s}{'d_ceil':>9s}  =ABC")
