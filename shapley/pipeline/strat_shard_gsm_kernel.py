@@ -1,4 +1,4 @@
-# H40 (dang ky truoc #46) — SHARD @@SHARD@@/@@NSHARD@@ tren MATH-500.
+# H41 (dang ky truoc #47 + bo sung 2026-08-10) — GSM8K, — SHARD @@SHARD@@/@@NSHARD@@ tren MATH-500.
 # Kernel chi SINH va LUU du lieu tho. Moi tong hop (bo phieu, tang do kho, phan ra) lam O LOCAL
 # tren toan bo 500 bai sau khi gop -> khong shard nao tu ket luan gi.
 #
@@ -17,7 +17,7 @@ TEMP = 0.8
 
 M15 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors", recursive=True), key=len)[0])
 M7  = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors.index.json", recursive=True), key=len)[0])
-CSV = sorted(glob.glob("/kaggle/input/**/math_500_test.csv", recursive=True), key=len)[0]
+CSV = sorted(glob.glob("/kaggle/input/**/main_test.csv", recursive=True), key=len)[0]
 # newline="" BAT BUOC: de bai MATH co xuong dong ben trong o -> thieu no thi DictReader
 # cat nham dong va tra ve None cho cac cot cuoi (da lam chet shard 01/02/04/05).
 RAW = list(csv.DictReader(open(CSV, newline="", encoding="utf-8")))
@@ -39,8 +39,11 @@ def _col(r, *names):
 def _lv(r):
     m = re.search(r"\d", str(_col(r, "level") or ""))
     return int(m.group()) if m else 0
-def _q(r):  return _col(r, "problem", "question")
+def _q(r):  return _col(r, "question", "problem")
 def _g(r):  return _col(r, "answer", "solution")
+def _gold(r):
+    a = _g(r) or ""
+    return a.split("####")[-1].replace(",", "").strip()   # GSM8K: dap an sau ####
 def _qh(t): return hashlib.md5(" ".join(str(t).split()).encode("utf-8")).hexdigest()[:12]
 
 # Loc dong hong TRUOC khi chia shard. Moi shard loc y het nhau tren cung file
@@ -51,13 +54,14 @@ print(f"sau khi loc: {len(ALL)}/{len(RAW)} dong dung (bo {len(RAW)-len(ALL)})", 
 assert len(ALL) >= 400, f"CSV hong nang: chi con {len(ALL)} dong"
 
 # shard XEN KE -> moi shard co du cac muc do kho (cat lien tuc se lech tang)
+ALL = ALL[:500]                      # 500 bai dau, khop dang ky truoc #47
 MINE = [i for i in range(len(ALL)) if i % NSHARD == SHARD]
 Q  = {i: _q(ALL[i]) for i in MINE}
-G  = {i: _g(ALL[i]) for i in MINE}
+G  = {i: _gold(ALL[i]) for i in MINE}
 LV = {i: _lv(ALL[i]) for i in MINE}
 print(f"shard {SHARD}/{NSHARD}: {len(MINE)} bai, tang={sorted(set(LV.values()))}", flush=True)
 
-TAIL   = "Put the final answer in \\boxed{}."
+TAIL   = "End with 'The answer is <number>'."
 SOLVE  = f"Solve step by step. {TAIL}"
 VERIFY = f"Check the proposed solution step by step; if wrong, correct it. {TAIL}"
 ANCH   = f"Solve step by step. A previous attempt answered: @@A@@. {TAIL}"
@@ -72,11 +76,10 @@ def _bx(t):
             d -= 1
             if d == 0: return t[s0+1:j]
     return None
+NUM = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 def pred(t):
-    b = _bx(t)
-    if b is not None: return b.strip()
-    m = re.findall(r"(?:answer is|=)\s*\$?([^\n.$]+)", t or "", re.I)
-    return m[-1].strip() if m else None
+    m = re.findall(r"(?:answer is|=)\s*\$?(-?\d[\d,]*(?:\.\d+)?)", t or "", re.I) or NUM.findall(t or "")
+    return m[-1].replace(",", "") if m else None
 
 def mktok(p):
     tk = AutoTokenizer.from_pretrained(p); tk.padding_side = "left"
@@ -185,7 +188,7 @@ if ESC:
 print("xong pha 3", flush=True)
 
 CAP = 4000
-out = {"tag": f"H40s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
+out = {"tag": f"H41s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
        "quant_big": QUANT, "dtype_small": "fp16", "n_gpu": NG, "items": []}
 for i in MINE:
     out["items"].append({
@@ -199,8 +202,8 @@ for i in MINE:
         "big_text":   [t[:CAP] for t in B_TXT[i]],
         "seq_text":   {k: v[:CAP] for k, v in SEQ_TXT.get(i, {}).items()},
     })
-json.dump(out, open(f"/kaggle/working/res_H40s{SHARD}.json", "w"))
-print(f"DA LUU {len(out['items'])} bai -> res_H40s{SHARD}.json", flush=True)
+json.dump(out, open(f"/kaggle/working/res_H41s{SHARD}.json", "w"))
+print(f"DA LUU {len(out['items'])} bai -> res_H41s{SHARD}.json", flush=True)
 print("XONG", flush=True)
 
 # Ghi chu VRAM (tinh, khong chep):

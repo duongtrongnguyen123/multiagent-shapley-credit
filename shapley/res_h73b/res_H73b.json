@@ -1,0 +1,52 @@
+{
+  "tag": "H73b",
+  "n": 500,
+  "by_k": {
+    "1": {
+      "acc": 0.64,
+      "ceiling": 0.64,
+      "tie_rate": 1.0,
+      "cost": 10.14,
+      "minus_k1": 0.0,
+      "captured_pct": null
+    },
+    "2": {
+      "acc": 0.686,
+      "ceiling": 0.69,
+      "tie_rate": 0.886,
+      "cost": 15.21,
+      "minus_k1": 0.046,
+      "captured_pct": 92.0
+    },
+    "4": {
+      "acc": 0.708,
+      "ceiling": 0.724,
+      "tie_rate": 0.814,
+      "cost": 25.35,
+      "minus_k1": 0.068,
+      "captured_pct": 81.0
+    },
+    "8": {
+      "acc": 0.732,
+      "ceiling": 0.756,
+      "tie_rate": 0.73,
+      "cost": 45.63,
+      "minus_k1": 0.092,
+      "captured_pct": 79.3
+    }
+  },
+  "acc_each_cand": [
+    0.64,
+    0.65,
+    0.626,
+    0.658,
+    0.628,
+    0.628,
+    0.652,
+    0.632
+  ],
+  "test_copy_rate": 0.0258,
+  "test_soundness": 0.7214,
+  "n_tests_gen": 1395,
+  "compile_rate": 0.9962
+}

@@ -1,22 +1,26 @@
-# H40 (dang ky truoc #46) — SHARD @@SHARD@@/@@NSHARD@@ tren MATH-500.
+# H54 (dang ky truoc #60) — nhu H40 nhung model LON = 14B (thay 7B).
+# 14B tai tu HF va luong tu hoa nf4 TAI CHO bang bitsandbytes.
+# (Da thu AWQ: transformers doi `gptqmodel`, goi do keo numpy khac ABI, roi thieu `pcre` -> bo.)
+# (dan xuat tu H40 / #46) — SHARD @@SHARD@@/@@NSHARD@@ tren MATH-500.
 # Kernel chi SINH va LUU du lieu tho. Moi tong hop (bo phieu, tang do kho, phan ra) lam O LOCAL
 # tren toan bo 500 bai sau khi gop -> khong shard nao tu ket luan gi.
 #
 # DUNG CA HAI T4 THAT SU (data parallel, KHONG phai pipeline):
 #   1.5B fp16  = 3.1 GB  -> moi GPU mot ban sao
-#   7B   nf4   = ~5  GB  -> moi GPU mot ban sao   (fp16 15.2 GB KHONG vua 1 the T4)
+#   14B  nf4   = ~9  GB  -> moi GPU mot ban sao   (fp16 29.5 GB KHONG vua 2 the T4)
 # device_map="auto" chi chia lop (pipeline) = suc chua, KHONG phai toc do. O day ta muon toc do.
 import os, re, csv, json, glob, threading, hashlib, torch, subprocess, sys
-subprocess.run([sys.executable,"-m","pip","install","-q","-U","bitsandbytes>=0.46.1"])
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-U", "bitsandbytes>=0.46.1"], check=False)
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 SHARD, NSHARD = @@SHARD@@, @@NSHARD@@
 K, MAXNEW = 8, 512
-BSS, BSB = 48, 32          # tinh tu VRAM, khong chep lai: xem ghi chu cuoi file
+BSS, BSB = 48, 8           # 14B nf4 ~9 GB + KV 192 KB/token (48 lop x 8 kv-head) -> BSB 8
 TEMP = 0.8
 
 M15 = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors", recursive=True), key=len)[0])
-M7  = os.path.dirname(sorted(glob.glob("/kaggle/input/**/model.safetensors.index.json", recursive=True), key=len)[0])
+M7  = "Qwen/Qwen2.5-14B-Instruct"   # tai tu HF, luong tu hoa nf4 tai cho bang bitsandbytes
+os.environ.setdefault("HF_HOME", "/kaggle/temp/hf")   # tranh gioi han 20GB cua /kaggle/working
 CSV = sorted(glob.glob("/kaggle/input/**/math_500_test.csv", recursive=True), key=len)[0]
 # newline="" BAT BUOC: de bai MATH co xuong dong ben trong o -> thieu no thi DictReader
 # cat nham dong va tra ve None cho cac cot cuoi (da lam chet shard 01/02/04/05).
@@ -150,25 +154,29 @@ def vote3(ps):
 ESC = [i for i in MINE if vote3(S_PRED[i])[1] < 2]
 print(f"escalate {len(ESC)}/{len(MINE)}", flush=True)
 
-# ---------- PHA 2+3: 7B nf4, mot ban sao MOI GPU ----------
+# ---------- PHA 2+3: 14B nf4 (bitsandbytes), TRAI TREN CA HAI THE ----------
 BNB = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                          bnb_4bit_compute_dtype=torch.float16, bnb_4bit_use_double_quant=True)
-bigs = []
-try:
-    for d in DEVS:
-        m = AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB, device_map={"": d}).eval()
-        bigs.append(m)
-    print(f"7B nf4: {len(bigs)} ban sao | VRAM MiB/gpu:",
-          [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)], flush=True)
-except Exception as e:
-    # Du phong: neu 4-bit khong dung duoc (thieu bitsandbytes), quay ve fp16 trai tren ca 2 the.
-    # Cham hon (pipeline, khong song song) nhung VAN RA KET QUA — 20 shard khong duoc chet ca loat.
-    print(f"nf4 THAT BAI ({type(e).__name__}: {e}) -> quay ve fp16 device_map=auto", flush=True)
-    for m in bigs: del m
-    bigs = []; torch.cuda.empty_cache()
-    bigs = [AutoModelForCausalLM.from_pretrained(M7, torch_dtype=torch.float16, device_map="auto").eval()]
-    out_quant = "fp16-fallback"
-QUANT = "nf4" if len(bigs) == NG else "fp16-fallback"
+import gc
+# Giai phong TRIET DE pha 1 truoc khi nap 14B: xoa ca pool sinh lan cache.
+for _v in ("ms","m","smalls"):
+    if _v in dir(): pass
+gc.collect(); torch.cuda.empty_cache(); torch.cuda.synchronize()
+gc.collect(); torch.cuda.empty_cache()
+print("VRAM TRUOC khi nap 14B (MiB/gpu):",
+      [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)],
+      "| da giu cho:", [round(torch.cuda.memory_reserved(i)/1048576) for i in range(NG)], flush=True)
+# 14B: TRAI TREN CA HAI THE (device_map="auto").
+# Da thu 1-ban-sao-moi-GPU: dinh 9 GB trong so + mot shard fp16 dang chuyen doi > 14.56 GB -> OOM.
+# Doi song song du lieu lay do TIN CAY; model lon la nut co chai nhung phai CHAY duoc da.
+MAXMEM = {i: "9GiB" for i in range(NG)}
+MAXMEM["cpu"] = "24GiB"        # cho phep tran ra CPU thay vi chet
+bigs = [AutoModelForCausalLM.from_pretrained(M7, quantization_config=BNB,
+                                             device_map="auto", max_memory=MAXMEM,
+                                             low_cpu_mem_usage=True).eval()]
+print("14B nf4 trai 2 the | VRAM MiB/gpu:",
+      [round(torch.cuda.memory_allocated(i)/1048576) for i in range(NG)], flush=True)
+QUANT = "nf4-split"
 
 B_TXT = parallel_gen(bigs, T7, SOLVE, Q, BSB, TEMP, K)
 print("xong pha 2", flush=True)
@@ -185,7 +193,7 @@ if ESC:
 print("xong pha 3", flush=True)
 
 CAP = 4000
-out = {"tag": f"H40s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
+out = {"tag": f"H54s{SHARD}", "shard": SHARD, "nshard": NSHARD, "n": len(MINE),
        "quant_big": QUANT, "dtype_small": "fp16", "n_gpu": NG, "items": []}
 for i in MINE:
     out["items"].append({
@@ -199,8 +207,8 @@ for i in MINE:
         "big_text":   [t[:CAP] for t in B_TXT[i]],
         "seq_text":   {k: v[:CAP] for k, v in SEQ_TXT.get(i, {}).items()},
     })
-json.dump(out, open(f"/kaggle/working/res_H40s{SHARD}.json", "w"))
-print(f"DA LUU {len(out['items'])} bai -> res_H40s{SHARD}.json", flush=True)
+json.dump(out, open(f"/kaggle/working/res_H54s{SHARD}.json", "w"))
+print(f"DA LUU {len(out['items'])} bai -> res_H54s{SHARD}.json", flush=True)
 print("XONG", flush=True)
 
 # Ghi chu VRAM (tinh, khong chep):

@@ -7,7 +7,7 @@ Logic tong hop giong het strat_local.py tren 5090 -> hai ben so sanh duoc truc t
 import sys, json, glob, re, hashlib
 from pathlib import Path
 
-RES = sys.argv[1] if len(sys.argv) > 1 else "res_h40"
+RES = sys.argv[1] if len(sys.argv) > 1 else "res_h54"
 NEED = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 
 # ---- do kho tu HF (nguon su that) ----
@@ -21,11 +21,17 @@ GOLD = {_qh(r["problem"]): r["answer"] for r in hf}
 print(f"HF MATH-500: {len(LVL)} bai co do kho + dap an chuan")
 
 # ---- gop shard ----
-items, shards, quants = [], set(), set()
+items, shards, quants, nsh = [], set(), set(), set()
 for f in sorted(glob.glob(f"{RES}/res_H40s*.json")):
     d = json.load(open(f))
-    shards.add(d["shard"]); quants.add(d.get("quant_big", "?"))
+    shards.add(d["shard"]); quants.add(d.get("quant_big", "?")); nsh.add(d.get("nshard"))
     items += d["items"]
+if len(nsh) > 1:
+    print(f"DUNG: tron shard tu cac lan chia KHAC NHAU {sorted(nsh)} -> khong gop duoc.")
+    raise SystemExit(1)
+if len(quants) > 1:
+    print(f"DUNG: shard chay o do chinh xac khac nhau {sorted(quants)}.")
+    raise SystemExit(1)
 print(f"gop {len(shards)}/{NEED} shard, {len(items)} bai, luong tu hoa: {quants}")
 missing = sorted(set(range(NEED)) - shards)
 if missing:
@@ -61,7 +67,7 @@ def vote(ps, k):
     if not c: return None, 0
     b = max(c, key=lambda z: c[z]); return b, c[b]
 
-RATIO = 7.6 / 1.5
+RATIO = 14.7 / 1.5      # 1 luot 14B = 9.80 luot 1.5B
 STRATA = [("DE", [1, 2]), ("GIUA", [3]), ("KHO", [4, 5]), ("TATCA", [1, 2, 3, 4, 5])]
 
 def A(sub, f):
@@ -103,6 +109,6 @@ for name, lvs in STRATA:
               f"{s['gain']:+8.4f}{s['opp_cost']:+10.4f}{s['gain_on_esc']:+10.4f}{flag:>9s}")
     out["strata"][name] = s
 
-json.dump(out, open(f"{RES}/H40_merged.json", "w"), indent=2)
+json.dump(out, open(f"{RES}/H54_merged.json", "w"), indent=2)
 print(f"\nda ghi {RES}/H40_merged.json")
 if missing: print("NHAC LAI: con thieu shard — ket qua tren CHUA du de ket luan")

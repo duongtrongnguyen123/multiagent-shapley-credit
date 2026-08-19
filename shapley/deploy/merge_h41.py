@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gop cac shard H40 va chay PHAN RA THEO TANG DO KHO (dang ky truoc #46).
+"""Gop cac shard H41 (GSM8K) — PHAN RA THEO TANG DO KHO (dang ky truoc #47 + bo sung 2026-08-10).
 
 Do do kho lay tu HF MATH-500 khop bang MA BAM DE BAI, khong tin cot 'level' cua CSV Kaggle.
 Logic tong hop giong het strat_local.py tren 5090 -> hai ben so sanh duoc truc tiep.
@@ -7,22 +7,25 @@ Logic tong hop giong het strat_local.py tren 5090 -> hai ben so sanh duoc truc t
 import sys, json, glob, re, hashlib
 from pathlib import Path
 
-RES = sys.argv[1] if len(sys.argv) > 1 else "res_h40"
+RES = sys.argv[1] if len(sys.argv) > 1 else "res_h41"
 NEED = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 
 # ---- do kho tu HF (nguon su that) ----
 from datasets import load_dataset
-hf = load_dataset("HuggingFaceH4/MATH-500", split="test")
+hf = load_dataset("openai/gsm8k", "main", split="test")
 def _qh(t): return hashlib.md5(" ".join(str(t).split()).encode("utf-8")).hexdigest()[:12]
-LVL = {_qh(r["problem"]): int(r["level"]) for r in hf}
+def _bucket(a):
+    s = a.count("<<")
+    return 1 if s <= 2 else (3 if s == 3 else 5)   # 1=DE(<=2 buoc) 3=GIUA(3) 5=KHO(>=4)
+LVL = {_qh(r["question"]): _bucket(r["answer"]) for r in hf}
 # Dap an chuan LAY TU HF, khong tin cot 'Answer' cua CSV Kaggle (khong ro la dap an cuoi
 # hay ca loi giai). qhash la cau noi duy nhat can tin.
-GOLD = {_qh(r["problem"]): r["answer"] for r in hf}
-print(f"HF MATH-500: {len(LVL)} bai co do kho + dap an chuan")
+GOLD = {_qh(r["question"]): r["answer"].split("####")[-1].replace(",", "").strip() for r in hf}
+print(f"HF GSM8K: {len(LVL)} bai, do kho = so buoc tinh <<>>")
 
 # ---- gop shard ----
 items, shards, quants = [], set(), set()
-for f in sorted(glob.glob(f"{RES}/res_H40s*.json")):
+for f in sorted(glob.glob(f"{RES}/res_H41s*.json")):
     d = json.load(open(f))
     shards.add(d["shard"]); quants.add(d.get("quant_big", "?"))
     items += d["items"]
@@ -42,18 +45,10 @@ nolv = sum(1 for it in items if it["lv"] == 0)
 if nolv: print(f"CANH BAO: {nolv} bai khong khop duoc do kho")
 
 # ---- cham diem: giong strat_local.py ----
-def _nm(a):
-    if a is None: return None
-    a = str(a).strip()
-    for z in ["\\left", "\\right", "\\!", "\\,", "$", " ", ","]: a = a.replace(z, "")
-    a = re.sub(r"\\text\s*\{([^}]*)\}", r"\1", a).replace("\\dfrac", "\\frac").replace("\\tfrac", "\\frac")
-    return a.rstrip(".").strip("{}").lower()
 def ok(x, g):
-    x, g = _nm(x), _nm(g)
-    if not x or not g: return False
-    if x == g: return True
-    try: return abs(float(x) - float(g)) < 1e-6
-    except: return False
+    if x is None or g is None: return False
+    try: return abs(float(str(x).replace(",", "")) - float(str(g).replace(",", ""))) < 1e-4
+    except: return str(x).strip() == str(g).strip()
 def vote(ps, k):
     c = {}
     for p in ps[:k]:
@@ -103,6 +98,10 @@ for name, lvs in STRATA:
               f"{s['gain']:+8.4f}{s['opp_cost']:+10.4f}{s['gain_on_esc']:+10.4f}{flag:>9s}")
     out["strata"][name] = s
 
-json.dump(out, open(f"{RES}/H40_merged.json", "w"), indent=2)
+de = out["strata"].get("DE", {})
+if de.get("big_maj3") is not None and de["big_maj3"] < .90:
+    print(f"\n!! BO SUNG #47: big_maj3(DE) = {de['big_maj3']:.4f} < .90 -> CHUA CHAM VUNG BAO HOA.")
+    print("   Ket luan bat buoc: cau hoi bao hoa VAN CHUA duoc tra loi (y nhu H40). Khong doc theo huong ung ho/bac bo.")
+json.dump(out, open(f"{RES}/H41_merged.json", "w"), indent=2)
 print(f"\nda ghi {RES}/H40_merged.json")
 if missing: print("NHAC LAI: con thieu shard — ket qua tren CHUA du de ket luan")
