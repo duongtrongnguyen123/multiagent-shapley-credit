@@ -215,7 +215,10 @@ kiến trúc và họ model không phải biến quyết định.
 Kết quả này xác nhận mệnh đề M3: định tuyến chỉ mang lại lợi ích ở nơi đã sẵn có đồng thuận, tức
 nơi ít cần đến nó nhất.
 
-### 5.4 Thiệt hại: hình phạt của việc tiếp xúc với nội dung sai (kết quả chính, có tiền đăng ký)
+### 5.4 Thiệt hại: hình phạt của việc tiếp xúc với nội dung sai
+
+⚠️ **Bảng dưới có hai mức tin cậy: chỉ cột MATH-500 có tiền đăng ký (mức A); hai cột MBPP là phân
+rã hậu nghiệm (mức B, vòng #150).** Xem `HUONG_DAN_CONG_TAC.md` §2.1.
 
 | | MBPP 11–510 | MBPP 511–974 | MATH-500 |
 |---|---|---|---|
@@ -329,8 +332,8 @@ Các số liệu về phương pháp nên nêu:
 
 - Sàn nhiễu: cùng một cấu hình chạy trên 5 fold cho `V_gain` dao động từ +1,0 đến +8,0 điểm, dẫn
   đến ngưỡng tin cậy 5 điểm.
-- **16 trên 31** lần chạy đã niêm phong có trạng thái VOID (tỷ lệ 52%). Đây là chỉ dấu cho thấy hệ
-  thống điều kiện hợp lệ đang hoạt động đúng chức năng.
+- **16 trên 32** lần chạy có tệp kết quả mang trạng thái VOID (tỷ lệ **50%**); 18 lần trong số đó
+  có mục niêm phong hash. Tỷ lệ VOID cao cho thấy hệ thống điều kiện hợp lệ đang hoạt động.
 - Sổ theo dõi dự đoán trước, công khai: **21 đúng trên 43** lần.
 - Tính tất định của greedy decoding: hai tài khoản khác nhau, hai ngày khác nhau, cùng cấu hình
   phần cứng cho kết quả giống nhau trên toàn bộ 499 bài. Hệ quả: chạy lại cùng một cấu hình không
@@ -368,7 +371,7 @@ chứng. Đây là một kết quả, không phải một thất bại.
 
 - **A.** Trích các bản tiền đăng ký
 - **B.** Bảng niêm phong hash
-- **C.** Danh sách 16 lần chạy VOID và lý do
+- **C.** Danh sách 16 lần chạy VOID (trên tổng 32) và lý do
 - **D.** Sổ theo dõi dự đoán trước (21/43)
 - **E.** 37 quy tắc quy trình
 - **F.** Bảng kết quả đầy đủ của khối nhóm

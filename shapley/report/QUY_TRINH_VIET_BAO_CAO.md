@@ -130,7 +130,7 @@ Nội dung đã được cập nhật vào §5.5, §6 và §8.
 - [ ] §8 Hạn chế giữ đầy đủ các mục đã liệt kê trong `BAO_CAO_CAU_TRUC.md`.
 - [ ] Đóng góp của cả ba thành viên đều xuất hiện trong phần thân, không dồn hết xuống phụ lục.
 - [ ] §7 nêu cả hai chuẩn kiểm chứng (5 fold và tiền đăng ký).
-- [ ] Tỷ lệ VOID 52% và sổ dự đoán trước 21/43 có mặt trong báo cáo, kèm giải thích vì sao đây là
+- [ ] Tỷ lệ VOID 50% (16 trên 32) và sổ dự đoán trước 21/43 có mặt trong báo cáo, kèm giải thích vì sao đây là
       chỉ dấu tích cực về phương pháp.
 
 ---

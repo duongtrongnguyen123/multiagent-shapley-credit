@@ -243,7 +243,8 @@ Nó không giải, nó chép.
 
 **Một quan sát bổ sung, cùng hình dạng với [12].** Phân tầng theo nội dung của plan trên MATH 1.5B:
 solver đúng **97,3%** khi plan chứa đáp án đúng (n = 37), nhưng chỉ **31,9%** khi plan sai (n = 163).
-Ở 7B khoảng cách hẹp hơn: 92,9% so với 60,2%.
+Ở 7B khoảng cách hẹp hơn: 92,9% so với 60,2% (n = 14 và 186).
+*Nguồn: `../res_pt_m15/summary.json`, `../res_pt_m7/summary.json`.*
 
 ⚠️ Quan sát này **bị nhiễu bởi độ khó**: những câu mà planner làm đúng có thể vốn dễ hơn. Nó chưa
 có nhánh đối chứng "không thấy plan" như thiết kế ở [12], nên chỉ là **gợi ý cùng hướng**, không
@@ -314,8 +315,12 @@ tốn **1,7 lần** token. Đây là cải thiện thật, kèm chi phí thật.
 
 **Phân tích Pareto khẳng định lại điều này.** Trên cả hai task, **solver một mình nằm trên đường
 Pareto** — không có tổ hợp nào vừa rẻ hơn vừa chính xác hơn. Trên MATH, **pipeline đầy đủ không nằm
-trên đường Pareto**: nó bị chi phối bởi phương án chỉ dùng solver (chi phí 1, độ chính xác 0,436 so
-với 0,373 của pipeline đầy đủ).
+trên đường Pareto**: nó bị chi phối bởi phương án chỉ dùng solver (chi phí 1, độ chính xác **0,4133**
+so với 0,373 của pipeline đầy đủ).
+
+⚠️ *Tài liệu nguồn nêu 0,436 ở đoạn lập luận này. Truy ngược cho thấy **đó không phải độ chính xác
+của solver trên MATH** mà là kết quả của một ablation khác (`pal3`, GSM8K 1.5B). Giá trị đúng là
+0,4133, khớp bảng chính của cùng tài liệu. Kết luận định tính không đổi vì cả hai đều lớn hơn 0,373.*
 
 **Câu hỏi để lại:** nếu ngay cả cấu hình tốt nhất cũng chỉ hoà với model mạnh đơn lẻ, thì suốt thời
 gian qua các phép đo đang so với baseline nào?
@@ -502,7 +507,8 @@ chạy test thật (`exec3`) so với để LLM tự kiểm (`llm3`):
 
 **`exec3` phá 0 bài trong 20 trên 20 fold; `llm3` phá bài trong 20 trên 20 fold.**
 
-Cơ chế: **`exec3` đạt đúng bằng `oracle@4`** (0,6438 và 0,8812). Tín hiệu đúng đắn là một **bộ chọn
+Cơ chế: **`exec3` đạt đúng bằng `oracle@4`** ở hai trong bốn ô mà tài liệu nguồn ghi rõ giá trị
+(0,6438 và 0,8812). Tín hiệu đúng đắn là một **bộ chọn
 hoàn hảo** — nó không sửa gì, chỉ chọn, và chọn không sai lần nào.
 
 ⚠️ **Mốc so sánh trung thực ở đây là `greedy`, không phải `maj@4`.** Trên code, bỏ phiếu **có hại**

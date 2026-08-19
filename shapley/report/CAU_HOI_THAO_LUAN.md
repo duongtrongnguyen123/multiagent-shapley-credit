@@ -83,9 +83,9 @@ Hai kết luận cùng hướng, nhưng đo trên hai đại lượng khác nhau
 
 *Ảnh hưởng: §5.5, và khuyến nghị thực tiễn ở §6.*
 
-### A5. Nên xử lý tỷ lệ VOID 52% như thế nào trong báo cáo?
+### A5. Nên xử lý tỷ lệ VOID 50% như thế nào trong báo cáo?
 
-16 trên 31 lần chạy đã niêm phong có trạng thái VOID.
+16 trên 32 lần chạy có tệp kết quả mang trạng thái VOID.
 
 - Trình bày như một **chỉ dấu tích cực về phương pháp** (điều kiện hợp lệ đang hoạt động), hay như
   một **hạn chế về hiệu suất thí nghiệm**? Hay cả hai?

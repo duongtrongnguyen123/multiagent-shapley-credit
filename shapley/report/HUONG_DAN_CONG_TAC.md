@@ -88,7 +88,7 @@ Nguồn: `../results_H94d/res_H94d.json`, khoá `strat`. Cột MBPP: `../results
 Hồi quy `A = β₀ + β₁ × (chênh lệch năng lực) + β₂ × (khác họ model)` trên 15 cặp, cùng 499 bài:
 
 - **β₁ = −0,1922** (sai số chuẩn 0,0260; p ≈ 0)
-- **β₂ = +0,00446** (sai số chuẩn 0,0044; p = 0,33), khoảng tin cậy 95%: **[−0,0051; +0,0140]**
+- **β₂ = +0,00446** (sai số chuẩn 0,0044; p = 0,31), khoảng tin cậy 95%: **[−0,0051; +0,0140]**
 - `R²` khi chỉ dùng biến chênh lệch năng lực: **0,8237**; thêm biến họ model: 0,8377
 
 Khoảng tin cậy của `β₂` nằm trọn dưới ngưỡng +0,02 đã được khoá trong tiền đăng ký. Đây là kết quả
@@ -196,8 +196,18 @@ Không trích từ `../results_injected_classifier/summary.json` — đó là l�
 | 4/5 | 18 | 0,722 | 1,000 | +0,278 |
 | 5/5 | 37 (25%) | 1,000 | 1,000 | 0,000 |
 
-Tầng 2–4/5 (30% số câu): **+31,1 điểm**. Toàn bộ 150 câu: **+9,3 điểm**. Pha loãng **3,3 lần**.
-*Nguồn: `../docs/DIFFICULTY_STRATA.md`.*
+Có **hai cách nhóm tầng**; phải nêu cả hai vì tài liệu nguồn dùng cách thứ nhất:
+
+| Cách nhóm | n | Hiệu ứng | Pha loãng |
+|---|---|---|---|
+| Tầng 1–4/5 *(cách của tài liệu nguồn)* | 65 (43%) | **+21,5 điểm** | 2,3 lần |
+| Tầng 2–4/5 *(bỏ tầng 1/5 vốn có hiệu ứng bằng 0)* | 45 (30%) | **+31,1 điểm** | 3,3 lần |
+
+Cả hai đều tính đúng từ cùng một bảng. Cách thứ hai chặt hơn về logic (tầng 1/5 có hiệu ứng đúng
+bằng 0), nhưng **`DIFFICULTY_STRATA.md` dùng cách thứ nhất** — nếu báo cáo dùng +31,1 thì phải chú
+thích, tránh người đọc đối chiếu tài liệu nguồn rồi tưởng báo cáo sai.
+
+*Nguồn: `../docs/DIFFICULTY_STRATA.md` (bảng 6 tầng).*
 
 ### 2.9 Số liệu về phương pháp
 
@@ -219,7 +229,7 @@ Tầng 2–4/5 (30% số câu): **+31,1 điểm**. Toàn bộ 150 câu: **+9,3 �
 | "Đã xác nhận quy luật chuyển được sang toán" | "Không bác bỏ được quy luật trên miền toán". Khoảng tin cậy rộng |
 | "Cơ chế định tuyến là lời giải" | "Giới hạn trên của định tuyến chỉ là +0,018; mặc định nên không cho xem artifact" |
 | "Kết quả được tái lập bằng cách chạy lại" | Greedy decoding có tính tất định, nên chạy lại cùng cấu hình không tạo bằng chứng độc lập |
-| Bất kỳ số liệu nào từ H98, H99, H95b, H94c, H91b/c/d, H88, H88b, H89b/d/e/f/h | Các lần chạy VOID; chỉ được nhắc tên ở Phụ lục C |
+| Bất kỳ số liệu nào từ **H88, H88b, H89b, H89d, H89e, H89f, H89h, H91b, H91c, H91d, H94c, H95b, H98, H99** | Các lần chạy VOID; chỉ nhắc tên ở Phụ lục C.<br>⚠️ **H88d, H88f, H89g, H91e KHÔNG bị cấm — chúng hợp lệ.** Danh sách trên liệt kê đầy đủ từng mã, đừng suy rộng từ tiền tố. |
 | "Pool khác họ model" ở mục đa dạng ứng viên | "Pool khác model" |
 
 ---
@@ -310,6 +320,6 @@ cơ sở của §5.
 2. Không làm tròn lại số liệu. Nếu nguồn ghi −0,2720 thì bảng biểu giữ nguyên bốn chữ số.
 3. Giữ nguyên các phát biểu tự giới hạn. Ví dụ, việc báo cáo giới hạn trên của chính đề xuất của
    nhóm chỉ là +0,018 là một điểm mạnh về phương pháp, không nên lược bỏ.
-4. Kết quả âm và các lần chạy VOID là nội dung khoa học. Tỷ lệ VOID 52% cho thấy hệ thống điều kiện
+4. Kết quả âm và các lần chạy VOID là nội dung khoa học. Tỷ lệ VOID 50% cho thấy hệ thống điều kiện
    hợp lệ đang hoạt động đúng chức năng, nên trình bày ở §7 với đầy đủ ngữ cảnh.
 5. Khi chưa xác định được một số liệu thuộc mức tin cậy nào, cần làm rõ trước khi đưa vào báo cáo.
