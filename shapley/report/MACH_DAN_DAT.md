@@ -139,30 +139,44 @@ và kết luận đó sai.** Đây là ví dụ điển hình cho vai trò của
 
 ---
 
-## [4] Cơ chế: aggregator không chọn, nó chép ứng viên cuối
+## [4] Cơ chế: aggregator chép ứng viên cuối — nhưng phần lớn thiệt hại là **lỗi định dạng**
 
-**Số liệu.**
+**Hành vi đo được.**
 
-- `agg5_copies_last` = **0,653**: ngay cả khi có 5 ứng viên, aggregator chép nguyên ứng viên **cuối
-  cùng** ở 65% số câu. Với 2 ứng viên, tỷ lệ này là 0,747.
-- Số đáp án khác nhau trung bình: **2,88 trên 5** — tức có đủ đa dạng để việc bỏ phiếu là có nghĩa.
-- Trong thí nghiệm 8 lượt sinh: aggregator **phá vỡ đa số đúng 21 lần** (1.5B) và **26 lần** (7B),
-  trong khi **sửa được đa số sai chỉ 2 lần** và **0 lần**.
+- `agg5_copies_last` = **0,653**: với 5 ứng viên, aggregator chép nguyên ứng viên **cuối cùng** ở
+  65% số câu. Với 2 ứng viên, tỷ lệ là 0,747.
+- Đọc 600 trace thô: aggregator **không sinh số mới ở 100% số lượt**, và đáp án trùng với tác tử
+  liền trước ở **96%** số câu. Nó là **trạm chuyển tiếp**, không phải bộ tính toán.
+- Số đáp án khác nhau trung bình là 2,88 trên 5 — tức có đủ đa dạng để việc chọn là có nghĩa.
 
-**Tỷ lệ 26 phá trên 0 sửa là dạng thuần khiết nhất của số hạng `B`** sẽ được định nghĩa hình thức ở
-[8]. Ở đây `B` được quan sát trực tiếp, không cần suy diễn: thành phần LLM phá huỷ những câu trả lời
-mà cơ chế bỏ phiếu đã chọn đúng.
+**Nhưng phần "gây hại" thì phải đính chính, và đây là đính chính quan trọng nhất của mục này.**
 
-Nguyên nhân là **thiên lệch vị trí**: aggregator không thực hiện việc chọn, nó lấy nội dung đọc sau
-cùng.
+Phân loại 20 ca aggregator làm hỏng đáp án trên MATH: **85% không phát ra `\boxed{}`**, 50% tự giải
+lại, 40% output thoái hoá, và **chỉ 5% là thực sự chọn nhầm ứng viên**.
 
-**Một điều chỉnh cần ghi nhận.** Aggregator từng bị cấu hình sai: với 2 ứng viên thì khái niệm "đa số"
-không tồn tại. Khi tăng lên 3 ứng viên, hiệu ứng chuyển từ −0,007 thành **+0,053**, đạt 5/5 fold —
-hiệu ứng dương duy nhất đạt 5/5 trong nhóm thí nghiệm đó. Tuy nhiên bỏ phiếu cơ học vẫn thắng
-(**+0,093** so với +0,047). Aggregator LLM sau khi sửa cấu hình vẫn không đóng góp gì ngoài việc
-đếm phiếu, và vẫn làm kém đi.
+Thêm một fallback **miễn phí** (không có `\boxed{}` thì lấy đáp án của verifier, **không gọi thêm
+model**):
 
-**Câu hỏi để lại:** nếu aggregator không đóng góp, vai nào đóng góp?
+| | `A_gain` | Khoảng | Fold |
+|---|---|---|---|
+| Gốc | **−6,4** | [−9; −4] | 5/5 âm |
+| **Có fallback** | **+1,0** | **[0; +2]** | **5/5 ≥ 0** |
+
+> **Phép đo đúng, nhưng diễn giải "LLM tổng hợp phán đoán kém" là SAI.**
+> Phát biểu đúng: **bộ tổng hợp LLM trung tính một khi đã xử lý xong định dạng đầu ra.**
+
+**Điều này thu hẹp kết luận ở [2], không xoá bỏ nó.** Vẫn đúng rằng thành phần tổng hợp LLM
+**không cộng thêm giá trị** so với bỏ phiếu cơ học (sau khi sửa định dạng: +1,0 so với +9,3 của
+`vote5`). Nhưng **không đúng** khi nói nó "phá hoại": phần lớn thiệt hại đo được là hiện vật của
+việc trích xuất đáp án.
+
+⚠️ **Còn một câu chưa trả lời được.** Trong thí nghiệm 8 lượt sinh, aggregator phá vỡ đa số đúng
+**21 lần** (1.5B) và **26 lần** (7B) trong khi sửa được **2** và **0** lần. Chưa rõ tỷ lệ bao nhiêu
+trong số đó cũng là lỗi `\boxed` — thí nghiệm đó **không lưu phân loại nguyên nhân**. Cho tới khi
+kiểm được, **không nên dùng con số 26:0 làm bằng chứng cho "LLM phán đoán kém"**; chỉ nên dùng nó
+để mô tả kết cục quan sát được.
+
+**Câu hỏi để lại:** nếu phần lớn "thiệt hại" là hiện vật đo lường, thì các hiệu ứng thật lớn cỡ nào?
 
 ---
 
@@ -260,6 +274,15 @@ phải bằng chứng độc lập.
 
 Verifier lớn hơn không chỉ sửa nhiều hơn mà còn **phá ít hơn sáu lần**.
 
+**Cơ chế, đọc từ 600 trace thô:** khi verifier can thiệp, nó **tái sử dụng 0%** số của solver trên
+GSM8K (0,17 tính chung). Nghĩa là nó không kiểm từng bước — nó **giải lại từ đầu**.
+
+> **Verifier không phải bộ kiểm tra kém; nó là một SOLVER THỨ HAI đội lốt bộ kiểm tra.**
+> Mua verifier 7B tức là mua một **solver tốt hơn** cho lượt thứ hai.
+
+Đây là lời giải thích cơ học cho toàn bộ hiện tượng bất đối xứng năng lực: cái quyết định không
+phải "vai verifier", mà là **năng lực của model được đặt vào lượt thứ hai**.
+
 **Đây là lần đầu khái niệm bất đối xứng năng lực xuất hiện trong dự án**, và nó đến từ phía phân
 tích vai, hoàn toàn độc lập với nhánh nghiên cứu sau này.
 
@@ -274,8 +297,13 @@ Cấu hình `S1.5B + V7B` đã dùng một model 7B. Vậy câu hỏi công bằ
 | **S7B một mình** | **0,910** | **0,593** | 120k | 152k |
 | S7B + V7B | 0,900 | 0,670 | 205k | 261k |
 
+*Bảng lấy từ cùng một lần chạy 5 fold nên độ chính xác và số token khớp nhau. Một tài liệu khác
+trong dự án ghi solver 7B trên MATH đạt 0,720, nhưng đó là lần chạy khác (n = 100, lượng tử hoá
+4-bit); không được ghép số độ chính xác của lần chạy đó với số token của bảng này.*
+
 - Trên **GSM8K**: cấu hình bất đối xứng **kém hơn 10 điểm** so với chỉ dùng 7B, dù rẻ hơn 12% token.
-- Trên **MATH**: kém hơn 3 điểm, ngang bằng về mặt thống kê, và rẻ hơn **22%** token.
+- Trên **MATH**: kém hơn 3 điểm. Chênh lệch theo từng fold nằm trong khoảng [−0,083; +0,033], tức
+  **chứa số 0** ⇒ ngang bằng về mặt thống kê, và rẻ hơn **22%** token.
 
 **Phát biểu đúng: cấu hình bất đối xứng là một lựa chọn TIẾT KIỆM CHI PHÍ, không phải một cải thiện
 độ chính xác.** Lợi ích +14,0 chỉ tồn tại khi so với model yếu; so với model mạnh chạy một mình ở
