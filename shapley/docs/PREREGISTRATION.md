@@ -5050,3 +5050,56 @@ Mọi model **sửa** là `qwen7b` hoặc `dscoder` — đều rẻ. `llama8b` c
 **KHÔNG đổi:** đại lượng chính `Δ_honest`, hai giao thức R0/R2, toàn bộ cổng, **toàn bộ bảng khoá**,
 điều kiện ≥ 2/3 cặp, và **tiên nghiệm** (hàng 3 ~45% · hàng 1 ~25% · hàng 2 ~20% · hàng 4 ~10%).
 **Tỉ lệ prior đúng: 20/41.**
+
+---
+
+## #112 — H99b: bỏ quét 15 cặp, **thử ĐIỂM** luật MBPP trên ba cặp Qwen ở MATH
+
+**Đăng ký lúc:** sau #198 (H99 VOID), trước khi viết kernel. **Thay thiết kế, giữ nguyên câu hỏi.**
+
+### Vì sao đổi thiết kế
+#198 cho thấy quét 15 cặp trên MATH **quá giòn**: một model sai miền (`dscoder` .012) và một model
+sai định dạng (`qwen32b` `\boxed` .642) là đủ để giết cả lần chạy, cộng thêm chạm tường thời gian.
+Câu hỏi của #109 **không cần** một đường hồi quy — nó chỉ cần biết **luật MBPP có dự báo đúng
+trên MATH không**. Đó là **phép thử ĐIỂM**, rẻ hơn nhiều và không giòn.
+
+### Thiết kế — CHỈ model Qwen (đều `\boxed` ≥ .986 ở H99), MATH-500
+Ba cặp có hướng, cùng 500 bài, `V` = `I` sửa lời giải của `S`:
+
+| cặp | `S` | `I` | chênh (H99) | **MBPP dự báo `Δ_ceil`** |
+|---|---|---|---|---|
+| A | qwen7b | qwen14b | .046 | **+.0108** |
+| B | qwen1.5b | qwen7b | .242 | **−.0361** |
+| C | qwen1.5b | qwen14b | .288 | **−.0471** |
+
+Dự báo tính từ `Δ_ceil` = +.02184 − .23922·chênh (#185), **khoá ở đây trước khi chạy**.
+**Bỏ hẳn `qwen32b`** (định dạng hỏng + đắt) và **`dscoder`/`llama8b`** (sai miền / `\boxed` thấp).
+`MAXNEW` = **3072** (H99: 2048 vẫn thiếu cho model lớn trên toán — #130 lần thứ ba).
+
+### CỔNG
+Lần chạy: `n ≥ 480` · **`\boxed` ≥ .90 cho MỌI nhánh, kể cả NỀN** (lỗ hổng #198), giãn < .05 ·
+mọi `acc` nền ∈ [.10, .90] · **cả ba cặp phải chạy xong** (nếu chạm tường ⇒ VOID, không đọc một phần).
+Theo cặp: `I − S ≥ .02` và p < .05.
+
+### BẢNG KHOÁ — chính: `Δ_ceil` đo được **so với giá trị MBPP dự báo**, từng cặp
+Gọi `r` = `Δ_ceil(MATH)` − `Δ_ceil(MBPP dự báo)`. Ý nghĩa lấy từ KTC bootstrap ghép cặp theo bài
+(10.000 lần) của `Δ_ceil`; "thấp hơn có ý nghĩa" ⇔ **cận trên KTC 95% < giá trị dự báo**.
+
+| # | điều kiện | KẾT LUẬN |
+|---|---|---|
+| 0 | cổng trượt, hoặc thiếu cặp | **VOID** |
+| 1 | **≥ 2/3** cặp có `Δ_ceil` **thấp hơn có ý nghĩa** so với dự báo | **LUẬT KHÔNG CHUYỂN VỀ SỐ.** MATH khắc nghiệt hơn hệ thống ⇒ **phải thu hẹp luật ở README thành "trên code"**, và nêu rằng `g*` phụ thuộc miền |
+| 2 | **≥ 2/3** cặp có dự báo **nằm trong** KTC 95% | **LUẬT CHUYỂN ĐƯỢC.** Cùng một đường mô tả cả hai miền ⇒ đây là luật về **giao thức**, README giữ nguyên |
+| 3 | **≥ 2/3** cặp **cao hơn có ý nghĩa** so với dự báo | MATH **dễ hơn** — mâu thuẫn H88f (−.1380 tại chênh .240, thấp hơn dự báo .102). Không kết luận, phải điều tra |
+| 4 | không nhóm nào đạt 2/3 (kết cục lẫn lộn) | **luật KHÔNG ổn định giữa các cặp** ⇒ cũng phải thu hẹp ở README, nhưng vì lý do khác hàng 1: không phải "MATH khắc nghiệt hơn" mà là "không dự báo được" |
+
+### TIÊN NGHIỆM THÀNH THẬT
+Hàng 1 **~55%** · hàng 4 **~20%** · hàng 2 **~20%** · hàng 3 **~5%**.
+Nghiêng mạnh hàng 1 vì **đã có một điểm MATH sạch**: H88f (mọi cổng đạt) cho `Δ_ceil` = **−.1380**
+tại chênh **.240**, trong khi luật MBPP dự báo **−.0356** — **thấp hơn .102**. Cặp B của thiết kế này
+**gần như trùng** cặp đó (chênh .242), nên nếu H88f đúng thì cặp B gần chắc rơi vào hàng 1.
+**Đó cũng là điểm yếu của thiết kế: cặp B gần như một phép lặp lại của H88f** (khác `MAXNEW`
+và khác `V` prompt), nên **sức nặng thật nằm ở cặp A và C**.
+**Nếu hàng 1 hoặc hàng 4 xảy ra, tôi phải sửa README ngay trong vòng đó.**
+
+**Tỉ lệ prior đúng: 21/42** (cộng dồn, xem #167).
