@@ -515,29 +515,45 @@ Một kết quả bổ sung làm rõ giới hạn: bộ kiểm chỉ có giá tr
 phải khi nó là **một cách tính khác**. Trên MATH, dùng thực thi code (PAL) làm cách giải thay thế
 vẫn **thua** suy luận bằng văn bản.
 
-### 14b. Khi tín hiệu là HỌC ĐƯỢC: không phát hiện nổi một chữ số bị đổi
+### 14b. Khi tín hiệu là HỌC ĐƯỢC: học được rất tốt, nhưng không dùng được
 
-Thí nghiệm huấn luyện bộ phân loại đúng/sai trên lỗi **tiêm vào** (đổi một chữ số trong lời giải
-vàng), rồi đánh giá khả năng chuyển giao sang lỗi **thật**.
+**Tín hiệu học được.** Huấn luyện bộ phân loại đúng/sai trên lỗi **tiêm vào** (đổi một chữ số trong
+lời giải đúng), rồi đo khả năng chuyển giao sang lỗi **thật**. Cả hai ô đều hợp lệ:
 
-Tiền đăng ký dự đoán: khả năng phân biệt lỗi **tiêm** sẽ **cao** (> 0,6), lỗi **thật** sẽ **thấp**
-(< 0,2) — tức bộ phân loại học được hiện vật bề mặt rồi không chuyển giao được.
+| Model | Rò rỉ | Lỗi **tiêm** | Lỗi **thật** | AUC | `wvote − maj@8` |
+|---|---|---|---|---|---|
+| 1.5B | −0,017 ✓ | **−0,012** | +0,195 | 0,528 | −0,008 (1/5 fold) |
+| **7B** | +0,050 ✓ | **+0,573** | **+0,693** | **0,893** | **+0,024 (2/5 fold)** |
 
-**Kết quả ngược hẳn dự đoán:**
+Hai kết luận, và cả hai đều đi ngược trực giác thông thường:
 
-| | Khả năng phân biệt |
-|---|---|
-| Lỗi **tiêm vào** (đổi một chữ số) | **+0,032** — gần bằng ngẫu nhiên |
-| Lỗi **thật** | +0,219 (AUC 0,563) |
+1. **Ở 1.5B, bộ phân loại không học được gì** — khả năng phân biệt lỗi tiêm là **âm**.
+2. **Ở 7B, nó học rất tốt và chuyển giao còn tốt hơn cả trong phân phối** (+0,693 so với +0,573).
+   **Chuyển giao không phải vấn đề.**
 
-> **Phát hiện một chữ số bị đổi trong một lời giải vốn hoàn hảo còn khó hơn phân biệt lời giải
-> đúng với lời giải sai thật.**
+> **Nhưng AUC 0,893 chỉ mua được +2,4 điểm, và chỉ ở 2 trên 5 fold.**
+> Kết luận: **đo được ≠ dùng được.**
 
-Và ngay cả khả năng phân biệt lỗi thật cũng **không chuyển thành độ chính xác**: bỏ phiếu có trọng
-số theo điểm của bộ phân loại không hơn bỏ phiếu thường (chênh trung bình ≈ 0 qua các fold).
-AUC 0,563 chỉ nhỉnh hơn mức ngẫu nhiên 0,50.
+### Phát biểu hợp nhất về giá trị của bộ kiểm
 
-**Kết luận: đo được ≠ dùng được.**
+Nối bốn thí nghiệm độc lập (bộ kiểm huấn luyện, rerank, PAL, exec/llm) cho một phát biểu sắc hơn
+nhiều so với "tín hiệu tốt thì kết quả tốt":
+
+> **Giá trị của một bộ kiểm bằng khoảng cách `oracle@k − maj@k`, KHÔNG phải bằng chất lượng của
+> chính bộ kiểm.**
+
+- **Code:** khoảng cách **+21,3 điểm**; bộ test có AUC hiệu dụng bằng 1,0 và lấy được **toàn bộ**.
+- **Toán:** khoảng cách nhỏ; bộ kiểm AUC **0,893** chỉ lấy được **+2,4 điểm**.
+
+Lý do: bộ kiểm chỉ **chọn** trong `k` ứng viên có sẵn. Ở 50–58% số bài mà các mẫu không đồng thuận,
+độ chính xác của pool chỉ khoảng 0,14 đến 0,00 — tức **thường không có ứng viên đúng nào để chọn**.
+
+> **Nút thắt nằm ở khâu SINH, không phải khâu CHỌN.** Đây là lý do mọi cơ chế tổng hợp của dự án —
+> rerank, bỏ phiếu có trọng số, bộ chấm huấn luyện — đều chạm trần thấp trên toán, bất kể tín hiệu
+> tốt đến đâu.
+
+Phát biểu này cũng thống nhất với mục [5]: 57% số câu bất động vì không có gì để chọn hoặc không có
+gì để cải thiện.
 
 ### 14c. Phát biểu lại M2
 
@@ -548,11 +564,12 @@ tương quan"*:
 > hay độc lập.**
 >
 > - Tín hiệu **đúng đắn** (chạy test): `κ` ≈ 1, `B` = 0, đạt đúng trần oracle.
-> - Tín hiệu **học được hoặc do prompt** (LLM kiểm, bộ phân loại huấn luyện): `κ` ≈ 0 (AUC 0,563),
->   `B` > 0 ở mọi fold.
+> - Tín hiệu **học được** có thể đạt AUC cao (0,893 ở 7B) mà **vẫn gần như vô dụng**, vì giá trị
+>   bị chặn bởi khoảng cách `oracle@k − maj@k` chứ không bởi chất lượng tín hiệu.
 
-Điều này giải thích vì sao mọi nỗ lực tìm tín hiệu cổng ở nhánh [14] tiếp theo đều thất bại: chúng
-đều là tín hiệu **học được**, mà loại tín hiệu đó đã được chứng minh là không đủ.
+Điều này giải thích vì sao mọi nỗ lực tìm tín hiệu cổng đều thất bại — nhưng **không phải vì tín
+hiệu kém**. Ở 7B tín hiệu đạt AUC 0,893, rất tốt. Nó thất bại vì **không có đủ ứng viên đúng trong
+pool để chọn ra**.
 
 Nó cũng khoanh vùng phạm vi áp dụng: **miền nào có bộ kiểm đúng đắn (code chạy được, chứng minh
 hình thức) thì phối hợp đa tác tử có giá trị thật; miền nào không có thì không.**

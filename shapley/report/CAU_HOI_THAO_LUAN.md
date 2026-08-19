@@ -209,3 +209,56 @@ Bước 0.
 
 **A1, A1b và B1 là ba câu quan trọng nhất.** A1 quyết định độ mạnh của luận điểm khép mạch ở §6; B1
 quyết định luận điểm mở đầu ở §1 có đứng được hay không.
+
+---
+
+## Nhóm D — Phát sinh từ đợt kiểm định độc lập (sáu agent, đọc toàn bộ kết quả)
+
+### D1. Mâu thuẫn chưa giải: aggregator trên MATH, hai lần chạy 5-fold cho **dấu ngược nhau**
+
+| Lần chạy | Thiết lập | `PSVA − PSV` | Fold |
+|---|---|---|---|
+| `res_nf_m15` | MATH 1.5B, 5 fold × 100 | **−0,064** | 5/5 âm |
+| `res_b4_m15` | MATH 1.5B, 5 fold × 40 | **+0,080** | 5/5 dương |
+
+Cùng task, cùng model, cùng đại lượng, **ngược dấu**, và mỗi lần chạy đều "nhất quán 5/5" trong nội
+bộ nó. Chưa tài liệu nào của dự án nêu mâu thuẫn này.
+
+- Khác biệt đã biết: cỡ fold (100 so với 40) và độ chính xác nền `PSV` (0,416 so với 0,380).
+- Con số −6,4 là một trong những số được trích nhiều nhất của dự án. **Nếu mâu thuẫn này không giải
+  được thì phải nêu nó trong báo cáo**, không được chỉ trích một phía.
+- Đề xuất: kiểm xem hai lần chạy có dùng cùng định nghĩa `PSVA` không (đặc biệt là có fallback
+  `\boxed` hay không — xem mục [4] của `MACH_DAN_DAT.md`).
+
+*Ảnh hưởng: [4], [8], §5.3. Cần giải trước khi nộp.*
+
+### D2. Một nhánh thí nghiệm chưa từng được viết ra, và nó **không hợp lệ**
+
+`res_arc_agi3_stepcheck_scaling_a/b` (trùng với `res_scaling_a/b`): nghiên cứu bộ kiểm theo bước
+trên ARC-AGI-3, ba cỡ model 7B/14B/32B. Khả năng phân biệt tăng đơn điệu theo cỡ
+(0,337 → 0,472 → 0,529). **Nhưng `VALID_parse` = false ở cả ba cỡ** (tỷ lệ hỏng phân tích
+0,232/0,219/0,224, vượt ngưỡng 0,20 của chính dự án), và ô 14B có `degenerate_rate` 0,9125 vượt
+ngưỡng 0,90.
+
+⇒ **Không được trích bất kỳ số nào từ nhánh này.** Nêu ở Phụ lục C nếu muốn cho đầy đủ.
+
+### D3. Một giới hạn của kết quả `exec3` cần nêu
+
+`res_ex_g7`: trên GSM8K 7B, bộ kiểm bằng thực thi đạt độ chính xác **0,8369** — cao nhất trong toàn
+bộ nhóm thí nghiệm — nhưng vẫn **lỗ ròng** (26 lần phá so với 6 lần sửa, giá trị ròng −0,08).
+
+Lý do: solver 7B trên GSM8K đã gần bão hoà (0,916), nên gần như không còn gì để sửa mà lại còn nhiều
+thứ để phá. **Kết quả `exec3` ở §5.8 không được phát biểu như một quy luật phổ quát** — nó đúng khi
+còn dư địa, và sai khi model nền đã bão hoà. Điều này khớp với mục [5] (mẫu số) và với phát biểu hợp
+nhất "giá trị bộ kiểm = khoảng cách `oracle@k − maj@k`".
+
+*Ảnh hưởng: §5.8. Nên thêm một câu giới hạn.*
+
+### D4. Kết quả sửa lỗi rò rỉ đã chạy xong nhưng chưa ai viết
+
+`results_disc_leakfix_gsm8k` và `results_disc_leakfix_math` là bản chạy lại sạch của hai lần chạy
+từng bị tuyên vô hiệu vì rò rỉ adapter (`res_wf_g15`, `res_wf_m15`, rò rỉ 0,06 > ngưỡng 0,05).
+Bản sửa cho `adapter_leak` = −0,0334 và −0,0500, **cả hai `VALID_leak` = true**, AUC 0,8412 và 0,9330.
+
+Đây là lời giải cho một vấn đề mở đã được ghi trong tài liệu, nhưng kết quả **chưa được trích ở đâu**.
+Cần quyết định có đưa vào báo cáo không.

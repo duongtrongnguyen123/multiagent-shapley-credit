@@ -31,12 +31,22 @@ Khi gặp một số liệu chưa rõ thuộc mức nào, cần xác định m�
 Hai lần chạy **H88e** và **H92b** có tệp `res_*.json` ghi trạng thái `VOID: ["n>=480"]` nhưng
 **vẫn hợp lệ**. Nguyên nhân: phần giữ lại của MBPP (`task_id` từ 511 đến 974) chỉ có 464 bài, nên
 điều kiện `n ≥ 480` không thể đạt được về mặt vật lý. Bản tiền đăng ký đã được sửa thành `n ≥ 460`
-cho phần dữ liệu này, và bản sửa được commit **trước khi đọc số liệu** (xem mục `#97-d` và `#102-b`;
-có thể kiểm chứng bằng `git log`). Mã kernel vẫn giữ ngưỡng `n ≥ 480` nên trường `VOID` trong tệp
-kết quả không còn phản ánh đúng trạng thái.
+cho phần dữ liệu này (xem mục `#97-d` và `#102-b`). Mã kernel vẫn giữ ngưỡng `n ≥ 480` nên trường
+`VOID` trong tệp kết quả không còn phản ánh đúng trạng thái.
 
-Kết luận: cả hai lần chạy thuộc **mức A**. Không loại bỏ chúng chỉ vì tệp kết quả ghi VOID; cần đối
-chiếu với bản tiền đăng ký tương ứng.
+**Lý do sửa ngưỡng là chính đáng và kiểm được độc lập:** phần 511–974 của MBPP chỉ chứa 464 bài thô,
+nên `n ≥ 480` là bất khả thi về mặt đếm dữ liệu, không phải một ngưỡng bị nới sau khi thấy kết quả xấu.
+
+⚠️ **Nhưng thứ tự "sửa trước khi đọc" thì KHÔNG kiểm chứng được bằng `git log`.** Bản đầu của tài liệu
+này viết là kiểm được — điều đó sai, và chính dự án đã tự bác bỏ ở quy tắc quy trình **#166**: git chỉ
+chứng minh bản sửa có trước lúc **viết báo cáo**, không chứng minh nó có trước lúc **đọc số**. Thực tế
+khoảng cách giữa commit sửa đổi và commit báo cáo kết quả là **72 giây** (`#97-d`) và **93 giây**
+(`#102-b`). Thêm nữa, mục niêm phong hash cho hai lần chạy này được ghi **sau khi** kết quả đã được
+đọc, trong cùng commit tạo ra công cụ niêm phong.
+
+Kết luận: **lý do kỹ thuật đứng vững, nhưng thứ tự đọc chỉ dựa trên lời cam đoan.** Nếu báo cáo trích
+hai lần chạy này, phải nêu rõ điều đó. Trên thực tế **không con số nào của H88e được dùng trong mục 2**,
+nên vấn đề chỉ còn liên quan tới H92b qua bảng §2.1 — vốn đã là mức B vì lý do riêng.
 
 ---
 
@@ -47,10 +57,25 @@ làm tròn lại.
 
 ### 2.1 Thiệt hại do mức tiếp xúc với artifact
 
+⚠️ **Bảng này có HAI mức tin cậy khác nhau. Không được trình bày như một khối đồng nhất.**
+
 | | MBPP 11–510 | MBPP 511–974 | MATH-500 |
 |---|---|---|---|
+| | *mức **B** — thăm dò* | *mức **B** — thăm dò* | ***mức A — đã xác nhận*** |
 | Artifact **sai** | −0,1900 | −0,1927 | **−0,2720** (p ≈ 0) |
 | Artifact **đúng** | +0,0636 | +0,0245 | **+0,0377** (p = 0,012) |
+
+**Chỉ cột MATH-500 thuộc mức A.** Nó có tiền đăng ký (#104) với bảng diễn giải khoá trước khi chạy,
+và toàn bộ điều kiện hợp lệ đều đạt.
+
+**Hai cột MBPP thuộc mức B.** Chúng là **phân rã hậu nghiệm** thực hiện ở vòng #150 trên dữ liệu đã
+có; không có bảng diễn giải nào khoá chúng trước. Tệp `res_H92.json` và `res_H92b.json` **không chứa
+khoá `strat`** — hai cột này không đến từ đó mà được tính lại từ trace. Chính vòng #150 ghi rõ:
+*"phải đăng ký trước rồi đo lại thì mới được trích"*.
+
+**Cách viết đúng trong báo cáo:** *"Một xác nhận có tiền đăng ký trên MATH, cộng hai phân rã hậu
+nghiệm trên MBPP cùng hướng."* Đây cũng là cách `../docs/TONG_HOP.md` đang ghi. Không viết như thể
+cả ba cột cùng mức.
 
 Trên MATH: `n` = 500, gồm 239 bài có artifact đúng và 261 bài có artifact sai. Ở tầng artifact sai,
 độ chính xác của model mạnh giảm từ **46,4%** xuống **19,2%**. Tổng hợp hai tầng theo trọng số cho
@@ -119,6 +144,9 @@ biệt và **6,5%** số bài có một ứng viên.
 Cần ghi là **"khác model"**, không ghi là "khác họ model": đối chứng dùng các model khác nhau trong
 cùng một họ chưa được thực hiện.
 
+Nguồn: `../results_H86c/partial_H86c.json` (không phải `res_H86c.json` — tệp đó không chứa các
+trường này). Tiền đăng ký `#99`. Số liệu đã được kiểm lại độc lập ở vòng #159–#160.
+
 ### 2.7 Tín hiệu kiểm: đúng đắn so với học được
 
 **Tín hiệu đúng đắn (chạy test), HumanEval, cùng 4 lượt sinh:**
@@ -134,12 +162,28 @@ cùng một họ chưa được thực hiện.
 ⚠️ Mốc trung thực là `greedy` chứ không phải `maj@4` (bỏ phiếu **có hại** trên code: −0,113 và
 −0,131). Theo mốc đúng: `exec3 − greedy` = **+0,063 đến +0,106**.
 
-**Tín hiệu học được (bộ phân loại huấn luyện trên lỗi tiêm):**
-lỗi tiêm (đổi một chữ số) khả năng phân biệt **+0,032**; lỗi thật +0,219 (AUC 0,563); và cả hai
-**không chuyển thành độ chính xác** (bỏ phiếu có trọng số ≈ bỏ phiếu thường).
+**Tín hiệu học được (bộ phân loại huấn luyện trên lỗi tiêm)** — bảng HOÀN CHỈNH, cả hai ô hợp lệ:
 
-*Nguồn: `../docs/RESULTS.md` §8.1 và §8.2; `../results_injected_classifier/summary.json`;
-`../docs/IDEAS.md` vòng #72.*
+| Model | Lỗi **tiêm** | Lỗi **thật** | AUC | `wvote − maj@8` |
+|---|---|---|---|---|
+| 1.5B | **−0,012** | +0,195 | 0,528 | −0,008 (1/5 fold) |
+| **7B** | **+0,573** | **+0,693** | **0,893** | **+0,024 (2/5 fold)** |
+
+Ở 7B bộ phân loại học **rất tốt** và chuyển giao còn tốt hơn cả trong phân phối (+0,693 so với
++0,573) — **chuyển giao không phải vấn đề**. Nhưng AUC 0,893 chỉ mua được **+2,4 điểm, 2/5 fold**
+⇒ **đo được ≠ dùng được**.
+
+⚠️ **KHÔNG dùng bộ số cũ (+0,032 / +0,219 / AUC 0,563)** — đó là lần chạy 1.5B dở dang (dừng vì hết
+bộ nhớ ở fold 4) và **đã bị thay thế** bởi bảng trên.
+
+**Giá trị của bộ kiểm bằng khoảng cách `oracle@k − maj@k`, không bằng chất lượng bộ kiểm.**
+Trên code khoảng cách là +21,3 điểm và bộ test lấy được toàn bộ; trên toán khoảng cách nhỏ nên
+AUC 0,893 chỉ lấy được +2,4. **Nút thắt nằm ở khâu sinh, không phải khâu chọn.**
+
+*Nguồn cho `exec3`/`llm3`: `../docs/RESULTS.md` §8.1 và §8.2.
+Nguồn cho thí nghiệm tiêm lỗi: `../docs/IDEAS.md`, mục **"H37 HOÀN TẤT"**.
+Không trích từ `../results_injected_classifier/summary.json` — đó là lần chạy phụ có ngưỡng suy biến.*
+⚠️ `RESULTS.md` vẫn liệt kê H37 ở mục "chờ chạy"; mục đó đã lỗi thời, cần cập nhật.
 
 ### 2.8 Mẫu số: 57% số câu bất động
 
@@ -157,7 +201,9 @@ Tầng 2–4/5 (30% số câu): **+31,1 điểm**. Toàn bộ 150 câu: **+9,3 �
 
 ### 2.9 Số liệu về phương pháp
 
-- **31** lần chạy đã niêm phong bằng hash, trong đó **16 lần VOID** (tỷ lệ **52%**)
+- **32** lần chạy có tệp kết quả `res_*.json`, trong đó **16 lần VOID** (tỷ lệ **50%**)
+- Trong số đó, **18** lần chạy có mục niêm phong hash trong `../docs/RESULT_SEALS.md`; công cụ niêm
+  phong chỉ ra đời từ vòng #166 nên các lần chạy trước đó không có niêm phong ghi trước khi đọc
 - Sổ theo dõi dự đoán trước: **21 đúng trên 43** lần
 - Tính tất định của greedy decoding: hai tài khoản khác nhau, hai ngày khác nhau, cùng cấu hình
   phần cứng cho kết quả **giống nhau trên toàn bộ 499 bài**
