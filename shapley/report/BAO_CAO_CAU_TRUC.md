@@ -144,6 +144,11 @@ Hai chuẩn kiểm chứng của nhóm được trình bày ở §7.
 
 ## §5. Kết quả (khoảng 8 trang)
 
+> **Khi viết phần này, dùng `MACH_DAN_DAT.md`.** Bố cục dưới đây chia theo thành phần khung
+> (`H`, `κ`, `D`), tiện cho việc **tra cứu**. Nhưng phần thân báo cáo nên viết theo **mạch dẫn dắt**:
+> mỗi thí nghiệm mở đầu bằng câu hỏi kế thừa từ thí nghiệm trước và kết thúc bằng câu hỏi để lại cho
+> thí nghiệm sau. Hai tài liệu chứa **cùng một tập số liệu**, chỉ khác cách sắp xếp.
+
 ### 5.1 Dư địa: bất đối xứng năng lực, không phải số lượng vai (khối nhóm)
 
 - Solver 1.5B kết hợp Verifier 7B: **+14,0 điểm** trên MATH, khoảng [+8,3; +20,0], nhất quán

@@ -12,6 +12,8 @@ Kết quả thí nghiệm nằm ở thư mục `../docs/`. Không nên dùng l�
 | `BAO_CAO_CAU_TRUC.md` | **Viết nội dung gì** — luận điểm chính, khung lý thuyết, bố cục 9 chương, danh sách hình | Đọc mục §0 trước tiên (khoảng một trang) |
 | `HUONG_DAN_CONG_TAC.md` | **Được phép trích dẫn số liệu nào** — ba mức độ tin cậy, bảng số liệu đã chốt, các phát biểu cần tránh | Trước khi viết con số đầu tiên |
 | `QUY_TRINH_VIET_BAO_CAO.md` | **Thực hiện theo trình tự nào** — bảy bước, phân công song song, đường găng | Khi bắt đầu viết |
+| `MACH_DAN_DAT.md` | **Các thí nghiệm dẫn tới nhau như thế nào** — mạch 10 bước, dùng khi viết phần thân theo dạng survey | Trước khi viết §5 |
+| `CAU_HOI_THAO_LUAN.md` | **Những gì cả nhóm cần thống nhất** — 11 câu hỏi chia ba nhóm, kèm mức độ ưu tiên | Bước 0 và trong lúc viết |
 | `BAO_CAO.md` | Bản thảo báo cáo | Chưa tồn tại; Bước 1 của quy trình sẽ tạo |
 
 ---
@@ -19,8 +21,10 @@ Kết quả thí nghiệm nằm ở thư mục `../docs/`. Không nên dùng l�
 ## Cách bắt đầu
 
 1. Đọc mục **§0 của `BAO_CAO_CAU_TRUC.md`** — luận điểm chính của toàn bộ báo cáo.
-2. Đọc **Bước 0 của `QUY_TRINH_VIET_BAO_CAO.md`** — phần việc cả nhóm cần thống nhất trước khi
+2. Đọc **`MACH_DAN_DAT.md`** — mạch dẫn dắt giữa các thí nghiệm, tức nội dung chính của phần thân.
+3. Đọc **Bước 0 của `QUY_TRINH_VIET_BAO_CAO.md`** — phần việc cả nhóm cần thống nhất trước khi
    bất kỳ ai bắt đầu viết.
+4. Xem **`CAU_HOI_THAO_LUAN.md`**, trả lời trước hai câu **A1** và **B1**.
 
 Hoàn thành hai mục trên là có thể bắt đầu.
 
@@ -46,7 +50,7 @@ nội dung đáng chú ý nhất của báo cáo:
 | | `report/` (thư mục này) | `../docs/` |
 |---|---|---|
 | Nội dung | Hướng dẫn viết báo cáo | Tài liệu kết quả thí nghiệm |
-| Số lượng tệp | 4 (kể cả bản thảo) | 39 |
+| Số lượng tệp | 6 (kể cả bản thảo) | 39 |
 | Người biên soạn | Nguyên | Cả nhóm |
 | Trích số liệu từ đây | Không. Số liệu nằm ở `../docs/` và `../results_*/` | Có, theo đúng mức độ tin cậy tương ứng |
 

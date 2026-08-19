@@ -14,6 +14,9 @@ Nếu chỉ đọc được một mục trước khi bắt đầu, nên đọc *
 - [ ] Cả ba thành viên đọc **mục 1, 2, 3 của `HUONG_DAN_CONG_TAC.md`** (mức tin cậy, bảng số liệu
       đã chốt, các phát biểu cần tránh).
 - [ ] Thống nhất **một câu luận điểm** và ghi vào đầu bản thảo. Mọi chương sau đó phải phục vụ câu này.
+- [ ] Đọc `MACH_DAN_DAT.md` để nắm thứ tự phát sinh của các thí nghiệm.
+- [ ] Trả lời ba câu **C3**, **B3**, **B4** trong `CAU_HOI_THAO_LUAN.md` (hai chuẩn kiểm chứng, cách
+      đặt tên hai giao thức, phạm vi khẳng định). Ba câu này ảnh hưởng tới toàn bộ cách viết.
 - [ ] Xác nhận ngôn ngữ nộp bài là tiếng Việt. Nếu yêu cầu nộp bằng tiếng Anh, việc dịch nên thực
       hiện **sau khi** nội dung đã hoàn chỉnh, không dịch song song với quá trình viết.
 
