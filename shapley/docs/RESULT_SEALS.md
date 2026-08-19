@@ -138,3 +138,12 @@
 | `partial_H94c.json` | 2375759 | `f660f6b790b83851ef5c8004cb0c6fdf33ea84b805b864a42f3fbc0c6ca28777` |
 | `res_H94c.json` | 1473 | `ed9b00ee5ec810855ebc3ebdff65d8815879fde735ab3baf21c3086f8483574c` |
 | `traces_H94c.json` | 2380891 | `854ed4e67e5d4a3f2c1fdf947e07c66b11814ee0c025e201e63b60d168c449bc` |
+
+### `results_H94d` — niêm phong 2026-08-19 08:39:45 +0700
+
+| tệp | bytes | sha256 |
+|---|---|---|
+| `exposure-math-h94d.log` | 403675 | `3b9268c1e639755823365803d5d2d512f92c34b7f04b1fd587ac390849a4c235` |
+| `partial_H94d.json` | 2375759 | `346305c436f0dbf8f03bf6855411ce40f6414e586a39c00b7b90bd0e0690355d` |
+| `res_H94d.json` | 1610 | `600cb262b61c82a6e602e4261bcf76108529ddee032376502ceae0fac3177200` |
+| `traces_H94d.json` | 2380891 | `854ed4e67e5d4a3f2c1fdf947e07c66b11814ee0c025e201e63b60d168c449bc` |
