@@ -7926,3 +7926,44 @@ Bổ sung cả ba.
 
 ### Tiên nghiệm
 Cổng không đạt ⇒ **không cập nhật**. Vẫn **21/42**.
+
+---
+
+## Vòng #199 — H100d: **ERROR ở ô CUỐI CÙNG** (5/6 xong). Không đọc `Δ_honest`.
+
+```
+[15121s] Q:R2  acc_V=.5351   (xong)
+[17274s] R:R0  acc_V=.5130   (xong)
+[17279s] R:R2  ban sao 1: gpu0 3.62 GB
+[17897s] torch.OutOfMemoryError: cap phat 840 MiB; GPU 1 chi con 628 MiB   <- GIUA LUC SINH
+[19195s] TypeError: 'NoneType' object is not iterable                       <- loi THU CAP che loi that
+```
+
+Bốn nhánh nền + **5/6 ô giao thức** đã xong. Thiếu đúng **`R:R2`**.
+
+### Tôi **không** tính `Δ_honest` từ 2/3 cặp
+Cám dỗ rõ ràng: hai cặp đã đủ dữ liệu, cứ đọc thôi. **Không.** Bảng khoá #111 phán theo
+**≥ 2/3 cặp**; đọc với **mẫu số 2** là **đổi luật quyết định sau khi biết ô nào hỏng**.
+Và luật #28 vừa đặt ba vòng trước là để chặn đúng chuyện này. Cổng cũng **chưa hề được đánh giá**
+(kernel chết trước phần phân tích, không có `res_H100d.json`).
+
+### Nguyên nhân — và nó là **lỗi thiết kế của tôi, không phải xui**
+`R2` nhét **CẢ HAI** lời giải vào lời nhắc (bản của chính `I` **và** ứng viên của `S`) ⇒ chuỗi vào
+**dài gấp đôi** `R0` ⇒ KV cache gấp đôi. Tôi để **cùng một `bs`** cho cả hai giao thức.
+Năm ô đầu lọt vì chúng ngắn hơn hoặc model nhỏ hơn; ô cuối thì không.
+**Sửa:** `bs = 4` riêng cho `R2` (`R0` giữ 8).
+
+### Lỗi thứ hai: thông báo lỗi **che mất** nguyên nhân
+Luồng ném OOM ⇒ `res[d]` vẫn là `None` ⇒ chỗ gộp sau đó báo *"NoneType object is not iterable"*.
+Nếu chỉ nhìn dòng cuối thì sẽ đi chẩn đoán nhầm hoàn toàn. **Sửa:** bắt lỗi trong luồng, gom vào
+`errs`, và **ném lại nguyên nhân THẬT** trước khi tới chỗ gộp.
+
+### Lãng phí đã biết trước và tôi vẫn chưa chặn
+Chạy lại sẽ **sinh lại y hệt** 4 nhánh nền + 5 ô (tất định — #196, và lần này base arms **trùng khớp
+lần thứ ba**: `dscoder` .5872 · `qwen7b` .6373 · `llama8b` .5050). Đó là **~4.8 giờ GPU** để tạo lại
+dữ liệu **đã có sẵn** trong `partial_H100d.json`.
+Đường **nạp lại từ `partial`** tôi ghi ở #196 vẫn chưa làm — và đây là lần thứ hai nó tốn tiền.
+**Ghi rõ: món nợ kỹ thuật này đã tính lãi hai lần.**
+
+### Tiên nghiệm
+Lỗi hạ tầng ⇒ **21/42** giữ nguyên.

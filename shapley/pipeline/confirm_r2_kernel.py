@@ -183,12 +183,19 @@ def gen_dp(path, sysm, usrs, bs=8):
     res, models = [None]*NG, [None]*NG
     models[0] = _m0; _m0 = None
     for d in range(1, NG): models[d] = load_on(path, d)
+    errs = []
     def work(d):
-        mo, tk = models[d]
-        res[d] = _gen_one(mo, tk, sysm, parts[d], bs, f"gpu{d}")
+        try:
+            mo, tk = models[d]
+            res[d] = _gen_one(mo, tk, sysm, parts[d], bs, f"gpu{d}")
+        except BaseException as e:      # #199: luong nem loi thi res[d] van None, va cho gep sau do
+            import traceback; traceback.print_exc()   # bao "NoneType khong lap duoc" — che nguyen nhan
+            errs.append(e)
     th = [threading.Thread(target=work, args=(d,)) for d in range(NG)]
     for t in th: t.start()
     for t in th: t.join()
+    if errs:
+        raise RuntimeError(f"luong sinh that bai: {type(errs[0]).__name__}: {errs[0]}") from errs[0]
     out = [None]*len(usrs)
     for d in range(NG):
         for j, v in enumerate(res[d]): out[d + j*NG] = v
@@ -235,7 +242,9 @@ for pk, (s, i) in PAIRS.items():
         else:
             up = [f"{PR[k]}\n\nCandidate solution:\n```python\n{extract(RAW[s][k])}\n```"
                   for k in range(N)]
-        RAW[key] = gen_dp(M[i], sysm, up)
+        # #199: R2 nhet CA HAI loi giai vao loi nhac => chuoi vao dai gap doi R0 => KV cache gap doi.
+        # H100d chet OOM GIUA LUC SINH o o cuoi cung (R:R2). Ha lo rieng cho R2.
+        RAW[key] = gen_dp(M[i], sysm, up, bs=4 if rk == "R2" else 8)
         PASS[key] = par(official, [(ALL[k], extract(RAW[key][k])) for k in range(N)])
         print(f"  {key}: acc_V={sum(PASS[key])/N:.4f} ({time.time()-t0:.0f}s)", flush=True)
         save_partial()
