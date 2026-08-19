@@ -13,27 +13,35 @@ phần thân báo cáo.
 
 ```
 [1] Pipeline đa tác tử có giúp không?
-      ↓ có, +5,6đ — NHƯNG pipeline tốn gấp 3 lần token. So sánh chưa công bằng.
+      ↓ GSM8K +11,2đ (2,9× ký tự) nhưng MATH −6,0đ (6,63× ký tự). Chưa kiểm soát ngân sách.
 [2] Cùng ngân sách token thì sao?
-      ↓ bỏ phiếu cơ học THẮNG aggregator LLM. Giá trị nằm ở SỐ LƯỢT SINH, không ở vai trò.
+      ↓ thành phần tổng hợp LLM không ổn định: thắng ở GSM8K, thua đậm ở MATH
 [3] Có phải nhờ phản hồi của verifier không?
       ↓ không: giải lại KHÔNG xem phê bình cho kết quả y hệt
 [4] Vậy aggregator LLM thực sự làm gì?
       ↓ chép ứng viên cuối 65% số câu; phá đa số 26 lần, sửa đa số 0 lần
-[5] Vai nào thực sự đóng góp?
-      ↓ verifier, phụ thuộc CỠ. Nhưng so cùng token với model mạnh đơn lẻ thì chỉ HOÀ.
-[6] Phối hợp có xứng chi phí không?
+[5] Có phải đang đo sai MẪU SỐ?
+      ↓ ĐÚNG: 57% số câu bất động. Hiệu ứng thật +31,1đ trên 30% câu, pha loãng 3,3× còn +9,3đ
+[6] Các vai có thực sự chuyên biệt không?
+      ↓ ở 1.5B thì KHÔNG: planner giải hộ, solver chép lại (lời giải dài 19 ký tự)
+[7] Vai nào thực sự đóng góp?
+      ↓ verifier, phụ thuộc CỠ (43:1 so với 2,5:1). Nhưng cùng token thì chỉ HOÀ với model mạnh
+[8] Phối hợp có xứng chi phí không?
       ↓ có trên GSM8K, không trên MATH — vì sao khác nhau?
-[7] Đang so với baseline nào?
+[9] Đang so với baseline nào?
       ↓ đổi mốc từ model yếu sang model mạnh → DẤU ĐẢO NGƯỢC
-[8] Giá trị mất đi ở đâu?
+[10] Giá trị mất đi ở đâu?
       ↓ đẳng thức Δ_ceil = A − B + C tách được ba nguồn
-[9] Số hạng A do đâu quyết định?      → chênh lệch năng lực, không phải họ model
-[10] Số hạng B do đâu mà có?          → tiếp xúc với nội dung SAI
-[11] Quy luật có tổng quát không?     → chuyển được sang miền toán
-[12] Có chặn được B không?            → trần chỉ +0,018
+[11] Số hạng A do đâu quyết định?     → chênh lệch năng lực, không phải họ model
+[12] Số hạng B do đâu mà có?          → tiếp xúc với nội dung SAI
+[13] Quy luật có tổng quát không?     → chuyển được sang miền toán
+[14] Có chặn được B không?            → trần chỉ +0,018
       ↓
-[13] Nghịch lý giữa [5] và [11] được giải bằng [8]
+[15] Nghịch lý giữa [7] và [13] được giải bằng [10]
+
+BA KIỂM SOÁT phải đi cùng nhau:
+   ngân sách token [2] · mẫu số [5] · mốc so sánh [9]
+   thiếu [5] thì đánh giá THẤP; thiếu [2] và [9] thì đánh giá CAO
 ```
 
 ---
@@ -42,8 +50,15 @@ phần thân báo cáo.
 
 **Câu hỏi.** Ghép nhiều vai LLM (planner, solver, verifier, aggregator) có tốt hơn một model đơn lẻ không?
 
-**Kết quả ban đầu.** Có: pipeline đầy đủ so với solver đơn lẻ đạt **+5,6 điểm** trên GSM8K, nhất
-quán 5/5 fold.
+**Kết quả ban đầu, và nó phụ thuộc task:**
+
+| Task | Solver đơn lẻ | Pipeline đầy đủ | Chênh | Chi phí ký tự |
+|---|---|---|---|---|
+| GSM8K 1.5B | 0,632 | 0,744 | **+0,112** | 2,9× |
+| MATH 1.5B | 0,405 | 0,345 | **−0,060** | **6,63×** |
+
+Trên GSM8K pipeline có lợi; trên MATH nó **tốn 6,63 lần số ký tự để cho kết quả kém hơn 6 điểm**.
+(Phép đo 5 fold trên GSM8K cho +5,6 điểm, thấp hơn con số đo một lần ở trên.)
 
 **Hai lý do khiến kết quả này chưa đủ để kết luận.**
 
@@ -61,7 +76,7 @@ bỏ phiếu không?**
 
 ---
 
-## [2] Đối chứng cùng ngân sách: bỏ phiếu cơ học thắng aggregator LLM
+## [2] Đối chứng cùng ngân sách: thành phần tổng hợp LLM không ổn định
 
 **Thiết kế.** Cố định số lượt sinh, chỉ thay đổi cách tổng hợp. Với `K` = 8 lượt sinh trên MATH:
 
@@ -459,15 +474,15 @@ Thêm vào đó, hai lần thử tìm tín hiệu cổng khả thi đều bị c
 
 ---
 
-## [15] Khép mạch: nghịch lý giữa [2] và [8]
+## [15] Khép mạch: nghịch lý giữa [7] và [13]
 
-**Nghịch lý.** [2] nói chênh lệch năng lực lớn mang lại +14,0 điểm. [8] nói chênh lệch năng lực lớn
-làm `Δ_ceil` âm. Cùng một biến, hai dấu ngược nhau.
+**Nghịch lý.** [7] nói chênh lệch năng lực lớn mang lại +14,0 điểm so với model yếu. [13] nói chênh
+lệch năng lực lớn làm `Δ_ceil` âm. Cùng một biến, hai dấu ngược nhau.
 
-**Cách giải, dùng công cụ ở [5].** Hai kết quả dùng hai giao thức khác nhau:
+**Cách giải, dùng công cụ ở [10].** Hai kết quả dùng hai giao thức khác nhau:
 
-- Verifier ở [2] là giao thức **tuyển chọn**: 43 sửa đúng, 1 làm hỏng ⇒ `B ≈ 0`.
-- `V` ở [8] là giao thức **sửa chữa**: phải trả `B` theo cấu trúc, và `B` tăng theo chênh lệch.
+- Verifier ở [7] là giao thức **tuyển chọn**: 43 sửa đúng, 1 làm hỏng ⇒ `B ≈ 0`.
+- `V` ở [13] là giao thức **sửa chữa**: phải trả `B` theo cấu trúc, và `B` tăng theo chênh lệch.
 
 Chênh lệch năng lực làm tăng **cả** `A` **lẫn** `B`. Kết quả cuối cùng do giao thức quyết định:
 
