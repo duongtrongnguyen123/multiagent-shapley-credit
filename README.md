@@ -141,9 +141,37 @@ chi goi model manh mot luot                                        = .6413
    **giải lại từ đầu** hơn cho nó **sửa** khoảng **+.09**. Cùng ngân sách, cùng bài; khác
    **duy nhất** ở chỗ model mạnh **có nhìn thấy** bản của model yếu hay không.
 
-> **Vấn đề không phải model mạnh ĐƯỢC PHÉP ghi đè — mà là nó NHÌN THẤY.**
+> **Vấn đề không phải model mạnh ĐƯỢC PHÉP ghi đè — mà là nó NHÌN THẤY thứ SAI.**
 > Việc nhìn thấy làm hỏng nó **đúng ở những bài model yếu đã sai**, tức đúng chỗ ta cần nó nhất.
 > Cổng vô dụng vì cổng điều khiển *ghi đè*, không điều khiển *nhìn thấy*.
+>
+> ### ✅ #197 — XÁC NHẬN ĐĂNG-KÝ-TRƯỚC, và trên MIỀN KHÁC (toán)
+>
+> Tách theo **nội dung** của artifact, cùng lệnh giải, khác **duy nhất** ngữ cảnh thêm
+> (mọi cổng đạt; cắt cụt ≤ .030 cả ba nhánh):
+>
+> | model mạnh làm được bao nhiêu... | không thấy gì | **thấy bản của model yếu** | chênh |
+> |---|---|---|---|
+> | ...trên bài model yếu làm **ĐÚNG** (n=239) | 95.4% | **99.2%** | **+.0377** (p .012) |
+> | ...trên bài model yếu làm **SAI** (n=261) | 46.4% | **19.2%** | **−.2720** (p ~0) |
+>
+> ⇒ **`D` không phải hình phạt của việc THẤY. Nó là hình phạt của việc thấy thứ SAI.**
+> Thấy lời giải **đúng** thì model mạnh **khá lên** — ở cả ba lần đo, hai miền.
+> Thấy lời giải **sai** thì nó **sụp**: trên toán, từ **46.4% xuống 19.2%** trên chính những bài
+> nó vốn làm được gần một nửa.
+>
+> | | MBPP 11–510 | MBPP 511–974 | **MATH-500** |
+> |---|---|---|---|
+> | artifact **SAI** | −.1900 | −.1927 | **−.2720** |
+> | artifact **ĐÚNG** | +.0636 | +.0245 | **+.0377** |
+>
+> **Trạng thái bằng chứng:** một **xác nhận đăng ký trước** (MATH, bảng khoá commit trước khi chạy)
+> cộng hai phân rã **hậu nghiệm** (MBPP). Vì đổi **miền**, đây là bằng chứng độc lập — không phải
+> chạy lại cùng cấu hình.
+>
+> **Hệ quả triển khai, và nó KHÔNG cần oracle:** đừng đưa artifact vào khi nó **có khả năng sai**.
+> Đó là một **cổng định tuyến** dựa trên tín hiệu tin cậy, **không phải** một lời nhắc khéo hơn.
+> ⚠️ Việc tìm tín hiệu ấy **vẫn chưa làm được** — xem phần hạn chế.
 
 **Đã kiểm xong (#149): chỉ NHÌN THẤY là đủ, KHÔNG cần lệnh sửa.**
 Mọi phép đo đầu độc trước nay đều kèm lệnh *"review/fix"*, nên *nhìn thấy* và *được lệnh ghi đè*
