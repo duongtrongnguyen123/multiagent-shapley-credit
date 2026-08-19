@@ -8041,3 +8041,51 @@ so với sai trong nhật ký của chính mình.
 Bảng *"đừng viết / hãy viết"*: không "khác họ" (rút ở #182) · không "chênh nhỏ thì sửa **thắng**"
 (chiều khẳng định chưa xác lập) · không "cổng định tuyến là lời giải" (trần chỉ **+.018**) ·
 không trích bất kỳ số nào từ 16 lần chạy VOID.
+
+---
+
+## Vòng #202 — H99b (#112): **HÀNG 2 — luật CHUYỂN ĐƯỢC sang toán.** Tiên nghiệm của tôi SAI
+
+`results_H99b` niêm phong trước khi mở. **Mọi cổng đạt, `VOID` rỗng, 3/3 cặp hợp lệ**, đẳng thức
+`A − B + C` khớp tuyệt đối. `\boxed` ≥ **.986 mọi nhánh kể cả NỀN** (vá đúng lỗ hổng #198),
+giãn **< .05**. `MAXNEW` = 3072 đủ.
+
+| cặp | chênh | `A` | `B` | `C` | `Δ_ceil` | KTC 95% | MBPP dự báo | kết cục |
+|---|---|---|---|---|---|---|---|---|
+| 7B→14B | .044 | .048 | .072 | .010 | −.0140 | [−.046, +.018] | **+.0108** | dự báo **TRONG** KTC |
+| 1.5B→7B | .244 | .020 | **.208** | .022 | **−.1660** | [−.208, −.124] | −.0361 | **THẤP hơn** |
+| 1.5B→14B | .288 | .012 | .114 | .034 | −.0680 | [−.102, −.034] | **−.0471** | dự báo **TRONG** KTC |
+
+**2/3 dự báo nằm trong KTC ⇒ HÀNG 2: luật CHUYỂN ĐƯỢC.**
+Đường khớp **trên MBPP** dự báo được `Δ_ceil` **trên MATH** ở 2/3 cặp ⇒ `Δ_ceil ≈ +.0218 − .2392·chênh`
+là **luật về GIAO THỨC**, không phải luật về **code**.
+
+### Tiên nghiệm của tôi SAI, và sai theo hướng đáng ghi
+Tôi đặt **hàng 1 = 55%** (luật **không** chuyển), hàng 2 chỉ **20%**. Lý do khi ấy: điểm H88f nằm
+**thấp hơn dự báo .102**. **Prior sai. 21/43.**
+Điều tôi suy sai: tôi lấy **một** cặp lệch mạnh rồi kết luận **cả miền** lệch. Thực tế cặp đó là
+**ngoại lệ**, còn hai cặp kia khớp.
+
+### Nhưng hàng 2 ở đây **một phần do THIẾU LỰC** — phải nói ra
+| cặp | KTC rộng | dự báo lệch tâm bao nhiêu |
+|---|---|---|
+| 7B→14B | .064 | **77.5%** bán kính — sát mép |
+| 1.5B→14B | .068 | 61.5% bán kính |
+| 1.5B→7B | .084 | **309%** — ngoài hẳn |
+
+KTC rộng **.064–.084** trong khi hiệu ứng cỡ **.01–.17** ⇒ phép thử *"dự báo nằm trong KTC"*
+**dễ dãi**: với cặp 7B→14B thì gần như mọi dự báo trong khoảng [−.046, +.018] đều "đạt".
+⇒ **Hàng 2 nghĩa là "không bác được luật", KHÔNG phải "đã xác nhận luật".** Phân biệt này quan trọng.
+
+### Cặp lệch là cặp `B` lớn nhất — và nó tái lập H88f
+1.5B→7B: `B` = **.2080**, lớn nhất trong ba cặp và gấp **10 lần** `A` = .0200.
+So với H88f (cùng cặp, `MAXNEW` khác, lời nhắc `V` khác): **−.1380** so với **−.1660** lần này —
+**cùng hướng, cùng cỡ, và cả hai đều thấp hơn dự báo rất nhiều.**
+⇒ H88f **không** phải nhiễu; cặp 1.5B→7B trên toán **thật sự** lệch khỏi luật. Luật mô tả **xu hướng
+trung bình**, và **có ngoại lệ hệ thống ở nơi model yếu quá yếu so với bài** (`B` phình).
+
+### Hệ quả cho báo cáo — theo đúng Bước 6 của quy trình
+Hàng 2 ⇒ **§5.5 mạnh lên** (luật có bằng chứng liên miền), **§6 thêm một dòng bằng chứng**.
+**KHÔNG** phải thu hẹp luật thành "trên code" — đó là kịch bản hàng 1/hàng 4, đã không xảy ra.
+Nhưng **bắt buộc** kèm hai cảnh báo: (a) 2/3 với KTC rộng = *không bác được*, không phải *xác nhận*;
+(b) có **ngoại lệ hệ thống** ở cặp `B` lớn.
