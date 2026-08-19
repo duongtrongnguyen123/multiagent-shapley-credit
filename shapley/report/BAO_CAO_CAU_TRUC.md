@@ -19,12 +19,24 @@ kết luận:
 > **Chênh lệch năng lực giữa hai model tạo ra cơ hội cải thiện; giao thức phối hợp quyết định
 > cơ hội đó được khai thác hay bị phá huỷ.**
 
-Bằng chứng đến từ hai hướng **ngược dấu nhau**, và chính sự ngược dấu này là nội dung đáng chú ý nhất:
+Luận điểm này chỉ đứng được sau **hai phép kiểm soát** mà phần lớn công trình trong lĩnh vực
+không thực hiện:
+
+**Kiểm soát 1 — cùng ngân sách token.** Pipeline nhiều vai tốn gấp ba lần solver đơn lẻ. Khi cố định
+số lượt sinh và chỉ thay đổi cách tổng hợp, bỏ phiếu cơ học **thắng** aggregator LLM: trên MATH với
+8 lượt sinh, `maj@8` đạt 0,60 (1.5B) và 0,73 (7B), trong khi `llm_agg@8` chỉ đạt 0,41 và 0,47.
+Aggregator LLM phá vỡ đa số đúng **26 lần** và sửa được đa số sai **0 lần** (7B).
+
+**Kiểm soát 2 — đúng mốc so sánh.** Kết quả +14,0 điểm của cấu hình bất đối xứng được đo so với
+model **yếu**. So với model **mạnh chạy một mình** ở ngân sách token thấp hơn, cấu hình đó kém 10
+điểm trên GSM8K và hoà trên MATH.
+
+Sau hai kiểm soát này, phần giá trị còn lại rất nhỏ, và câu hỏi trở thành: **giá trị mất đi đâu?**
 
 | Khi chênh lệch năng lực tăng | Kết quả | Nguồn |
 |---|---|---|
-| Giao thức **tuyển chọn** (verifier) | Giá trị **tăng mạnh**: Solver 1.5B kết hợp Verifier 7B đạt **+14,0 điểm** trên MATH, nhất quán trên **5/5 fold**, sửa đúng 43 bài và làm hỏng 1 bài. Verifier **cùng cỡ** chỉ đạt +3,0 điểm với khoảng tin cậy chạm 0 | Khối nhóm (`../docs/RESULTS.md` §1a) |
-| Giao thức **sửa chữa** (repair) | Giá trị **giảm**: `Δ_ceil = +0,0218 − 0,2392 × chênh lệch`, p = 1e-05; đổi dấu tại `g*` = **0,091** | Khối Nguyên (H97) |
+| Giao thức **tuyển chọn** | Giá trị tăng: verifier lớn hơn cho **+14,0 điểm** so với model yếu, 5/5 fold, 43 sửa trên 1 phá | Khối nhóm |
+| Giao thức **sửa chữa** | Giá trị giảm: `Δ_ceil = +0,0218 − 0,2392 × chênh lệch`, p = 1e-05, đổi dấu tại `g*` = **0,091** | Khối Nguyên (H97) |
 
 Cùng một biến độc lập, hai dấu ngược nhau, khác biệt duy nhất nằm ở giao thức. Nguyên nhân được xác
 định qua đẳng thức phân rã:
@@ -33,10 +45,10 @@ Cùng một biến độc lập, hai dấu ngược nhau, khác biệt duy nhấ
 Δ_ceil = A − B + C        với  B = P(¬S ∧ I đúng ∧ V sai)
 ```
 
-`B` là phần thiệt hại do giao thức sửa chữa gây ra. Giao thức tuyển chọn có `B = 0` theo cấu trúc;
-giao thức sửa chữa luôn phải trả `B`. Nguồn gốc của `B` đã được đo và xác nhận qua tiền đăng ký trên
-hai miền: đó là thiệt hại do model mạnh **tiếp xúc với nội dung sai** (trên MATH: −0,2720; độ chính
-xác giảm từ 46,4% xuống 19,2%).
+`B` là phần thiệt hại do giao thức gây ra. Giao thức tuyển chọn có `B` gần bằng 0; giao thức sửa chữa
+luôn phải trả `B`. Nguồn gốc của `B` đã được đo và xác nhận qua tiền đăng ký trên hai miền: đó là
+thiệt hại do model mạnh **tiếp xúc với nội dung sai** (trên MATH: −0,2720; độ chính xác giảm từ
+46,4% xuống 19,2%). Con số "26 phá trên 0 sửa" ở Kiểm soát 1 chính là `B` quan sát trực tiếp.
 
 Toàn bộ chương §5 là các mảnh chứng minh cho luận điểm trên.
 

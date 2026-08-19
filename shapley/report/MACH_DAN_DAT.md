@@ -13,21 +13,27 @@ phần thân báo cáo.
 
 ```
 [1] Pipeline đa tác tử có giúp không?
-      ↓ có, +5,6đ — nhưng phần lớn cải thiện biến mất dưới sàn nhiễu
-[2] Vai nào thực sự đóng góp?
-      ↓ verifier; và hiệu ứng phụ thuộc CỠ verifier, không phụ thuộc việc có thêm vai
-[3] Phối hợp có xứng chi phí không?
+      ↓ có, +5,6đ — NHƯNG pipeline tốn gấp 3 lần token. So sánh chưa công bằng.
+[2] Cùng ngân sách token thì sao?
+      ↓ bỏ phiếu cơ học THẮNG aggregator LLM. Giá trị nằm ở SỐ LƯỢT SINH, không ở vai trò.
+[3] Có phải nhờ phản hồi của verifier không?
+      ↓ không: giải lại KHÔNG xem phê bình cho kết quả y hệt
+[4] Vậy aggregator LLM thực sự làm gì?
+      ↓ chép ứng viên cuối 65% số câu; phá đa số 26 lần, sửa đa số 0 lần
+[5] Vai nào thực sự đóng góp?
+      ↓ verifier, phụ thuộc CỠ. Nhưng so cùng token với model mạnh đơn lẻ thì chỉ HOÀ.
+[6] Phối hợp có xứng chi phí không?
       ↓ có trên GSM8K, không trên MATH — vì sao khác nhau?
-[4] Đang so với baseline nào?
+[7] Đang so với baseline nào?
       ↓ đổi mốc từ model yếu sang model mạnh → DẤU ĐẢO NGƯỢC
-[5] Giá trị mất đi ở đâu?
+[8] Giá trị mất đi ở đâu?
       ↓ đẳng thức Δ_ceil = A − B + C tách được ba nguồn
-[6] Số hạng A do đâu quyết định?      → chênh lệch năng lực, không phải họ model
-[7] Số hạng B do đâu mà có?           → tiếp xúc với nội dung SAI
-[8] Quy luật có tổng quát không?      → chuyển được sang miền toán
-[9] Có chặn được B không?             → trần chỉ +0,018
+[9] Số hạng A do đâu quyết định?      → chênh lệch năng lực, không phải họ model
+[10] Số hạng B do đâu mà có?          → tiếp xúc với nội dung SAI
+[11] Quy luật có tổng quát không?     → chuyển được sang miền toán
+[12] Có chặn được B không?            → trần chỉ +0,018
       ↓
-[10] Nghịch lý giữa [2] và [8] được giải bằng [5]
+[13] Nghịch lý giữa [5] và [11] được giải bằng [8]
 ```
 
 ---
@@ -36,18 +42,105 @@ phần thân báo cáo.
 
 **Câu hỏi.** Ghép nhiều vai LLM (planner, solver, verifier, aggregator) có tốt hơn một model đơn lẻ không?
 
-**Kết quả.** Có: pipeline đầy đủ so với solver đơn lẻ đạt **+5,6 điểm** trên GSM8K, nhất quán 5/5 fold.
+**Kết quả ban đầu.** Có: pipeline đầy đủ so với solver đơn lẻ đạt **+5,6 điểm** trên GSM8K, nhất
+quán 5/5 fold.
 
-**Nhưng một phép đo khác làm thay đổi cách đọc toàn bộ.** Chạy cùng một cấu hình trên 5 fold rời
-nhau cho `V_gain` dao động từ **+1,0 đến +8,0 điểm**. Sàn nhiễu 2σ tương đương **5 điểm**. Hệ quả:
-mọi hiệu ứng nhỏ hơn 5 điểm, đo một lần, không được tính là bằng chứng. Nhiều kết luận trước đó bị
-hạ cấp, trong đó có `A_gain` = +1,2 điểm với khoảng tin cậy chứa số 0.
+**Hai lý do khiến kết quả này chưa đủ để kết luận.**
 
-**Câu hỏi để lại:** trong bốn vai, vai nào thực sự đóng góp?
+Thứ nhất, sàn nhiễu. Chạy cùng một cấu hình trên 5 fold rời nhau cho `V_gain` dao động từ **+1,0 đến
++8,0 điểm**; sàn nhiễu 2σ tương đương **5 điểm**. Mọi hiệu ứng nhỏ hơn 5 điểm đo một lần không được
+tính là bằng chứng. Nhiều kết luận trước đó bị hạ cấp, trong đó có `A_gain` = +1,2 điểm với khoảng
+tin cậy chứa số 0.
+
+Thứ hai, và quan trọng hơn: **pipeline đầy đủ tốn gấp ba lần số token so với solver đơn lẻ.** So sánh
+một hệ 3× với một hệ 1× rồi kết luận "phối hợp có giá trị" là so sánh không công bằng. Câu hỏi đúng
+phải là: **với cùng ngân sách token, phối hợp nhiều vai có thắng việc sinh nhiều lượt độc lập rồi
+bỏ phiếu không?**
+
+**Câu hỏi để lại:** cùng ngân sách thì kết quả thế nào?
 
 ---
 
-## [2] Phân rã theo vai: hoá ra biến quyết định không phải vai
+## [2] Đối chứng cùng ngân sách: bỏ phiếu cơ học thắng aggregator LLM
+
+**Thiết kế.** Cố định số lượt sinh, chỉ thay đổi cách tổng hợp. Với `K` = 8 lượt sinh trên MATH:
+
+| Cách tổng hợp | MATH 1.5B | MATH 7B |
+|---|---|---|
+| Greedy, 1 lượt sinh | 0,50 | 0,72 |
+| **maj@8** — bỏ phiếu cơ học | **0,60** | **0,73** |
+| **llm_agg@8** — aggregator LLM đọc cả 8 rồi tổng hợp | **0,41** | **0,47** |
+| oracle@8 — trần lý tưởng | 0,73 | 0,85 |
+
+**Cùng chính xác 8 lượt sinh, cùng chi phí, khác duy nhất ở bộ tổng hợp.** Aggregator LLM kém hơn
+bỏ phiếu cơ học **0,19** trên 1.5B và **0,26** trên 7B. Trên 7B, aggregator LLM thậm chí còn **kém
+hơn cả greedy một lượt** (0,47 so với 0,72).
+
+Kết quả ở quy mô nhỏ hơn cũng cùng hướng: với 5 ứng viên, bỏ phiếu cơ học đạt **0,507** trong khi
+aggregator LLM đạt **0,460**.
+
+**Đây là phép đo trung tâm của báo cáo.** Nó cho thấy giá trị quan sát được ở [1] đến từ **việc sinh
+thêm lượt**, không từ việc bổ sung vai trò. Khi kiểm soát ngân sách, thành phần LLM làm nhiệm vụ
+tổng hợp không những không cộng thêm giá trị mà còn **trừ đi** một lượng lớn.
+
+**Câu hỏi để lại:** liệu lợi ích có đến từ phản hồi của verifier không, hay chỉ từ lượt sinh thêm?
+
+---
+
+## [3] Tách phản hồi khỏi lượt sinh thêm
+
+**Thiết kế.** So sánh hai nhánh có **cùng số lượt sinh**:
+
+- `loop` — solver giải lại **sau khi đọc phê bình** của verifier
+- `rerun` — solver giải lại **vô điều kiện, không hề thấy phê bình**
+
+| Nhánh | Độ chính xác | Δ so với solver | Fold cùng dấu |
+|---|---|---|---|
+| Solver một mình | 0,413 | — | — |
+| `loop` (giải lại kèm phê bình) | **0,453** | +0,040 | 4/5 |
+| `rerun` (giải lại, không phê bình) | **0,453** | +0,040 | 3/5 |
+
+**Hai nhánh bằng nhau chính xác.** Lợi ích không đến từ nội dung phản hồi của verifier; nó đến từ
+việc model được sinh thêm một lượt.
+
+Ghi chú thêm: con số +20 điểm cho `loop` từng được báo cáo ở một phép đo đơn lẻ (n = 100) không tái
+lập được — trên 5 fold chỉ còn +4,0 điểm, dưới sàn nhiễu.
+
+**Nếu không có nhánh đối chứng `rerun`, kết luận sẽ là "refinement dựa trên phản hồi có tác dụng",
+và kết luận đó sai.** Đây là ví dụ điển hình cho vai trò của nhánh đối chứng.
+
+**Câu hỏi để lại:** vậy aggregator LLM thực sự làm gì với các ứng viên?
+
+---
+
+## [4] Cơ chế: aggregator không chọn, nó chép ứng viên cuối
+
+**Số liệu.**
+
+- `agg5_copies_last` = **0,653**: ngay cả khi có 5 ứng viên, aggregator chép nguyên ứng viên **cuối
+  cùng** ở 65% số câu. Với 2 ứng viên, tỷ lệ này là 0,747.
+- Số đáp án khác nhau trung bình: **2,88 trên 5** — tức có đủ đa dạng để việc bỏ phiếu là có nghĩa.
+- Trong thí nghiệm 8 lượt sinh: aggregator **phá vỡ đa số đúng 21 lần** (1.5B) và **26 lần** (7B),
+  trong khi **sửa được đa số sai chỉ 2 lần** và **0 lần**.
+
+**Tỷ lệ 26 phá trên 0 sửa là dạng thuần khiết nhất của số hạng `B`** sẽ được định nghĩa hình thức ở
+[8]. Ở đây `B` được quan sát trực tiếp, không cần suy diễn: thành phần LLM phá huỷ những câu trả lời
+mà cơ chế bỏ phiếu đã chọn đúng.
+
+Nguyên nhân là **thiên lệch vị trí**: aggregator không thực hiện việc chọn, nó lấy nội dung đọc sau
+cùng.
+
+**Một điều chỉnh cần ghi nhận.** Aggregator từng bị cấu hình sai: với 2 ứng viên thì khái niệm "đa số"
+không tồn tại. Khi tăng lên 3 ứng viên, hiệu ứng chuyển từ −0,007 thành **+0,053**, đạt 5/5 fold —
+hiệu ứng dương duy nhất đạt 5/5 trong nhóm thí nghiệm đó. Tuy nhiên bỏ phiếu cơ học vẫn thắng
+(**+0,093** so với +0,047). Aggregator LLM sau khi sửa cấu hình vẫn không đóng góp gì ngoài việc
+đếm phiếu, và vẫn làm kém đi.
+
+**Câu hỏi để lại:** nếu aggregator không đóng góp, vai nào đóng góp?
+
+---
+
+## [5] Phân rã theo vai: hoá ra biến quyết định không phải vai
 
 **Câu hỏi.** Dùng giá trị Shapley để tính đóng góp biên của từng vai.
 
@@ -64,11 +157,38 @@ Verifier 7B sửa đúng **43 bài** và làm hỏng **1 bài** trên 300 bài.
 **Đây là lần đầu khái niệm bất đối xứng năng lực xuất hiện trong dự án**, và nó đến từ phía phân
 tích vai, hoàn toàn độc lập với nhánh nghiên cứu sau này.
 
-**Câu hỏi để lại:** nếu phối hợp có giá trị, giá trị đó có bù được chi phí tính toán không?
+### Nhưng con số +14,0 được đo so với model YẾU
+
+Cấu hình `S1.5B + V7B` đã dùng một model 7B. Vậy câu hỏi công bằng là: nó có hơn việc **chỉ dùng
+7B** hay không? Số liệu token thật, đo trên 5 fold:
+
+| Cấu hình | GSM8K | MATH | Token GSM8K | Token MATH |
+|---|---|---|---|---|
+| S1.5B + V7B | 0,810 | 0,563 | 105k | 119k |
+| **S7B một mình** | **0,910** | **0,593** | 120k | 152k |
+| S7B + V7B | 0,900 | 0,670 | 205k | 261k |
+
+- Trên **GSM8K**: cấu hình bất đối xứng **kém hơn 10 điểm** so với chỉ dùng 7B, dù rẻ hơn 12% token.
+- Trên **MATH**: kém hơn 3 điểm, ngang bằng về mặt thống kê, và rẻ hơn **22%** token.
+
+**Phát biểu đúng: cấu hình bất đối xứng là một lựa chọn TIẾT KIỆM CHI PHÍ, không phải một cải thiện
+độ chính xác.** Lợi ích +14,0 chỉ tồn tại khi so với model yếu; so với model mạnh chạy một mình ở
+ngân sách token thấp hơn, nó hoà hoặc kém.
+
+Một quan sát riêng: thêm verifier vào chính S7B trên MATH cho **+7,7 điểm** (0,593 → 0,670), nhưng
+tốn **1,7 lần** token. Đây là cải thiện thật, kèm chi phí thật.
+
+**Phân tích Pareto khẳng định lại điều này.** Trên cả hai task, **solver một mình nằm trên đường
+Pareto** — không có tổ hợp nào vừa rẻ hơn vừa chính xác hơn. Trên MATH, **pipeline đầy đủ không nằm
+trên đường Pareto**: nó bị chi phối bởi phương án chỉ dùng solver (chi phí 1, độ chính xác 0,436 so
+với 0,373 của pipeline đầy đủ).
+
+**Câu hỏi để lại:** nếu ngay cả cấu hình tốt nhất cũng chỉ hoà với model mạnh đơn lẻ, thì suốt thời
+gian qua các phép đo đang so với baseline nào?
 
 ---
 
-## [3] Chi phí: phối hợp chỉ trả tiền ở nơi ít cần nó nhất
+## [6] Chi phí: phối hợp chỉ trả tiền ở nơi ít cần nó nhất
 
 **Câu hỏi.** Pipeline đầy đủ tốn gấp ba lần solver đơn lẻ. Có cách nào giữ phần lớn lợi ích với chi
 phí thấp hơn không?
@@ -94,11 +214,16 @@ GSM8K nhưng chỉ **25,0%** trên MATH.
 
 ---
 
-## [4] Bước ngoặt: đang so với baseline nào?
+## [7] Bước ngoặt: đang so với baseline nào?
 
-**Quan sát.** Toàn bộ các phép đo ở [1]–[3] đều so với **model yếu** hoặc với solver đơn lẻ. Nhưng
+**Quan sát.** Toàn bộ các phép đo ở [1]–[6] đều so với **model yếu** hoặc với solver đơn lẻ. Nhưng
 nếu pipeline đã chứa một model mạnh, thì lựa chọn thực tế của người triển khai là: chạy pipeline,
 hay **gọi thẳng model mạnh**?
+
+Bảng token ở [5] đã cho thấy vấn đề này một lần: cấu hình bất đối xứng thắng đậm khi so với model
+yếu, nhưng hoà hoặc kém khi so với model mạnh đơn lẻ. **Đây không phải hiện tượng riêng của một
+cấu hình — đó là hệ quả của việc chọn sai mốc so sánh, và nó lặp lại ở mọi nhánh nghiên cứu của
+dự án.**
 
 **Đại lượng đúng là `V − I`, không phải `V − S`.**
 
@@ -112,7 +237,7 @@ cứu tiếp theo.
 
 ---
 
-## [5] Công cụ: đẳng thức phân rã
+## [8] Công cụ: đẳng thức phân rã
 
 Để trả lời "mất ở đâu", cần một cách tách giá trị thành các phần đo được. Với `S` là model yếu,
 `I` là model mạnh, `V` là kết quả khi `I` sửa artifact của `S`, và trần lý tưởng
@@ -135,7 +260,7 @@ Từ đây mọi câu hỏi đều có dạng: **số hạng nào đang gây ra 
 
 ---
 
-## [6] Số hạng A: một tương quan giả bị phát hiện
+## [9] Số hạng A: một tương quan giả bị phát hiện
 
 **Giả thuyết ban đầu.** Quan sát trên 7 cặp cho thấy cặp **khác họ model** có `A` cao gần gấp đôi
 cặp cùng họ (0,0597 so với 0,0481). Giả thuyết: đa dạng họ model tạo ra dư địa.
@@ -163,7 +288,7 @@ luận: **biến quyết định là chênh lệch năng lực, không phải c�
 
 ---
 
-## [7] Số hạng B: thiệt hại đến từ nội dung sai, không từ việc nhìn thấy
+## [10] Số hạng B: thiệt hại đến từ nội dung sai, không từ việc nhìn thấy
 
 **Giả thuyết ban đầu (thăm dò).** Trên MBPP, tách theo nội dung artifact cho thấy hai tầng phản ứng
 ngược nhau. Nhưng đây là phân rã hậu nghiệm, chưa đủ tin cậy.
@@ -191,7 +316,7 @@ trên MATH model yếu sai nhiều hơn, nên aggregator tiếp xúc với nhi�
 
 ---
 
-## [8] Quy luật và tính chuyển miền
+## [11] Quy luật và tính chuyển miền
 
 **Trên MBPP**, 15 cặp, một lần chạy:
 
@@ -224,7 +349,7 @@ phát biểu là *không bác bỏ được* chứ không phải *đã xác nh�
 
 ---
 
-## [9] Có chặn được B không: giới hạn trên của cơ chế định tuyến
+## [12] Có chặn được B không: giới hạn trên của cơ chế định tuyến
 
 **Ý tưởng tự nhiên.** Chỉ cho model mạnh xem artifact khi artifact có vẻ đúng.
 
@@ -246,7 +371,7 @@ Thêm vào đó, hai lần thử tìm tín hiệu cổng khả thi đều bị c
 
 ---
 
-## [10] Khép mạch: nghịch lý giữa [2] và [8]
+## [13] Khép mạch: nghịch lý giữa [2] và [8]
 
 **Nghịch lý.** [2] nói chênh lệch năng lực lớn mang lại +14,0 điểm. [8] nói chênh lệch năng lực lớn
 làm `Δ_ceil` âm. Cùng một biến, hai dấu ngược nhau.

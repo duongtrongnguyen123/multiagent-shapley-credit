@@ -28,6 +28,22 @@ Nhưng con số đó **không được đo bằng cùng định nghĩa** với `
 
 *Ảnh hưởng: §6, mảnh bằng chứng số 1. Đây là câu hỏi quan trọng nhất trong danh sách.*
 
+### A1b. Kết quả +14,0 nên trình bày như thế nào sau khi có đối chứng token?
+
+Số liệu token cho thấy `S1.5B + V7B` **kém hơn `S7B` một mình 10 điểm** trên GSM8K và **hoà** trên
+MATH, dù rẻ hơn 12–22% token. Nghĩa là +14,0 là kết quả so với model **yếu**, không phải một cải
+thiện độ chính xác so với phương án hiển nhiên nhất.
+
+- Có nên giữ con số +14,0 ở vị trí nổi bật không, hay đưa nó xuống cùng bảng token?
+- Phát biểu nào chính xác hơn: *"bất đối xứng năng lực tạo giá trị"*, hay *"bất đối xứng năng lực là
+  phương án tiết kiệm chi phí ở giữa dải độ khó"*?
+- Đây là **cùng một vấn đề baseline** mà nhánh Nguyên phát hiện qua `V − I`. Có nên trình bày nó như
+  một phát hiện **xuyên suốt cả ba khối** ngay từ §1, thay vì như một phát hiện riêng của một nhánh?
+
+Cách trình bày thứ hai làm báo cáo mạch lạc hơn nhiều, nhưng đòi hỏi viết lại §1 và §5.1.
+
+*Ảnh hưởng: §0, §1, §5.1, §6. Đây là câu hỏi có ảnh hưởng rộng nhất trong danh sách.*
+
 ### A2. Aggregator hỏng trên MATH có cùng cơ chế với "tiếp xúc nội dung sai" không?
 
 Mục [7] đưa ra một điểm nối ngược: aggregator hỏng trên MATH vì model yếu sai nhiều hơn nên
@@ -188,8 +204,8 @@ Bước 0.
 |---|---|
 | Bước 0, cả nhóm cùng bàn | **C3** (hai chuẩn), **B3** (đặt tên giao thức), **B4** (phạm vi) |
 | Trước khi viết §1 | **B1** (có ai báo cáo `V − I` không) |
-| Trong lúc viết §5–§6 | **A1** (verifier có `B ≈ 0` không), **A2** (điểm nối ngược) |
+| Trong lúc viết §5–§6 | **A1** (verifier có `B ≈ 0` không), **A1b** (trình bày +14,0), **A2** (điểm nối ngược) |
 | Khi rà soát cuối | **A4** (`g*`), **A5** (VOID), **C1**, **C2** |
 
-**A1 và B1 là hai câu quan trọng nhất.** A1 quyết định độ mạnh của luận điểm khép mạch ở §6; B1
+**A1, A1b và B1 là ba câu quan trọng nhất.** A1 quyết định độ mạnh của luận điểm khép mạch ở §6; B1
 quyết định luận điểm mở đầu ở §1 có đứng được hay không.
