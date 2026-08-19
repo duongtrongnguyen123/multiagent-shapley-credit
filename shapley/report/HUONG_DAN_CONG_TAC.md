@@ -97,12 +97,12 @@ Pool khác model ⇒ **2.70/3**, **6.5%**.
 
 | phần | ai | vì sao |
 |---|---|---|
-| **§2 Công trình liên quan** | **Đức** (đã có sẵn phần lớn) | ⚠️ **SỬA:** phần này **KHÔNG** trống. Đức đã viết `docs/RELATED_BASELINES.md` (102 dòng, có số công bố của debate/self-consistency trên GSM8K+MATH) và `docs/RELATED_PIPELINE.md` (77 dòng, định vị so với MAS_RPSV / SHARP). **Việc còn lại:** bổ sung dòng *sinh-rồi-sửa* (Self-Refine / Reflexion / CRITIC) và **ghi rõ mỗi bài dùng mốc so sánh nào** — đó là chỗ luận điểm của báo cáo đứng hoặc đổ. |
+| **§2 Công trình liên quan** | **Đức** (đã có sẵn phần lớn) | ⚠️ **SỬA:** phần này **KHÔNG** trống. Đức đã viết `../docs/RELATED_BASELINES.md` (102 dòng, có số công bố của debate/self-consistency trên GSM8K+MATH) và `../docs/RELATED_PIPELINE.md` (77 dòng, định vị so với MAS_RPSV / SHARP). **Việc còn lại:** bổ sung dòng *sinh-rồi-sửa* (Self-Refine / Reflexion / CRITIC) và **ghi rõ mỗi bài dùng mốc so sánh nào** — đó là chỗ luận điểm của báo cáo đứng hoặc đổ. |
 | **§4 Thiết lập** | bạn của Nguyên | Cơ học: model, benchmark, đại lượng, kiểm định. Nguồn có sẵn hết trong `pipeline/*.py`. |
 | **Hình 3, 5** | bạn của Nguyên | Hai hình quan trọng nhất. Dữ liệu có sẵn trong `results_H97` và `results_H94d`. |
 | **§1, §3, §5, §6** | Nguyên | Cần biết lịch sử từng kết quả và lý do từng nhãn. |
 | **§7 Phương pháp luận, §8 Hạn chế** | Nguyên | Cần nhớ tại sao từng luật ra đời. |
-| **Phụ lục A–E** | trích tự động từ `docs/` | Gần như copy. |
+| **Phụ lục A–E** | trích tự động từ `../docs/` | Gần như copy. |
 
 ---
 
@@ -127,13 +127,13 @@ mà không kiểm lại. Ba lựa chọn, chọn một và **nói rõ trong báo
 **Khuyến nghị: lựa chọn 1** — rẻ, trung thực, và không đòi chạy lại.
 
 ### Hai kết quả của thành viên khác nên đưa vào báo cáo
-- **`docs/EFFICIENCY.md`** (Tùng Dương, 210 dòng, tự viết toàn bộ): Consensus Router đạt
+- **`EFFICIENCY.md` **(chỉ có trên nhánh `nguoi3-router`)**** (Tùng Dương, 210 dòng, tự viết toàn bộ): Consensus Router đạt
   **.7200 acc / 2.32 cost** trên GSM8K so với full pipeline **.7233 / 3** — tức **gần bằng độ chính
   xác với 77% chi phí**; nhưng **vô dụng trên MATH** (router .4133 = đúng bằng Solver một mình).
   Kèm phân tích cơ chế: khi `S`,`V` bất đồng thì `A` cứu được **45.4%** ở GSM8K nhưng chỉ **25.0%**
   ở MATH. → **Đây là bằng chứng độc lập cho M3** ("định tuyến tiết kiệm ở chỗ ít cần nhất") và
   nên vào **§5** hoặc thành mục riêng.
-- **`docs/RELATED_BASELINES.md`** (Đức): literature cho thấy **debate thua self-consistency ở 3/4 ô**,
+- **`../docs/RELATED_BASELINES.md`** (Đức): literature cho thấy **debate thua self-consistency ở 3/4 ô**,
   và **sụp 16 điểm** với Llama3.1-8B trên GSM8K. → **Trùng hướng với kết luận "CHỌN thắng SỬA"**,
   đến từ nguồn hoàn toàn độc lập. Rất mạnh cho **§2** và **§6**.
 
@@ -141,16 +141,23 @@ mà không kiểm lại. Ba lựa chọn, chọn một và **nói rõ trong báo
 
 ```
 shapley/
-├─ docs/
-│  ├─ TONG_HOP.md             ← KHUNG. Đọc file này trước tiên. §3 của báo cáo lấy từ đây.
-│  ├─ PREREGISTRATION.md      ← mọi bảng khoá. Tra khi cần biết một kết quả thuộc tầng nào.
-│  ├─ IDEAS.md                ← nhật ký 200 vòng, tiếng Việt. Tra theo số vòng (#182, #185, #197...).
-│  ├─ RESULT_SEALS.md         ← hash. Phụ lục B.
-│  ├─ QUY_TRINH_VONG_LAP.md   ← 37 luật quy trình. Phụ lục E.
-│  ├─ BAO_CAO_CAU_TRUC.md     ← khung báo cáo (file kèm theo hướng dẫn này)
-│  └─ HUONG_DAN_CONG_TAC.md   ← file này
-├─ results_*/                 ← artifact thô. `res_*.json` = số; `traces_*.json` = kết quả từng bài.
-└─ pipeline/*.py              ← kernel. Xem để viết §4.
+├─ report/                     ← BA TEP HUONG DAN VIET BAO CAO (thu muc nay)
+│  ├─ README.md                ← bat dau tu day
+│  ├─ BAO_CAO_CAU_TRUC.md      ← viet CAI GI
+│  ├─ HUONG_DAN_CONG_TAC.md    ← duoc phep viet CON SO NAO (tep nay)
+│  ├─ QUY_TRINH_VIET_BAO_CAO.md← lam THEO THU TU NAO
+│  └─ BAO_CAO.md               ← BAN THAO (chua co — Buoc 1 tao)
+├─ docs/                       ← TAI LIEU KET QUA (38 tep) — KHONG phai huong dan viet
+│  ├─ INDEX.md                 ← muc luc cua docs/
+│  ├─ TONG_HOP.md              ← KHUNG ly thuyet. Doc truoc tien.
+│  ├─ RESULTS.md               ← bang ket qua mang nhom (co thanh sai so 5 fold)
+│  ├─ PREREGISTRATION.md       ← moi bang khoa
+│  ├─ IDEAS.md                 ← nhat ky 201 vong
+│  ├─ QUY_TRINH_VONG_LAP.md    ← 37 luat quy trinh
+│  ├─ RESULT_SEALS.md          ← hash niem phong
+│  └─ (29 tep ket qua cua Duc: CREDIT_RL, ORPO, SOLVEJUDGE, RELATED_*, ...)
+├─ results_*/                  ← artifact tho (KHONG nam trong git)
+└─ pipeline/ deploy/ analysis/ ← code
 ```
 
 **Ba vòng nên đọc trước:** **#197** (`D` là hình phạt của nội dung sai) · **#185** (luật chênh) ·

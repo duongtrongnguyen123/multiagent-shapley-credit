@@ -8017,10 +8017,10 @@ tiếp, kết quả nối vào sau — cả hai đã có bảng khoá commit tr�
 hậu nghiệm**.
 
 ### Đã lập
-- **`docs/BAO_CAO_CAU_TRUC.md`** — khung 9 mục + phụ lục A–E + danh sách 7 hình, kèm nguồn dữ liệu
+- **`report/BAO_CAO_CAU_TRUC.md`** — khung 9 mục + phụ lục A–E + danh sách 7 hình, kèm nguồn dữ liệu
   từng hình. Xương sống: `value = H × κ − D`, và **đẳng thức `Δ_ceil = A − B + C` là viên gạch nối**
   toàn bộ phần kết quả — mỗi mục §5 trả lời *"số hạng nào đang giết chúng ta?"*
-- **`docs/HUONG_DAN_CONG_TAC.md`** — bàn giao cho người cùng làm: ba tầng bằng chứng,
+- **`report/HUONG_DAN_CONG_TAC.md`** — bàn giao cho người cùng làm: ba tầng bằng chứng,
   bảng số chốt, bảng **"đừng viết X, hãy viết Y"**, phân công, và mục *"còn đang chạy"*.
 
 ### Một cái bẫy phát hiện khi kiểm kê — suýt làm hỏng báo cáo

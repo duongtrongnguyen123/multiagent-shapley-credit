@@ -17,7 +17,7 @@ Bằng chứng hai chiều, **ngược dấu nhau và đó chính là điểm ha
 
 | | chênh năng lực **tăng** thì… | nguồn |
 |---|---|---|
-| giao thức **SOÁT/CHỌN** (verifier) | **giá trị TĂNG mạnh**: Solver 1.5B + Verifier 7B = **+14.0đ** trên MATH, **5/5 fold**, 43 sửa / 1 phá. Verifier **cùng cỡ** chỉ +3.0đ, khoảng **chạm 0** | mảng nhóm (`RESULTS.md` §1a) |
+| giao thức **SOÁT/CHỌN** (verifier) | **giá trị TĂNG mạnh**: Solver 1.5B + Verifier 7B = **+14.0đ** trên MATH, **5/5 fold**, 43 sửa / 1 phá. Verifier **cùng cỡ** chỉ +3.0đ, khoảng **chạm 0** | mảng nhóm (`../docs/RESULTS.md` §1a) |
 | giao thức **SỬA** (repair) | **giá trị GIẢM**: `Δ_ceil = +.0218 − .2392·chênh`, p = **1e-05**; đổi dấu tại `g*` = **.091** | mảng Nguyên (H97) |
 
 **Cùng một biến (chênh năng lực), hai dấu ngược nhau, khác nhau ở đúng một thứ: giao thức.**
@@ -59,7 +59,7 @@ chạy một mình). **Dấu đảo ngược.**
 
 ## 2. Công trình liên quan *(~2 trang)* — **PHẦN LỚN ĐÃ CÓ**
 
-Nguồn sẵn: `docs/RELATED_BASELINES.md` (102 dòng, Đức) + `docs/RELATED_PIPELINE.md` (77 dòng, Đức).
+Nguồn sẵn: `../docs/RELATED_BASELINES.md` (102 dòng, Đức) + `../docs/RELATED_PIPELINE.md` (77 dòng, Đức).
 - **Debate thua self-consistency ở 3/4 ô công bố**; sụp **16 điểm** với Llama3.1-8B trên GSM8K
   → **độc lập trùng hướng** với kết luận "CHỌN thắng SỬA" của ta.
 - Định vị so với **MAS_RPSV** (gần nhất: 4 vai nối tiếp, cùng cỡ model, cùng benchmark) và **SHARP**
@@ -226,7 +226,7 @@ Con số nên nêu:
 ## Phụ lục
 **A.** Đăng ký trước được trích · **B.** Niêm phong hash · **C.** 16 lần VOID và lý do ·
 **D.** Sổ tiên nghiệm 21/42 · **E.** 37 luật quy trình · **F.** Bảng kết quả đầy đủ của mảng nhóm
-(`RESULTS.md`) · **G.** Shapley theo vai (`docs/` của Đức, 30 tệp)
+(`../docs/RESULTS.md`) · **G.** Shapley theo vai (`../docs/` của Đức, 29 tệp)
 
 ---
 
@@ -235,11 +235,11 @@ Con số nên nêu:
 | # | hình | nguồn | ai |
 |---|---|---|---|
 | 1 | Sơ đồ khung `H × κ − D` **+ ba mảng ứng với ba số hạng** | vẽ tay | Nguyên |
-| 2 | **Nghịch lý**: chênh↑ ⇒ verifier thắng / sửa thua (hai đường ngược nhau) | `RESULTS.md` + `results_H97` | Nguyên |
+| 2 | **Nghịch lý**: chênh↑ ⇒ verifier thắng / sửa thua (hai đường ngược nhau) | `../docs/RESULTS.md` + `results_H97` | Nguyên |
 | 3 | `Δ_ceil` theo chênh, 15 điểm + đường khớp + `g*` | `results_H97` | bạn |
 | 4 | **Phơi nhiễm 2×2** (đúng/sai × thấy/không) | `results_H94d` | bạn |
 | 5 | Accuracy-vs-cost, có điểm router | `EFFICIENCY.md` | Tùng Dương |
-| 6 | Bất đối xứng năng lực: verifier cùng cỡ vs lớn hơn, có thanh sai số | `RESULTS.md` §1a | Đức |
+| 6 | Bất đối xứng năng lực: verifier cùng cỡ vs lớn hơn, có thanh sai số | `../docs/RESULTS.md` §1a | Đức |
 | 7 | Trần định tuyến: độ chính xác bộ phân loại → lợi ích ròng | `results_H94d` | bạn |
 
 **Hình 2 là hình quan trọng nhất của báo cáo** — nó *là* luận điểm. Nếu chỉ kịp ba hình:

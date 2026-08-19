@@ -1,6 +1,7 @@
 # MỤC LỤC TÀI LIỆU
 
-> `docs/` có **41 tệp**. File này là **cửa vào duy nhất** — đừng đọc mò.
+> `docs/` có **38 tệp**, **toàn bộ là tài liệu KẾT QUẢ**.
+> Hướng dẫn **viết báo cáo** nằm riêng ở **`../report/`**. File này là **cửa vào duy nhất** — đừng đọc mò.
 > Muốn hiểu **code** thì đọc `../START_HERE.md`. Muốn hiểu **kết quả** thì đọc file này.
 
 ---
@@ -10,8 +11,8 @@
 | bạn muốn… | đọc theo thứ tự này |
 |---|---|
 | **hiểu nhanh dự án làm gì** | `INTRO.md` → `../../README.md` → `TONG_HOP.md` |
-| **viết báo cáo cuối kỳ** | `BAO_CAO_CAU_TRUC.md` → `HUONG_DAN_CONG_TAC.md` |
-| **tra một con số có được trích không** | `HUONG_DAN_CONG_TAC.md` §1–§2 → `PREREGISTRATION.md` |
+| **viết báo cáo cuối kỳ** | **`../report/README.md`** (thư mục riêng) |
+| **tra một con số có được trích không** | `../report/HUONG_DAN_CONG_TAC.md` §1–§2 → `PREREGISTRATION.md` |
 | **hiểu vai nào trong pipeline có giá trị** | `RESULTS.md` → nhóm *Vai trò & Credit* bên dưới |
 | **hiểu vì sao SỬA thua CHỌN** | `TONG_HOP.md` → `IDEAS.md` vòng #182, #185, #197 |
 | **lặp lại một thí nghiệm** | `PREREGISTRATION.md` (tìm mã H…) → `../pipeline/` → `../deploy/` |
@@ -27,16 +28,10 @@
 | `FINDINGS.md` | Tổng hợp phát hiện (bản sớm) |
 | **`RESULTS.md`** | **Bảng kết quả chính của mảng nhóm** — có sàn nhiễu và thanh sai số 5 fold. **Đọc mục 0 trước mọi con số.** |
 
-## 2. Báo cáo cuối kỳ *(đang làm)*
+## 2. Báo cáo cuối kỳ → **`../report/`**
 
-| tệp | nội dung |
-|---|---|
-| **`BAO_CAO_CAU_TRUC.md`** | *viết CÁI GÌ* — luận điểm hợp nhất (§0), khung, 9 mục, 7 hình |
-| **`HUONG_DAN_CONG_TAC.md`** | *được phép viết CON SỐ NÀO* — ba tầng bằng chứng, bảng số chốt, "đừng viết X hãy viết Y" |
-| **`QUY_TRINH_VIET_BAO_CAO.md`** | *làm THEO THỨ TỰ NÀO* — 7 bước, phân công song song, cách nối H99b/H100e, đường găng |
-
-> **Bắt đầu từ đâu:** đọc **§0 của `BAO_CAO_CAU_TRUC.md`** (một trang), rồi làm theo
-> **`QUY_TRINH_VIET_BAO_CAO.md`** từ Bước 0.
+Hướng dẫn viết báo cáo **KHÔNG nằm trong `docs/`** nữa — chúng ở **`../report/`** để không lẫn với
+tài liệu kết quả. Vào `../report/README.md`.
 
 ## 3. Phương pháp & kỷ luật *(mảng Nguyên)*
 
@@ -72,7 +67,7 @@
 1. **Nhóm dùng HAI chuẩn kiểm chứng.** Mảng nhóm (`RESULTS.md`, docs của Đức) dùng **thanh sai số
    5 fold** với **ngưỡng nhiễu 5 điểm**. Mảng Nguyên (`PREREGISTRATION.md`) dùng **đăng ký trước +
    cổng + niêm phong**. Cả hai đều hợp lệ, **nhưng không được đặt cùng một tầng mà không nói rõ**.
-   Xem `HUONG_DAN_CONG_TAC.md` §4b.
+   Xem `../report/HUONG_DAN_CONG_TAC.md` §4b.
 2. **`res_*.json` có thể ghi `VOID` mà kết quả vẫn HỢP LỆ** — nếu đăng ký trước đã sửa cổng
    *trước khi đọc*. Trường hợp đã biết: **H88e**, **H92b** (cổng `n ≥ 480` bất khả thi trên dải
    464 bài; sửa thành `n ≥ 460` ở `#97-d`/`#102-b`).
@@ -86,7 +81,7 @@
 
 | thứ | ở đâu | vì sao quan trọng |
 |---|---|---|
-| `EFFICIENCY.md` (210 dòng, Tùng Dương) | nhánh **`nguoi3-router`** | Bảng accuracy-vs-cost + Consensus Router. **Cần cho §5.3 của báo cáo.** |
+| `EFFICIENCY.md` — **chưa có trên `main`** (210 dòng, Tùng Dương) | nhánh **`nguoi3-router`** | Bảng accuracy-vs-cost + Consensus Router. **Cần cho §5.3 của báo cáo.** |
 | `analysis/router.py` | nhánh **`nguoi3-router`** | Code sinh ra bảng trên |
 
 ⇒ **Cần quyết định:** gộp `nguoi3-router` vào `main`, hay để nguyên. Đây là nhánh của Tùng Dương

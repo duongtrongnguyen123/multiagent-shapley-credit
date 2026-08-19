@@ -23,7 +23,7 @@
 
 ## Bước 1 — Dựng khung rỗng *(Nguyên, ~1 giờ)*
 
-- [ ] Tạo `docs/BAO_CAO.md` với **đủ 9 tiêu đề mục + phụ lục**, mỗi mục để `TODO` và **số trang dự kiến**
+- [ ] Tạo `BAO_CAO.md` (ngay trong `report/`) với **đủ 9 tiêu đề mục + phụ lục**, mỗi mục để `TODO` và **số trang dự kiến**
 - [ ] Dán **§0 luận điểm hợp nhất** vào ngay dưới tiêu đề, dạng khối trích dẫn
 - [ ] Dán bảng số chốt (`HUONG_DAN_CONG_TAC.md` §2) vào **phụ lục** trước — để lúc viết chỉ việc trỏ tới
 
@@ -94,7 +94,7 @@ Theo bảng ở cuối `BAO_CAO_CAU_TRUC.md`. Ưu tiên nếu thiếu thời gia
 **H99b** và **H100e** chưa xong. Khi có kết quả, làm **đúng thứ tự này** — không tắt bước:
 
 1. Tải kết quả → **niêm phong hash ngay** (`python deploy/seal_results.py results_X`) → **commit**
-2. **Đọc bảng khoá trước** (`PREREGISTRATION.md` #112 cho H99b, #111 cho H100e)
+2. **Đọc bảng khoá trước** (`../docs/PREREGISTRATION.md` #112 cho H99b, #111 cho H100e)
 3. **Đọc cổng trước.** Cổng trượt ⇒ **VOID**, chỉ vào phụ lục C, **không đọc số**
 4. Cổng đạt ⇒ đọc số, đối chiếu **đúng hàng** của bảng khoá
 5. Chỉ khi đó mới sửa bản thảo
