@@ -169,9 +169,20 @@ chi goi model manh mot luot                                        = .6413
 > cộng hai phân rã **hậu nghiệm** (MBPP). Vì đổi **miền**, đây là bằng chứng độc lập — không phải
 > chạy lại cùng cấu hình.
 >
-> **Hệ quả triển khai, và nó KHÔNG cần oracle:** đừng đưa artifact vào khi nó **có khả năng sai**.
-> Đó là một **cổng định tuyến** dựa trên tín hiệu tin cậy, **không phải** một lời nhắc khéo hơn.
-> ⚠️ Việc tìm tín hiệu ấy **vẫn chưa làm được** — xem phần hạn chế.
+> **Hệ quả triển khai — và trần của nó THẤP.** Ý tưởng hiển nhiên là *"chỉ cho xem khi artifact
+> có vẻ đúng"*. Chúng tôi tính luôn trần của ý tưởng đó trên chính dữ liệu này:
+>
+> | | `acc` | so với gọi thẳng model mạnh |
+> |---|---|---|
+> | model mạnh một mình | .6980 | — |
+> | luôn cho xem artifact | .5740 | **−.1240** |
+> | **cổng ORACLE** (cho xem ⇔ artifact đúng) | .7160 | **+.0180** ← **trần** |
+>
+> Và bộ phân loại thật phải đạt **~89% độ chính xác** mới **hoà vốn**; dưới mức đó nó **lỗ**.
+>
+> ⇒ **Kết luận đúng không phải "hãy làm cổng định tuyến", mà là "MẶC ĐỊNH ĐỪNG CHO XEM".**
+> Thiệt hại là −.124; phần lớn nhất mọi cổng có thể cứu về là +.018. Cửa sổ gần như đóng.
+> Điều này hội tụ với kết quả ở mục 6 (giao thức **chỉ-CHỌN**), đến từ một hướng đo khác hẳn.
 
 **Đã kiểm xong (#149): chỉ NHÌN THẤY là đủ, KHÔNG cần lệnh sửa.**
 Mọi phép đo đầu độc trước nay đều kèm lệnh *"review/fix"*, nên *nhìn thấy* và *được lệnh ghi đè*

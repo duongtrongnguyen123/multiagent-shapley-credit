@@ -7864,3 +7864,23 @@ artifact-SAI càng cao ⇒ `D` càng lớn. **Hai kết quả khớp nhau về c
 
 ### Tiên nghiệm
 Hàng 1 đặt **40%** (modal) — đúng. **21/42.**
+
+### #197 (tiếp) — tôi vừa công bố một hệ quả rồi tính trần của nó và phải hạ ngay
+
+Viết xong khối #197 vào TONG_HOP và README (*"hệ quả là cổng định tuyến"*), tôi tính **trần** của
+chính cổng ấy trên cùng dữ liệu:
+
+| | `acc` | so với `I` |
+|---|---|---|
+| `I` một mình | .6980 | — |
+| `V` (luôn thấy) | .5740 | −.1240 |
+| **cổng phơi nhiễm ORACLE** | **.7160** | **+.0180** ← trần |
+
+Và bộ phân loại phải đạt **~89%** mới hoà vốn (.90 ⇒ +.0020; .85 ⇒ **−.0060**).
+
+**Cửa sổ khả thi gần như đóng.** Đã sửa **cả hai** tài liệu trong cùng vòng: kết luận triển khai
+không phải *"làm cổng tốt hơn"* mà **"mặc định đừng cho xem"** — tức **giao thức chỉ-CHỌN**,
+hội tụ với #181 từ một hướng đo khác hẳn.
+
+Ghi lại vì trình tự này là điều tôi muốn lặp lại: **công bố hệ quả → tính trần của nó → hạ kỳ vọng
+NGAY**, chứ không đợi ai đó thử rồi mới phát hiện trần chỉ +.018.

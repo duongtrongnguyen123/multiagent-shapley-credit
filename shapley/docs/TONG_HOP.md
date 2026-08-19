@@ -111,8 +111,26 @@ Trạng thái bằng chứng: **một xác nhận đăng ký trước (MATH)** +
 > **Hệ quả cho `D`:** `D` ≈ P(artifact sai) × (thiệt hại khi sai) − P(artifact đúng) × (lợi khi đúng).
 > Chênh năng lực càng lớn ⇒ P(artifact sai) càng cao ⇒ `D` càng lớn. **Điều này khớp độc lập với
 > #185** (`Δ_ceil` ≈ +.0218 − .2392·chênh, đo bằng thiết kế hoàn toàn khác).
-> **Đòn bẩy khả thi không phải lời nhắc mà là ĐỊNH TUYẾN**: đừng đưa artifact vào khi nó có khả năng
-> sai. Nút thắt còn lại là `κ` — tìm tín hiệu tin cậy — và nó **vẫn chưa gỡ được** (#184).
+> **Đòn bẩy khả thi không phải lời nhắc mà là ĐỊNH TUYẾN**: đừng đưa artifact vào khi nó có khả năng sai.
+>
+> **⚠️ NHƯNG TRẦN CỦA ĐỊNH TUYẾN RẤT THẤP — tính ngay trong #197, trước khi ai kịp phấn khích:**
+> cổng phơi nhiễm **ORACLE** (thấy ⇔ artifact đúng) cho `acc` = **.7160** so với `I` = **.6980**,
+> tức **chỉ +.0180**. Và bộ phân loại thật phải đạt **~89% độ chính xác** mới **hoà vốn** với `I`:
+>
+> | độ chính xác bộ phân loại | so với `I` |
+> |---|---|
+> | 1.00 (oracle) | **+.0180** |
+> | .95 | +.0100 |
+> | .90 | +.0020 |
+> | .85 | **−.0060** |
+> | .80 | −.0140 |
+>
+> ⇒ **Cửa sổ khả thi hẹp tới mức gần như đóng.** Kết luận triển khai đúng **không** phải
+> *"làm cổng định tuyến tốt hơn"* mà là: **MẶC ĐỊNH ĐỪNG CHO XEM ARTIFACT.**
+> `V − I` = −.1240; phần thắng lớn nhất mà mọi cổng có thể lấy lại là +.0180.
+> **Đây chính là giao thức CHỈ-CHỌN** — khớp với #181 (*chọn thắng vì nó đặt `B` = 0 theo cấu trúc*),
+> đến từ một hướng đo hoàn toàn khác. Nút thắt `κ` (#184) vẫn chưa gỡ, nhưng **kể cả gỡ được thì
+> phần thưởng cũng chỉ +.018**.
 
 ### Mệnh đề 2 — Bộ chọn chỉ tốt bằng ĐỘ ĐỘC LẬP của tín hiệu, không phải độ mạnh
 
