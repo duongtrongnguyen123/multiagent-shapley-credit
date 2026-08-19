@@ -8089,3 +8089,48 @@ Hàng 2 ⇒ **§5.5 mạnh lên** (luật có bằng chứng liên miền), **§
 **KHÔNG** phải thu hẹp luật thành "trên code" — đó là kịch bản hàng 1/hàng 4, đã không xảy ra.
 Nhưng **bắt buộc** kèm hai cảnh báo: (a) 2/3 với KTC rộng = *không bác được*, không phải *xác nhận*;
 (b) có **ngoại lệ hệ thống** ở cặp `B` lớn.
+
+---
+
+## Vòng #203 — H100e: **ERROR ở cặp R** (4/6 ô xong). Không đọc `Δ_honest`. Lần thứ **năm**.
+
+```
+[ 7957s] P:R0 acc_V=.5832      [ 9427s] P:R2 acc_V=.6273
+[12561s] Q:R0 acc_V=.4569      [14919s] Q:R2 acc_V=.5351
+[15566s] R:R0  torch.OutOfMemoryError: cap phat 824 MiB; GPU 1 con 518 MiB   <- GIUA LUC SINH
+[16075s] RuntimeError: luong sinh that bai: OutOfMemoryError...
+```
+Xong **4/6** ô (cặp **P** và **Q** đủ cả `R0` lẫn `R2`); thiếu **trọn cặp R** (`llama8b→dscoder`).
+
+### Hai bản vá trước ĐỀU hoạt động
+- **#199 `bs=4` cho R2**: cả hai ô `R2` **chạy xong** — đúng chỗ H100d từng chết.
+- **#199 ném lại lỗi THẬT**: log ghi `RuntimeError: luong sinh that bai: OutOfMemoryError`,
+  **không còn** `NoneType object is not iterable` che mất nguyên nhân. Chẩn đoán mất 10 giây thay vì
+  một vòng suy đoán.
+
+### Nhưng tôi vá **đúng một nửa vấn đề**
+Tôi hạ lô cho `R2` vì lời nhắc dài gấp đôi — **và để `R0` nguyên `bs=8`**. Cặp R có `S` = `llama8b`,
+mà artifact của Llama **dài hơn** của Qwen/DeepSeek. Nên `R:R0` vẫn OOM dù là giao thức "ngắn".
+⇒ **Lô phải theo ĐỘ DÀI THẬT của chuỗi vào, không theo tên giao thức.** Đó mới là bản vá đúng.
+
+### Tôi **KHÔNG** đọc `Δ_honest` từ 2/3 cặp
+Bảng khoá #111 phán theo **≥ 2/3 cặp**. Đọc với mẫu số **2** là **đổi luật quyết định sau khi biết
+ô nào hỏng** — đúng thứ luật #28 sinh ra để chặn, và là lần thứ hai cám dỗ này xuất hiện (#199).
+Cổng cũng **chưa hề được đánh giá** (kernel chết trước phần phân tích, không có `res_H100e.json`).
+
+### Trạng thái: `Δ_honest` **CHƯA CÓ CÂU TRẢ LỜI** sau **năm** lần chạy
+| lần | kết cục |
+|---|---|
+| H100 | OOM nạp `llama8b` (không lượng tử hoá) |
+| H100b | OOM y hệt — bản vá #191 sai |
+| H100c | `llama8b` chia thẻ **chạy được**, nhưng `qwen14b` bất khả thi trên T4 |
+| H100d | 5/6 ô, chết ở `R:R2` (lời nhắc R2 dài gấp đôi) |
+| **H100e** | **4/6 ô, chết ở `R:R0`** (artifact Llama dài) |
+
+**Đây là chi phí thật của việc chạy trên GPU tầng miễn phí 14.6 GB.** Ghi vào §8 Hạn chế của báo cáo.
+
+### Đường rẻ để dứt điểm — nhờ #200
+`partial_H100e.json` đã có **4 ô + toàn bộ 4 nhánh nền**. Với đường **NẠP LẠI** (#200, đã kiểm 4/4
+trên dữ liệu thật), lần chạy tiếp theo chỉ cần sinh **2 ô còn thiếu** ⇒ ước **~40 phút** thay vì
+**~4,5 giờ**. Kèm bản vá lô-theo-độ-dài.
+**Chưa phóng** — vòng lặp nghiên cứu đã dừng theo yêu cầu; đây là quyết định của người chủ trì.
