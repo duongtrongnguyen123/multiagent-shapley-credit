@@ -92,6 +92,28 @@ Nếu `D > 0` vì `M` ghi đè lên bản **vốn đã đúng**, thì **chặn g
 > ta cần model mạnh nhất.** Cổng không cứu được, vì cổng chỉ điều khiển *ghi đè*, không điều
 > khiển *nhìn thấy*.
 
+#### M1 — PHÁT BIỂU CUỐI (xác nhận đăng-ký-trước ở #197, H94d, hai miền)
+
+`D` **không** phải hình phạt của việc **thấy**. Nó là hình phạt của việc thấy thứ **SAI**.
+Phân rã phơi nhiễm theo tầng *artifact đúng / artifact sai*, cùng lệnh giải, khác **duy nhất**
+ngữ cảnh thêm:
+
+| tầng | MBPP 11–510 | MBPP 511–974 | **MATH-500** (đăng ký trước #104) |
+|---|---|---|---|
+| artifact **SAI** | −.1900 | −.1927 | **−.2720** (p ~0) |
+| artifact **ĐÚNG** | +.0636 | +.0245 | **+.0377** (p .012) |
+
+Trên MATH, model mạnh rơi từ **46.4% → 19.2%** trên đúng những bài nó vốn làm được gần một nửa.
+Gộp hai tầng theo trọng số tái tạo **chính xác** `V − I` = −.1240.
+Trạng thái bằng chứng: **một xác nhận đăng ký trước (MATH)** + hai phân rã **hậu nghiệm** (MBPP,
+#150). Đổi **miền**, nên là bằng chứng độc lập (luật #34).
+
+> **Hệ quả cho `D`:** `D` ≈ P(artifact sai) × (thiệt hại khi sai) − P(artifact đúng) × (lợi khi đúng).
+> Chênh năng lực càng lớn ⇒ P(artifact sai) càng cao ⇒ `D` càng lớn. **Điều này khớp độc lập với
+> #185** (`Δ_ceil` ≈ +.0218 − .2392·chênh, đo bằng thiết kế hoàn toàn khác).
+> **Đòn bẩy khả thi không phải lời nhắc mà là ĐỊNH TUYẾN**: đừng đưa artifact vào khi nó có khả năng
+> sai. Nút thắt còn lại là `κ` — tìm tín hiệu tin cậy — và nó **vẫn chưa gỡ được** (#184).
+
 ### Mệnh đề 2 — Bộ chọn chỉ tốt bằng ĐỘ ĐỘC LẬP của tín hiệu, không phải độ mạnh
 
 | pool | bộ chọn = đếm test tự sinh | bộ chọn = đồng thuận thực thi | chênh |
