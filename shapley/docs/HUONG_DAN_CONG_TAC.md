@@ -94,7 +94,7 @@ Pool khác model ⇒ **2.70/3**, **6.5%**.
 
 | phần | ai | vì sao |
 |---|---|---|
-| **§2 Công trình liên quan** | **bạn của Nguyên** | Chưa ai làm. Cần đọc thật Self-Refine / Reflexion / CRITIC / self-consistency và **ghi rõ mỗi bài dùng mốc so sánh nào**. Đây là chỗ luận điểm của báo cáo đứng hoặc đổ. |
+| **§2 Công trình liên quan** | **Đức** (đã có sẵn phần lớn) | ⚠️ **SỬA:** phần này **KHÔNG** trống. Đức đã viết `docs/RELATED_BASELINES.md` (102 dòng, có số công bố của debate/self-consistency trên GSM8K+MATH) và `docs/RELATED_PIPELINE.md` (77 dòng, định vị so với MAS_RPSV / SHARP). **Việc còn lại:** bổ sung dòng *sinh-rồi-sửa* (Self-Refine / Reflexion / CRITIC) và **ghi rõ mỗi bài dùng mốc so sánh nào** — đó là chỗ luận điểm của báo cáo đứng hoặc đổ. |
 | **§4 Thiết lập** | bạn của Nguyên | Cơ học: model, benchmark, đại lượng, kiểm định. Nguồn có sẵn hết trong `pipeline/*.py`. |
 | **Hình 3, 5** | bạn của Nguyên | Hai hình quan trọng nhất. Dữ liệu có sẵn trong `results_H97` và `results_H94d`. |
 | **§1, §3, §5, §6** | Nguyên | Cần biết lịch sử từng kết quả và lý do từng nhãn. |
@@ -102,6 +102,37 @@ Pool khác model ⇒ **2.70/3**, **6.5%**.
 | **Phụ lục A–E** | trích tự động từ `docs/` | Gần như copy. |
 
 ---
+
+## 4b. Kết quả của các thành viên khác — ĐỌC TRƯỚC KHI GỘP
+
+Dự án có **hai khối công việc** trên hai nhánh khác nhau, **hai chuẩn bằng chứng khác nhau**:
+
+| khối | nhánh | nội dung | chuẩn bằng chứng |
+|---|---|---|---|
+| **Credit/Shapley + repair-vs-select** (Nguyên) | `nguyen` | vòng #97–#201 | **có đăng ký trước + cổng + niêm phong + VOID** |
+| **Vai trò, debate, credit-RL, router** (Đức, Tùng Dương) | `duc`, `nguoi3-router`, `main` | ~30 tài liệu kết quả | **KHÔNG** dùng đăng ký trước/cổng/VOID |
+
+⚠️ **Đây không phải chê ai.** Kỷ luật đăng-ký-trước chỉ ra đời từ vòng **#97** trên nhánh `nguyen`;
+phần lớn công việc kia làm song song hoặc trước đó.
+
+**Hệ quả bắt buộc cho báo cáo:** kết quả của hai khối **không được đặt cùng một tầng bằng chứng**
+mà không kiểm lại. Ba lựa chọn, chọn một và **nói rõ trong báo cáo**:
+1. Ghi rõ hai chuẩn khác nhau, để kết quả khối kia ở **tầng B (thăm dò)**;
+2. Kiểm lại hậu kỳ: dựng cổng chất lượng tương đương rồi báo cáo cái nào qua;
+3. Tách thành hai phần riêng, mỗi phần nêu chuẩn của mình.
+
+**Khuyến nghị: lựa chọn 1** — rẻ, trung thực, và không đòi chạy lại.
+
+### Hai kết quả của thành viên khác nên đưa vào báo cáo
+- **`docs/EFFICIENCY.md`** (Tùng Dương, 210 dòng, tự viết toàn bộ): Consensus Router đạt
+  **.7200 acc / 2.32 cost** trên GSM8K so với full pipeline **.7233 / 3** — tức **gần bằng độ chính
+  xác với 77% chi phí**; nhưng **vô dụng trên MATH** (router .4133 = đúng bằng Solver một mình).
+  Kèm phân tích cơ chế: khi `S`,`V` bất đồng thì `A` cứu được **45.4%** ở GSM8K nhưng chỉ **25.0%**
+  ở MATH. → **Đây là bằng chứng độc lập cho M3** ("định tuyến tiết kiệm ở chỗ ít cần nhất") và
+  nên vào **§5** hoặc thành mục riêng.
+- **`docs/RELATED_BASELINES.md`** (Đức): literature cho thấy **debate thua self-consistency ở 3/4 ô**,
+  và **sụp 16 điểm** với Llama3.1-8B trên GSM8K. → **Trùng hướng với kết luận "CHỌN thắng SỬA"**,
+  đến từ nguồn hoàn toàn độc lập. Rất mạnh cho **§2** và **§6**.
 
 ## 5. Nguồn ở đâu
 
