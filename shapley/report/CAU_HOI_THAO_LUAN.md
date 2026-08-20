@@ -596,3 +596,23 @@ router theo lượt gọi ở §5.6; exec3/llm3) **không bị ảnh hưởng** 
 
 *Đã sửa tại: `BAO_CAO.md` §5.5, `MACH_DAN_DAT.md` [7], `THUAT_NGU.md` §2. Mức: hiệu chỉnh số học
 trên dữ liệu mức A, phần ước lượng token 1.5B là xấp xỉ có nêu độ nhạy.*
+
+---
+
+## Nhóm F — từ vòng phản biện độc lập về giọng văn (v1.1, 2026-08-20)
+
+Một agent đóng vai reviewer đã rà toàn bộ `BAO_CAO.tex`; ~50 chỗ giọng văn thiếu trung tính
+(cách ngôn kịch tính, mệnh lệnh, in đậm cảm xúc, khẳng định vượt bằng chứng) **đã được sửa
+trực tiếp** trong v1.1. Các mục dưới đây reviewer nêu nhưng cần nhóm quyết:
+
+- **F1.** Bảng bộ phân loại học được (§5.10): hai cột "Lỗi tiêm"/"Lỗi thật" là đại lượng gì
+  chính xác (hiệu số điểm phân loại? mức phát hiện?) — cần người chạy H37 ghi rõ định nghĩa
+  cột vào caption. Con số solver 0,916 (GSM8K 7B, §5.10) cũng chưa dẫn từ bảng nào.
+- **F2.** §5.1: bảng chênh $+0{,}112$ (toàn tập, pipeline−solver) và kiểm định $+5{,}6$
+  (5 fold, PSVA−PS) là hai đại lượng khác nhau — v1.1 đã thêm một câu nối, nhóm xem đã đủ rõ chưa.
+- **F3.** Trước khi nộp: xoá phần "Hình dự kiến" kèm phân công tên người và chú thích tác giả
+  "quyết ở Bước 0" (nội dung quản lý nội bộ); giải quyết hết 5 marker \todoD/\todoTD.
+  Đặc biệt: hai khẳng định phê phán dòng sửa chữa ở §2 chỉ được giữ nếu Đức xác nhận nguồn (=B1).
+- **F4.** Reviewer đề xuất quy ước in đậm: chỉ đậm thuật ngữ định nghĩa lần đầu; nhấn mạnh dùng
+  nghiêng, tối đa một lần mỗi đoạn; không đậm nguyên câu kết luận. v1.1 đã áp dụng phần lớn;
+  ai viết thêm nội dung mới thì theo quy ước này.
