@@ -1,0 +1,721 @@
+% =====================================================================
+% Khi nào phối hợp đa tác tử LLM tạo ra giá trị?
+% Bản v1.0 — biên dịch: pdflatex (hoặc Overleaf, mặc định)
+% Ghi chú rà soát: \todoD{...} = Đức, \todoTD{...} = Tùng Dương
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+\newcommand{\todoD}[1]{\textcolor{red!70!black}{[\textbf{Đ}: #1]}}
+\newcommand{\todoTD}[1]{\textcolor{red!70!black}{[\textbf{TD}: #1]}}
+\newcommand{\mucB}{\textsuperscript{\,(mức B)}}
+\newcommand{\dceil}{\Delta_{\mathrm{ceil}}}
+\newcommand{\dhonest}{\Delta_{\mathrm{honest}}}
+\newcommand{\CEIL}{\mathrm{CEIL}}
+\newcommand{\acc}{\mathrm{acc}}
+
+\title{\bfseries Khi nào phối hợp đa tác tử LLM tạo ra giá trị?\\
+\large Một khảo sát thực nghiệm dưới ba phép kiểm soát}
+\author{Nguyên \and Đức \and Tùng Dương\thanks{Thứ tự tên và việc ghi nhận Quân: quyết ở Bước 0.
+Bản v1.0: \S2 do Nguyên chấp bút tạm, Đức rà và xác nhận trích dẫn; \S4 Tùng Dương rà.}}
+\date{Tháng 8, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Các hệ đa tác tử LLM --- planner--solver--verifier--aggregator, tranh biện, sinh-rồi-sửa ---
+thường được báo cáo là cải thiện đáng kể so với một model đơn lẻ. Khảo sát này đo lại nhận định
+đó trên GSM8K, MATH-500, MBPP và HumanEval với Qwen2.5 (1.5B--32B), Llama-3.1-8B và
+DeepSeek-Coder-6.7B, dưới \emph{ba phép kiểm soát} mà phần lớn báo cáo trong lĩnh vực bỏ qua:
+(1) \textbf{cùng ngân sách suy luận} --- pipeline bốn vai tốn 2,9--6,6 lần chi phí một lượt
+giải, và token của các model khác cỡ không cùng đơn giá; (2) \textbf{đúng mốc so sánh} --- người
+triển khai đã có model mạnh trong tay, nên đại lượng đúng là chênh lệch với \emph{model mạnh
+chạy một mình} ($V-I$), không phải với model yếu ($V-S$); (3) \textbf{đúng mẫu số} --- 57\% số
+câu không thể chịu tác động của bất kỳ cơ chế phối hợp nào, khiến hiệu ứng thật bị pha loãng
+3,3 lần.
+
+Sau ba kiểm soát, bức tranh đảo chiều có hệ thống. Hiệu ứng dương lớn nhất ($+14{,}0$ điểm, 5/5
+fold) chỉ tồn tại khi so với model yếu; so cùng chi phí FLOP với model mạnh đơn lẻ thì hoà hoặc
+kém. Nguyên nhân được định vị bằng một đẳng thức đại số $\dceil = A - B + C$ (khớp tuyệt đối
+19/19 cặp đo) và một thí nghiệm tiền đăng ký tái lập trên hai miền: thiệt hại đến từ việc model
+mạnh \textbf{tiếp xúc với nội dung sai} --- trên MATH, độ chính xác của nó rơi từ 46,4\% xuống
+19,2\% trên tầng artifact sai ($-27{,}2$ điểm; $p \approx 0$), trong khi artifact đúng làm nó
+\emph{khá lên} ($+3{,}8$ điểm; $p = 0{,}012$). Cùng một biến chênh lệch năng lực nuôi cả cơ hội
+($A$) lẫn thiệt hại ($B$): giao thức \textbf{tuyển chọn} có $B \approx 0$ theo cấu trúc nên
+chênh lệch càng lớn càng thắng; giao thức \textbf{sửa chữa} phải trả $B$ nên chênh lệch càng lớn
+càng thua --- nghịch lý biểu kiến được giải trọn.
+
+Ở miền có bộ kiểm \textbf{đúng đắn} (code chạy test được), phối hợp đạt đúng trần oracle và
+không phá một bài nào trong 20/20 fold; ở miền không có, một bộ phân loại đạt AUC 0,893 vẫn chỉ
+đổi được $+2{,}4$ điểm --- vì giá trị của mọi bộ kiểm bị chặn bởi khoảng cách
+$\texttt{oracle@}k - \texttt{maj@}k$, không bởi chất lượng tín hiệu. Khuyến nghị thực tiễn:
+\emph{dùng model nhỏ để giải, model lớn để soát; sinh độc lập rồi chọn; đừng cho model mạnh xem
+bài làm của model yếu với mục đích sửa.}
+\end{abstract}
+
+% =====================================================================
+\section{Mở đầu}\label{sec:intro}
+
+Ghép nhiều vai LLM thành một hệ có tạo thêm giá trị so với một model đơn lẻ không? Và nếu có,
+giá trị đến từ đâu --- từ \emph{cấu trúc phối hợp}, hay từ thứ khác đi kèm cấu trúc đó?
+
+Câu hỏi khó trả lời hơn vẻ ngoài, vì ba vấn đề đo lường.
+
+\paragraph{Thứ nhất, ngân sách.} Pipeline bốn vai $P{\to}S{\to}V{\to}A$ tốn 2,9 lần ký tự sinh
+trên GSM8K và 6,63 lần trên MATH so với một lượt giải (\S\ref{sec:start}). So một hệ chi phí
+$3\times$ với một hệ $1\times$ rồi kết luận ``phối hợp có giá trị'' là so sánh khập khiễng.
+Tinh vi hơn: khi các vai dùng model \emph{khác cỡ}, ngay cả số token cũng không cùng đơn vị ---
+một token do model 7B sinh tốn $\sim$4,7--4,9 lần FLOP so với token của model 1.5B, vì chi phí
+suy luận tỷ lệ với số tham số \cite{kaplan2020} (\S\ref{sec:baseline}).
+
+\paragraph{Thứ hai, mốc so sánh.} Gần như toàn bộ dòng sinh-rồi-sửa đo cải thiện so với model
+\emph{bị sửa} --- tức model yếu ($V-S$). Nhưng lựa chọn thực của người triển khai, vốn đã có
+model mạnh trong pipeline, là: chạy pipeline, hay \textbf{gọi thẳng model mạnh} ($V-I$)? Khảo
+sát này cho thấy hai mốc đó cho \textbf{hai dấu ngược nhau} trên cùng một hệ
+(\S\ref{sec:baseline}, \S\ref{sec:exposure}).
+
+\paragraph{Thứ ba, mẫu số.} Phân tầng theo độ khó cho thấy 57\% số câu nằm ngoài tầm với của mọi
+cơ chế phối hợp: 32\% quá sức (không mẫu nào đúng --- không có gì để chọn), 25\% quá dễ (mọi mẫu
+đều đúng --- không có gì để cải thiện). Hiệu ứng $+31{,}1$ điểm trên tầng khả tác động bị pha
+loãng thành $+9{,}3$ khi trung bình toàn tập (\S\ref{sec:denominator}). Thiếu kiểm soát này,
+hiệu ứng thật bị đánh giá \emph{thấp} --- ngược chiều với hai kiểm soát trên.
+
+Khảo sát hợp nhất ba nhánh nghiên cứu độc lập của nhóm --- phân rã đóng góp theo vai bằng giá
+trị Shapley \cite{shapley1953}, phân tích chi phí--lợi ích của cơ chế định tuyến, và phân tích
+luồng thông tin của giao thức sửa chữa --- dưới một khung duy nhất, và trình bày kết quả theo
+\textbf{mạch dẫn dắt}: mỗi thí nghiệm sinh ra từ câu hỏi mà thí nghiệm trước để lại.
+
+\paragraph{Đóng góp.}
+\begin{enumerate}\itemsep2pt
+  \item Khung phân rã giá trị $\text{value} = H(\text{pool}) \times \kappa(z) -
+        D(\text{protocol})$ thống nhất ba nhánh (\S\ref{sec:framework}).
+  \item Bằng chứng trên hai thiết kế độc lập rằng \textbf{chênh lệch năng lực} --- không phải
+        số lượng vai, danh tính vai, hay họ model --- là biến quyết định (\S\ref{sec:roles},
+        \S\ref{sec:termA}).
+  \item Một \textbf{đẳng thức đại số} $\dceil = A - B + C$ tách cơ hội khỏi thiệt hại, khớp
+        tuyệt đối trên 19/19 cặp đo (\S\ref{sec:framework}, \S\ref{sec:termA}).
+  \item Bằng chứng tiền đăng ký, tái lập hai miền: thiệt hại của giao thức sửa đến từ
+        \textbf{tiếp xúc với nội dung sai}, không phải từ tiếp xúc; và giao thức sửa là
+        \textbf{ống dẫn, không phải bộ sửa lỗi} --- truyền đáp án đúng gần trọn vẹn (90,9\%)
+        nhưng gần như không sáng tạo lời giải mới (4,3\%) và phá ở quy mô lớn (63,6\% trên tầng
+        rủi ro) (\S\ref{sec:exposure}).
+  \item Giải nghịch lý ``cùng biến, hai dấu'' của chênh lệch năng lực (\S\ref{sec:synthesis}).
+  \item Một phát biểu định lượng về $\kappa$: giá trị của bộ kiểm bằng khoảng cách
+        $\texttt{oracle@}k - \texttt{maj@}k$, không bằng chất lượng bộ kiểm --- kèm hai trần
+        định tuyến tính được (\S\ref{sec:kappa}).
+  \item Một bộ quy trình chống tự đánh lừa (tiền đăng ký, điều kiện hợp lệ, niêm phong hash,
+        sàn nhiễu, t-test theo fold) mà \textbf{50\% số lần chạy không vượt qua} --- bản thân
+        tỷ lệ đó là một kết quả (\S\ref{sec:method}).
+\end{enumerate}
+
+% =====================================================================
+\section{Công trình liên quan}\label{sec:related}
+
+\paragraph{Sinh-rồi-chọn.} Chuỗi suy luận \cite{wei2022} mở đường cho self-consistency
+\cite{wang2023}: sinh $k$ lời giải độc lập rồi bỏ phiếu đa số --- chính là \texttt{maj@}$k$ của
+khảo sát này. Dòng chọn-bằng-bộ-kiểm gồm chấm theo quá trình \cite{lightman2024} và mở rộng
+compute lúc suy luận \cite{snell2024}. Đặc điểm chung: giao thức \emph{không cho phép tạo lời
+giải mới ở bước tổng hợp}, tức $B \approx 0$ theo thuật ngữ của chúng tôi.
+
+\paragraph{Sinh-rồi-sửa.} Self-Refine \cite{madaan2023}, Reflexion \cite{shinn2023} và CRITIC
+\cite{gou2024} cho model đọc sản phẩm (của chính nó hoặc model khác) rồi sửa. Huang và cộng sự
+\cite{huang2024} chỉ ra LLM chưa tự sửa được suy luận khi thiếu tín hiệu ngoài --- nhất quán với
+kết quả \texttt{llm3} và phân tầng tiếp xúc của chúng tôi. \textbf{Điểm chúng tôi nhấn mạnh: các
+công trình dòng này chủ yếu báo cáo cải thiện so với model bị sửa hoặc lượt nháp đầu ($V-S$),
+không so với việc dùng thẳng model sửa ($V-I$)} \todoD{rà từng bài, xác nhận mốc so sánh của
+từng bài --- đây là chỗ luận điểm \S\ref{sec:intro} đứng hoặc đổ}.
+
+\paragraph{Đa tác tử và tranh biện.} Tranh biện đa tác tử \cite{du2024} và LLM-làm-giám-khảo
+\cite{zheng2023} là các cơ chế phối hợp phổ biến. Tổng hợp số liệu công bố gần đây của nhóm
+\todoD{nguồn cụ thể} cho thấy tranh biện thua self-consistency ở đa số ô so sánh và \textbf{sụp
+16 điểm} với Llama-3.1-8B trên GSM8K ($80{,}13 \to 63{,}87$) --- khớp với mẫu hình sụp đổ ở
+model nhỏ mà chúng tôi quan sát độc lập (\S\ref{sec:roles}). Hệ gần nhất về kiến trúc là
+MAS\_RPSV (bốn vai nối tiếp, cùng cỡ model, cùng benchmark) và SHARP --- cùng dùng giá trị
+Shapley cho credit assignment, và báo cáo chỉ 12,96\% lượt gọi subagent là hữu ích \todoD{xác
+nhận cả hai nguồn} --- song song với kết quả ``2/4 vai thực sự tính toán'' của chúng tôi.
+
+\paragraph{Vị trí của khảo sát.} Chúng tôi không đề xuất kiến trúc mới; chúng tôi đề xuất
+\textbf{cách đo}: ba phép kiểm soát, một đẳng thức phân rã, và một khung ba thừa số --- rồi dùng
+chúng để trả lời \emph{khi nào} các kiến trúc trên tạo giá trị thật.
+
+% =====================================================================
+\section{Khung lý thuyết}\label{sec:framework}
+
+\subsection{Phân rã giá trị}
+\begin{equation}
+\text{value} \;=\; H(\text{pool}) \times \kappa(z) \;-\; D(\text{protocol})
+\end{equation}
+\begin{itemize}\itemsep1pt
+  \item $H$ --- \textbf{dư địa}: pool ứng viên có chứa lời giải mà model mạnh đơn lẻ không tạo
+        ra được không? Đo bằng \texttt{oracle@}$k$.
+  \item $\kappa$ --- \textbf{chất lượng bộ chọn}: một tín hiệu \emph{khả thi} (không phải
+        oracle) có lấy được lời giải đó ra khỏi pool không?
+  \item $D$ --- \textbf{thiệt hại}: bản thân giao thức phá hỏng bao nhiêu?
+\end{itemize}
+Ba nhánh của nhóm đo ba thừa số: Shapley theo vai đo $H$; router đo $\kappa$; luồng thông tin
+đo $D$.
+
+\subsection{Đẳng thức phân rã}\label{sec:identity}
+
+Ký hiệu (chú ý: \emph{không} trùng với tên vai ở \S\ref{sec:setup}): $S$ = model yếu giải bài;
+$I$ = model mạnh giải bài, \emph{không thấy gì của} $S$; $V$ = \textbf{cùng model mạnh đó}
+nhưng ngữ cảnh có kèm bài làm của $S$. $I$ và $V$ là cùng một model --- khác nhau ở
+\textbf{input}, nên $V-I$ cô lập đúng một biến: việc nhìn thấy bài làm của model yếu. Trần lý
+tưởng $\CEIL$ = đúng nếu $S$ đúng \textbf{hoặc} $V$ đúng --- chính là \texttt{oracle@2} trên cặp
+$\{S, V\}$, tức chiến lược ``$S$ đúng thì giữ $S$'' ở dạng hoàn hảo.
+\begin{equation}
+\dceil \;=\; \acc(\CEIL) - \acc(I) \;=\; A - B + C
+\end{equation}
+\begin{align*}
+A &= P(S \text{ đúng} \wedge I \text{ sai})   &&\text{cơ hội có sẵn --- tính chất của \emph{cặp model}}\\
+B &= P(S \text{ sai} \wedge I \text{ đúng} \wedge V \text{ sai}) &&\text{giao thức phá bài $I$ vốn đúng --- tính chất của \emph{giao thức}}\\
+C &= P(S \text{ sai} \wedge I \text{ sai} \wedge V \text{ đúng}) &&\text{giao thức cứu bài cả hai đều sai}
+\end{align*}
+Đây là đẳng thức đại số, không phải mô hình: khớp tuyệt đối trên 4/4 cặp có lưu vết và 15/15 cặp
+của thí nghiệm quy mô lớn. Giao thức \textbf{chỉ chọn} có $B \approx 0$ vì không thể tạo lời
+giải sai mới; giao thức \textbf{sửa} luôn phải trả $B$. $\dceil$ là \emph{chặn trên sàng lọc}
+(cần đáp án chuẩn, không triển khai được): $\dceil < 0 \Rightarrow$ đóng hướng ngay --- không
+cổng nào cứu nổi; $\dceil > 0 \Rightarrow$ mới được hỏi tiếp về $\kappa$. Con số triển khai là
+$\dhonest = \acc(V) - \acc(I)$.
+
+\subsection{Ba mệnh đề}
+\begin{itemize}\itemsep1pt
+  \item[\textbf{M1.}] $D$ là hàm của tiếp xúc với \textbf{nội dung sai}, không phải của tiếp
+        xúc (\S\ref{sec:exposure}).
+  \item[\textbf{M2.}] $\kappa$ phụ thuộc tín hiệu là \textbf{đúng đắn} hay \textbf{học được}
+        --- không phụ thuộc mạnh hay độc lập. (Đã qua hai lần thu hẹp từ bản gốc ``độc lập
+        thắng tương quan''; \S\ref{sec:kappa}.)
+  \item[\textbf{M3.}] Định tuyến tiết kiệm ở đúng nơi ít cần tiết kiệm nhất (\S\ref{sec:router}).
+\end{itemize}
+
+% =====================================================================
+\section{Thiết lập thí nghiệm}\label{sec:setup}
+
+\todoTD{rà toàn bộ mục này}
+
+\paragraph{Model.} Qwen2.5-Instruct 1.5B/7B/14B/32B \cite{yang2024}; Llama-3.1-8B-Instruct
+\cite{grattafiori2024}; DeepSeek-Coder-6.7B-Instruct \cite{guo2024}. Lượng tử hoá \textbf{đo
+từng model, không suy theo họ}: DeepSeek-6.7B nạp nf4 hết 3,61 GB; Qwen-7B 5,21 GB; Llama-8B và
+Qwen-14B \emph{không} lượng tử hoá được trên bản chạy (fp16 $\sim$16/28 GB). Phần cứng: Kaggle
+2$\times$T4 (nf4/fp16) và RTX 6000 Pro 95 GB (bf16); so sánh chéo lần chạy chỉ hợp lệ khi trùng
+cả (phần cứng + độ chính xác số) lẫn bộ bài --- đo được nf4 so với bf16 dịch kết quả tới 0,03.
+
+\paragraph{Benchmark.} GSM8K \cite{cobbe2021}; MATH-500 \cite{hendrycks2021}; MBPP
+\cite{austin2021} --- dải chính \texttt{task\_id} 11--510 ($\sim$499 bài sau lọc chuẩn), dải giữ
+lại 511--974 (464 bài); HumanEval \cite{chen2021}. \textbf{MBPP/HumanEval có bộ kiểm đúng đắn}
+(chạy test); MATH/GSM8K không --- khác biệt này quyết định kết luận \S\ref{sec:kappa}.
+
+\paragraph{Vai và chi phí.} $P$ planner, $S$ solver, $V$ verifier, $A$ aggregator; tổ hợp
+\texttt{PS}, \texttt{PSV}, \texttt{PSVA}, \texttt{SVV},\dots{} Chi phí báo theo \textbf{lượt
+gọi} và theo \textbf{token/ký tự}; khi các vai khác cỡ model, quy thêm về \textbf{chi phí trọng
+số FLOP} (tham số $\times$ token).
+
+\paragraph{Giải mã và tính tất định.} Khối luồng thông tin dùng greedy
+(\texttt{do\_sample=False}): cùng cấu hình cho kết quả \textbf{giống hệt từng bài} (kiểm 499/499
+giữa hai tài khoản, hai ngày). Hệ quả: chạy lại cùng cấu hình không phải bằng chứng độc lập; dao
+động giữa các fold đến từ \emph{khác bài}, không phải nhiễu lấy mẫu.
+
+\paragraph{Thống kê.} Khối vai trò/chi phí: 5 fold rời nhau; sàn nhiễu hiệu chuẩn bằng cách chạy
+cùng cấu hình trên 5 fold (\texttt{V\_gain} dao động $+1{,}0\ldots+8{,}0$; std giữa fold 2,65);
+suy diễn bằng t-test trên fold ($\mathrm{SE} = s/\sqrt{k}$; $t_{0{,}975}(4) = 2{,}776$), KTC
+95\%, và phép thử dấu (5/5 cùng dấu $\Rightarrow p = 0{,}031$ một phía). Khối luồng thông tin:
+McNemar chính xác ghép cặp trên cùng bộ bài; bootstrap ghép cặp theo chỉ số bài (10\,000 lần).
+Ngưỡng diễn giải được \textbf{khoá trước khi chạy} trong bảng tiền đăng ký, gồm dòng bác bỏ giả
+thuyết.
+
+% =====================================================================
+\section{Hành trình thực nghiệm}\label{sec:results}
+
+\emph{Trình bày theo mạch: mỗi mục mở bằng câu hỏi kế thừa, đóng bằng câu hỏi để lại. Số liệu
+mức A trừ khi ghi khác.}
+
+% ---------------------------------------------------------------
+\subsection{Pipeline có giúp không --- và sàn nhiễu định hình mọi thứ}\label{sec:start}
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcccc}\toprule
+Task & Solver & Pipeline & Chênh & Chi phí ký tự\\\midrule
+GSM8K & 0,632 & 0,744 & $\mathbf{+0{,}112}$ & $2{,}9\times$\\
+MATH  & 0,405 & 0,345 & $\mathbf{-0{,}060}$ & $\mathbf{6{,}63\times}$\\\bottomrule
+\end{tabular}
+\caption{Pipeline đầy đủ so với solver đơn lẻ (Qwen-1.5B).}
+\end{table}
+
+Trên GSM8K có lợi (5 fold: $\texttt{PSVA}-\texttt{PS} = +5{,}6$; KTC $[+3{,}3;\,+7{,}9]$;
+$t=6{,}89$); trên MATH \textbf{tốn 6,63 lần để kém hơn 6 điểm}. Phép hiệu chuẩn sàn nhiễu ---
+cùng cấu hình, 5 fold --- cho \texttt{V\_gain} từ $+1{,}0$ đến $+8{,}0$: một phép đo đơn lẻ 100
+bài gần như không mang thông tin, và mọi hiệu ứng từ đây đi kèm KTC.
+
+\emph{Câu hỏi để lại: phần lợi có phải do phối hợp, hay chỉ do được sinh nhiều lượt?}
+
+% ---------------------------------------------------------------
+\subsection{Kiểm soát ngân sách: giá trị nằm ở lượt sinh, không ở vai tổng hợp}\label{sec:budget}
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcc}\toprule
+Bộ tổng hợp (8 lượt sinh) & MATH 1.5B & MATH 7B\\\midrule
+greedy (1 lượt)                 & 0,50 & 0,72\\
+\texttt{maj@8} --- bỏ phiếu     & \textbf{0,60} & \textbf{0,73}\\
+\texttt{llm\_agg@8} --- LLM tổng hợp & 0,41 & 0,47\\
+\texttt{oracle@8} --- trần      & 0,73 & 0,85\\\bottomrule
+\end{tabular}
+\caption{Cùng ngân sách 8 lượt sinh, chỉ đổi bộ tổng hợp.}
+\end{table}
+
+Cùng chi phí, thành phần LLM tổng hợp kém bỏ phiếu 19--26 điểm; ở 7B kém cả greedy một lượt. Nó
+phá đa số đúng 21/26 lần, sửa được đa số sai 2/0 lần. Kết quả \textbf{phụ thuộc task}
+($\texttt{vote5}-\texttt{llm\_agg}$: $+0{,}075$ MATH, $-0{,}056$ GSM8K) --- phát biểu đúng:
+\emph{bộ tổng hợp LLM không mang giá trị ổn định; ở miền khó nó gây hại đáng kể.}
+
+Hai đối chứng tách nốt:
+\begin{itemize}\itemsep2pt
+\item \textbf{\texttt{rerun} = \texttt{loop}} ($0{,}453 = 0{,}453$): giải lại \emph{không xem}
+      phê bình của verifier cho kết quả bằng chính xác giải lại \emph{có} phê bình. Lợi ích đến
+      từ \textbf{lượt sinh thêm}, không từ nội dung phản hồi. (Con số $+20$ đo một lần không tái
+      lập: 5 fold còn $+4{,}0$.) Biến thể vòng lặp giải-rồi-chấm rẻ hơn pipeline đủ vai lại
+      \textbf{thắng nó} trên MATH: $\texttt{loop}-\texttt{PSVA} = +4{,}0$; KTC $[+0{,}5;\,+7{,}5]$;
+      $t = 3{,}21$ --- cùng chi phí (4,2 so với 4,0 lượt).
+\item \textbf{Aggregator không chọn --- nó chép.} 65\% số câu nó chép nguyên ứng viên
+      \emph{cuối cùng}; đọc 600 trace: 100\% lượt không sinh số mới. \textbf{Nhưng phần ``gây
+      hại'' phải đính chính:} 85\% số ca phá trên MATH là \emph{không phát ra}
+      \verb|\boxed{}| --- lỗi định dạng; chỉ 5\% chọn nhầm thật. Thêm fallback miễn phí:
+      \texttt{A\_gain} từ $-6{,}4$ thành $\mathbf{+1{,}0}$ $[0;\,+2]$. Bộ tổng hợp LLM
+      \emph{trung tính một khi xử lý xong định dạng} --- không cộng giá trị, nhưng ``phá hoại''
+      phần lớn là hiện vật đo lường. (Một mâu thuẫn chưa giải giữa hai lần chạy 5 fold của chính
+      đại lượng này --- $-6{,}4$ và $+8{,}0$, mỗi bên nhất quán nội bộ --- xem \S\ref{sec:limits}.)
+\end{itemize}
+
+\emph{Câu hỏi để lại: mọi can thiệp đều cho 0--5 điểm --- có phải đang đo sai mẫu số?}
+
+% ---------------------------------------------------------------
+\subsection{Kiểm soát mẫu số: 57\% số câu bất động}\label{sec:denominator}
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcccc}\toprule
+Mẫu đúng /5 & $n$ & Solver & \texttt{vote5} & $\Delta$\\\midrule
+0/5 --- quá sức & 48 (32\%) & 0,000 & 0,000 & 0,000\\
+1/5 & 20 & 0,000 & 0,000 & 0,000\\
+2/5 & 15 & 0,333 & 0,600 & $+0{,}267$\\
+3/5 & 12 & 0,583 & 1,000 & $+0{,}417$\\
+4/5 & 18 & 0,722 & 1,000 & $+0{,}278$\\
+5/5 --- quá dễ & 37 (25\%) & 1,000 & 1,000 & 0,000\\\bottomrule
+\end{tabular}
+\caption{Phân tầng theo số mẫu đúng trong 5 lượt (MATH 1.5B, $n=150$).}
+\end{table}
+
+\textbf{57\% số câu không thể có hiệu ứng vì lý do toán học.} Trên tầng khả tác động: $+21{,}5$
+điểm (nhóm 1--4/5, cách nhóm của tài liệu nguồn) hay $+31{,}1$ (nhóm 2--4/5, loại tầng hiệu ứng
+bằng 0); trung bình toàn tập pha loãng còn $+9{,}3$. Một can thiệp $+10$ điểm thật sẽ hiện ra
+$+3$ --- dưới sàn nhiễu, và bị kết tội oan là vô dụng. Ba kiểm soát tác động \textbf{ngược
+chiều}: thiếu mẫu số $\Rightarrow$ đánh giá thấp; thiếu ngân sách/mốc $\Rightarrow$ đánh giá cao.
+
+\emph{Câu hỏi để lại: trong phần khả tác động, vai nào đóng góp?}
+
+% ---------------------------------------------------------------
+\subsection{Vai trò: chuyên biệt hoá sụp đổ; biến thật là năng lực của lượt kiểm}\label{sec:roles}
+
+Chỉ số \textbf{hành vi} từ trace: ở 1.5B, planner --- bị cấm tính đáp án --- chứa sẵn đáp án ở
+34,7\% câu MATH (45,3\% có \verb|\boxed|); solver không sinh số mới ở 60,7--62\% lượt, lời giải
+dài \textbf{19 ký tự} khi có plan (664 khi không). \emph{Nó không giải --- nó chép.} Ở 7B, hai
+vai hồi phục (rò đáp án 1,0--4,0\%) --- nhưng ở mức đó pipeline lại thua solver đơn lẻ. Đối
+chứng nhân quả: \textbf{hoán vị prompt giữa các vị trí} (\texttt{normal}/\texttt{swap}/%
+\texttt{solo}) cho accuracy không phân biệt được --- GSM8K $0{,}660 = 0{,}660$, \texttt{solo}
+$0{,}673$; MATH $\texttt{swap}-\texttt{normal} = +5{,}3$ nhưng $t = 1{,}84$, KTC
+$[-2{,}7;\,+13{,}4]$ --- không đạt. \textbf{Danh tính vai không phải biến.}
+
+Biến thật là \textbf{năng lực của model ở lượt thứ hai}. Cùng 300 bài MATH (5 fold $\times$ 60):
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccc}\toprule
+Lượt kiểm & Hiệu ứng & KTC 95\% & Sửa : Phá\\\midrule
+\textbf{Verifier 7B} (solver 1.5B) & $\mathbf{+14{,}0}$ & $[+7{,}4;\,+20{,}6]$ & $\mathbf{43:1}$\\
+Verifier 1.5B (cùng cỡ) & $+3{,}0$ & chạm 0 & $15:6$\\
+Riêng phần do lớn hơn & $\mathbf{+11{,}0}$ & $[+3{,}9;\,+18{,}1]$ & ---\\\bottomrule
+\end{tabular}
+\caption{Bất đối xứng năng lực ở lượt kiểm, MATH.}
+\end{table}
+
+Cơ chế từ trace: khi can thiệp, verifier \textbf{tái sử dụng 0\%} số liệu của solver --- nó
+không dò từng bước, nó \textbf{giải lại từ đầu}. \emph{Verifier là một solver thứ hai đội lốt bộ
+kiểm; mua verifier 7B là mua một solver tốt hơn cho lượt thứ hai.} Phù hợp: \texttt{V\_gain} có
+ý nghĩa ở cả MATH 7B ($+4{,}4$; KTC $[+1{,}5;\,+7{,}3]$) --- giá trị verifier xuất hiện
+\emph{cùng} năng lực; ở MATH 1.5B thì không ($+1{,}4$; $p=0{,}235$).
+
+\emph{Câu hỏi để lại: $+14{,}0$ là so với model yếu. So đúng mốc thì sao?}
+
+% ---------------------------------------------------------------
+\subsection{Kiểm soát mốc so sánh và đơn giá token: cấu hình bất đối xứng bị chi phối}\label{sec:baseline}
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcccc}\toprule
+Cấu hình & GSM8K & MATH & Token GSM8K & Token MATH\\\midrule
+S1.5B + V7B & 0,810 & 0,563 & 105k & 119k\\
+\textbf{S7B một mình} & \textbf{0,910} & \textbf{0,593} & 120k & 152k\\
+S7B + V7B & 0,900 & \textbf{0,670} & 205k & 261k\\\bottomrule
+\end{tabular}
+\caption{Token đo thật, 5 fold. \emph{Cột token không so được trực tiếp giữa hai cỡ model ---
+xem hiệu chỉnh bên dưới.}}
+\end{table}
+
+So với S7B đơn lẻ: bất đối xứng kém 10 điểm trên GSM8K; hoà trên MATH (chênh theo fold chứa 0).
+Cột token có \textbf{hai lỗi chồng nhau}: (a) trường đo gốc chỉ đếm token \emph{do 7B sinh}, bỏ
+sót token của solver 1.5B; (b) token 7B đắt $\sim$4,7--4,9 lần token 1.5B. Quy về trọng số FLOP
+(tham số $\times$ token; độ nhạy chars/token 3,0--4,0):
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcc}\toprule
+ & Token thô 7B & \textbf{Trọng số FLOP}\\\midrule
+GSM8K: asym / S7B & 0,88 --- ``rẻ hơn 12\%'' & $\mathbf{1{,}00\text{--}1{,}05}$ --- tiết kiệm biến mất\\
+MATH: asym / S7B & 0,78 --- ``rẻ hơn 22\%'' & $\mathbf{0{,}92\text{--}0{,}96}$ --- còn 3--8\%\\\bottomrule
+\end{tabular}
+\caption{Hiệu chỉnh đơn giá token. Chưa tính prefill (7B còn phải \emph{đọc} bài của 1.5B) nên
+hiệu chỉnh vẫn thiên vị cho cấu hình bất đối xứng.}
+\end{table}
+
+Kết luận: \textbf{trên GSM8K cấu hình bất đối xứng bị chi phối hoàn toàn} (kém 10 điểm, không rẻ
+hơn); trên MATH là tiết kiệm \emph{biên} với độ chính xác hoà. Solver đơn lẻ nằm trên đường
+Pareto ở cả hai task; pipeline đầy đủ không nằm trên đường Pareto ở MATH. Cải thiện thật duy
+nhất trong bảng: thêm V7B vào \emph{chính} S7B trên MATH: $+7{,}7$ ($p = 0{,}0075$) --- với giá
+$1{,}7\times$ token.
+
+Đây là dạng tổng quát của vấn đề mốc: $V-S$ dương, $V-I$ âm --- \textbf{cùng hệ, hai mốc, hai
+kết luận ngược nhau}, lặp lại ở mọi nhánh của khảo sát.
+
+\emph{Câu hỏi để lại: giá trị mất đi đâu? (Từ đây dùng đẳng thức \S\ref{sec:identity}.)}
+
+% ---------------------------------------------------------------
+\subsection{Định tuyến: tiết kiệm ở nơi ít cần nhất \normalfont(mức B --- đo một lần, $n=300$)}\label{sec:router}
+
+Consensus router (chạy $S$, $V$; bất đồng mới gọi $A$): GSM8K đạt 0,7200 với chi phí 2,32 lượt
+--- giữ 94\% phần lợi của pipeline (0,7233; 3 lượt) với 77\% chi phí; MATH đạt 0,4133 ---
+\textbf{đúng bằng solver đơn lẻ}, vô dụng. Cơ chế: khi $S$--$V$ bất đồng, $A$ cứu 45,4\% trường
+hợp trên GSM8K nhưng 25,0\% trên MATH. Mệnh đề M3: định tuyến chỉ trả tiền ở nơi đã sẵn đồng
+thuận. (Vì sao MATH tệ hơn --- trả lời ở \S\ref{sec:exposure}: model yếu sai nhiều hơn
+$\Rightarrow$ tiếp xúc nội dung sai nhiều hơn.)
+
+% ---------------------------------------------------------------
+\subsection{Số hạng $A$: chênh lệch năng lực, không phải họ model --- và quy luật của $\dceil$}\label{sec:termA}
+
+Quan sát thô trên 7 cặp gộp nhiều lần chạy: cặp \emph{khác họ} có dư địa $A$ cao gần gấp đôi
+($0{,}0597$ so với $0{,}0481$) --- nhưng các cặp khác họ cũng có chênh lệch năng lực nhỏ hơn
+($0{,}130$ so với $0{,}167$); hai biến trộn hoàn toàn. Thiết kế tách (tiền đăng ký):
+\textbf{6 model, 15 cặp có hướng, cùng 499 bài MBPP, một lần chạy}, bổ sung đúng các ô còn thiếu:
+\begin{align*}
+A &= \beta_0 + \beta_1\cdot\text{chênh} + \beta_2\cdot\text{khác\_họ}\\
+\beta_1 &= -0{,}1922\ (p \approx 0) \qquad
+\beta_2 = +0{,}0045,\ \text{KTC 95\% } [-0{,}0051;\,+0{,}0140],\ p = 0{,}31
+\end{align*}
+$R^2$ chỉ với chênh lệch $= 0{,}824$. KTC của $\beta_2$ nằm \textbf{trọn dưới} ngưỡng $+0{,}02$
+đã khoá trước --- \textbf{null có thông tin}: ``khác họ'' là tương quan giả; biến thật là chênh
+lệch năng lực. (Kết quả đa dạng pool --- 3 model cho 2,70/3 ứng viên phân biệt so với 1,91/3 khi
+lấy mẫu cùng model; 36,2\% $\to$ 6,5\% số bài chỉ một ứng viên --- được ghi là ``khác
+\textbf{model}'': đối chứng khác-model-cùng-họ chưa chạy.)
+
+Thêm nhánh sửa cho cả 15 cặp (tiền đăng ký) cho quy luật:
+\begin{equation}
+\dceil = +0{,}0218 - 0{,}2392 \times \text{chênh};\quad R^2 = 0{,}60;\ p = 10^{-5};\
+g^\ast \approx 0{,}09
+\end{equation}
+Đẳng thức $A-B+C$ khớp 15/15. Đọc kèm bắt buộc: \textbf{0/15 cặp dương có ý nghĩa; 3/15 âm có ý
+nghĩa} $\Rightarrow$ chỉ phát biểu \textbf{chiều phủ định}: \emph{chênh lệch vượt $\sim$0,09 thì
+đừng dùng giao thức sửa.} Xác lập vùng dương cần $\sim$8$\times$ toàn bộ MBPP --- bất khả thi
+trên benchmark này. Chênh giải thích 82\% phương sai của $A$ nhưng chỉ 35\% của $B$. \emph{(Ghi
+chú cơ chế, mức B: ngưỡng bảo toàn mà $V$ phải vượt tăng theo chênh với hệ số 2,18 --- nhanh gấp
+đôi khả năng bảo toàn thực của nó, hệ số 1,10; chênh lệch hệ số $p = 0{,}0066$. Giao thức sửa
+chết vì số học ngân sách, không phải vì model mạnh ``yếu bóng vía''.)}
+
+\emph{Câu hỏi để lại: $B$ do đâu mà có?}
+
+% ---------------------------------------------------------------
+\subsection{Số hạng $B$: hình phạt của nội dung sai --- và giao thức sửa là ống dẫn}\label{sec:exposure}
+
+Thiết kế sạch nhất (tiền đăng ký; MATH-500 để \textbf{đổi miền} so với quan sát thăm dò gốc trên
+MBPP): hai nhánh dùng \textbf{cùng một lệnh giải}, khác duy nhất việc ngữ cảnh có kèm bài làm
+của model yếu; phân tầng theo \textbf{nội dung} bài làm đó:
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccc}\toprule
+ & MBPP 11--510\mucB & MBPP 511--974\mucB & \textbf{MATH-500 (mức A)}\\\midrule
+Artifact \textbf{sai}  & $-0{,}1900$ & $-0{,}1927$ & $\mathbf{-0{,}2720}$ ($p\approx 0$; $n=261$)\\
+Artifact \textbf{đúng} & $+0{,}0636$ & $+0{,}0245$ & $\mathbf{+0{,}0377}$ ($p=0{,}012$; $n=239$)\\\bottomrule
+\end{tabular}
+\caption{Hiệu ứng của việc nhìn thấy artifact, phân tầng theo nội dung. Kết quả trung tâm.}
+\end{table}
+
+Trên tầng artifact sai, model mạnh rơi \textbf{46,4\% $\to$ 19,2\%} --- trên chính những bài nó
+vốn giải được gần một nửa; artifact đúng làm nó khá lên. Tổng hợp trọng số tái tạo \emph{chính
+xác} $V-I = -0{,}1240$. \textbf{$D$ không phải hình phạt của việc nhìn thấy --- mà của việc nhìn
+thấy nội dung sai}; và vì thiết kế không có lệnh sửa, \emph{riêng nhìn thấy đã đủ gây hại}.
+
+Bảng $2\times2\times2$ đầy đủ (chấm lại từ trace) trả lời câu hỏi tự nhiên \emph{``khi $I$ sai
+thì sửa có giúp không?''}:
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcc}\toprule
+Tầng & $n$ & $V$ đúng\\\midrule
+$S$ đúng, $I$ đúng & 228 & 99,6\%\\
+\textbf{$S$ đúng, $I$ sai} & \textbf{11} & \textbf{90,9\%}\\
+$S$ sai, $I$ đúng \emph{(vùng rủi ro)} & \textbf{121} & 36,4\% --- tức phá 63,6\%\\
+Cả hai sai & 140 & \textbf{4,3\%}\\\bottomrule
+\end{tabular}
+\caption{Bảng $2\times2\times2$ trên MATH ($n=500$).}
+\end{table}
+
+Ba đọc số: (1) \textbf{giao thức sửa là ống dẫn, không phải bộ sửa lỗi} --- truyền đáp án đúng
+của $S$ gần trọn vẹn (90,9\%), gần như không sáng tạo lời giải mới (4,3\%), phá ở quy mô lớn
+(63,6\%); (2) tầng khai thác được nhỏ hơn tầng rủi ro \textbf{11 lần} (11 so với 121 bài); (3)
+``giữ nguyên $S$ khi $S$ đúng'' chính là oracle $\CEIL$ --- và tặng không oracle đó cũng chỉ
+thêm $+0{,}004$ trên MATH (đúng 2 bài/500), vì $V$ vốn đã giữ được 99,6\%/90,9\%; kể cả vậy
+$\CEIL = 0{,}578$ vẫn thua $I = 0{,}698$. \textbf{Không cấu hình nào có $V > I$} trong toàn bộ
+khảo sát (0/15 cặp MBPP; tốt nhất $-0{,}030$). Vấn đề không phải ``quên giữ $S$'' --- mà là $V$
+phá tầng ($S$ sai, $I$ đúng), và cách duy nhất bảo vệ tầng đó là \emph{đừng cho xem}.
+
+Đây cũng là lời giải cho \S\ref{sec:router}: aggregator vô dụng trên MATH vì ở đó model yếu sai
+nhiều hơn --- tỷ lệ tiếp xúc nội dung sai cao hơn (45,4\% so với 25,0\% khớp hướng; mức B).
+
+% ---------------------------------------------------------------
+\subsection{Tính chuyển miền của quy luật chênh lệch}\label{sec:transfer}
+
+Dùng đường khớp \textbf{trên MBPP} dự báo $\dceil$ \textbf{trên MATH} (tiền đăng ký; 3 cặp Qwen;
+mọi điều kiện hợp lệ đạt; KTC bootstrap ghép cặp 10\,000 lần):
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccccl}\toprule
+Cặp & Chênh & Đo được & KTC 95\% & MBPP dự báo & \\\midrule
+7B$\to$14B & 0,044 & $-0{,}0140$ & $[-0{,}046;\,+0{,}018]$ & $+0{,}0108$ & trong khoảng\\
+1.5B$\to$7B & 0,244 & $\mathbf{-0{,}1660}$ & $[-0{,}208;\,-0{,}124]$ & $-0{,}0361$ & \textbf{ngoài}\\
+1.5B$\to$14B & 0,288 & $-0{,}0680$ & $[-0{,}102;\,-0{,}034]$ & $-0{,}0471$ & trong khoảng\\\bottomrule
+\end{tabular}
+\caption{Thử điểm tính chuyển miền của quy luật chênh lệch.}
+\end{table}
+
+2/3 dự báo trong khoảng $\Rightarrow$ quy luật \textbf{không bị bác bỏ} trên miền toán (không
+viết ``đã xác nhận'': KTC rộng 0,064--0,084 nên phép kiểm có độ phân giải thấp). Cặp lệch lệch
+\textbf{hệ thống} --- $B = 0{,}208$, gấp mười lần $A$ --- và tái lập một phép đo độc lập trên
+cùng cặp ($-0{,}1380 \to -0{,}1660$): quy luật mô tả xu hướng; ngoại lệ ở nơi model yếu quá yếu
+so với bài.
+
+% ---------------------------------------------------------------
+\subsection{$\kappa$: đúng đắn đạt trần oracle; học được thì ``đo được $\neq$ dùng được''}\label{sec:kappa}
+
+\textbf{Tín hiệu đúng đắn} --- HumanEval, cùng model, cùng 4 lượt sinh, khác duy nhất nguồn
+kiểm; tái lập trên 4 cấu hình $\times$ 2 hệ phần cứng:
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccccc}\toprule
+Ô & greedy & \texttt{exec3} & \texttt{llm3} & \texttt{exec3} phá & \texttt{llm3} phá\\\midrule
+HE 1.5B (Kaggle) & 0,5375 & \textbf{0,6000} & 0,4812 & \textbf{0,0} & 2,8\\
+HE 1.5B (5090)   & 0,5625 & \textbf{0,6438} & 0,4375 & \textbf{0,0} & 4,6\\
+HE 7B (5090)     & 0,8000 & \textbf{0,8812} & 0,7812 & \textbf{0,0} & 2,6\\
+HE 7B (Kaggle)   & 0,7938 & \textbf{0,9000} & 0,7438 & \textbf{0,0} & 3,2\\\bottomrule
+\end{tabular}
+\caption{Kiểm bằng chạy test (\texttt{exec3}) so với LLM tự kiểm (\texttt{llm3}).}
+\end{table}
+
+\texttt{exec3} \textbf{phá 0 bài trong 20/20 fold} và đạt đúng \texttt{oracle@4} ở hai ô có ghi
+số; \texttt{llm3} phá ở cả 20 fold. Mốc trung thực là greedy --- bỏ phiếu \textbf{có hại trên
+code} ($-0{,}113$/$-0{,}131$; lời giải dài hiếm trùng): $\texttt{exec3}-\text{greedy} =
++0{,}063 \to +0{,}106$. Giới hạn: khi model nền bão hoà (GSM8K 7B, solver 0,916), bộ kiểm thực
+thi chính xác 0,837 vẫn \textbf{lỗ ròng} (26 phá / 6 sửa).
+
+\textbf{Tín hiệu học được} --- bộ phân loại huấn luyện trên lỗi tiêm (đổi một chữ số trong lời
+giải đúng), cả hai ô hợp lệ:
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lcccc}\toprule
+Model & Lỗi tiêm & Lỗi thật & AUC & Đổi thành độ chính xác\\\midrule
+1.5B & $-0{,}012$ & $+0{,}195$ & 0,528 & $-0{,}008$ (1/5 fold)\\
+\textbf{7B} & $\mathbf{+0{,}573}$ & $\mathbf{+0{,}693}$ & \textbf{0,893} & $\mathbf{+0{,}024}$ (2/5 fold)\\\bottomrule
+\end{tabular}
+\caption{Bộ phân loại học được: đo được rất tốt, gần như không dùng được.}
+\end{table}
+
+Ở 7B nó học rất tốt, chuyển giao còn tốt hơn trong phân phối --- nhưng AUC 0,893 chỉ mua được
+$+2{,}4$ điểm. \textbf{Đo được $\neq$ dùng được.} Phát biểu hợp nhất, nối bốn thí nghiệm:
+
+\begin{quote}
+\textbf{Giá trị của một bộ kiểm bằng khoảng cách $\texttt{oracle@}k - \texttt{maj@}k$, không
+bằng chất lượng bộ kiểm.} Code: khoảng cách $+21{,}3$ điểm --- bộ test lấy toàn bộ. Toán:
+khoảng cách nhỏ --- AUC 0,893 lấy $+2{,}4$. \textbf{Nút thắt nằm ở khâu SINH, không phải khâu
+CHỌN} (ở 50--58\% bài không đồng thuận, pool gần như không chứa ứng viên đúng).
+\end{quote}
+
+Hai trần định tuyến tính được trên dữ liệu \S\ref{sec:exposure}: cổng \textbf{theo artifact}
+(chỉ cho xem khi artifact đúng --- oracle): 0,7160 so với $I$ 0,6980 = $\mathbf{+0{,}018}$; bộ
+phân loại thật cần $\sim$89\% mới hoà vốn. Router \textbf{biết-khi-$I$-sai} (oracle mạnh hơn):
+$+3{,}2$ điểm MATH --- nhưng đòi tín hiệu phát hiện \emph{lỗi của chính model mạnh}, đúng loại
+tín hiệu vừa chứng minh là đo được mà không dùng được. Kết luận thực tiễn: \textbf{không phải
+``làm cổng tốt hơn'' --- mà ``mặc định đừng cho xem''.}
+
+% =====================================================================
+\section{Tổng hợp: nghịch lý và lời giải}\label{sec:synthesis}
+
+\textbf{Nghịch lý.} \S\ref{sec:roles}: chênh lệch năng lực lớn $\Rightarrow +14{,}0$ điểm.
+\S\ref{sec:termA}: chênh lệch năng lực lớn $\Rightarrow \dceil$ âm. Cùng một biến, hai dấu.
+
+\textbf{Lời giải} --- hai giao thức, một đẳng thức:
+\begin{align*}
+\text{Tuyển chọn (verifier, } 43{:}1\text{):} &\quad \text{value} \approx A \times \kappa - 0
+  &&\to\ \text{chênh tăng} \Rightarrow \text{giá trị \textbf{tăng}}\\
+\text{Sửa chữa (}V\text{ phải trả }B\text{):} &\quad \text{value} = A - B + C
+  &&\to\ B \text{ tăng nhanh hơn } A \Rightarrow \text{giá trị \textbf{giảm}}
+\end{align*}
+Chênh lệch năng lực nuôi \textbf{cả $A$ lẫn $B$}; giao thức quyết định gặt bên nào. Sáu mảnh
+bằng chứng độc lập hội tụ: (1) đại số --- chỉ-chọn đặt $B \approx 0$ theo cấu trúc; (2) độ lớn
+--- trên MATH ở chênh lớn, $B$ gấp $\sim$11 lần $A$; (3) cơ chế --- $B$ là thiệt hại do tiếp
+xúc nội dung sai, tiền đăng ký, hai miền; (4) trần --- cổng lọc hoàn hảo chỉ thu $+0{,}018$
+trên nền $-0{,}124$; (5) ngoại chứng --- tranh biện thua self-consistency và sụp ở model nhỏ
+trong số liệu công bố \todoD{nguồn}; (6) liên miền --- quy luật MBPP dự báo được MATH ở 2/3 cặp.
+
+Bức tranh cuối là một \textbf{cây quyết định}:
+\begin{itemize}\itemsep2pt
+\item \textbf{Miền có bộ kiểm đúng đắn} (code chạy test): phối hợp đạt đúng trần oracle, 0 phá
+      --- dùng, và dùng dạng chỉ-chọn.
+\item \textbf{Miền không có:} bỏ phiếu cơ học lấy phần lớn giá trị của việc sinh nhiều lượt;
+      thành phần LLM tổng hợp trung tính-đến-hại; tín hiệu học được đo được nhưng không dùng được.
+\item \textbf{Mọi miền:} đừng cho model mạnh xem bài của model yếu với mục đích sửa --- nhất là
+      khi chênh lệch vượt $\sim$0,09; đã có model mạnh thì gọi thẳng nó.
+\end{itemize}
+
+\begin{quote}\centering
+\textbf{Một câu:} dùng model nhỏ để giải, model lớn để soát;\\
+sinh độc lập rồi chọn --- đừng đưa cho nhau sửa.
+\end{quote}
+
+% =====================================================================
+\section{Phương pháp luận khảo cứu}\label{sec:method}
+
+Nhóm dùng hai chuẩn kiểm chứng bổ sung nhau: \textbf{thanh sai số theo fold} (khối vai trò/chi
+phí) và \textbf{tiền đăng ký + điều kiện hợp lệ + niêm phong hash} (khối luồng thông tin: bảng
+diễn giải khoá \emph{trước} khi chạy, có dòng bác bỏ giả thuyết; hash artifact ghi trước khi đọc
+số; VOID thì không đọc). Các con số tự nói:
+\begin{itemize}\itemsep2pt
+\item \textbf{16/32 lần chạy có tệp kết quả mang trạng thái VOID (50\%)} --- hệ điều kiện hợp lệ
+      đang làm đúng việc; 18 lần có niêm phong hash.
+\item \textbf{Sổ dự đoán trước công khai: 21 đúng / 43} --- người đặt giả thuyết đoán sai một
+      nửa; đó là lý do phải khoá diễn giải trước khi thấy số.
+\item \textbf{Tính tất định:} hai tài khoản, hai ngày, cùng phần cứng $\Rightarrow$ giống nhau
+      499/499 bài. Chạy lại cùng cấu hình không phải bằng chứng độc lập.
+\item \textbf{Rà lại thống kê giữa kỳ:} ngưỡng ``5 điểm'' gốc suy cho phép đo đơn lẻ; với 5
+      fold, chuẩn đúng là t-test (ngưỡng hiệu dụng $\sim$3,3 điểm) kèm KTC và xác suất một phía
+      $P(\text{hiệu ứng} > 0)$. Rà 131 đại lượng: \textbf{bốn kết quả chủ lực đều đứng vững}
+      ($t = 3{,}3$--$6{,}9$; $P(>0) = 98{,}5$--$99{,}9\%$); 6 kết quả được phục hồi \emph{sau
+      khi đối chiếu cờ hợp lệ} (thống kê không cứu được lần chạy vô hiệu); 1 kết quả mất ý
+      nghĩa ($k=3$ fold, $t_{\mathrm{crit}} = 4{,}303$); 2 ca treo được phán dứt khoát bằng dữ
+      liệu fold còn trên Kaggle --- không cần chạy lại. 131 phép thử $\Rightarrow$ kỳ vọng
+      $\sim$6,6 dương tính giả \cite{bh1995}; các ca $p \in [0{,}02;\,0{,}05]$ đọc với dè dặt
+      tương ứng.
+\end{itemize}
+Phần lớn ``cải thiện'' ghi nhận ban đầu không sống sót qua kiểm chứng --- đó là một kết quả,
+không phải một thất bại.
+
+% =====================================================================
+\section{Hạn chế}\label{sec:limits}
+
+\begin{enumerate}\itemsep2pt
+\item \textbf{$\dhonest$ chưa có kết luận.} Đại lượng triển khai được thật đã qua năm lần chạy
+      đều hỏng vì giới hạn 14,6 GB của GPU miễn phí; phần lớn kết luận định lượng dựa trên chặn
+      trên $\dceil$ --- và mọi chặn trên của dòng sửa đều âm hoặc không dương có ý nghĩa.
+\item \textbf{Mâu thuẫn chưa giải:} hai lần chạy 5 fold của \texttt{A\_gain} trên MATH 1.5B cho
+      dấu ngược nhau ($-0{,}064$ và $+0{,}080$; khác cỡ fold 100/40, có thể khác xử lý
+      \verb|\boxed|). Con số $-6{,}4$ chỉ trích kèm chú thích này cho tới khi giải xong.
+\item Hai khối dùng hai chuẩn kiểm chứng, chưa kiểm chéo; đề xuất hợp nhất chuẩn chưa được nhóm
+      phê duyệt.
+\item Tính chuyển miền dựa trên 3 cặp, KTC rộng, 1/3 lệch hệ thống; vùng dương của quy luật
+      chênh \textbf{không thể} xác lập trên MBPP (thiếu lực $\sim$8 lần).
+\item $\kappa$ chưa giải được ở miền không có bộ kiểm đúng đắn: ba tín hiệu định tuyến đã thử
+      đều thất bại hoặc trần quá thấp ($+0{,}018$ / $+3{,}2$ đều là oracle).
+\item Khối luồng thông tin chỉ dùng greedy --- mỗi cấu hình một điểm; khối vai trò có fold bù lại.
+\item Tập model bị giới hạn bởi VRAM tầng miễn phí; phạm vi khẳng định: \textbf{model
+      nhỏ-đến-trung (1,5B--32B) trên bài toán suy luận}; chưa nói được về model rất lớn.
+\item \S\ref{sec:router} và các phân rã MBPP ở \S\ref{sec:exposure} là mức B (đo một lần / hậu
+      nghiệm); token 1.5B trong hiệu chỉnh FLOP là ước lượng từ ký tự (độ nhạy đã quét).
+\end{enumerate}
+
+% =====================================================================
+\section{Kết luận}
+
+``Đa tác tử có giúp không'' không có câu trả lời đơn --- nhưng có câu trả lời \textbf{có cấu
+trúc}. Dưới ba phép kiểm soát, giá trị của phối hợp phân rã thành ba thừa số đo được: dư địa
+$H$ do chênh lệch năng lực quyết định; bộ chọn $\kappa$ do tính đúng đắn của tín hiệu quyết
+định; thiệt hại $D$ do tiếp xúc với nội dung sai quyết định. Cùng một chênh lệch năng lực nuôi
+cả cơ hội lẫn thiệt hại --- giao thức tuyển chọn gặt cơ hội, giao thức sửa chữa gánh thiệt hại;
+và giao thức sửa, khi nhìn kỹ, là một ống dẫn đáp án chứ không phải một bộ sửa lỗi. Nơi có bộ
+kiểm đúng đắn, phối hợp chạm trần oracle mà không phá một bài nào; nơi không có, cách khôn
+ngoan là sinh độc lập, bỏ phiếu, và đừng để các model đọc bài của nhau.
+
+% =====================================================================
+\begin{thebibliography}{99}\small
+\bibitem{austin2021} J. Austin et al. \emph{Program Synthesis with Large Language Models.}
+arXiv:2108.07732, 2021.
+\bibitem{bh1995} Y. Benjamini, Y. Hochberg. \emph{Controlling the False Discovery Rate.}
+JRSS--B 57(1), 1995.
+\bibitem{chen2021} M. Chen et al. \emph{Evaluating Large Language Models Trained on Code.}
+arXiv:2107.03374, 2021.
+\bibitem{cobbe2021} K. Cobbe et al. \emph{Training Verifiers to Solve Math Word Problems.}
+arXiv:2110.14168, 2021.
+\bibitem{du2024} Y. Du et al. \emph{Improving Factuality and Reasoning in Language Models
+through Multiagent Debate.} ICML, 2024.
+\bibitem{gou2024} Z. Gou et al. \emph{CRITIC: Large Language Models Can Self-Correct with
+Tool-Interactive Critiquing.} ICLR, 2024.
+\bibitem{grattafiori2024} A. Grattafiori et al. \emph{The Llama 3 Herd of Models.}
+arXiv:2407.21783, 2024.
+\bibitem{guo2024} D. Guo et al. \emph{DeepSeek-Coder: When the Large Language Model Meets
+Programming.} arXiv:2401.14196, 2024.
+\bibitem{hendrycks2021} D. Hendrycks et al. \emph{Measuring Mathematical Problem Solving with
+the MATH Dataset.} NeurIPS, 2021.
+\bibitem{huang2024} J. Huang et al. \emph{Large Language Models Cannot Self-Correct Reasoning
+Yet.} ICLR, 2024.
+\bibitem{kaplan2020} J. Kaplan et al. \emph{Scaling Laws for Neural Language Models.}
+arXiv:2001.08361, 2020.
+\bibitem{lightman2024} H. Lightman et al. \emph{Let's Verify Step by Step.} ICLR, 2024.
+\bibitem{madaan2023} A. Madaan et al. \emph{Self-Refine: Iterative Refinement with
+Self-Feedback.} NeurIPS, 2023.
+\bibitem{shapley1953} L. S. Shapley. \emph{A Value for $n$-Person Games.} Contributions to the
+Theory of Games II, 1953.
+\bibitem{shinn2023} N. Shinn et al. \emph{Reflexion: Language Agents with Verbal Reinforcement
+Learning.} NeurIPS, 2023.
+\bibitem{snell2024} C. Snell et al. \emph{Scaling LLM Test-Time Compute Optimally Can Be More
+Effective than Scaling Model Parameters.} arXiv:2408.03314, 2024.
+\bibitem{wang2023} X. Wang et al. \emph{Self-Consistency Improves Chain of Thought Reasoning in
+Language Models.} ICLR, 2023.
+\bibitem{wei2022} J. Wei et al. \emph{Chain-of-Thought Prompting Elicits Reasoning in Large
+Language Models.} NeurIPS, 2022.
+\bibitem{yang2024} A. Yang et al. \emph{Qwen2.5 Technical Report.} arXiv:2412.15115, 2024.
+\bibitem{zheng2023} L. Zheng et al. \emph{Judging LLM-as-a-Judge with MT-Bench and Chatbot
+Arena.} NeurIPS, 2023.
+\end{thebibliography}
+
+% =====================================================================
+\appendix
+\section*{Phụ lục (con trỏ nguồn)}
+\begin{itemize}\itemsep1pt
+\item[\textbf{A.}] Thuật ngữ và ký hiệu --- \texttt{report/THUAT\_NGU.md} (chép mục 1--4 khi dựng bản in).
+\item[\textbf{B.}] Trích các bản tiền đăng ký (\#104, \#106, \#107, \#112) --- \texttt{docs/PREREGISTRATION.md}.
+\item[\textbf{C.}] Bảng niêm phong hash --- \texttt{docs/RESULT\_SEALS.md}.
+\item[\textbf{D.}] 16 lần chạy VOID (trên 32) và lý do.
+\item[\textbf{E.}] Sổ dự đoán trước (21/43).
+\item[\textbf{F.}] 37 quy tắc quy trình --- \texttt{docs/QUY\_TRINH\_VONG\_LAP.md}.
+\item[\textbf{G.}] Bảng kết quả đầy đủ khối nhóm --- \texttt{docs/RESULTS.md}.
+\item[\textbf{H.}] Phân tích Shapley theo vai --- 29 tài liệu trong \texttt{docs/}.
+\item[\textbf{I.}] Rà lại thống kê giữa kỳ và các phán quyết --- \texttt{CAU\_HOI\_THAO\_LUAN.md} nhóm E, mục A6--A7.
+\end{itemize}
+
+\paragraph{Hình dự kiến.} (1) Sơ đồ khung $H \times \kappa - D$ + ánh xạ ba nhánh ---
+\emph{Nguyên}; (2) \textbf{nghịch lý hai đường ngược chiều} (quan trọng nhất) --- \emph{Nguyên};
+(3) $\dceil$ theo chênh lệch, 15 điểm + $g^\ast$ --- \emph{Tùng Dương}; (4) phân tầng tiếp xúc
+$2\times2$ --- \emph{Tùng Dương}; (5) accuracy--chi phí (trọng số FLOP), có điểm router ---
+\emph{Tùng Dương}; (6) bất đối xứng verifier, có KTC --- \emph{Đức}; (7) trần định tuyến theo độ
+chính xác bộ phân loại --- \emph{Tùng Dương}.
+
+\end{document}
