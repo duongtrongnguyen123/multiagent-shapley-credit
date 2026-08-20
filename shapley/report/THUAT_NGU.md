@@ -93,10 +93,61 @@ Phần này dùng hệ ký hiệu riêng, **không trùng** với vai trò ở m
 
 | Ký hiệu | Nghĩa |
 |---|---|
-| `S` | Model **yếu** (small) — sinh ra artifact |
-| `I` | Model **mạnh** (identical task, chạy một mình) — đây là **mốc so sánh đúng** |
-| `V` | Kết quả khi model mạnh **sửa** artifact của model yếu |
+| `S` | Model **yếu** giải bài → sinh ra artifact |
+| `I` | Model **mạnh** giải bài, **không nhìn thấy gì của `S`** |
+| `V` | **CÙNG model mạnh đó**, nhưng ngữ cảnh **có kèm artifact của `S`** |
 | `CEIL` | Trần lý tưởng: giữ đáp án của `S` khi `S` đúng, ngược lại lấy `V` |
+
+### ⚠️ `I` và `V` là CÙNG MỘT MODEL — khác nhau ở INPUT, không phải ở model
+
+Đây là chỗ dễ hiểu nhầm nhất của toàn bộ báo cáo. Cả `I` và `V` đều do **model mạnh** sinh ra.
+Khác biệt duy nhất là **nó có được xem bài làm của model yếu hay không**.
+
+```
+        đề bài ─────────────────────► [ model mạnh ] ──► I
+                                            ▲
+        đề bài ──┐                          │
+                 ├──────────────────────────┘
+   artifact của S ┘                              ──► V
+```
+
+Cụ thể trong thí nghiệm phân tầng mức tiếp xúc (H94d) — thiết kế sạch nhất vì **dùng CHUNG một lệnh**:
+
+| Nhánh | Model | Lệnh | Ngữ cảnh đưa vào |
+|---|---|---|---|
+| `I` | Qwen-7B | *"Solve step by step."* | chỉ **đề bài** |
+| `V` | **Qwen-7B, cùng model** | *"Solve step by step."* — **CÙNG lệnh** | đề bài **+** `"A smaller model's attempt: …"` |
+
+Hai nhánh chỉ khác nhau ở **một đoạn văn bản thêm vào ngữ cảnh**. Cùng model, cùng lệnh, cùng ngân
+sách token. Nên hiệu số `V − I` **cô lập đúng một biến**: *việc nhìn thấy bài làm của model yếu*.
+
+*(Ở thí nghiệm `Δ_ceil` thì `V` dùng lệnh `FIX` — "đây là lời giải ứng viên có thể sai, hãy trả về
+bản đã sửa" — nên khác biệt gồm cả lệnh lẫn ngữ cảnh. H94d tách riêng được **chỉ** phần ngữ cảnh,
+và cho thấy **riêng việc nhìn thấy đã đủ gây hại**, không cần lệnh sửa.)*
+
+**Vì vậy `V − I` trả lời đúng một câu hỏi:**
+
+> Cho model mạnh xem bài làm của model yếu thì nó làm **tốt lên hay tệ đi**?
+
+Kết quả trên MATH: **`V − I` = −0,1240**. Tức là **tệ đi**. Và phân tầng cho biết vì sao — khi
+artifact **sai** thì model mạnh rơi từ 46,4% xuống 19,2%; khi artifact **đúng** thì nó khá lên chút ít.
+
+### Vì sao `V − I` mới là mốc đúng, không phải `V − S`
+
+Người triển khai đã có model mạnh trong tay (pipeline nào cũng cần nó). Nên lựa chọn thật là:
+
+| Lựa chọn | Đại lượng |
+|---|---|
+| Chạy pipeline (model yếu giải, model mạnh sửa) | `acc(V)` |
+| **Gọi thẳng model mạnh** | `acc(I)` |
+
+⇒ đại lượng quyết định là **`V − I`**, không phải `V − S`.
+
+`V − S` so với **model yếu** — nhưng không ai chọn "chỉ dùng model yếu" khi đã có model mạnh sẵn.
+Đó là mốc dễ thắng, và phần lớn công trình trong lĩnh vực báo cáo theo mốc này.
+
+> **Phát hiện trung tâm: `V − S` **dương** trong khi `V − I` **âm**. Cùng một hệ thống, hai mốc so
+> sánh, hai kết luận ngược nhau.**
 
 **Bốn đại lượng delta:**
 
@@ -107,8 +158,7 @@ Phần này dùng hệ ký hiệu riêng, **không trùng** với vai trò ở m
 | `Δ_gate` | `acc(có cổng) − acc(V)` | Thêm cổng lọc có cứu được không? |
 | `V − S` | `acc(V) − acc(S)` | So với model **yếu** — mốc mà phần lớn công trình dùng |
 
-> **Điểm mấu chốt của báo cáo: `V − S` và `V − I` thường **ngược dấu**.**
-> `V − S` dương (có vẻ cải thiện), `V − I` âm (thực ra thua việc chỉ gọi model mạnh).
+
 
 ---
 
