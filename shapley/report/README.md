@@ -65,7 +65,7 @@ nội dung đáng chú ý nhất của báo cáo:
 ## Các việc còn tồn đọng
 
 1. **Bước 0** trong `QUY_TRINH_VIET_BAO_CAO.md`: cả nhóm thống nhất một câu luận điểm. Chưa thực hiện.
-2. **Chuẩn thống kê đang được đề xuất sửa** — xem  nhóm **E**: ngưỡng sàn
+2. **Chuẩn thống kê đang được đề xuất sửa** — xem `CAU_HOI_THAO_LUAN.md` nhóm **E**: ngưỡng sàn
    nhiễu 5 điểm được suy ra cho phép đo đơn lẻ nhưng đang áp cho kết quả 5 fold; ngưỡng đúng
    khoảng 3,3 điểm. Cần cả nhóm quyết.
 3. Thí nghiệm **H100e** chưa hoàn tất (thiếu 2 trên 6 ô đo). Xem Bước 6 để biết cách bổ sung kết quả
