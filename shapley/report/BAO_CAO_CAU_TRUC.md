@@ -9,6 +9,9 @@ Dung lượng dự kiến: 20–28 trang kể cả phụ lục. Ngôn ngữ: ti�
 *Quy ước số: phần thân và bảng biểu dùng dấu phẩy thập phân theo chuẩn tiếng Việt (ví dụ 0,2720);
 các công thức trong khối mã giữ nguyên ký hiệu gốc.*
 
+*Định nghĩa mọi thuật ngữ và ký hiệu: `THUAT_NGU.md`. Báo cáo nên có một mục **Thuật ngữ** ngắn
+ở đầu (hoặc phụ lục) rút từ tệp đó — người chấm không nhất thiết quen `oracle@k` hay `Δ_honest`.*
+
 ---
 
 ## §0. Luận điểm chính
@@ -369,13 +372,14 @@ chứng. Đây là một kết quả, không phải một thất bại.
 
 ## Phụ lục
 
-- **A.** Trích các bản tiền đăng ký
-- **B.** Bảng niêm phong hash
-- **C.** Danh sách 16 lần chạy VOID (trên tổng 32) và lý do
-- **D.** Sổ theo dõi dự đoán trước (21/43)
-- **E.** 37 quy tắc quy trình
-- **F.** Bảng kết quả đầy đủ của khối nhóm
-- **G.** Phân tích Shapley theo vai (29 tài liệu)
+- **A.** Bảng thuật ngữ và ký hiệu (rút từ `THUAT_NGU.md`)
+- **B.** Trích các bản tiền đăng ký
+- **C.** Bảng niêm phong hash
+- **D.** Danh sách 16 lần chạy VOID (trên tổng 32) và lý do
+- **E.** Sổ theo dõi dự đoán trước (21/43)
+- **F.** 37 quy tắc quy trình
+- **G.** Bảng kết quả đầy đủ của khối nhóm
+- **H.** Phân tích Shapley theo vai (29 tài liệu)
 
 ---
 

@@ -14,6 +14,7 @@ Kết quả thí nghiệm nằm ở thư mục `../docs/`. Không nên dùng l�
 | `QUY_TRINH_VIET_BAO_CAO.md` | **Thực hiện theo trình tự nào** — bảy bước, phân công song song, đường găng | Khi bắt đầu viết |
 | `MACH_DAN_DAT.md` | **Các thí nghiệm dẫn tới nhau như thế nào** — mạch 10 bước, dùng khi viết phần thân theo dạng survey | Trước khi viết §5 |
 | `CAU_HOI_THAO_LUAN.md` | **Những gì cả nhóm cần thống nhất** — 11 câu hỏi chia ba nhóm, kèm mức độ ưu tiên | Bước 0 và trong lúc viết |
+| **`THUAT_NGU.md`** | **Định nghĩa thuật ngữ và ký hiệu** — `oracle@k`, `maj@k`, `A`/`B`/`C`, `H`/`κ`/`D`, vai trò, độ tin cậy | Tra bất cứ lúc nào; đưa cho người đọc ngoài nhóm |
 | `BAO_CAO.md` | Bản thảo báo cáo | Chưa tồn tại; Bước 1 của quy trình sẽ tạo |
 
 ---
@@ -50,11 +51,14 @@ nội dung đáng chú ý nhất của báo cáo:
 | | `report/` (thư mục này) | `../docs/` |
 |---|---|---|
 | Nội dung | Hướng dẫn viết báo cáo | Tài liệu kết quả thí nghiệm |
-| Số lượng tệp | 6 (kể cả bản thảo) | 39 |
+| Số lượng tệp | 7 (kể cả bản thảo) | 39 |
 | Người biên soạn | Nguyên | Cả nhóm |
 | Trích số liệu từ đây | Không. Số liệu nằm ở `../docs/` và `../results_*/` | Có, theo đúng mức độ tin cậy tương ứng |
 
 Điểm vào của thư mục kết quả: `../docs/INDEX.md`
+
+**Người đọc chưa quen thuật ngữ nên bắt đầu ở `THUAT_NGU.md`** — đặc biệt mục 1 (`greedy`,
+`maj@k`, `oracle@k`) vì ba khái niệm đó chi phối cách đọc gần như mọi bảng trong báo cáo.
 
 ---
 

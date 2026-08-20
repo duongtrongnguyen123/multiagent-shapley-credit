@@ -11,6 +11,7 @@ Nếu chỉ đọc được một mục trước khi bắt đầu, nên đọc *
 ## Bước 0 — Thống nhất trước khi viết (cả nhóm, khoảng 30 phút)
 
 - [ ] Cả ba thành viên đọc **§0 của `BAO_CAO_CAU_TRUC.md`** (luận điểm chính, khoảng một trang).
+- [ ] Ai chưa chắc về `oracle@k`, `maj@k`, `Δ_ceil`, `A`/`B`/`C`: đọc **`THUAT_NGU.md`** mục 1–4.
 - [ ] Cả ba thành viên đọc **mục 1, 2, 3 của `HUONG_DAN_CONG_TAC.md`** (mức tin cậy, bảng số liệu
       đã chốt, các phát biểu cần tránh).
 - [ ] Thống nhất **một câu luận điểm** và ghi vào đầu bản thảo. Mọi chương sau đó phải phục vụ câu này.
