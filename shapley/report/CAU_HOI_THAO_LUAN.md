@@ -361,12 +361,16 @@ trực tiếp từ mảng giá trị fold, không lấy từ số tổng hợp.
 
 #### Bốn kết quả chủ lực của `RESULTS.md` §1a: TẤT CẢ ĐỨNG VỮNG
 
-| Kết quả | t | p | KTC 95% |
-|---|---|---|---|
-| S1.5B + V7B, MATH, +14,0 | **5,85** | 0,0043 | [+7,4; +20,6] |
-| Riêng phần verifier mạnh hơn (V7 − V15), +11,0 | **4,30** | 0,0127 | [+3,9; +18,1] |
-| Pipeline đầy đủ so với PS, GSM8K, +5,6 * | **6,89** | 0,0023 | [+3,3; +7,9] |
-| Verifier GSM8K, +4,4 | **3,32** | 0,0295 | [+0,7; +8,1] |
+| Kết quả | t | p | KTC 95% | P(hiệu ứng > 0) |
+|---|---|---|---|---|
+| S1.5B + V7B, MATH, +14,0 | **5,85** | 0,0043 | [+7,4; +20,6] | 99,8% |
+| Riêng phần verifier mạnh hơn (V7 − V15), +11,0 | **4,30** | 0,0127 | [+3,9; +18,1] | 99,4% |
+| Pipeline đầy đủ so với PS, GSM8K, +5,6 * | **6,89** | 0,0023 | [+3,3; +7,9] | 99,9% |
+| Verifier GSM8K, +4,4 | **3,32** | 0,0295 | [+0,7; +8,1] | 98,5% |
+
+*Cột `P(hiệu ứng > 0)` là xác suất một phía suy từ phân phối t (tương đương cách đọc Bayes với
+prior phẳng). Chuẩn "có ý nghĩa hai phía 95%" tương ứng P(>0) ≥ 97,5%. Cách trình bày này giữ được
+thông tin ở các ca không đạt chuẩn thay vì chỉ ghi đạt/trượt.*
 
 \* Ghi chú truy nguồn: con số +5,6 tính từ `PSVA − PS` theo fold trong `res_nf_g15` — mốc là
 **planner + solver**, không phải solver đơn độc thuần tuý. Câu chữ trong báo cáo cần phản ánh đúng.
@@ -391,10 +395,10 @@ hiệu**. Sau đối chiếu:
 
 | Đại lượng | Nguồn | Hiệu ứng | KTC 95% | t | p | Fold |
 |---|---|---|---|---|---|---|
-| `loop − PSVA` (MATH, cùng chi phí) | `results_solvejudge/math` | **+4,0** | [+0,5; +7,5] | 3,21 | 0,033 | 4 thắng, 1 hoà |
-| **`V_gain` trên MATH 7B** | `res_nf_m7` | **+4,4** | [+1,5; +7,3] | 4,27 | 0,013 | 5/5 |
-| `V_gain` trên GSM8K 1.5B | `res_nf_g15` | +4,4 | [+0,7; +8,1] | 3,32 | 0,030 | 5/5 |
-| `gain_forced` (ép vai fallback) | `res_af_m` | **−2,4** | [−4,1; −0,7] | −4,00 | 0,016 | 0/5 |
+| `loop − PSVA` (MATH, cùng chi phí) | `results_solvejudge/math` | **+4,0** | [+0,5; +7,5] | 3,21 | 0,033 | 4 thắng, 1 hoà — P(>0) = 98,4% |
+| **`V_gain` trên MATH 7B** | `res_nf_m7` | **+4,4** | [+1,5; +7,3] | 4,27 | 0,013 | 5/5 — P(>0) = 99,4% |
+| `V_gain` trên GSM8K 1.5B | `res_nf_g15` | +4,4 | [+0,7; +8,1] | 3,32 | 0,030 | 5/5 — P(>0) = 98,5% |
+| `gain_forced` (ép vai fallback) | `res_af_m` | **−2,4** | [−4,1; −0,7] | −4,00 | 0,016 | 0/5 — P(<0) = 99,2% |
 | `patch_minus_std` | `res_pa2_m15` | −3,5 | [−6,0; −1,0] | −3,81 | 0,019 | 0/5 |
 | `arm_minus_ctl` (3S1V, MATH 1.5B) | `res_a_3s1vs_m` | −3,5 | [−6,3; −0,7] | −3,50 | 0,025 | — |
 
@@ -451,23 +455,41 @@ folds tốt nhất = [0; 0; +5,5; +5,5; +5,5]   →   t tối đa = 2,449  <  2,
 Mọi cấu hình thực tế (fold âm thật sự, ba fold dương lệch nhau) chỉ cho t **thấp hơn nữa**.
 ⇒ **ORPO +3,3 bị loại vĩnh viễn, không cần tìm dữ liệu fold, không cần chạy lại.**
 
-#### Few-shot +2,7 (4/5 fold): CHƯA phán được — phụ thuộc giá trị fold thật
+#### Few-shot +2,7 (4/5 fold): ĐÃ PHÁN — không đạt, dứt khoát
 
-Cùng phép chặn: trường hợp tốt nhất `[0; +3,375 ×4]` cho t tối đa = **4,0 > 2,776** ⇒ ca này
-**có thể** qua hoặc trượt tuỳ độ đồng đều của bốn fold dương. Cần dữ liệu fold để phán.
+Dữ liệu fold gốc **vẫn còn trên Kaggle** (`zhongzhing/fewshot-folds-math`, Đức chạy ngày 06-08) và
+đã được tải về `results_fsfold/math_folds/`, **không cần chạy lại**:
 
-#### Chạy lại để phán: ĐƯỢC, và về bản chất là KHÔI PHỤC DỮ LIỆU chứ không phải bằng chứng mới
+```
+by_fold (điểm) = [+10,0; +6,7; +6,7; +3,3; −13,3]
+t = 0,64   p = 0,56   KTC 95% [−8,8; +14,2]   P(>0) = 72%
+```
 
-Ba ca thiếu dữ liệu fold (`few-shot` +2,7 · `PROMPT_SWAP` MATH +5,3 · và bảng fold của ORPO nếu
-muốn đối chiếu): thư mục `results_fsfold/` trống — trace nằm lại trên Kaggle, không được kéo về.
+Phép chặn trước đó (t tối đa 4,0) giả định fold âm nằm sát 0; thực tế nó là **−13,3** — một fold
+sập nặng che giấu sau nhãn "4/5". Khoảng tin cậy rộng gần 23 điểm. **Loại dứt khoát.**
+Đây cũng là minh hoạ tốt cho vì sao "x/5 fold cùng dấu" không thay được t-test: nhãn 4/5 không nói
+fold trái dấu *tệ đến mức nào*.
 
-Vì toàn bộ dùng **greedy decoding tất định**, chạy lại cùng kernel **tái tạo đúng từng bài** của
-thí nghiệm gốc (đã kiểm chứng: hai tài khoản, hai ngày, 499/499 giống hệt). Nên lần chạy lại:
+#### `PROMPT_SWAP` MATH +5,3: ĐÃ PHÁN — không đạt
 
-- **KHÔNG phải** bằng chứng độc lập mới (quy tắc #34) — không được đếm là "tái lập";
-- **LÀ** thao tác khôi phục phần phân rã theo fold đã mất, để tính t và KTC cho **chính thí nghiệm
-  gốc**.
+Output gốc còn trên Kaggle (`tbmdemi/promptswap-folds-math`), tải về `results_psfold/math/`:
 
-Chi phí: 2 lần chạy T4 (`fewshot_folds_kernel.py`, `promptswap_folds_kernel.py`), mỗi lần ~1–2 giờ.
-Yêu cầu bắt buộc nếu chạy: **lưu giá trị từng fold vào `summary.json`** — nguyên nhân gốc của cả
-mục này là bản gốc chỉ lưu số tổng hợp.
+```
+swap − normal, by_fold (điểm) = [−3,3; +3,3; +13,3; +3,3; +10,0]
+t = 1,84   p = 0,14   KTC 95% [−2,7; +13,4]   P(>0) = 93%
+```
+
+4/5 fold dương nhưng độ phân tán quá lớn. P(>0) = 93% — *gợi ý* nhưng dưới chuẩn 97,5%.
+Lưu ý điều này **không làm yếu** kết luận chính của `PROMPT_SWAP.md` (danh tính vai không quan
+trọng): việc `swap` không khác `normal` có ý nghĩa lại càng **thuận** với kết luận đó.
+
+#### Bài học vận hành: KHÔNG cần chạy lại — output vẫn nằm trên Kaggle
+
+Cả hai ca "chưa phán được" đều được giải quyết bằng cách **tải output cũ về** (kernel của Đức trên
+tài khoản `zhongzhing`, kernel promptswap trên `tbmdemi`), không tốn giây GPU nào. Quy tắc rút ra:
+**trước khi tính chuyện chạy lại, quét output còn trên Kaggle của mọi tài khoản fleet** — các
+kernel folds đều đã lưu `by_fold` trong `summary.json`, chỉ là chưa ai kéo về.
+
+**Tổng kết đợt vớt vát:** hai ca treo đều ra phán quyết **không đạt** (few-shot t = 0,64;
+promptswap t = 1,84). Không thêm được kết quả dương nào ngoài sáu ca đã phục hồi ở E2 — nhưng
+"treo" đã thành "dứt khoát", và đó cũng là giá trị.
