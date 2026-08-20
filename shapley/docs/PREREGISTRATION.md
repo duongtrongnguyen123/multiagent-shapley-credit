@@ -4525,7 +4525,7 @@ làm cho độ trung thực của tiên nghiệm kiểm được bằng mắt**.
 | #101 | ~25% VOID | VOID **năm** lần | phần phòng hờ trúng |
 
 > **Tỉ lệ prior đúng: 2/7** (chưa tính #101 vì nó là phòng hờ, không phải hàng chính).
-> Cộng dồn từ #57: **20/41** (#182: H96 rơi đúng hàng 2 — hàng tôi đặt modal 45%, và đặt **ngược**
+> Cộng dồn từ #57: **21/43** (#197 H94d đúng hàng 1; **#202 H99b SAI** — tôi đặt hàng 1 ở 55%, thực tế hàng 2) (#182: H96 rơi đúng hàng 2 — hàng tôi đặt modal 45%, và đặt **ngược**
 > với dữ liệu cũ mà chính tôi đã công bố trước ở cuối #106. #185: H97 rơi đúng hàng 1, cũng là hàng
 > modal 45%).
 > **Không tính vào tỉ lệ này:** VOID (#184 H95b, #187 H98), không đánh giá được (#190 H94c),

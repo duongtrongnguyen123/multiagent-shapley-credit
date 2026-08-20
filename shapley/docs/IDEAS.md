@@ -8017,10 +8017,10 @@ tiếp, kết quả nối vào sau — cả hai đã có bảng khoá commit tr�
 hậu nghiệm**.
 
 ### Đã lập
-- **`docs/BAO_CAO_CAU_TRUC.md`** — khung 9 mục + phụ lục A–E + danh sách 7 hình, kèm nguồn dữ liệu
+- **`report/BAO_CAO_CAU_TRUC.md`** — khung 9 mục + phụ lục A–E + danh sách 7 hình, kèm nguồn dữ liệu
   từng hình. Xương sống: `value = H × κ − D`, và **đẳng thức `Δ_ceil = A − B + C` là viên gạch nối**
   toàn bộ phần kết quả — mỗi mục §5 trả lời *"số hạng nào đang giết chúng ta?"*
-- **`docs/HUONG_DAN_CONG_TAC.md`** — bàn giao cho người cùng làm: ba tầng bằng chứng,
+- **`report/HUONG_DAN_CONG_TAC.md`** — bàn giao cho người cùng làm: ba tầng bằng chứng,
   bảng số chốt, bảng **"đừng viết X, hãy viết Y"**, phân công, và mục *"còn đang chạy"*.
 
 ### Một cái bẫy phát hiện khi kiểm kê — suýt làm hỏng báo cáo
@@ -8041,3 +8041,96 @@ so với sai trong nhật ký của chính mình.
 Bảng *"đừng viết / hãy viết"*: không "khác họ" (rút ở #182) · không "chênh nhỏ thì sửa **thắng**"
 (chiều khẳng định chưa xác lập) · không "cổng định tuyến là lời giải" (trần chỉ **+.018**) ·
 không trích bất kỳ số nào từ 16 lần chạy VOID.
+
+---
+
+## Vòng #202 — H99b (#112): **HÀNG 2 — luật CHUYỂN ĐƯỢC sang toán.** Tiên nghiệm của tôi SAI
+
+`results_H99b` niêm phong trước khi mở. **Mọi cổng đạt, `VOID` rỗng, 3/3 cặp hợp lệ**, đẳng thức
+`A − B + C` khớp tuyệt đối. `\boxed` ≥ **.986 mọi nhánh kể cả NỀN** (vá đúng lỗ hổng #198),
+giãn **< .05**. `MAXNEW` = 3072 đủ.
+
+| cặp | chênh | `A` | `B` | `C` | `Δ_ceil` | KTC 95% | MBPP dự báo | kết cục |
+|---|---|---|---|---|---|---|---|---|
+| 7B→14B | .044 | .048 | .072 | .010 | −.0140 | [−.046, +.018] | **+.0108** | dự báo **TRONG** KTC |
+| 1.5B→7B | .244 | .020 | **.208** | .022 | **−.1660** | [−.208, −.124] | −.0361 | **THẤP hơn** |
+| 1.5B→14B | .288 | .012 | .114 | .034 | −.0680 | [−.102, −.034] | **−.0471** | dự báo **TRONG** KTC |
+
+**2/3 dự báo nằm trong KTC ⇒ HÀNG 2: luật CHUYỂN ĐƯỢC.**
+Đường khớp **trên MBPP** dự báo được `Δ_ceil` **trên MATH** ở 2/3 cặp ⇒ `Δ_ceil ≈ +.0218 − .2392·chênh`
+là **luật về GIAO THỨC**, không phải luật về **code**.
+
+### Tiên nghiệm của tôi SAI, và sai theo hướng đáng ghi
+Tôi đặt **hàng 1 = 55%** (luật **không** chuyển), hàng 2 chỉ **20%**. Lý do khi ấy: điểm H88f nằm
+**thấp hơn dự báo .102**. **Prior sai. 21/43.**
+Điều tôi suy sai: tôi lấy **một** cặp lệch mạnh rồi kết luận **cả miền** lệch. Thực tế cặp đó là
+**ngoại lệ**, còn hai cặp kia khớp.
+
+### Nhưng hàng 2 ở đây **một phần do THIẾU LỰC** — phải nói ra
+| cặp | KTC rộng | dự báo lệch tâm bao nhiêu |
+|---|---|---|
+| 7B→14B | .064 | **77.5%** bán kính — sát mép |
+| 1.5B→14B | .068 | 61.5% bán kính |
+| 1.5B→7B | .084 | **309%** — ngoài hẳn |
+
+KTC rộng **.064–.084** trong khi hiệu ứng cỡ **.01–.17** ⇒ phép thử *"dự báo nằm trong KTC"*
+**dễ dãi**: với cặp 7B→14B thì gần như mọi dự báo trong khoảng [−.046, +.018] đều "đạt".
+⇒ **Hàng 2 nghĩa là "không bác được luật", KHÔNG phải "đã xác nhận luật".** Phân biệt này quan trọng.
+
+### Cặp lệch là cặp `B` lớn nhất — và nó tái lập H88f
+1.5B→7B: `B` = **.2080**, lớn nhất trong ba cặp và gấp **10 lần** `A` = .0200.
+So với H88f (cùng cặp, `MAXNEW` khác, lời nhắc `V` khác): **−.1380** so với **−.1660** lần này —
+**cùng hướng, cùng cỡ, và cả hai đều thấp hơn dự báo rất nhiều.**
+⇒ H88f **không** phải nhiễu; cặp 1.5B→7B trên toán **thật sự** lệch khỏi luật. Luật mô tả **xu hướng
+trung bình**, và **có ngoại lệ hệ thống ở nơi model yếu quá yếu so với bài** (`B` phình).
+
+### Hệ quả cho báo cáo — theo đúng Bước 6 của quy trình
+Hàng 2 ⇒ **§5.5 mạnh lên** (luật có bằng chứng liên miền), **§6 thêm một dòng bằng chứng**.
+**KHÔNG** phải thu hẹp luật thành "trên code" — đó là kịch bản hàng 1/hàng 4, đã không xảy ra.
+Nhưng **bắt buộc** kèm hai cảnh báo: (a) 2/3 với KTC rộng = *không bác được*, không phải *xác nhận*;
+(b) có **ngoại lệ hệ thống** ở cặp `B` lớn.
+
+---
+
+## Vòng #203 — H100e: **ERROR ở cặp R** (4/6 ô xong). Không đọc `Δ_honest`. Lần thứ **năm**.
+
+```
+[ 7957s] P:R0 acc_V=.5832      [ 9427s] P:R2 acc_V=.6273
+[12561s] Q:R0 acc_V=.4569      [14919s] Q:R2 acc_V=.5351
+[15566s] R:R0  torch.OutOfMemoryError: cap phat 824 MiB; GPU 1 con 518 MiB   <- GIUA LUC SINH
+[16075s] RuntimeError: luong sinh that bai: OutOfMemoryError...
+```
+Xong **4/6** ô (cặp **P** và **Q** đủ cả `R0` lẫn `R2`); thiếu **trọn cặp R** (`llama8b→dscoder`).
+
+### Hai bản vá trước ĐỀU hoạt động
+- **#199 `bs=4` cho R2**: cả hai ô `R2` **chạy xong** — đúng chỗ H100d từng chết.
+- **#199 ném lại lỗi THẬT**: log ghi `RuntimeError: luong sinh that bai: OutOfMemoryError`,
+  **không còn** `NoneType object is not iterable` che mất nguyên nhân. Chẩn đoán mất 10 giây thay vì
+  một vòng suy đoán.
+
+### Nhưng tôi vá **đúng một nửa vấn đề**
+Tôi hạ lô cho `R2` vì lời nhắc dài gấp đôi — **và để `R0` nguyên `bs=8`**. Cặp R có `S` = `llama8b`,
+mà artifact của Llama **dài hơn** của Qwen/DeepSeek. Nên `R:R0` vẫn OOM dù là giao thức "ngắn".
+⇒ **Lô phải theo ĐỘ DÀI THẬT của chuỗi vào, không theo tên giao thức.** Đó mới là bản vá đúng.
+
+### Tôi **KHÔNG** đọc `Δ_honest` từ 2/3 cặp
+Bảng khoá #111 phán theo **≥ 2/3 cặp**. Đọc với mẫu số **2** là **đổi luật quyết định sau khi biết
+ô nào hỏng** — đúng thứ luật #28 sinh ra để chặn, và là lần thứ hai cám dỗ này xuất hiện (#199).
+Cổng cũng **chưa hề được đánh giá** (kernel chết trước phần phân tích, không có `res_H100e.json`).
+
+### Trạng thái: `Δ_honest` **CHƯA CÓ CÂU TRẢ LỜI** sau **năm** lần chạy
+| lần | kết cục |
+|---|---|
+| H100 | OOM nạp `llama8b` (không lượng tử hoá) |
+| H100b | OOM y hệt — bản vá #191 sai |
+| H100c | `llama8b` chia thẻ **chạy được**, nhưng `qwen14b` bất khả thi trên T4 |
+| H100d | 5/6 ô, chết ở `R:R2` (lời nhắc R2 dài gấp đôi) |
+| **H100e** | **4/6 ô, chết ở `R:R0`** (artifact Llama dài) |
+
+**Đây là chi phí thật của việc chạy trên GPU tầng miễn phí 14.6 GB.** Ghi vào §8 Hạn chế của báo cáo.
+
+### Đường rẻ để dứt điểm — nhờ #200
+`partial_H100e.json` đã có **4 ô + toàn bộ 4 nhánh nền**. Với đường **NẠP LẠI** (#200, đã kiểm 4/4
+trên dữ liệu thật), lần chạy tiếp theo chỉ cần sinh **2 ô còn thiếu** ⇒ ước **~40 phút** thay vì
+**~4,5 giờ**. Kèm bản vá lô-theo-độ-dài.
+**Chưa phóng** — vòng lặp nghiên cứu đã dừng theo yêu cầu; đây là quyết định của người chủ trì.
