@@ -322,7 +322,7 @@ biên mà quy tắc thô bỏ sót.
 
 | Kết quả | Hiệu ứng | Quy tắc 5 điểm | Ngưỡng 3,3 + phép thử dấu |
 |---|---|---|---|
-| `SOLVEJUDGE`: `loop − PSVA` trên MATH, **cùng chi phí** (4,2 so với 4,0 lượt) | **+4,0**, 5/5 fold | dưới sàn ⇒ **không tính** | **có ý nghĩa** |
+| `SOLVEJUDGE`: `loop − PSVA` trên MATH, **cùng chi phí** (4,2 so với 4,0 lượt) | **+4,0**; 4 fold thắng, 1 hoà, 0 thua | dưới sàn ⇒ **không tính** | **có ý nghĩa** (t = 3,21; p = 0,033) |
 
 Đây là một trong rất ít kết quả **dương, cùng ngân sách, 5/5 fold** của toàn dự án — và quy tắc
 hiện tại loại nó.
@@ -350,3 +350,83 @@ nhiều kết luận hiện tại đang dựa trên ngưỡng 5 điểm. **Cần
 đổi thì phải rà lại toàn bộ các kết quả đã bị hạ cấp để xem cái nào đổi trạng thái.
 
 *Ảnh hưởng: §7 Phương pháp luận, và có thể một số mục trong §5. Nên bàn ở Bước 0.*
+
+
+### E2. Kết quả rà lại toàn bộ dưới chuẩn đề xuất *(chưa áp dụng — mọi thay đổi chờ nhóm quyết ở Bước 0)*
+
+Hai đợt kiểm độc lập: (a) t-test trên **131 đại lượng hiệu ứng** có cấu trúc fold trong toàn bộ
+artifact thô; (b) rà 19 tài liệu tìm các kết luận từng bị hạ cấp. Mọi giá trị t dưới đây dùng
+**sample std** (ddof = 1, thận trọng hơn số std lưu trong tệp khoảng 1,12 lần) và được tính lại
+trực tiếp từ mảng giá trị fold, không lấy từ số tổng hợp.
+
+#### Bốn kết quả chủ lực của `RESULTS.md` §1a: TẤT CẢ ĐỨNG VỮNG
+
+| Kết quả | t | p |
+|---|---|---|
+| S1.5B + V7B, MATH, +14,0 | **5,85** | 0,0043 |
+| Riêng phần verifier mạnh hơn (V7 − V15), +11,0 | **4,30** | 0,0127 |
+| Pipeline đầy đủ so với PS, GSM8K, +5,6 * | **6,89** | 0,0023 |
+| Verifier GSM8K, +4,4 | **3,32** | 0,0295 |
+
+\* Ghi chú truy nguồn: con số +5,6 tính từ `PSVA − PS` theo fold trong `res_nf_g15` — mốc là
+**planner + solver**, không phải solver đơn độc thuần tuý. Câu chữ trong báo cáo cần phản ánh đúng.
+
+Đáng chú ý: con số +4,4 vốn **đã nằm dưới ngưỡng 5 điểm cũ** mà vẫn được coi là xác lập — tức quy
+tắc cũ trong thực tế được áp không nhất quán, tiêu chí thao tác thật là "5/5 fold". Chuẩn mới thay
+bằng p-value thật.
+
+#### Được phục hồi (sau khi ĐỐI CHIẾU CỜ HỢP LỆ — bước mà thống kê thuần tuý bỏ qua)
+
+Quét thô cho 9 ứng viên qua t-test, nhưng **thống kê không phục hồi được kết quả từ lần chạy vô
+hiệu**. Sau đối chiếu:
+
+**Bị loại dù t-test qua:**
+- `wsum_minus_maj` và `rerank_minus_maj` từ `res_wf_g15` — lần chạy này có `adapter_leak` = 0,0606
+  \> ngưỡng 0,05, `VALID_no_leak` = false, **đã bị tuyên vô hiệu từ trước**; bản chạy sạch là
+  `results_disc_leakfix_*`.
+- `wsum_minus_maj` từ `results_injected_classifier` — lần chạy phụ đã bị thay thế bởi bản
+  "H37 HOÀN TẤT".
+
+**Giữ lại (5 + 1 từ tài liệu):**
+
+| Đại lượng | Nguồn | Hiệu ứng | t | p | Fold |
+|---|---|---|---|---|---|
+| `loop − PSVA` (MATH, cùng chi phí) | `results_solvejudge/math` | **+4,0** | 3,21 | 0,033 | 4 thắng, 1 hoà |
+| **`V_gain` trên MATH 7B** | `res_nf_m7` | **+4,4** | 4,27 | 0,013 | 5/5 |
+| `V_gain` trên GSM8K 1.5B | `res_nf_g15` | +4,4 | 3,32 | 0,030 | 5/5 |
+| `gain_forced` (ép vai fallback) | `res_af_m` | **−2,4** | −4,00 | 0,016 | 0/5 |
+| `patch_minus_std` | `res_pa2_m15` | −3,5 | −3,81 | 0,019 | 0/5 |
+| `arm_minus_ctl` (3S1V, MATH 1.5B) | `res_a_3s1vs_m` | −3,5 | −3,50 | 0,025 | — |
+
+**Phục hồi đáng chú ý nhất: `V_gain` = +4,4 trên MATH ở 7B.** `RESULTS.md` §1d ghi *"Verifier trên
+MATH chưa xác lập"* — nhưng số đó đo ở **1.5B** (+1,4; p = 0,235, đúng là không). Ở **7B** hiệu ứng
+có ý nghĩa rõ. Điều này **củng cố thêm luận điểm bất đối xứng năng lực** (§5.1): giá trị của verifier
+xuất hiện cùng với năng lực.
+
+#### MẤT ý nghĩa (1)
+
+| Đại lượng | Nguồn | Hiệu ứng | Vấn đề |
+|---|---|---|---|
+| `trim_minus_full` (MATH 7B) | `res_rc_m7b` | −13,9 điểm | chỉ **k = 3 fold** ⇒ t_crit = 4,303; t = −3,57; **p = 0,070** |
+
+Từng được coi là xác lập vì \>5 điểm và 3/3 cùng dấu. Chuẩn mới cho thấy 3 fold là quá ít để xác
+nhận — **chuẩn mới không chỉ phục hồi mà còn siết**, đây là bằng chứng nó không phải "hạ ngưỡng
+cho dễ đậu".
+
+#### Nhóm thứ tư: bị chôn vì đòi 5/5 cùng dấu, không phải vì ngưỡng độ lớn
+
+5 đại lượng có |hiệu ứng| ≥ 5 điểm nhưng chỉ 4/5 fold cùng dấu nên quy tắc cũ loại; t-test qua
+nhưng phần lớn ở vùng biên: `SVV_minus_maj3` (`res_bg_m15`, +6,5; p = 0,019) là ca rõ nhất; ba ca
+`maj3_minus_PSV` và một ca `pct_gap_closed` đều biên — chỉ ghi nhận, không phục hồi.
+
+#### So sánh bội — bắt buộc ghi kèm mọi trích dẫn từ E2
+
+131 phép thử ở α = 0,05 ⇒ kỳ vọng **~6,6 dương tính giả** do ngẫu nhiên. Danh sách phục hồi ở trên
+là **danh sách ứng viên đã xếp lại hạng**, không phải chân lý mới; nếu đưa vào báo cáo cần hiệu
+chỉnh Benjamini–Hochberg hoặc ghi rõ số phép thử. Các ca p trong khoảng 0,02–0,05 (tức phần lớn
+bảng phục hồi) là những ca dễ là dương tính giả nhất.
+
+#### Phạm vi không bị ảnh hưởng
+
+Khối tiền đăng ký (`Δ_ceil`, `A/B/C`, `g*`, H94d/H96/H97/H99b) dùng McNemar/bootstrap ghép cặp,
+không dùng sàn nhiễu fold — **không con số nào của khối đó thay đổi**.
