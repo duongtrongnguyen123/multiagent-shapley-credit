@@ -4,9 +4,24 @@
 % Ghi chú rà soát: \todoD{...} = Đức, \todoTD{...} = Tùng Dương
 % =====================================================================
 \documentclass[11pt,a4paper]{article}
-\usepackage[T5]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[vietnamese]{babel}
+% Tu nhan dien engine: XeTeX/LuaTeX (tectonic, xelatex) dung fontspec;
+% pdfLaTeX (Overleaf mac dinh) dung T5 + inputenc. Ca hai deu ra dau tieng Viet dung.
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T5]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage[vietnamese]{babel}
+\else
+  \usepackage{fontspec}
+  % Nap theo ten file de tuong thich bundle cua tectonic
+  \setmainfont{texgyretermes}[Extension=.otf, UprightFont=*-regular,
+    BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+  \setsansfont{texgyreheros}[Extension=.otf, UprightFont=*-regular,
+    BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+  \setmonofont{texgyrecursor}[Extension=.otf, UprightFont=*-regular,
+    BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+  \usepackage[vietnamese]{babel}
+\fi
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
