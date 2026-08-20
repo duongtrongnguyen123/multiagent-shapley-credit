@@ -533,3 +533,36 @@ Trên MBPP (15 cặp, H97): `P(V đúng | I sai, S đúng)` = 43–87%; `P(V đ�
 
 *Nguồn: `results_H97/traces_H97.json` (boolean từng bài), `results_H94d/traces_H94d.json` (chấm
 lại bằng đúng `_bx`/`eq`; khớp acc đã ghi .478/.698/.574). Phân tích hậu nghiệm — mức B.*
+
+#### A6b. "S đúng thì giữ nguyên S, cần gì V sửa?" — đúng, và đó chính là `CEIL`
+
+Nhận xét chính xác — nhưng có ba tầng cần tách:
+
+**1. "Giữ S khi S đúng" đòi biết S đúng — tức một oracle.** Chiến lược *"S đúng thì giữ S, ngược
+lại lấy V"* chính là **định nghĩa của `CEIL`**. Nó không chạy được trong thực tế vì không ai biết
+trước S đúng hay sai; nó là chặn trên.
+
+**2. Pipeline thật KHÔNG giữ S.** Trong giao thức sửa được triển khai, đầu ra cuối là **V** — đáp
+án của S bị vứt, bài làm của S chỉ là ngữ cảnh đưa cho model mạnh. Vì vậy con số 90,9% ở A6 đo
+đúng cái pipeline thật làm: *tỷ lệ V giữ lại được đáp án đúng của S*. Nó là hiệu suất truyền của
+ống dẫn, không phải một lựa chọn "sửa hay giữ".
+
+**3. Giữ-S-hoàn-hảo đáng giá bao nhiêu?** Tính trực tiếp `CEIL − V` = P(S đúng ∧ V làm mất):
+
+| | V luôn | CEIL (giữ-S oracle) | Chênh | `I` một mình |
+|---|---|---|---|---|
+| MATH | 0,574 | 0,578 | **+0,004 (đúng 2 bài/500)** | **0,698** |
+| MBPP (15 cặp) | — | — | +0,018 đến +0,080 | — |
+
+Trên MATH, oracle giữ-S gần như **vô giá trị** — vì V vốn đã giữ được 99,6%/90,9%. Trên code đáng
+giá hơn (retention thấp hơn) nhưng vẫn là con số nhỏ.
+
+**Điểm chốt:** kể cả khi tặng không pipeline cái oracle giữ-S (tức dùng `CEIL`), ở chênh lệch năng
+lực lớn nó **vẫn thua gọi thẳng `I`**: MATH 0,578 so với 0,698. Vấn đề không nằm ở chỗ "quên giữ
+S" — mà ở chỗ **V phá tầng (S sai, I đúng)**, và giữ S không cứu được tầng đó (S ở đó vốn sai).
+Cách duy nhất bảo vệ tầng đó là **đừng đưa bài của S cho model mạnh xem** — tức gọi thẳng `I`.
+
+Đây cũng chính là lý do `Δ_ceil = CEIL − I` là đại lượng trung tâm của cả phân tích: nó **đã tặng
+sẵn** cho pipeline cái oracle mà nhận xét này đề xuất, rồi mới hỏi *"kể cả vậy, có thắng nổi `I`
+không?"* — và câu trả lời ở chênh lệch nhỏ là "đôi khi, không đáng kể" (tối đa +0,030, không ca
+nào có ý nghĩa), ở chênh lệch lớn là "không".
