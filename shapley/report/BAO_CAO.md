@@ -275,11 +275,26 @@ xuất hiện *cùng với* năng lực.
 | **S7B một mình** | **0,910** | **0,593** | 120k | 152k |
 | S7B + V7B | 0,900 | **0,670** | 205k | 261k |
 
-So với S7B đơn lẻ — vốn *rẻ hơn* cấu hình này tưởng chừng đắt: bất đối xứng **kém 10 điểm** trên
-GSM8K; trên MATH kém 3 điểm với chênh theo fold chứa 0 (hoà thống kê), rẻ hơn 22% token. Phân
-tích Pareto: solver đơn lẻ **nằm trên đường Pareto ở cả hai task**; pipeline đầy đủ **không** nằm
-trên đường Pareto ở MATH (0,4133 so với 0,373 mà đắt gấp ba). Phát biểu đúng: *bất đối xứng năng
-lực là một phương án tiết kiệm chi phí ở giữa dải độ khó, không phải một cải thiện độ chính xác.*
+So với S7B đơn lẻ: bất đối xứng **kém 10 điểm** trên GSM8K; trên MATH kém 3 điểm với chênh theo
+fold chứa 0 (hoà thống kê).
+
+⚠️ **Cột token ở trên KHÔNG so sánh được trực tiếp giữa hai cỡ model** — vì hai lý do: (a) trường
+đo gốc chỉ đếm token *do model 7B sinh*, bỏ sót token của solver 1.5B trong cấu hình bất đối xứng;
+(b) một token của 7B tốn ~4,7–4,9 lần FLOP so với một token của 1.5B. Quy về **chi phí có trọng số
+FLOP** (`tham số × token`, token 1.5B ước từ độ dài ký tự, độ nhạy chars/token 3,0–4,0):
+
+| | asym / S7B (token thô 7B) | asym / S7B (**trọng số FLOP**) |
+|---|---|---|
+| GSM8K | 0,88 — "rẻ hơn 12%" | **1,00–1,05 — tiết kiệm BIẾN MẤT** |
+| MATH | 0,78 — "rẻ hơn 22%" | **0,92–0,96 — chỉ còn rẻ hơn 3–8%** |
+
+(Chưa tính prefill — model 7B còn phải *đọc* bài làm của 1.5B — nên hiệu chỉnh này vẫn thiên vị
+cho cấu hình bất đối xứng.)
+
+Phân tích Pareto: solver đơn lẻ **nằm trên đường Pareto ở cả hai task**; pipeline đầy đủ **không**
+nằm trên đường Pareto ở MATH (0,4133 so với 0,373 mà đắt gấp ba). Phát biểu đúng sau hiệu chỉnh:
+*cấu hình bất đối xứng bị chi phối hoàn toàn trên GSM8K (kém 10 điểm, không rẻ hơn); trên MATH nó
+là phương án tiết kiệm **biên** (~3–8%) với độ chính xác hoà — không phải một cải thiện.*
 Riêng thêm V7B vào chính S7B trên MATH cho +7,7 điểm thật (KTC qua t-test p = 0,0075) — với giá
 1,7 lần token.
 

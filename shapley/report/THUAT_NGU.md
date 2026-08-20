@@ -82,6 +82,12 @@ Các tổ hợp hay gặp: `PS` (chỉ planner + solver) · `PSV` (thêm verifie
 ⚠️ **Số lượt gọi không bằng số token.** Mỗi vai tốn lượng token rất khác nhau — verifier tốn gấp
 khoảng 5 lần aggregator. Báo cáo dùng **cả hai** thước đo và nêu rõ đang dùng thước nào.
 
+⚠️ **Và số token cũng không bằng nhau giữa hai cỡ model.** Một token do model 7B sinh tốn
+~4,7–4,9 lần FLOP so với một token của 1.5B (chi phí suy luận tỷ lệ với số tham số). Khi so chi
+phí giữa các cấu hình dùng model khác cỡ, phải quy về **chi phí có trọng số**
+(`tham số × token`) — so token thô là so sai đơn vị. Xem hiệu chỉnh cụ thể ở
+`CAU_HOI_THAO_LUAN.md` mục A7.
+
 `V_gain` = `acc(PSV) − acc(PS)` — phần verifier đóng góp.
 `A_gain` = `acc(PSVA) − acc(PSV)` — phần aggregator đóng góp.
 

@@ -566,3 +566,33 @@ Cách duy nhất bảo vệ tầng đó là **đừng đưa bài của S cho mod
 sẵn** cho pipeline cái oracle mà nhận xét này đề xuất, rồi mới hỏi *"kể cả vậy, có thắng nổi `I`
 không?"* — và câu trả lời ở chênh lệch nhỏ là "đôi khi, không đáng kể" (tối đa +0,030, không ca
 nào có ý nghĩa), ở chênh lệch lớn là "không".
+
+### A7. Chi phí token giữa hai cỡ model không cùng đơn vị — hiệu chỉnh làm đổi một kết luận
+
+Nhận xét từ người đọc: *một token của 7B khác một token của 1.5B*. Đúng, và khi kiểm thì lộ ra
+**hai lỗi chồng nhau** trong so sánh chi phí của cấu hình bất đối xứng (`S1.5B + V7B` so với `S7B`):
+
+1. **Thiếu token:** trường đo gốc (`tok7_*` trong `res_bs_g`, `res_bs_m`) chỉ đếm token **do model
+   7B sinh** — token của solver 1.5B trong cấu hình bất đối xứng không được cộng vào đâu cả.
+2. **Sai đơn vị:** chi phí suy luận mỗi token tỷ lệ với số tham số — token 7B đắt gấp ~4,67 lần
+   (danh nghĩa 7/1,5) hay ~4,95 lần (tham số thực 7,62B/1,54B) token 1.5B.
+
+**Hiệu chỉnh** — chi phí = Σ(tham số × token); token 1.5B ước từ độ dài ký tự median
+(600 ký tự GSM8K, 1319 MATH; độ nhạy chars/token quét 3,0–4,0; cả hai bộ tham số):
+
+| | Token thô 7B (như tài liệu gốc) | **Trọng số FLOP** |
+|---|---|---|
+| GSM8K: asym / S7B | 0,88 — "rẻ hơn 12%" | **1,00–1,05** — tiết kiệm biến mất |
+| MATH: asym / S7B | 0,78 — "rẻ hơn 22%" | **0,92–0,96** — còn rẻ hơn 3–8% |
+
+**Kết luận đổi:** trên GSM8K, cấu hình bất đối xứng **bị chi phối hoàn toàn** (kém 10 điểm và
+không hề rẻ hơn); trên MATH nó chỉ là phương án tiết kiệm **biên** (~3–8%, độ chính xác hoà).
+Câu *"lựa chọn chi phí hợp lệ ở giữa dải độ khó"* trong `EFFICIENCY.md` §4 cần hạ xuống tương ứng.
+
+**Ghi chú thiên vị còn lại:** hiệu chỉnh chưa tính **prefill** — model 7B trong cấu hình bất đối
+xứng còn phải *đọc* toàn bộ bài làm của 1.5B (FLOP tỷ lệ với token vào), nên chi phí thật của nó
+còn cao hơn số ở bảng. Các so sánh chi phí **trong cùng một cỡ model** (2,9×/6,63× ký tự ở §5.1;
+router theo lượt gọi ở §5.6; exec3/llm3) **không bị ảnh hưởng** vì token cùng giá.
+
+*Đã sửa tại: `BAO_CAO.md` §5.5, `MACH_DAN_DAT.md` [7], `THUAT_NGU.md` §2. Mức: hiệu chỉnh số học
+trên dữ liệu mức A, phần ước lượng token 1.5B là xấp xỉ có nêu độ nhạy.*
