@@ -15,7 +15,7 @@ Kết quả thí nghiệm nằm ở thư mục `../docs/`. Không nên dùng l�
 | `MACH_DAN_DAT.md` | **Các thí nghiệm dẫn tới nhau như thế nào** — mạch 10 bước, dùng khi viết phần thân theo dạng survey | Trước khi viết §5 |
 | `CAU_HOI_THAO_LUAN.md` | **Những gì cả nhóm cần thống nhất** — 11 câu hỏi chia ba nhóm, kèm mức độ ưu tiên | Bước 0 và trong lúc viết |
 | **`THUAT_NGU.md`** | **Định nghĩa thuật ngữ và ký hiệu** — `oracle@k`, `maj@k`, `A`/`B`/`C`, `H`/`κ`/`D`, vai trò, độ tin cậy | Tra bất cứ lúc nào; đưa cho người đọc ngoài nhóm |
-| `BAO_CAO.md` | Bản thảo báo cáo | Chưa tồn tại; Bước 1 của quy trình sẽ tạo |
+| **`BAO_CAO.md`** | **BẢN THẢO v0.1** — §1, §3, §5–§9 đã viết; §2 chờ Đức, §4 chờ Tùng Dương | Đọc và sửa trực tiếp |
 
 ---
 
