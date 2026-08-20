@@ -493,3 +493,43 @@ kernel folds đều đã lưu `by_fold` trong `summary.json`, chỉ là chưa ai
 **Tổng kết đợt vớt vát:** hai ca treo đều ra phán quyết **không đạt** (few-shot t = 0,64;
 promptswap t = 1,84). Không thêm được kết quả dương nào ngoài sáu ca đã phục hồi ở E2 — nhưng
 "treo" đã thành "dứt khoát", và đó cũng là giá trị.
+
+---
+
+### A6. "Khi model mạnh sai thì sửa có tốt hơn không?" — phân tích tầng I-sai *(mức B, hậu nghiệm từ trace đã niêm phong)*
+
+Câu hỏi tự nhiên (và người phản biện chắc chắn sẽ hỏi): *có trường hợp nào `V` tốt hơn `I` không,
+nhất là ở những bài `I` sai?*
+
+**Cái bẫy điều kiện hoá cần nói trước:** trên tầng "`I` sai", `I` đạt 0% *theo định nghĩa* — nên
+`V` luôn "thắng" ở đó một cách tầm thường. Câu hỏi chỉ có nghĩa vận hành nếu **biết trước** khi
+nào `I` sai; đó chính là bài toán `κ`.
+
+**Bảng 2×2×2 trên MATH (H94d, chấm lại từ raw, n = 500):**
+
+| Tầng | n | `V` đúng |
+|---|---|---|
+| `S` đúng, `I` đúng | 228 | 99,6% |
+| **`S` đúng, `I` sai** | **11** | **90,9%** |
+| `S` sai, `I` đúng *(vùng rủi ro)* | **121** | 36,4% → tức **`V` phá 63,6%** |
+| Cả hai sai | 140 | **4,3%** |
+
+Trên MBPP (15 cặp, H97): `P(V đúng | I sai, S đúng)` = 43–87%; `P(V đúng | cả hai sai)` = 3–18%;
+`P(V phá | I đúng, S sai)` = 30–72%. **Không cặp nào có `V − I` dương** (tốt nhất −0,030).
+
+**Ba điều bảng này nói:**
+
+1. **Giao thức sửa là ống dẫn, không phải bộ sửa lỗi.** Khi `S` đã đúng mà `I` sai, `V` khôi phục
+   ~91% — artifact đúng *chuyển giao* đáp án gần như trọn vẹn. Khi **cả hai** sai, `V` chỉ cứu 4,3%
+   — nó gần như không bao giờ *sáng tạo* ra lời giải mà không model nào có.
+2. **Số học tầng:** tầng khai thác được (`S` đúng, `I` sai) chỉ **11 bài (2,2%)**; tầng rủi ro
+   (`I` đúng, `S` sai) là **121 bài (24%)** với tỷ lệ phá 63,6%. Đó là dạng thô nhất của lập luận
+   ngân sách `A` so với `B`.
+3. **Trần của router "biết-khi-`I`-sai":** nếu có oracle phát hiện đúng lúc `I` sai và chỉ khi đó
+   mới dùng `V`: lợi = `P(V∧¬I)` = 16/500 = **+3,2 điểm** trên MATH (MBPP: ~+4 đến +7,5 tuỳ cặp).
+   Cao hơn trần cổng-theo-artifact (+1,8) nhưng đòi một tín hiệu phát hiện **lỗi của chính model
+   mạnh** — đúng loại tín hiệu mà thí nghiệm H37 cho thấy "đo được (AUC 0,893) nhưng không dùng
+   được (+2,4 điểm, 2/5 fold)".
+
+*Nguồn: `results_H97/traces_H97.json` (boolean từng bài), `results_H94d/traces_H94d.json` (chấm
+lại bằng đúng `_bx`/`eq`; khớp acc đã ghi .478/.698/.574). Phân tích hậu nghiệm — mức B.*
