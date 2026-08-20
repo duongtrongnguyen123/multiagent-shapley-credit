@@ -262,3 +262,91 @@ Bản sửa cho `adapter_leak` = −0,0334 và −0,0500, **cả hai `VALID_leak
 
 Đây là lời giải cho một vấn đề mở đã được ghi trong tài liệu, nhưng kết quả **chưa được trích ở đâu**.
 Cần quyết định có đưa vào báo cáo không.
+
+---
+
+## Nhóm E — Đề xuất sửa chuẩn thống kê: sàn nhiễu 5 điểm đang quá thận trọng
+
+### E1. Ngưỡng 5 điểm được suy ra cho **một phép đo đơn lẻ**, nhưng đang áp cho kết quả **5 fold**
+
+**Cách ngưỡng hiện tại ra đời** (`../docs/RESULTS.md` §0): chạy cùng cấu hình trên 5 fold ×100 bài
+cho `V_gain` dao động +1,0 đến +8,0, độ lệch chuẩn **2,65 điểm**. Rồi:
+
+```
+std giữa các fold (fold_n=100)         = 2,65 điểm
+quy đổi sang MỘT phép đo n=250         = 2,65 × √(100/250) = 1,68
+hiệu của HAI phép đo độc lập n=250     = 1,68 × √2         = 2,37
+2σ của hiệu đó                          = 4,74  →  làm tròn thành NGƯỠNG 5 ĐIỂM
+```
+
+**Ngưỡng này đúng cho tình huống: một phép đo n=250, so với một phép đo n=250 khác.**
+Nhưng phần lớn kết quả của dự án được đo trên **5 fold**, và khi đó thông tin nhiều hơn hẳn.
+
+### Với 5 fold thì ngưỡng đúng là bao nhiêu
+
+Khi có 5 fold, đại lượng cần dùng là **sai số chuẩn của trung bình**, không phải độ lệch chuẩn của
+một phép đo:
+
+```
+SE của trung bình 5 fold  = 2,65 / √5  = 1,19 điểm
+t(0,975; dof = 4)                      = 2,776
+ngưỡng ý nghĩa 95%        = 2,776 × 1,19 = 3,29 điểm
+```
+
+⇒ **Ngưỡng đúng là ~3,3 điểm, không phải 5.** Ngưỡng hiện tại **thận trọng gấp 1,5 lần** mức cần thiết.
+
+### Và "5/5 fold cùng dấu" là thông tin **độc lập** với độ lớn
+
+| Số fold cùng dấu | p (một phía, phép thử dấu) |
+|---|---|
+| **5/5** | **0,031** — đã đủ ý nghĩa ở mức 0,05 |
+| 4/5 | 0,188 |
+| 3/5 | 0,500 |
+
+Nghĩa là **"5/5 fold cùng dấu" tự nó đã là bằng chứng ở p = 0,031**, bất kể hiệu ứng lớn hay nhỏ.
+Quy tắc hiện tại yêu cầu **đồng thời** 5/5 fold **và** hiệu ứng > 5 điểm — tức đòi hai điều kiện
+trong khi mỗi điều kiện đã đủ riêng.
+
+### Kiểm lại bằng t-test trên chính dữ liệu fold
+
+| Đại lượng | Trung bình | SE | t | p | Kết luận |
+|---|---|---|---|---|---|
+| MATH: thêm `V` vào S7B | **+7,67** | 1,53 | +5,00 | **0,0075** | có ý nghĩa |
+| MATH: `A_gain` (nf_m15) | **−6,40** | 0,72 | −8,83 | **0,0009** | có ý nghĩa |
+| MATH: `V_gain` (nf_m15) | +1,40 | 1,00 | +1,40 | 0,235 | không |
+
+t-test cho **cùng kết luận** với quy tắc 5 điểm ở các trường hợp rõ ràng, nhưng xử lý được vùng
+biên mà quy tắc thô bỏ sót.
+
+### Kết quả đang bị chôn oan
+
+| Kết quả | Hiệu ứng | Quy tắc 5 điểm | Ngưỡng 3,3 + phép thử dấu |
+|---|---|---|---|
+| `SOLVEJUDGE`: `loop − PSVA` trên MATH, **cùng chi phí** (4,2 so với 4,0 lượt) | **+4,0**, 5/5 fold | dưới sàn ⇒ **không tính** | **có ý nghĩa** |
+
+Đây là một trong rất ít kết quả **dương, cùng ngân sách, 5/5 fold** của toàn dự án — và quy tắc
+hiện tại loại nó.
+
+### Lý lẽ NGƯỢC LẠI, cần cân nhắc trước khi đổi
+
+Dự án chạy khoảng **200 vòng**. Với α = 0,05 và 200 phép thử, kỳ vọng có **~10 dương tính giả**.
+Ngưỡng thận trọng bù đắp phần nào cho vấn đề **so sánh bội**.
+
+Nhưng cách bù đó **thô và sai chỗ**: nó phạt đều mọi kết quả thay vì phạt theo số phép thử thực sự
+đã làm trên cùng một câu hỏi. Cách đúng hơn: **báo cáo khoảng tin cậy thay vì chỉ báo "đạt/không
+đạt"**, và nêu rõ số phép thử đã chạy trên cùng một giả thuyết.
+
+### Đề xuất
+
+1. **Bỏ ngưỡng cứng 5 điểm** cho kết quả đo trên nhiều fold.
+2. **Thay bằng: t-test trên các fold, báo cáo khoảng tin cậy 95%.** Ngưỡng ~3,3 điểm là hệ quả, không
+   phải quy tắc riêng.
+3. **Giữ phép thử dấu 5/5 như một tiêu chí bổ sung**, không phải điều kiện bắt buộc kèm theo.
+4. **Giữ ngưỡng 5 điểm cho các phép đo ĐƠN LẺ** (không có fold) — với chúng thì con số đó vẫn đúng.
+5. Với các giả thuyết đã thử nhiều lần, **nêu rõ số lần thử** thay vì nâng ngưỡng.
+
+⚠️ **Đây là chuẩn của khối nhóm, không phải của riêng ai.** `RESULTS.md` do Tùng Dương biên soạn và
+nhiều kết luận hiện tại đang dựa trên ngưỡng 5 điểm. **Cần cả nhóm đồng ý trước khi đổi**, và nếu
+đổi thì phải rà lại toàn bộ các kết quả đã bị hạ cấp để xem cái nào đổi trạng thái.
+
+*Ảnh hưởng: §7 Phương pháp luận, và có thể một số mục trong §5. Nên bàn ở Bước 0.*
