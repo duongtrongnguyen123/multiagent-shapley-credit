@@ -96,7 +96,7 @@ Phần này dùng hệ ký hiệu riêng, **không trùng** với vai trò ở m
 | `S` | Model **yếu** giải bài → sinh ra artifact |
 | `I` | Model **mạnh** giải bài, **không nhìn thấy gì của `S`** |
 | `V` | **CÙNG model mạnh đó**, nhưng ngữ cảnh **có kèm artifact của `S`** |
-| `CEIL` | Trần lý tưởng: giữ đáp án của `S` khi `S` đúng, ngược lại lấy `V` |
+| `CEIL` | Trần lý tưởng của pipeline: **đúng nếu `S` đúng HOẶC `V` đúng** (xem mục 3b) |
 
 ### ⚠️ `I` và `V` là CÙNG MỘT MODEL — khác nhau ở INPUT, không phải ở model
 
@@ -131,6 +131,60 @@ và cho thấy **riêng việc nhìn thấy đã đủ gây hại**, không cầ
 
 Kết quả trên MATH: **`V − I` = −0,1240**. Tức là **tệ đi**. Và phân tầng cho biết vì sao — khi
 artifact **sai** thì model mạnh rơi từ 46,4% xuống 19,2%; khi artifact **đúng** thì nó khá lên chút ít.
+
+### 3b. `CEIL` thực chất là gì
+
+Trong mã nguồn `CEIL` từng được viết là `S ∨ (¬S ∧ V)` — *"giữ đáp án của `S` khi `S` đúng, ngược
+lại lấy `V`"*. Cách viết đó **rườm rà không cần thiết**. Rút gọn bằng đại số Boole:
+
+```
+S ∨ (¬S ∧ V)   ≡   S ∨ V
+```
+
+| `S` | `V` | `S ∨ (¬S ∧ V)` | `S ∨ V` |
+|---|---|---|---|
+| sai | sai | sai | sai |
+| sai | đúng | đúng | đúng |
+| đúng | sai | đúng | đúng |
+| đúng | đúng | đúng | đúng |
+
+> **`CEIL` chỉ đơn giản là: đúng nếu `S` đúng HOẶC `V` đúng.**
+> Nói cách khác, nó chính là **`oracle@2` trên cặp {đáp án của `S`, đáp án của `V`}** — cùng khái
+> niệm với `oracle@k` ở mục 1, chỉ với `k` = 2.
+
+Không cần "chọn cái nào đúng hơn": chỉ cần **ít nhất một trong hai** đúng.
+
+### Vậy `CEIL` để làm gì, nếu nó cần biết đáp án?
+
+Đúng là nó cần đáp án chuẩn, nên **không phải một phương pháp chạy được**. Nó là **công cụ sàng lọc**,
+và giá trị nằm ở chỗ nó cho một **chặn trên**:
+
+| `Δ_ceil` | Kết luận | Việc tiếp theo |
+|---|---|---|
+| **< 0** | Ngay cả bộ chọn **hoàn hảo** cũng thua gọi thẳng model mạnh | **Đóng hướng.** Không cần xây cổng nào cả — không cổng nào cứu được |
+| **> 0** | **Có** dư địa. Bộ chọn hoàn hảo sẽ thắng | Còn phải hỏi: có tín hiệu **khả thi** nào lấy được không? (đó là `κ`) |
+
+Đây chính là cách khung `H × κ − D` được dùng trong thực tế: **`Δ_ceil` đo `H`** (có gì để lấy
+không), tách bạch khỏi **`κ`** (có lấy được không). Nếu không tách, một kết quả âm sẽ không phân
+biệt được giữa *"không có gì để lấy"* và *"có mà cổng chưa đủ tốt"* — hai kết luận dẫn tới hai
+hành động hoàn toàn khác nhau.
+
+**Và `Δ_ceil` còn rộng lượng hơn thế với pipeline:**
+
+| | Số lượt gọi model |
+|---|---|
+| `I` (mốc so sánh) | **1** lượt, model mạnh |
+| pipeline dưới `CEIL` | **2** lượt: `S` (model yếu) rồi `V` (model mạnh) |
+
+Nên `Δ_ceil` cho pipeline **cả oracle lẫn nhiều compute hơn**. Khi `Δ_ceil` **vẫn âm** ở chênh lệch
+năng lực lớn, kết luận phủ định càng mạnh: pipeline thua dù được ưu ái cả hai mặt.
+
+### ⚠️ Nhưng `Δ_ceil` KHÔNG phải con số triển khai
+
+`Δ_ceil` là chặn trên; `Δ_honest` = `acc(V) − acc(I)` mới là đại lượng dùng được thật.
+**Dự án chưa bao giờ xác lập được `Δ_honest` dương** — nên báo cáo phải nói rõ rằng phần lớn kết
+luận định lượng của nó dựa trên một **chặn trên**, không phải trên một giao thức đã chứng minh chạy
+được. Đây là hạn chế thật, ghi ở §8.
 
 ### Vì sao `V − I` mới là mốc đúng, không phải `V − S`
 

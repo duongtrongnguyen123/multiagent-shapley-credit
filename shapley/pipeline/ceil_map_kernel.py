@@ -213,7 +213,8 @@ for s, i in DIRECTED:
                                                  ("cat_cut_V<.05", g_trun)] if not v]})
         continue
     S_, I_, V_ = PASS[s], PASS[i], PASSV[key]
-    CEIL = [S_[k] or (not S_[k] and V_[k]) for k in range(N)]
+    # S or (not S and V)  ==  S or V  (dai so Boole) — viet gon cho de doc, KET QUA Y HET
+    CEIL = [S_[k] or V_[k] for k in range(N)]
     A = sum(1 for k in range(N) if S_[k] and not I_[k])/N
     B = sum(1 for k in range(N) if (not S_[k]) and I_[k] and not V_[k])/N
     C = sum(1 for k in range(N) if (not S_[k]) and (not I_[k]) and V_[k])/N
