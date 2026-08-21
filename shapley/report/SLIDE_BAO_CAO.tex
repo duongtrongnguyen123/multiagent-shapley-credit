@@ -175,7 +175,7 @@
 % =====================================================================
 \section{I. Đặt vấn đề và Ký hiệu}
 
-\begin{frame}{1.1. Đặt vấn đề và Động lực}
+\begin{frame}{1.1. Đặt vấn đề}
   \begin{columns}[c]
     \begin{column}{0.52\textwidth}
       \begin{block}{\textbf{Kỳ vọng về hệ Multi-Agent LLM}}
@@ -211,7 +211,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{1.2. Ký hiệu và Khung phân tích}
+\begin{frame}{1.2. Định nghĩa ký hiệu}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{block}{\textbf{1. Ba trạng thái mô hình}}
@@ -254,7 +254,7 @@
 % =====================================================================
 \section{II. Ba phép kiểm soát}
 
-\begin{frame}{2.1. Sai lệch đo lường trong y văn}
+\begin{frame}{2.1. Sai lệch đo lường}
   \begin{columns}[c]
     \begin{column}{0.32\textwidth}
       \begin{alertblock}{\textbf{1. Bỏ qua Compute}}
@@ -288,13 +288,13 @@
   \end{columns}
   
   \vspace{10pt}
-  \begin{block}{\textbf{Kết luận phương pháp luận}}
+  \begin{block}{\textbf{Kết luận}}
     \centering\small
     Bắt buộc phải áp dụng đồng thời \textbf{3 phép kiểm soát} để đánh giá chính xác giá trị thực.
   \end{block}
 \end{frame}
 
-\begin{frame}{2.2. Ba phép kiểm soát đối chứng}
+\begin{frame}{2.2. Ba phép đối chứng}
   \begin{columns}[t]
     \begin{column}{0.32\textwidth}
       \begin{block}{\textbf{1. Kiểm soát Compute}}
@@ -339,7 +339,7 @@
 % =====================================================================
 \section{III. Tác động của Artifact}
 
-\begin{frame}{3.1. Thí nghiệm tiếp xúc Artifact}
+\begin{frame}{3.1. Thực nghiệm}
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
       \begin{tikzpicture}[scale=0.85, transform shape,
@@ -371,7 +371,7 @@
         \end{itemize}
       \end{alertblock}
       
-      \begin{block}{\textbf{Hiệu ứng bất đối xứng}}
+      \begin{block}{\textbf{Tính bất đối xứng}}
         \begin{itemize}\small
           \item Kèm bài \textbf{đúng}: Tăng nhẹ ($+1{,}8$ điểm).
           \item Kèm bài \textbf{sai}: Tụt sâu ($-27{,}2$ điểm).
@@ -418,12 +418,12 @@
 % =====================================================================
 \section{IV. Đóng góp vai trò và RL}
 
-\begin{frame}{4.1. Kiến trúc và 16 Liên minh Shapley}
+\begin{frame}{4.1. Kiến trúc và Đóng góp}
   \centering
   \includegraphics[width=0.96\textwidth, height=0.82\textheight, keepaspectratio]{figs/pipeline_shapley_overview.png}
 \end{frame}
 
-\begin{frame}{4.1. Đóng góp từng vai trò}
+\begin{frame}{4.1. Kiến trúc và Đóng góp}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{block}{\textbf{Đóng góp từng vai trò ($P, S, V, A$)}}
@@ -451,10 +451,10 @@
   \end{alertblock}
 \end{frame}
 
-\begin{frame}{4.2. Năng lực Bộ kiểm (Verifier)}
+\begin{frame}{4.2. Kiểm chứng tất định}
   \begin{columns}[t]
     \begin{column}{0.50\textwidth}
-      \begin{block}{\textbf{Kiểm chứng tất định (Code Execution)}}
+      \begin{block}{\textbf{Kiểm chứng tất định}}
         \centering\footnotesize
         \begin{tabular}{lcccc}\toprule
           \textbf{Cấu hình} & \textbf{Greedy} & \textbf{\texttt{exec3}} & \textbf{Phá bài}\\\midrule
@@ -489,7 +489,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{4.3. Huấn luyện RL và Lối tắt hàm thưởng}
+\begin{frame}{4.3. Huấn luyện RL}
   \begin{columns}[c]
     \begin{column}{0.48\textwidth}
       \centering
@@ -544,9 +544,9 @@
     \end{column}
     
     \begin{column}{0.40\textwidth}
-      \begin{block}{\textbf{Cơ chế đảo chiều hiệu ứng}}
+      \begin{block}{\textbf{Cơ chế đảo chiều}}
         \begin{itemize}\small
-          \item \textbf{So với $W$:} Hiệu ứng luôn dương và tăng mạnh khi chênh lệch lớn.
+          \item \textbf{So với $W$:} Tác động luôn dương và tăng mạnh khi chênh lệch lớn.
           \item \textbf{So với $I$:} Trần $\dceil$ giảm nhanh và âm khi vượt ngưỡng $g^* \approx 0{,}09$.
         \end{itemize}
       \end{block}
@@ -563,16 +563,16 @@
 \begin{frame}{5.2. Khuyến nghị thiết kế hệ thống}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{\textbf{1. Miền có Kiểm chứng tất định (Code)}}
+      \begin{exampleblock}{\textbf{1. Miền có Kiểm chứng tất định}}
         \begin{itemize}\small
-          \item \textbf{Chiến lược tối ưu:} Sampling độc lập $+$ Lọc bằng Unit Test / Execution (\texttt{exec3}).
+          \item \textbf{Chiến lược tối ưu:} Sampling độc lập $+$ Lọc bằng Unit Test.
           \item \textbf{Hiệu quả:} Tiệm cận trần Oracle mà không làm hỏng bài đúng.
         \end{itemize}
       \end{exampleblock}
     \end{column}
     
     \begin{column}{0.48\textwidth}
-      \begin{alertblock}{\textbf{2. Miền Suy luận mở (Toán, Reasoning)}}
+      \begin{alertblock}{\textbf{2. Miền Suy luận mở}}
         \begin{itemize}\small
           \item \textbf{Chiến lược tối ưu:} Kích hoạt trực tiếp \textbf{Single Strong Model} hoặc Bỏ phiếu đa số.
           \item \textbf{Điều cấm kỵ:} Không chuyển giao bài làm của mô hình nhỏ để mô hình lớn sửa.
