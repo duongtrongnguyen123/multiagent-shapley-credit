@@ -116,7 +116,7 @@ là chặn trên mà không tín hiệu học được nào trong khảo sát v�
 các vai trò (ba biến thể GRPO, ORPO, credit-RL hai giai đoạn, đồng huấn luyện) đều không vượt
 chuẩn: model nhất quán tìm ra lối tắt của hàm thưởng --- im lặng, nhại lại, bỏ kế hoạch ---
 thay vì học kiểm thật. Toàn bộ quy trình dùng
-tiền đăng ký và điều kiện hợp lệ; một nửa số lần chạy không vượt qua và bị loại trước khi đọc số.
+chốt trước và điều kiện hợp lệ; một nửa số lần chạy không vượt qua và bị loại trước khi đọc số.
 \end{abstract}
 
 % =====================================================================
@@ -168,8 +168,8 @@ với token của model 1,5B, vì chi phí suy luận tỷ lệ với số tham 
   \item \textbf{Lời giải cho nghịch lý ``cùng biến, hai dấu''}: Sự chênh lệch năng lực giữa các model khiến kết quả khi so với model yếu ngày càng tốt, tạo cảm giác cải thiện lớn, nhưng giá trị thực tế khi so với model mạnh đơn lẻ lại ngày càng âm. Sự mâu thuẫn này nằm ở việc chọn sai mốc baseline chứ không phải do ưu thế của cơ chế đa tác tử (\S\ref{sec:synthesis}).
   \item \textbf{Một chặn trên cho giá trị của bộ kiểm}: Mức độ đóng góp của bộ kiểm bị chặn bởi khoảng cách giữa trần lý tưởng (Oracle) và phương pháp bỏ phiếu đa số (Majority Voting). Nghiên cứu chỉ ra rằng các tín hiệu kiểm tra chắc chắn (thực thi mã chạy test) có thể đạt tiệm cận mức trần này, trong khi các tín hiệu học được như cơ chế LLM-as-a-judge chỉ đóng góp một phần rất hạn chế (\S\ref{sec:kappa}).
 \end{enumerate}
-Cách chúng tôi kiểm soát độ tin cậy của từng phép đo được mô tả ở \S\ref{sec:setup}; một nửa
-số lần chạy trượt điều kiện kỹ thuật và bị loại trước khi đọc kết quả. Báo cáo dùng một số ký hiệu riêng; Bảng~\ref{tab:cheatsheet} là chỗ tra nhanh ---
+Toàn bộ số liệu đi kèm quy trình chống tự đánh lừa (chốt trước, điều kiện hợp lệ) mô tả ở
+\S\ref{sec:setup}; 50\% số lần chạy không vượt qua điều kiện và bị loại trước khi đọc số. Báo cáo dùng một số ký hiệu riêng; Bảng~\ref{tab:cheatsheet} là chỗ tra nhanh ---
 mọi ký hiệu đều được định nghĩa đầy đủ ở \S\ref{sec:framework}--\ref{sec:setup} trước khi
 dùng.
 
@@ -397,7 +397,7 @@ và GSM8K không có tín hiệu này.
 $V$ (verifier --- kiểm và được phép sửa), $A$ (aggregator --- nhận nhiều ứng viên, chọn đáp án
 cuối). Các tổ hợp viết liền; chẳng hạn, \texttt{PSVA} là pipeline đủ bốn vai trò. Những chữ này chỉ
 \emph{vai trò trong pipeline}; $W/I/E$ và $G/L/R$ ở \S\ref{sec:identity} là bộ ký hiệu riêng của
-thí nghiệm tiếp xúc.
+thí nghiệm tác động artifact.
 
 \paragraph{Bộ tổng hợp và các mốc.} Một \emph{lần sinh} là một lần model sinh trọn vẹn một lời
 giải cho bài toán; đây là đơn vị đếm ngân sách suy luận của báo cáo. $k$ lần sinh cho cùng một bài
@@ -991,8 +991,7 @@ ghi nhận ban đầu của chính chúng tôi không sống qua bộ ba kiểm 
 \item \textbf{$\dhonest$ mới phủ một phần không gian cấu hình.} Đại lượng triển khai được đã đo
       ở: 15 cặp MBPP (0/15 dương), 1 cặp MATH bất đối xứng ($-12{,}4$ điểm), và 1 cấu hình cùng
       cỡ ($+7{,}7$ điểm). Ba cặp xác nhận chéo mới (ba cặp model chưa đo) chạy dở vì giới hạn VRAM
-      14,6 GB: 8/9 nhánh sinh đã xong, còn một nhánh --- kết quả chưa đọc theo đúng quy trình
-      niêm phong.
+      14,6 GB: 8/9 nhánh sinh đã xong, còn một nhánh --- kết quả chưa được đọc.
 \item \textbf{Mâu thuẫn \texttt{A\_gain} đã thu hẹp nhưng chưa khép}: sau khi vá định dạng
       \verb|\boxed|, hai lần chạy cho $+0{,}8$ và $+8{,}0$ điểm --- cùng phía không-âm, còn
       khác độ lớn (khác bộ bài, khác lượng tử hoá); kết luận ``aggregator trung tính sau xử lý
