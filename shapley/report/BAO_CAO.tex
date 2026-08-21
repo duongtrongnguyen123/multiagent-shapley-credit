@@ -856,55 +856,29 @@ Hai trần cho cổng tiếp xúc (tính trên dữ liệu \S\ref{sec:termL}): c
 \label{fig:grpoexample}
 \end{figure}
 
-Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai trò (Bảng~\ref{tab:rl}). Không phương pháp nào đạt chuẩn dự án (hiệu ứng vượt ngưỡng và 5/5 fold cùng dấu) trên tập lạ, và mỗi thất bại đều truy được về việc model tìm ra lối tắt của hàm mục tiêu thay vì học năng lực đích.
+Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai trò. Không phương pháp nào đạt chuẩn dự án (hiệu ứng vượt ngưỡng và 5/5 fold cùng dấu) trên tập lạ, và mỗi thất bại đều truy được về việc model tìm ra lối tắt của hàm mục tiêu thay vì học năng lực đích.
 
-\emph{thứ nhất}: GRPO verifier với thưởng $+1$ cho sửa đúng, $-1$ cho phá, $0$ cho im lặng. Sau huấn luyện, precision tăng từ $0{,}70$--$0{,}90$ lên $1{,}00$ (5/5 fold), nhưng \texttt{V\_gain} giảm từ $+6{,}8$ xuống $+4{,}4$ điểm, và số lần can thiệp giảm từ $20{,}2$ còn $8{,}4$ trên 100 câu. Lối tắt được xác định là “im lặng miễn phí”: precision hoàn hảo đạt được nhờ model nói ít đi một nửa.
+\begin{description}\itemsep5pt
+\setlength{\leftmargini}{1.6em}\setlength{\labelsep}{0.5em}
+\item[\textbf{Thứ nhất.}] GRPO verifier với thưởng $+1$ cho sửa đúng, $-1$ cho phá, $0$ cho im lặng. Sau huấn luyện, precision tăng từ $0{,}70$--$0{,}90$ lên $1{,}00$ (5/5 fold), nhưng \texttt{V\_gain} giảm từ $+6{,}8$ xuống $+4{,}4$ điểm, và số lần can thiệp giảm từ $20{,}2$ còn $8{,}4$ trên 100 câu. Lối tắt được xác định là “im lặng miễn phí”: precision hoàn hảo đạt được nhờ model nói ít đi một nửa.
 
 
-\emph{thứ hai}: GRPO theo đáp án cuối (vá lỗ im lặng) đạt $+1{,}8$ điểm, thấp hơn ngưỡng $+2{,}0$ đã đăng ký trước. Lối tắt là nhại solver: trung vị độ dài đầu ra giảm từ $480$ xuống $19$ ký tự, tỷ lệ đồng ý khi solver sai tăng từ $0{,}50$ lên $0{,}64$.
+\item[\textbf{Thứ hai.}] GRPO theo đáp án cuối (vá lỗ im lặng) đạt $+1{,}8$ điểm, thấp hơn ngưỡng $+2{,}0$ đã đăng ký trước. Lối tắt là nhại solver: trung vị độ dài đầu ra giảm từ $480$ xuống $19$ ký tự, tỷ lệ đồng ý khi solver sai tăng từ $0{,}50$ lên $0{,}64$.
 
-\emph{thứ ba}: GRPO + bất đối xứng thông tin (solver 0,5B, verifier 1,5B; tiền đăng ký, đủ nhánh $I$) đo đồng thời hai mốc: so với model yếu cho $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi tự giải cho $-10{,}4$ điểm (5/5 fold âm). RL chỉ gỡ được 38\% thiệt hại tiếp xúc; 54\% bài hỏng sinh ra đáp án thứ ba không theo ai.
+\item[\textbf{Thứ ba.}] GRPO + bất đối xứng thông tin (solver 0,5B, verifier 1,5B; tiền đăng ký, đủ nhánh $I$) đo đồng thời hai mốc: so với model yếu cho $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi tự giải cho $-10{,}4$ điểm (5/5 fold âm). RL chỉ gỡ được 38\% thiệt hại tiếp xúc; 54\% bài hỏng sinh ra đáp án thứ ba không theo ai.
 
-\emph{thứ tư}: ORPO aggregator (học từ cặp ưa thích) đạt $+3{,}3$ điểm trên MATH (3/5 fold, dưới mức dao động nền) và $-2{,}7$ điểm trên GSM8K chéo task. Lối tắt là khuếch đại tật chép ứng viên cuối (từ $0{,}71$ lên $0{,}81$) và học “tự giải lại” thay vì chọn.
+\item[\textbf{Thứ tư.}] ORPO aggregator (học từ cặp ưa thích) đạt $+3{,}3$ điểm trên MATH (3/5 fold, dưới mức dao động nền) và $-2{,}7$ điểm trên GSM8K chéo task. Lối tắt là khuếch đại tật chép ứng viên cuối (từ $0{,}71$ lên $0{,}81$) và học “tự giải lại” thay vì chọn.
 
-\emph{thứ năm}: Credit-RL (thưởng bằng phần đóng góp Shapley biên) không giúp vai trò nào cải thiện theo chuẩn 5/5 fold. Planner sập về plan rỗng trong 200/200 câu; verifier có 23 lần sửa và 24 lần phá.
+\item[\textbf{Thứ năm.}] Credit-RL (thưởng bằng phần đóng góp Shapley biên) không giúp vai trò nào cải thiện theo chuẩn 5/5 fold. Planner sập về plan rỗng trong 200/200 câu; verifier có 23 lần sửa và 24 lần phá.
 
-\emph{thứ sáu}: Credit-RL giai đoạn 2 (thiết kế chống lối tắt) cho V-COND $+3{,}0$ điểm (4/5 fold dương) trên GSM8K, là biến thể dương duy nhất, nhưng không chuyển miền: trên MATH cho $-7{,}0$ điểm (5/5 fold âm).
+\item[\textbf{Thứ sáu.}] Credit-RL giai đoạn 2 (thiết kế chống lối tắt) cho V-COND $+3{,}0$ điểm (4/5 fold dương) trên GSM8K, là biến thể dương duy nhất, nhưng không chuyển miền: trên MATH cho $-7{,}0$ điểm (5/5 fold âm).
 
-\emph{thứ bảy}: MAPoRL đồng huấn luyện S/V/A cho kết quả không đổi ($0{,}690 \to 0{,}690$), vì aggregator bị nghẽn suốt quá trình huấn luyện.
+\item[\textbf{Thứ bảy.}] MAPoRL đồng huấn luyện S/V/A cho kết quả không đổi ($0{,}690 \to 0{,}690$), vì aggregator bị nghẽn suốt quá trình huấn luyện.
+\end{description}
 
-\begin{table}[t]\centering\small
-\begin{tabular}{p{0.29\linewidth}p{0.33\linewidth}p{0.29\linewidth}}\toprule
-Phương pháp & Kết quả chính & Lối tắt tìm thấy\\\midrule
-GRPO verifier; thưởng $+1$ sửa / $-1$ phá / $0$ im lặng &
-precision $0{,}70$--$0{,}90 \to 1{,}00$ (5/5 fold) \emph{nhưng} \texttt{V\_gain}
-$+6{,}8 \to +4{,}4$ điểm; can thiệp $20{,}2 \to 8{,}4$/100 câu &
-``im lặng miễn phí'': precision hoàn hảo nhờ nói ít đi một nửa\\[2pt]
-GRPO; thưởng theo đáp án cuối (vá lỗ im lặng) &
-$+1{,}8$ điểm $<$ ngưỡng $+2{,}0$ đã khoá trước &
-nhại solver: trung vị đầu ra $480 \to 19$ ký tự; đồng ý-khi-solver-sai $0{,}50 \to 0{,}64$\\[2pt]
-GRPO + bất đối xứng thông tin (solver 0,5B, verifier 1,5B; tiền đăng ký, đủ nhánh $I$) &
-so model yếu: $+17{,}0$ điểm (5/5 dương); so chính model kiểm tự giải: $\mathbf{-10{,}4}$
-điểm (5/5 \emph{âm}) &
-RL chỉ gỡ 38\% thiệt hại tiếp xúc; 54\% bài hỏng ra đáp án \emph{thứ ba} không theo ai\\[2pt]
-ORPO aggregator (học từ cặp ưa thích) &
-MATH $+3{,}3$ (3/5 fold, dưới mức dao động nền); GSM8K chéo task $-2{,}7$ &
-khuếch đại tật chép-ứng-viên-cuối ($0{,}71 \to 0{,}81$); học ``tự giải lại'' thay vì chọn\\[2pt]
-Credit-RL (thưởng $=$ phần đóng góp Shapley biên) &
-0/4 vai trò cải thiện theo chuẩn 5/5 fold &
-planner sập về plan \emph{rỗng} 200/200 câu; verifier 23 sửa / 24 phá\\[2pt]
-Credit-RL giai đoạn 2 (thiết kế chống lối tắt) &
-V-COND $+3{,}0$ (4/5) trên GSM8K --- biến thể dương duy nhất &
-không chuyển miền: trên MATH $-7{,}0$ (5/5 âm)\\[2pt]
-MAPoRL đồng huấn luyện S/V/A &
-$0{,}690 \to 0{,}690$ ($+0{,}000$) &
-aggregator nghẽn suốt quá trình huấn luyện\\\bottomrule
-\end{tabular}
-\caption{Bảy phương pháp huấn luyện vai trò (mỗi phương pháp có tiền đăng ký hoặc cổng hiệu lực;
-chi tiết và đính chính từng lần chạy trong \texttt{docs/}). Phương pháp thứ tám ---
-bộ phân loại supervised --- đã ở Bảng~\ref{tab:clf}.}
-\label{tab:rl}
-\end{table}
+Mỗi phương pháp đều có thiết kế chốt trước hoặc cổng hiệu lực; chi tiết và đính chính
+từng lần chạy nằm trong \texttt{docs/}. Phương pháp thứ tám --- bộ phân loại supervised
+--- đã trình bày ở Bảng~\ref{tab:clf}.
 
 \looseness=-1
 Hình~\ref{fig:grpoexample} minh hoạ một ca cụ thể. Đáng chú ý nhất là thí nghiệm bất đối xứng thông tin (phương pháp thứ ba), khi đo được đồng thời hai mốc trên cùng một lần chạy. So với model yếu, hiệu ứng là $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi không xem bài, hiệu ứng là $-10{,}4$ điểm (5/5 fold âm). Đây là bản tái lập bằng huấn luyện của hiện tượng đổi dấu theo mốc so sánh (\S\ref{sec:synthesis}): RL thu hẹp thiệt hại tiếp xúc (gỡ 38\%) nhưng không đảo được dấu của $\dhonest$. Kết luận chung của toàn bộ các phương pháp nối thẳng vào \S\ref{sec:kappa}: khi tín hiệu thưởng cũng chỉ là một tín hiệu học được, quá trình tối ưu hoá tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm tra thực sự.
