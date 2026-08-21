@@ -164,7 +164,7 @@ với token của model 1,5B, vì chi phí suy luận tỷ lệ với số tham 
   \item \textbf{Ba phép kiểm soát} Đưa ra bằng chứng thực nghiệm cho thấy khi áp dụng đồng thời ba phép kiểm soát (Chi phí, mốc so sánh và mẫu số), phần lớn các hiệu ứng tích cực của sự phối hợp đa tác tử đều suy giảm hoặc đảo chiều (\S\ref{sec:results}).
   \item \textbf{Thí nghiệm tác động artifact} --- cho model mạnh xem bài làm của model yếu ---
         thiết kế chốt trước, tái lập hai miền (Hình~\ref{fig:exposure}): Tái lập thí nghiệm trên 2 miền để xác định nguyên nhân thiệt hại của cơ chế sinh-rồi-sửa xuất phát trực tiếp từ việc tiếp xúc với thông tin sai lệch từ model yếu, chứ không phải đến từ việc nhìn thấy lời giải, qua đó khẳng định cơ chế sinh-rồi-sửa hoạt động như một kênh truyền dẫn đáp án hơn là 1 cơ chế tự sửa lỗi (\S\ref{sec:termL}).
-  \item \textbf{Đổi mốc so sánh thì hiệu ứng đảo dấu}: so với model yếu, hiệu ứng tăng theo chênh lệch năng lực gần như theo định nghĩa; so với model mạnh chạy một mình --- mốc mà người triển khai thực sự đối mặt --- hiệu ứng giảm và đổi dấu. Cùng một hệ, hai mốc, hai kết luận ngược nhau; mốc phổ biến trong tài liệu là mốc bị thổi phồng (\S\ref{sec:synthesis}).
+  \item \textbf{Hai mốc so sánh cho hai kết luận ngược nhau}: so với model yếu, hiệu ứng tăng theo chênh lệch năng lực gần như theo định nghĩa; so với model mạnh chạy một mình --- mốc mà người triển khai thực sự đối mặt --- hiệu ứng giảm và đổi dấu. Cùng một hệ, hai mốc, hai kết luận ngược nhau; mốc phổ biến trong tài liệu là mốc bị thổi phồng (\S\ref{sec:synthesis}).
   \item \textbf{Một chặn trên cho giá trị của bộ kiểm}: Mức độ đóng góp của bộ kiểm bị chặn bởi khoảng cách giữa trần lý tưởng (Oracle) và phương pháp bỏ phiếu đa số (Majority Voting). Nghiên cứu chỉ ra rằng các tín hiệu kiểm tra chắc chắn (thực thi mã chạy test) có thể đạt tiệm cận mức trần này, trong khi các tín hiệu học được như cơ chế LLM-as-a-judge chỉ đóng góp một phần rất hạn chế (\S\ref{sec:kappa}).
 \end{enumerate}
 Các kết quả được thu thập theo một quy trình kiểm soát độ tin cậy, gồm chốt tiêu chí trước khi
@@ -880,7 +880,7 @@ bộ phân loại supervised --- đã ở Bảng~\ref{tab:clf}.}
 \looseness=-1
 Hình~\ref{fig:grpoexample} minh hoạ một ca cụ thể. Đáng chú ý nhất là thí nghiệm bất đối xứng thông tin (phương pháp thứ ba), khi đo được đồng thời hai mốc trên cùng một lần chạy. So với model yếu, hiệu ứng là $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi không xem bài, hiệu ứng là $-10{,}4$ điểm (5/5 fold âm). Đây là bản tái lập bằng huấn luyện của hiện tượng đổi dấu theo mốc so sánh (\S\ref{sec:synthesis}): RL thu hẹp thiệt hại tiếp xúc (gỡ 38\%) nhưng không đảo được dấu của $\dhonest$. Kết luận chung của toàn bộ các phương pháp nối thẳng vào \S\ref{sec:kappa}: khi tín hiệu thưởng cũng chỉ là một tín hiệu học được, quá trình tối ưu hoá tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm tra thực sự.
 
-\section{Tổng hợp: đổi mốc so sánh thì hiệu ứng đảo dấu}\label{sec:synthesis}
+\section{Tổng hợp: hiệu ứng đo trên hai mốc so sánh}\label{sec:synthesis}
 
 Hai quan sát ở trên thoạt nhìn ngược nhau: \S\ref{sec:roles} ghi nhận chênh lệch năng lực lớn
 đi kèm mức tăng $+14{,}0$ điểm, còn \S\ref{sec:termG} lại chỉ ra chênh lệch lớn khiến mức cải
