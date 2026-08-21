@@ -61,35 +61,38 @@
 Các hệ nhiều tác tử ngôn ngữ lớn --- một model lập kế hoạch, một model giải, một model kiểm tra,
 một model tổng hợp --- thường được báo cáo là vượt trội so với một model chạy một mình. Khảo sát
 này đo lại nhận định đó trên bốn benchmark suy luận (GSM8K, MATH-500, MBPP, HumanEval) với các
-model 1,5--32 tỷ tham số, dưới ba phép kiểm soát mà phần lớn báo cáo trong lĩnh vực bỏ qua:
-so ở cùng chi phí tính toán; so với model mạnh chạy một mình thay vì với model yếu; và chỉ tính
-trên những câu mà phối hợp còn có thể tạo khác biệt.
+model 1,5--32 tỷ tham số, dưới ba phép kiểm soát mà phần lớn báo cáo trong lĩnh vực bỏ qua: (i)
+\textbf{cùng chi phí} --- pipeline nhiều vai sinh ra lượng chữ gấp 2,9--6,6 lần một lượt giải và
+đắt hơn theo FLOP khi trộn cỡ model; (ii) \textbf{đúng mốc} --- so với model mạnh chạy một mình
+thay vì với model yếu bị sửa; (iii) \textbf{đúng mẫu số} --- chỉ tính trên những câu mà phối hợp
+còn có thể tạo khác biệt.
 
 Sau ba phép kiểm soát, phần lớn hiệu ứng dương biến mất hoặc đổi dấu. Hiệu ứng dương lớn nhất
 (mười bốn điểm phần trăm) chỉ tồn tại khi so với model yếu; so cùng chi phí với model mạnh chạy
 một mình thì hoà hoặc thua. Thí nghiệm chính --- tiền đăng ký, tái lập trên hai miền --- định vị
-được nguồn thiệt hại: khi model mạnh nhìn thấy một bài làm \emph{sai} của model yếu, độ chính
-xác của nó rơi từ 46\% xuống 19\% trên chính những bài nó vốn giải được, trong khi bài làm đúng
-giúp nó tốt lên nhẹ. Hệ quả là một nghịch lý biểu kiến được giải: chênh lệch năng lực giữa hai
-model làm giao thức ``sửa bài của nhau'' ngày càng thua, nhưng lại làm phép so-với-model-yếu
-ngày càng đẹp --- cùng một biến, hai dấu, tuỳ mốc so sánh.
+nguồn thiệt hại: khi model mạnh nhìn thấy một bài làm \emph{sai} của model yếu, độ chính xác của
+nó rơi từ 46\% xuống 19\% trên chính những bài nó vốn giải được, trong khi bài làm đúng giúp nó
+tốt lên nhẹ; giao thức sửa vì vậy hoạt động như một \emph{ống dẫn đáp án} hơn là một bộ sửa lỗi.
+Hệ quả là một nghịch lý biểu kiến được giải: chênh lệch năng lực giữa hai model làm giao thức
+``sửa bài của nhau'' ngày càng thua nhưng làm phép so-với-model-yếu ngày càng đẹp --- cùng một
+biến, hai dấu, tuỳ mốc so sánh.
 
-Về phía bộ kiểm: nơi có cách kiểm chắc chắn (code chạy được test), phối hợp đạt đúng trần lý
-tưởng và không phá bài nào khi model chưa bão hoà; nơi không có, một bộ phân loại lỗi rất tốt
-(AUC 0,893) cũng chỉ đổi được hơn hai điểm --- khoảng cách giữa trần lý tưởng và bỏ phiếu đa số
-là chặn trên mà không tín hiệu học được nào trong khảo sát vượt qua. Bảy nỗ lực huấn luyện
-các vai (ba biến thể GRPO, ORPO, credit-RL hai giai đoạn, đồng huấn luyện) đều không vượt
-chuẩn: model nhất quán tìm ra lối tắt của hàm thưởng --- im lặng, nhại lại, bỏ kế hoạch ---
-thay vì học kiểm thật. Toàn bộ quy trình dùng
-tiền đăng ký và điều kiện hợp lệ; một nửa số lần chạy không vượt qua và bị loại trước khi đọc số.
+Về phía bộ kiểm, giá trị của nó bị \textbf{chặn trên} bởi khoảng cách giữa trần lý tưởng và bỏ
+phiếu đa số trên cùng pool: nơi có cách kiểm chắc chắn (code chạy được test), phối hợp đạt đúng
+trần và không phá bài nào khi model chưa bão hoà; nơi không có, một bộ phân loại lỗi rất tốt
+(AUC 0,893) cũng chỉ đổi được hơn hai điểm --- không tín hiệu học được nào trong khảo sát vượt
+qua chặn này. Bảy nỗ lực huấn luyện các vai (ba biến thể GRPO, ORPO, credit-RL hai giai đoạn,
+đồng huấn luyện) đều không vượt chuẩn: model nhất quán tìm ra lối tắt của hàm thưởng --- im
+lặng, nhại lại, bỏ kế hoạch --- thay vì học kiểm thật. Toàn bộ quy trình dùng tiền đăng ký và
+điều kiện hợp lệ; một nửa số lần chạy không vượt qua và bị loại trước khi đọc số.
 \end{abstract}
 
 % =====================================================================
 \section{Mở đầu}\label{sec:intro}
 
-Việc ghép nhiều mô hình ngôn ngữ lớn (LLM) thành một hệ thống Multi Agent gồm Planner, Solver, Verifier, Aggregator liệu có thực sự mạng lại hiệu quả tốt hơn so với một model mạnh đơn lẻ tự làm không? Trực giác tự nhiên cho thấy việc phân tách nhiệm vụ và bổ sung cơ chế kiểm tra chéo sẽ giúp phát hiện lỗi sai tốt hơn, cải thiện độ chính xác. Nhận định này cũng được sự ủng hộ từ phần lớn các công trình công bố trong lĩnh vực gần đây.
+Việc ghép nhiều mô hình ngôn ngữ lớn (LLM) thành một hệ thống đa tác tử gồm Planner, Solver, Verifier, Aggregator liệu có thực sự mang lại hiệu quả tốt hơn so với một model mạnh đơn lẻ tự làm không? Trực giác tự nhiên cho thấy việc phân tách nhiệm vụ và bổ sung cơ chế kiểm tra chéo sẽ giúp phát hiện lỗi sai tốt hơn, cải thiện độ chính xác. Nhận định này cũng được sự ủng hộ từ phần lớn các công trình công bố trong lĩnh vực gần đây.
 
-Tuy nhiên, một quan sát thực nghiệm đã chỉ ra tính bất ổn của trực giác ban đầu này. Trên bộ dữ liệu MATH, khi sử dụng một mô hình Qwen-7B đơn lẻ làm baseline, độ chính xác đạt 46,4\%. Nhưn khi thêm vào ngữ cảnh một bài làm sai của model yếu hơn (Qwen-1.5B) cho chính bài toán đó, độ chính xác của Qwen-7B giảm mạnh xuống chỉ còn 19,2\%. Mô hình mạnh đã giải sai chính những bài toán mà nó vốn giải được, chỉ vì nhìn thấy thông tin nhiễu từ một lời giải sai của agent khác
+Tuy nhiên, một quan sát thực nghiệm đã chỉ ra tính bất ổn của trực giác ban đầu này. Trên bộ dữ liệu MATH, khi sử dụng một mô hình Qwen-7B đơn lẻ làm baseline, độ chính xác đạt 46,4\%. Nhưng khi thêm vào ngữ cảnh một bài làm sai của model yếu hơn (Qwen-1.5B) cho chính bài toán đó, độ chính xác của Qwen-7B giảm mạnh xuống chỉ còn 19,2\%. Mô hình mạnh đã giải sai chính những bài toán mà nó vốn giải được, chỉ vì nhìn thấy thông tin nhiễu từ một lời giải sai của agent khác
 (Hình~\ref{fig:exposure}, chi tiết ở \S\ref{sec:termL}). Ngược lại, nếu lời giải được thêm vào là đúng chỉ mang lại mức cải thiện khiêm tốn. Điều này cho thấy việc cho các model xem bài của nhau là con dao hai lưỡi mà trong đó tác động tiêu cực nhiều hơn so với tác động tích cực.
 
 \begin{figure}[t]\centering
@@ -111,25 +114,25 @@ thiệt hại chính của các giao thức cho model sửa bài của nhau (\S\
 \label{fig:exposure}
 \end{figure}
 
-Sự mâu thuẫn giữa thực nghiệm này và các bài báo cáo tích cực trước đấy xuất phất từ 3 vấn đề nghiệm trọng trong phương pháp đo lường:
+Sự mâu thuẫn giữa thực nghiệm này và các bài báo cáo tích cực trước đấy xuất phát từ 3 vấn đề nghiêm trọng trong phương pháp đo lường:
 
 \paragraph{Thứ nhất, chi phí.} Với cùng model 1,5B, một pipeline gồm bốn vai trò sinh ra lượng token gấp 2,9 lần (trên tập GSM8K) đến
 6,6 lần (trên tập MATH) so với một lượt sinh đơn lẻ. Khi các vai trò dùng model kích thước khác nhau, ngay cả số token cũng
 không cùng đơn giá -- một token do model 7B sinh tốn khoảng 4,7--4,9 lần phép tính (FLOP) so
-với token của model 1,5B, vì chi phí suy luận tỷ lệ với số tham số. Việc so sánh 1 hệ thống tốn kém tài nguyên với 1 mô hình đơn lẻ chạy mà không quy đổi về cùng một mức ngân sách tính toán (FLOPS) sẽ dẫn đến những kết luận thiếu công bằng về mặt hiệu quả. \cite{kaplan2020}
-(\S\ref{sec:baseline}).
+với token của model 1,5B, vì chi phí suy luận tỷ lệ với số tham số \cite{kaplan2020}
+(\S\ref{sec:baseline}). Việc so sánh 1 hệ thống tốn kém tài nguyên với 1 mô hình đơn lẻ chạy mà không quy đổi về cùng một mức ngân sách tính toán (FLOP) sẽ dẫn đến những kết luận thiếu công bằng về mặt hiệu quả.
 
-\paragraph{Thứ hai, mốc so sánh.} Phần lớn các nghiên cứu thuộc nhóm generate-and-refine thường đo mức độ cải thiện so với mô hình bị sửa (mô hình yêu). Tuy nhiên trong thực tế, người ta thường phân vân giữa việc chạy cả hệ thống đa tác tử phức tạp hay chỉ dùng 1 mô hình mạnh đơn lẻ. Khảo sát này chứng minh rằng việc chọn mốc baseline so sánh khác nhau có thể làm đảo ngược hoàn toàn dấu của hiệu ứng thu được (\S\ref{sec:baseline},
+\paragraph{Thứ hai, mốc so sánh.} Phần lớn các nghiên cứu thuộc nhóm generate-and-refine thường đo mức độ cải thiện so với mô hình bị sửa (mô hình yếu). Tuy nhiên trong thực tế, người ta thường phân vân giữa việc chạy cả hệ thống đa tác tử phức tạp hay chỉ dùng 1 mô hình mạnh đơn lẻ. Khảo sát này chứng minh rằng việc chọn mốc baseline so sánh khác nhau có thể làm đảo ngược hoàn toàn dấu của hiệu ứng thu được (\S\ref{sec:baseline},
 \S\ref{sec:synthesis}).
 
-\paragraph{Thứ ba, mẫu số.} Trên tập dữ liệu MATH, với mô hình 1.5B, có tới 57\% số bài toán nằm ngoài khả năng can thiệp của các cơ chế candidates selection. Trong đó, 32\% bài toán quá khó khiến cho mọi đáp án candidate đều sai, 25\% bài toán quá dễ khiến cho mọi đáp án candidate đều đúng. Cả 2 trường hợp này đều khiến cho Aggregator không giúp cải thiện gì hơn. Việc tính trung bình trên toàn bộ tập dữ liệu sẽ làm suy giảm tín hiệu cải thiện thực tế, dẫn đến nguy cơ bác bỏ sai các can thiệp có giá trị (\S\ref{sec:denominator})
+\paragraph{Thứ ba, mẫu số.} Trên tập dữ liệu MATH, với mô hình 1.5B, có tới 57\% số bài toán nằm ngoài khả năng can thiệp của các cơ chế chọn ứng viên. Trong đó, 32\% bài toán quá khó khiến cho mọi đáp án candidate đều sai, 25\% bài toán quá dễ khiến cho mọi đáp án candidate đều đúng. Cả 2 trường hợp này đều khiến cho bộ tổng hợp không giúp cải thiện gì hơn. Việc tính trung bình trên toàn bộ tập dữ liệu sẽ làm suy giảm tín hiệu cải thiện thực tế, dẫn đến nguy cơ bác bỏ sai các can thiệp có giá trị (\S\ref{sec:denominator}). Thiếu kiểm soát này thì \emph{đánh giá thấp} hiệu ứng thật; thiếu hai kiểm soát trên thì \emph{đánh giá cao} --- ba sai lệch không cùng chiều, nên chúng phải được áp đủ cùng lúc chứ không thay thế được cho nhau.
 
 \paragraph{Đóng góp.} Khảo sát này hợp nhất 3 hướng nghiên cứu vào 1 khung đo duy nhất: Phân rã đóng góp theo vai trò, phân tích chi phí, lợi ích của định tuyến, và phân tích luồng thông tin. Bốn đóng góp chính bao gồm:
 \begin{enumerate}\itemsep2pt
   \item \textbf{Ba phép kiểm soát} Đưa ra bằng chứng thực nghiệm cho thấy khi áp dụng đồng thời ba phép kiểm soát (Chi phí, mốc so sánh và mẫu số), phần lớn các hiệu ứng tích cực của sự phối hợp đa tác tử đều suy giảm hoặc đảo chiều (\S\ref{sec:results}).
-  \item \textbf{Thí nghiệm tiếp xúc} tiền đăng ký, tái lập hai miền (Hình~\ref{fig:exposure}): Tái lập thí nghiệm trên 2 miền để xác định nguyên nhân thiệt hại của cơ chế sinh-rồi-sửa xuất phất trực tiếp từ việc tiếp xúc với thông tin sai lệch từ mô hình yếu, chứ không phải đến từ việc nhìn thấy lời giải, qua đó khẳng định cơ chế sinh-rồi-sửa hoạt động  một kênh truyền dẫn đáp án hơn là 1 cơ chế tự sửa lỗi (\S\ref{sec:termL}).
-  \item \textbf{Lời giải cho nghịch lý ``cùng biến, hai dấu''}: Sự chênh lệch năng lực giữa các mô hình khiến kết quả khi so với mô hình yếu ngày càng tốt, tạo cảm giác cải thiện lớn, nhưng giá trị thực tế khi so với mô hình mạnh đơn lẻ lại ngày càng âm. Sự mâu thuân này nằm ở việc chọn sai mốc baseline chứ không phải do ưu thế của cơ chế đa tác tử (\S\ref{sec:synthesis}).
-  \item \textbf{Xác định Verifier Upper Bound}: Mức độ đóng góp của Verifier bị chặn bởi khoảng cách giữa trần lý tưởng (Oracle) và phương pháp bỏ phiếu đa số (Majority Voting). Nghiên cứu chỉ ra rằng các tín hiệu kiểm tra chắc chắn (thực thi mã chạy test) có thể đạt tiệm cận mức trần này, trong khi các tín hiệu học được như cơ chế LLM-as-a-judge chỉ đóng góp một phần rất hạn chế (\S\ref{sec:kappa}).
+  \item \textbf{Thí nghiệm tiếp xúc} tiền đăng ký, tái lập hai miền (Hình~\ref{fig:exposure}): Tái lập thí nghiệm trên 2 miền để xác định nguyên nhân thiệt hại của cơ chế sinh-rồi-sửa xuất phát trực tiếp từ việc tiếp xúc với thông tin sai lệch từ mô hình yếu, chứ không phải đến từ việc nhìn thấy lời giải, qua đó khẳng định cơ chế sinh-rồi-sửa hoạt động như một kênh truyền dẫn đáp án hơn là 1 cơ chế tự sửa lỗi (\S\ref{sec:termL}).
+  \item \textbf{Lời giải cho nghịch lý ``cùng biến, hai dấu''}: Sự chênh lệch năng lực giữa các mô hình khiến kết quả khi so với mô hình yếu ngày càng tốt, tạo cảm giác cải thiện lớn, nhưng giá trị thực tế khi so với mô hình mạnh đơn lẻ lại ngày càng âm. Sự mâu thuẫn này nằm ở việc chọn sai mốc baseline chứ không phải do ưu thế của cơ chế đa tác tử (\S\ref{sec:synthesis}).
+  \item \textbf{Một chặn trên cho giá trị của bộ kiểm}: Mức độ đóng góp của bộ kiểm bị chặn bởi khoảng cách giữa trần lý tưởng (Oracle) và phương pháp bỏ phiếu đa số (Majority Voting). Nghiên cứu chỉ ra rằng các tín hiệu kiểm tra chắc chắn (thực thi mã chạy test) có thể đạt tiệm cận mức trần này, trong khi các tín hiệu học được như cơ chế LLM-as-a-judge chỉ đóng góp một phần rất hạn chế (\S\ref{sec:kappa}).
 \end{enumerate}
 Toàn bộ số liệu đi kèm quy trình chống tự đánh lừa (tiền đăng ký, điều kiện hợp lệ, niêm phong
 kết quả) mô tả ở \S\ref{sec:setup}; 50\% số lần chạy không vượt qua điều kiện và bị loại trước
@@ -172,8 +175,8 @@ VOID & lần chạy bị loại vì trượt điều kiện hợp lệ đã kho�
 
 \paragraph{Sinh rồi chọn.} Kĩ thuật Chain-of-thought \cite{wei2022} đã tạo tiền đề cho phương pháp self-consistency
 \cite{wang2023}. Trong đó, hệ thống sinh nhiều lời giải độc lập rồi xác định kết quả thông qua cơ chế bỏ phiếu đa số --- chính là mốc
-\texttt{maj@}$k$ của khảo sát này (định nghĩa ở \S\ref{sec:setup}). Các hướng tiếp cận chọn bằng bộ kiểm sau đó mở rộng theo 2 nhánh chính: đánh giá theo tiến trình suy luận \cite{lightman2024} và phân bổ thêm tài nguyên tính oán ở thời điểm suy luận \cite{snell2024}. Đặc trưng cốt lõi của phương pháp này là giai đoạn tổng hợp chỉ chọn trong tập các lời giải đã sinh, chứ không tạo thêm lời
-giải mới. Do đó, theo đẳng thức phân rã ở \S\ref{sec:identity}, hướng tiếp cận này không làm phát sinh nguy cơ phá hỏng các lởi giải đúng vốn có.
+\texttt{maj@}$k$ của khảo sát này (định nghĩa ở \S\ref{sec:setup}). Các hướng tiếp cận chọn bằng bộ kiểm sau đó mở rộng theo 2 nhánh chính: đánh giá theo tiến trình suy luận \cite{lightman2024} và phân bổ thêm tài nguyên tính toán ở thời điểm suy luận \cite{snell2024}. Đặc trưng cốt lõi của phương pháp này là giai đoạn tổng hợp chỉ chọn trong tập các lời giải đã sinh, chứ không tạo thêm lời
+giải mới. Do đó, theo đẳng thức phân rã ở \S\ref{sec:identity}, hướng tiếp cận này không làm phát sinh nguy cơ phá hỏng các lời giải đúng vốn có.
 
 \paragraph{Sinh rồi sửa.} Các framework tiêu biểu như Self-Refine \cite{madaan2023}, Reflexion \cite{shinn2023} và CRITIC
 \cite{gou2024} cho model đọc sản phẩm của chính nó hoặc model khác rồi thực hiện sửa. Tuy nhiên, Huang và cộng sự
