@@ -21,15 +21,15 @@ toàn bộ tập). Hai cột giữa là độ chính xác, thang 0--1; cột \em
 
 Bảng~\ref{tab:pipeline} cho thấy kết quả trước khi áp dụng bất kỳ biện pháp kiểm soát nào. Trên GSM8K, pipeline hơn 11,2 điểm, trong khi trên MATH, nó tiêu tốn gấp 6,63 lần chi phí sinh token nhưng lại kém hơn 6 điểm. Cần lưu ý hai điểm quan trọng. \emph{Thứ nhất}, kiểm định thống kê dựa trên một đại lượng gần tương tự nhưng không hoàn toàn trùng khớp: qua 5 fold, hiệu số $\texttt{PSVA}-\texttt{PS} = +5{,}6$ điểm (KTC $[+3{,}3;+7{,}9]$; $t=6{,}89$) --- lợi ích trên GSM8K là có ý nghĩa thống kê. \emph{Thứ hai}, phép hiệu chuẩn mức dao động nền (\S\ref{sec:setup}) cho thấy hai phép đo trên 100 bài có thể chênh nhau tới 7 điểm; vì vậy, các hiệu ứng từ phép đo đơn lẻ chỉ được đọc như tín hiệu thăm dò.
 
-Mục tiếp theo áp dụng phép kiểm soát thứ nhất: lợi ích này đến từ sự phối hợp giữa các vai trò hay chỉ đơn thuần là do số lượng lượt sinh tăng lên?
+Mục tiếp theo áp dụng phép kiểm soát thứ nhất: lợi ích này đến từ sự phối hợp giữa các vai trò hay chỉ đơn thuần là do số lượng lượt giải tăng lên?
 
 % ---------------------------------------------------------------
-\subsection{Thêm lượt sinh tạo giá trị, thêm vai trò tổng hợp thì không}\label{sec:budget}
+\subsection{Thêm lượt giải tạo giá trị, thêm vai trò tổng hợp thì không}\label{sec:budget}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c@{}}
 \toprule
-Bộ tổng hợp (cùng 8 lượt sinh) & MATH 1.5B & MATH 7B\\
+Bộ tổng hợp (cùng 8 lượt giải) & MATH 1.5B & MATH 7B\\
 \midrule
 \texttt{greedy} & 0,50 & \textbf{0,72}\\
 \texttt{maj@8}     & 0,60 & \textbf{0,73}\\
@@ -37,7 +37,7 @@ Bộ tổng hợp (cùng 8 lượt sinh) & MATH 1.5B & MATH 7B\\
 \texttt{oracle@8}      & 0,73 & \textbf{0,85}\\
 \bottomrule
 \end{tabular}
-\caption{So sánh các bộ tổng hợp với cùng ngân sách 8 lượt sinh (hàng trên cùng là mốc 1 lượt để tham chiếu). Các ô là độ chính xác, thang 0--1.}
+\caption{So sánh các bộ tổng hợp với cùng ngân sách 8 lượt giải (hàng trên cùng là mốc 1 lượt để tham chiếu). Các ô là độ chính xác, thang 0--1.}
 \label{tab:budget}
 \end{table}
 
@@ -47,11 +47,11 @@ Bảng~\ref{tab:budget} cố định ngân sách và chỉ thay đổi \emph{ph�
 
 \emph{Thứ hai}, lợi ích của bỏ phiếu đa số giảm khi năng lực model nền tăng. Ở model 1.5B, \texttt{maj@8} cải thiện 10 điểm phần trăm, chiếm 43\% mức cải thiện tối đa lý thuyết 23 điểm phần trăm. Ở model 7B, mức cải thiện chỉ còn 1 điểm phần trăm, tương ứng 8\% trên mức tối đa 13 điểm phần trăm. Khoảng cách \texttt{oracle@8} - \texttt{maj@8} (13 và 12 điểm phần trăm) sẽ được dùng lại ở \S\ref{sec:kappa} như chặn trên cho mọi bộ chọn.
 
-\emph{Thứ ba}, một đối chứng tách được ảnh hưởng của ``phối hợp'' khỏi ảnh hưởng của ``thêm lượt sinh''. Khi cho giải lại mà \emph{không} xem phê bình của verifier, kết quả bằng đúng giải lại \emph{có} xem phê bình ($\texttt{rerun} = \texttt{loop}$, cùng cho $0{,}453$). Lợi ích vì vậy đến từ lượt sinh thêm, không từ nội dung phản hồi. (Một phép đo đơn lẻ trước đó cho $+20$ điểm nhưng không tái lập: trên 5 fold chỉ còn $+4{,}0$ điểm.) Nhất quán với điều đó, biến thể vòng lặp giải-rồi-chấm --- rẻ hơn pipeline đủ vai trò --- còn thắng nó trên MATH: $+4{,}0$ điểm (KTC $[+0{,}5;+7{,}5]$; $t=3{,}21$) ở cùng chi phí.
+\emph{Thứ ba}, một đối chứng tách được ảnh hưởng của ``phối hợp'' khỏi ảnh hưởng của ``thêm lượt giải''. Khi cho giải lại mà \emph{không} xem phê bình của verifier, kết quả bằng đúng giải lại \emph{có} xem phê bình ($\texttt{rerun} = \texttt{loop}$, cùng cho $0{,}453$). Lợi ích vì vậy đến từ lượt giải thêm, không từ nội dung phản hồi. (Một phép đo đơn lẻ trước đó cho $+20$ điểm nhưng không tái lập: trên 5 fold chỉ còn $+4{,}0$ điểm.) Nhất quán với điều đó, biến thể vòng lặp giải-rồi-chấm --- rẻ hơn pipeline đủ vai trò --- còn thắng nó trên MATH: $+4{,}0$ điểm (KTC $[+0{,}5;+7{,}5]$; $t=3{,}21$) ở cùng chi phí.
 
 \emph{Thứ tư}, phần ``gây hại'' của aggregator phần lớn là hiện vật đo lường. Chỉ 73--81\% lượt tổng hợp phát ra đáp án trong khung để chấm được; thêm một cơ chế dự phòng miễn phí (thiếu khung thì lấy đáp án của verifier, không gọi thêm model) đưa \texttt{A\_gain} trên MATH 1.5B từ $-6{,}4$ điểm lên $+0{,}8$ điểm. Một lần chạy khác (bộ bài khác, không lượng tử hoá) cho $+8{,}0$ điểm; sau khi vá lỗi định dạng, hai ước lượng cùng phía không âm, phần chênh còn lại quy cho khác bộ bài và khác độ chính xác số.\mucB
 
-Sau phép kiểm soát chi phí, yếu tố chắc chắn có giá trị duy nhất là ``các lượt sinh độc lập bổ sung''. Mục tiếp theo đặt câu hỏi: những lượt sinh đó nên do vai trò nào và model cỡ nào đảm nhiệm?
+Sau phép kiểm soát chi phí, yếu tố chắc chắn có giá trị duy nhất là ``các lượt giải độc lập bổ sung''. Mục tiếp theo đặt câu hỏi: những lượt giải đó nên do vai trò nào và model cỡ nào đảm nhiệm?
 
 % ---------------------------------------------------------------
 \subsection{Phân rã đóng góp theo vai trò bằng giá trị Shapley}\label{sec:shapley}
@@ -218,7 +218,7 @@ Số lượt đúng /5 & $n$ & Solver & maj@5 & $\Delta$ (điểm)\\
 5/5 --- quá dễ & 37 (25\%) & 1,000 & 1,000 & 0\\
 \bottomrule
 \end{tabular}
-\caption{Phân tầng theo số lượt đúng trong 5 lượt sinh (MATH 1.5B, $n=150$). Cột $\Delta$ là chênh lệch độ chính xác giữa \texttt{maj@5} và Solver.}
+\caption{Phân tầng theo số lượt đúng trong 5 lượt giải (MATH 1.5B, $n=150$). Cột $\Delta$ là chênh lệch độ chính xác giữa \texttt{maj@5} và Solver.}
 \label{tab:strata}
 \end{table}
 
@@ -226,7 +226,7 @@ Bảng~\ref{tab:strata} phân 150 bài theo ``pool chứa bao nhiêu lời giả
 
 Ba phép kiểm soát vậy là ngược chiều nhau: thiếu mẫu số $\Rightarrow$ đánh giá thấp; thiếu chi phí hoặc mốc $\Rightarrow$ đánh giá cao. Hạn chế tự khai: các hiệu ứng chủ lực ở \S\ref{sec:roles}--\ref{sec:baseline} chưa được phân tầng lại theo cách này (thiếu dữ liệu theo-bài cho từng tầng); con số toàn tập của chúng vì vậy là ước lượng thấp của hiệu ứng trên tầng khả tác động.
 
-\emph{Hết mạch thứ nhất.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lượt sinh thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
+\emph{Hết mạch thứ nhất.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lượt giải thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
 
 % ---------------------------------------------------------------
 \subsection{Số hạng $G$: cơ hội co lại khi chênh lệch tăng}\label{sec:termG}
@@ -314,7 +314,7 @@ Từ Bảng~\ref{tab:222} rút ra ba nhận xét chính. Thứ nhất, giao th�
 \subsection{Khả năng khai thác $\kappa$ và định tuyến: tín hiệu chắc chắn đạt chặn trên, tín hiệu học được không đạt}\label{sec:kappa}
 
 \paragraph{Tín hiệu chắc chắn.}
-Trên HumanEval, cùng model, cùng 4 lượt sinh, chỉ khác nhau ở nguồn kiểm tra, kết quả được trình bày trong Bảng~\ref{tab:exec}.
+Trên HumanEval, cùng model, cùng 4 lượt giải, chỉ khác nhau ở nguồn kiểm tra, kết quả được trình bày trong Bảng~\ref{tab:exec}.
 
 \begin{table}[htbp]
 \centering
