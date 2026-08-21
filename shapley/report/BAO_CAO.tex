@@ -1029,18 +1029,18 @@ tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực ki�
 
 Hai quan sát thực nghiệm tưởng chừng mâu thuẫn: \S\ref{sec:roles} ghi nhận chênh lệch năng lực
 lớn với mức tăng $+14{,}0$ điểm, \S\ref{sec:termG} lại chỉ ra chênh lệch
-lớn khiến chặn trên $\dceil$ chuyển sang giá trị âm.
+lớn khiến mức cải thiện tối đa $\dceil$ chuyển sang giá trị âm.
 
 Sự tương phản này bắt nguồn từ việc sử dụng hai mốc tham chiếu khác nhau, trong đó chênh lệch
 năng lực tác động theo hai chiều trái ngược:
 \begin{itemize}\itemsep2pt
-\item \emph{So sánh với mô hình yếu} (mốc quy chiếu thường gặp trong các nghiên cứu): vai trò 
+\item \emph{So sánh với mô hình yếu $W$} (mốc quy chiếu thường gặp trong các nghiên cứu): vai trò 
       kiểm tra thực chất tương đương một lượt giải độc lập bởi mô hình mạnh hơn (\S\ref{sec:roles}). 
       Từ đó phản ánh khoảng cách năng lực nội tại kết hợp với 
       lợi thế từ lượt sinh bổ sung, dẫn đến mức tăng tỷ lệ thuận với độ chênh lệch năng lực (từ 
       $+3{,}0$ điểm khi chênh lệch bằng 0 lên $+14{,}0$ điểm khi chênh lệch đạt 0,244).
-\item \emph{So sánh với mô hình mạnh chạy độc lập} (mốc quy chiếu thực tế trong triển khai):
-      giá trị ròng tuân theo biểu thức $G - L + R$. Trong đó, tiềm năng cải thiện $G$ suy giảm
+\item \emph{So sánh với mô hình mạnh chạy độc lập $I$} (mốc quy chiếu thực tế trong triển khai):
+      giá trị ròng tuân theo biểu thức $G - L + R$. Trong đó, cơ hội cải thiện $G$ suy giảm
       theo độ chênh lệch ($\beta_1 = -0{,}19$, \S\ref{sec:termG}), trong khi tổn thất $L$ lại
       tăng mạnh (MATH ở mức chênh lệch 0,244, $L$ lớn gấp $\sim$11 lần $G$). Hệ quả
       giá trị kết hợp giảm dần, cấu hình dương duy nhất xuất hiện khi hai
@@ -1051,7 +1051,7 @@ Như vậy, nghịch lý trên không xuất phát từ cơ chế phối hợp m
 mốc so sánh: chênh lệch năng lực làm phóng đại hiệu quả biểu kiến so với mô hình yếu, nhưng lại
 làm suy giảm giá trị gia tăng thực tế so với mô hình mạnh. Cơ chế tổn thất do phơi nhiễm
 (\S\ref{sec:termL}) lý giải nguyên nhân dẫn đến sự suy giảm này: khi khoảng cách năng lực càng
-lớn, xác suất xuất hiện lời giải trung gian sai càng cao, khiến mô hình mạnh bị định hướng sai
+lớn, xác suất xuất hiện artifact sai càng cao, khiến mô hình mạnh bị định hướng sai
 ngay trên tập bài toán mà bản thân nó có khả năng giải quyết độc lập.
 
 \begin{figure}[t]\centering
@@ -1103,29 +1103,29 @@ ngay trên tập bài toán mà bản thân nó có khả năng giải quyết �
   \node[above right=1pt, font=\footnotesize\bfseries, red!85!black] at (0, 7.7) {$+7{,}7$};
 
   % 10. Nhan chu thich vung
-  \node[font=\scriptsize\itshape, text=blue!80!black, anchor=north west] at (0.004, 15.2) {Vùng trần $\dceil > 0$ (có tiềm năng)};
+  \node[font=\scriptsize\itshape, text=blue!80!black, anchor=north west] at (0.004, 15.2) {Vùng trần $\dceil > 0$ (có cơ hội cải thiện)};
   \node[font=\scriptsize\itshape, text=red!70!black, anchor=center] at (0.165, -10.5) {Vùng trần $\dceil < 0$ (suy giảm ròng)};
 
   % 11. Hop Legend nam phia duoi do thi
   \node[draw=gray!45, fill=white, fill opacity=0.98, text opacity=1, rounded corners=3pt, font=\scriptsize, anchor=north, align=center, inner sep=4pt] at (0.16, -22.5) {
-    \tikz[baseline=-0.5ex]{\draw[very thick, blue!80!black] (0,0) -- (0.35cm,0); \fill[blue!80!black] (0.175cm,0) circle (1.8pt);} So với \emph{mô hình yếu} (MATH) \qquad\qquad
-    \tikz[baseline=-0.5ex]{\draw[very thick, red!75!black, dashed] (0,0) -- (0.35cm,0);} Trần $\dceil$ so với \emph{mô hình mạnh} (khớp MBPP) \\[2pt]
+    \tikz[baseline=-0.5ex]{\draw[very thick, blue!80!black] (0,0) -- (0.35cm,0); \fill[blue!80!black] (0.175cm,0) circle (1.8pt);} So với \emph{mô hình yếu} $W$ (MATH) \qquad\qquad
+    \tikz[baseline=-0.5ex]{\draw[very thick, red!75!black, dashed] (0,0) -- (0.35cm,0);} Trần $\dceil$ so với \emph{mô hình mạnh} $I$ (khớp MBPP) \\[2pt]
     \tikz[baseline=-0.5ex]{\fill[red!75!black] (0.175cm,0) circle (2pt);} Điểm $\dceil$ thực nghiệm trên MATH (Bảng~\ref{tab:transfer}) \qquad
     \tikz[baseline=-0.5ex]{\node[draw=red!75!black, fill=white, inner sep=1.4pt] at (0.175cm,0) {};} Điểm đối chứng cùng quy mô ($\text{chênh}=0$)
   };
 \end{tikzpicture}
 \caption{Nghịch lý mốc tham chiếu. Trục hoành là khoảng cách năng lực: hiệu ứng đo so với
-\emph{mô hình yếu} (đường xanh liền) tăng mạnh do cộng hưởng năng lực; trong khi trần giá trị ròng $\dceil$
-so với \emph{mô hình mạnh} (đường đỏ đứt: khớp trên 15 cặp MBPP; các chấm đỏ: 3 điểm đo MATH) suy giảm
+\emph{mô hình yếu} $W$ (đường xanh liền) tăng mạnh do cộng hưởng năng lực; trong khi trần giá trị ròng $\dceil$
+so với \emph{mô hình mạnh} $I$ (đường đỏ đứt: khớp trên 15 cặp MBPP; các chấm đỏ: 3 điểm đo MATH) suy giảm
 nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \approx 0{,}09$ do tổn thất phơi nhiễm $L$
-áp đảo tiềm năng $G$.}
+áp đảo cơ hội cải thiện $G$.}
 \label{fig:paradox}
 \end{figure}
 
 Sáu kết quả thực nghiệm độc lập củng cố cho kết luận trên: (1) \emph{về mặt cấu trúc}, giao thức 
-chọn triệt tiêu hoàn toàn tổn thất ($L=0$) theo thiết kế; (2) \emph{về độ lớn}, tổn thất $L$
-vượt trội hoàn toàn tiềm năng $G$ ($L \approx 11G$) khi chênh lệch năng lực lớn trên MATH;
-(3) \emph{về cơ chế}, tổn thất bắt nguồn trực tiếp từ việc phơi nhiễm với ngữ cảnh sai lệch,
+tuyển chọn triệt tiêu hoàn toàn tổn thất ($L=0$) theo thiết kế; (2) \emph{về độ lớn}, tổn thất $L$
+vượt trội hoàn toàn cơ hội cải thiện $G$ ($L \approx 11G$) khi chênh lệch năng lực lớn trên MATH;
+(3) \emph{về cơ chế}, tổn thất bắt nguồn trực tiếp từ việc phơi nhiễm với artifact sai lệch,
 đã được xác thực qua thử nghiệm tiền đăng ký trên hai miền tác vụ; (4) \emph{về trần lý thuyết},
 cơ chế định tuyến lý tưởng cũng chỉ mang lại mức cải thiện khiêm tốn $+1{,}8$ điểm trên
 nền suy giảm $-12{,}4$ điểm; (5) \emph{về tính tổng quát}, quy luật thiết lập trên MBPP duy trì
@@ -1149,7 +1149,7 @@ phương pháp self-consistency trên các mô hình quy mô nhỏ \cite{chen202
       mã. Vai trò tổng hợp bằng LLM nhìn chung không đem lại lợi ích vượt trội so với bỏ phiếu cơ
       học; các tín hiệu phân loại học được tuy đạt độ phân tách cao trên tập kiểm thử nhưng chưa
       tác động tích cực đến độ chính xác thực tế.
-\item \textbf{Nguyên tắc phối hợp liên mô hình}: việc chuyển giao kết quả của mô hình nhỏ để mô hình
+\item \textbf{Nguyên tắc phối hợp liên mô hình}: việc chuyển giao artifact của mô hình nhỏ để mô hình
       lớn hiệu chỉnh nhìn chung dẫn đến hiệu quả âm hoặc không có ý nghĩa thống kê, đặc biệt khi
       khoảng cách năng lực vượt ngưỡng $\sim$0,09 (trên MBPP). Trong trường hợp này, phương án tối
       ưu về cả hiệu năng và chi phí là kích hoạt trực tiếp mô hình mạnh đơn lẻ.
@@ -1159,16 +1159,16 @@ phương pháp self-consistency trên các mô hình quy mô nhỏ \cite{chen202
 \section{Kết luận và hạn chế}\label{sec:limits}
 
 Hiệu quả thực tế của các hệ thống đa tác tử LLM không thể được khái quát hoá bằng một kết luận
-đơn tuyến, mà phụ thuộc có hệ thống vào ba yếu tố định lượng: (1) tiềm năng cải thiện $G$, được
+đơn tuyến, mà phụ thuộc có hệ thống vào ba yếu tố định lượng: (1) cơ hội cải thiện $G$, được
 quy định bởi khoảng cách năng lực và có xu hướng thu hẹp khi khoảng cách này gia tăng; (2) khả năng
 khai thác $\kappa$, phụ thuộc vào tính tất định của tín hiệu kiểm chứng thay vì chất lượng phân
-loại ước tính; và (3) tổn thất phơi nhiễm $L$, phát sinh từ việc tiếp xúc với ngữ cảnh sai lệch,
+loại ước tính; và (3) tổn thất phơi nhiễm $L$, phát sinh từ việc tiếp xúc với artifact sai lệch,
 trong đó các giao thức hiệu chỉnh chủ yếu đóng vai trò truyền dẫn đáp án thay vì sửa lỗi suy luận
 thực chất (\S\ref{sec:termL}). Khoảng cách năng lực giữa các mô hình vừa làm tăng mức cải thiện
-biểu kiến so với mô hình yếu, vừa đồng thời làm suy giảm giá trị ròng so với mô hình mạnh. Trong
+biểu kiến so với mô hình yếu $W$, vừa đồng thời làm suy giảm giá trị ròng so với mô hình mạnh $I$. Trong
 những miền bài toán có cơ chế kiểm chứng tất định, phối hợp đa tác tử tiệm cận trần hiệu năng
 oracle mà không gây hại đến các lời giải đúng; ngược lại, ở các miền suy luận mở, kiến trúc
-hiệu quả nhất là tạo mẫu độc lập và tổng hợp cơ học, tránh đưa lời giải trung gian vào ngữ cảnh
+hiệu quả nhất là tạo mẫu độc lập và tổng hợp cơ học, tránh đưa artifact trung gian vào ngữ cảnh
 của các mô hình kế tiếp. Cuối cùng, việc nhiều kết quả khả quan ban đầu không còn duy trì ý nghĩa
 thống kê khi áp dụng đồng thời ba phép kiểm soát nghiêm ngặt và quy trình tiền đăng ký (với 16/32
 lần chạy bị vô hiệu hoá và tỷ lệ dự đoán đúng của giả thuyết là 21/43) cho thấy tầm quan trọng của
@@ -1187,7 +1187,7 @@ kỷ luật thực nghiệm trong việc đánh giá các hệ thống tác tử
       phân vùng dữ liệu và mức lượng tử hoá mô hình) cho thấy nhận định về tính trung tính của vai trò
       tổng hợp vẫn cần thêm các thực nghiệm kiểm chứng quy mô lớn hơn.
 \item \textbf{Mức độ giải thích phương sai của tổn thất $L$}: Chênh lệch năng lực giải thích được
-      82\% phương sai của tiềm năng $G$, nhưng chỉ giải thích được 35\% phương sai của tổn thất phơi
+      82\% phương sai của cơ hội cải thiện $G$, nhưng chỉ giải thích được 35\% phương sai của tổn thất phơi
       nhiễm $L$. Điều này cho thấy phần lớn biến thiên của $L$ còn chịu ảnh hưởng từ các yếu tố kiến
       trúc hoặc giao thức chưa được mô hình hoá đầy đủ.
 \item \textbf{Độ nhạy thống kê của một số nhóm đối chứng}: Thử nghiệm hoán vị vai trò trên MATH có
