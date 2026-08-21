@@ -174,10 +174,9 @@ sinh} (đo thô), \emph{token}, và \emph{FLOP} (tham số $\times$ token). Ch�
 giữa hai cỡ model; tỷ số chi phí luôn kèm dấu $\times$ (ví dụ $0{,}88\times$) để không lẫn với
 accuracy.
 
-\paragraph{Giải mã và tính tất định.} Khối luồng thông tin dùng greedy
-(\texttt{do\_sample=False}): cùng cấu hình cho kết quả giống hệt trên từng bài (kiểm 499/499
-giữa hai tài khoản, hai ngày). Vì vậy, chạy lại cùng cấu hình không tạo ra bằng chứng độc lập;
-dao động giữa các fold đến từ \emph{khác bài}, không phải từ nhiễu lấy mẫu.
+\paragraph{Giải mã.} Khối luồng thông tin dùng greedy (\texttt{do\_sample=False}), nên cùng
+cấu hình luôn cho cùng kết quả. Dao động giữa các fold vì vậy hoàn toàn do \emph{khác bài},
+không phải do nhiễu lấy mẫu.
 
 \paragraph{Thống kê.} Khối vai trò/chi phí dùng 5 fold rời nhau (mỗi fold 60--100 bài). Sàn
 nhiễu được hiệu chuẩn bằng cách đo cùng cấu hình trên 5 fold: \texttt{V\_gain} dao động từ
