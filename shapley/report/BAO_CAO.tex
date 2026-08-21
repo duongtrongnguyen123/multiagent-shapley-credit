@@ -194,8 +194,8 @@ pipeline\\
 điểm; KTC & điểm phần trăm ($+14{,}0$ điểm $=+0{,}140$); khoảng tin cậy 95\%\\
 fold; sàn nhiễu & 1 trong 5 phần bài rời nhau; biên dao động của phép đo lặp (tới 7
 điểm/100 bài) --- hiệu ứng tin được khi 5/5 fold cùng dấu và qua t-test\\
-mức A / mức B & tiền đăng ký hoặc 5 fold kèm t-test / đo một lần, chỉ minh hoạ cơ chế\\
-VOID & lần chạy bị loại vì trượt điều kiện hợp lệ đã khoá trước --- không đọc số\\\bottomrule
+mức A / mức B & 5 fold kèm t-test (hoặc thí nghiệm khoá tiêu chí trước) / đo một lần, chỉ
+minh hoạ cơ chế\\\bottomrule
 \end{tabular}
 \caption{Bảng tra nhanh toàn bộ ký hiệu và thuật ngữ riêng của báo cáo.}
 \label{tab:cheatsheet}
@@ -423,23 +423,11 @@ McNemar chính xác ghép cặp trên cùng bộ bài và bootstrap ghép cặp 
 thử toàn dự án, kỳ vọng $\sim$6,6 dương tính giả \cite{bh1995}; các ca $p \in [0{,}02;0{,}05]$
 đọc dè dặt tương ứng.
 
-\paragraph{Nhãn tin cậy.} \emph{Mức A} là tiền đăng ký kèm điều kiện hợp lệ, hoặc 5 fold kèm
-t-test; \emph{mức B} là đo một lần hoặc phân rã hậu nghiệm, chỉ dùng để minh hoạ cơ chế.
-
-\paragraph{Tiền đăng ký.} Trước khi chạy bất kỳ thí nghiệm nào của khối luồng thông tin, chúng
-tôi khoá một bảng diễn giải: mỗi khoảng kết quả có thể xảy ra được gán sẵn một kết luận, kèm
-dòng ghi rõ kết quả nào sẽ \emph{bác bỏ} giả thuyết. Chạy xong thì tra bảng đã khoá, không diễn
-giải lại. Cách này chặn thói quen thấy số rồi mới quyết định số đó có nghĩa gì --- thói quen
-khiến kết quả nào cũng hoá ra ``có ý nghĩa''. Sổ dự đoán công khai cho thấy nó cần thiết: người
-đặt giả thuyết đoán đúng 21/43, gần như tung đồng xu.
-
-\paragraph{Điều kiện hợp lệ và nhãn VOID.} Mỗi thí nghiệm còn khoá trước một bộ điều kiện kỹ
-thuật để phép đo có nghĩa --- chẳng hạn adapter huấn luyện không được rò sang nhánh đối chứng,
-hay model không được trả lời giống hệt nhau ở mọi bài. Lần chạy trượt điều kiện bị đánh dấu
-\textbf{VOID} và \emph{không đọc số}, chứ không phải đọc rồi trừ hao: đã thấy một con số thì
-không quên được nữa, và nó nhiễm vào mọi phán đoán về sau. Nhãn này tách \emph{phép đo hỏng}
-khỏi \emph{giả thuyết sai}; thiếu nó, một lần chạy hỏng mà tình cờ cho số đẹp sẽ được tính là
-bằng chứng. Trong dự án, 16/32 lần chạy (50\%) bị VOID.
+\paragraph{Nhãn tin cậy.} \emph{Mức A} là kết quả đo trên 5 fold kèm t-test, hoặc thí nghiệm
+khoá trước tiêu chí diễn giải và đạt mọi điều kiện kỹ thuật đã đặt ra; \emph{mức B} là đo một
+lần hoặc phân rã hậu nghiệm, chỉ dùng để minh hoạ cơ chế. Các điều kiện kỹ thuật kiểm những thứ
+thống kê không thấy được --- chẳng hạn adapter huấn luyện rò sang nhánh đối chứng, hay bộ chấm
+đáp án lệch giữa hai nhánh; 16 trên 32 lần chạy trượt điều kiện và bị loại trước khi đọc kết quả.
 
 \paragraph{Rà lại giữa kỳ.} Rà 131 đại lượng theo chuẩn thống kê thống nhất: bốn kết quả chủ
 lực của khối fold ($+14{,}0$, $+11{,}0$, $+5{,}6$, $+4{,}4$ --- xem \S\ref{sec:results}) giữ ý
@@ -1126,10 +1114,9 @@ $L$ do tiếp xúc với nội dung sai quyết định --- và giao thức sử
 \S\ref{sec:termL}, hoạt động như ống dẫn đáp án hơn là bộ sửa lỗi. Cùng một chênh lệch năng lực
 làm phép so-với-model-yếu đẹp lên và giá trị thật xấu đi; nơi có bộ kiểm chắc chắn và còn dư
 địa, phối hợp chạm trần mà không phá bài nào; nơi không có, cấu hình tốt nhất đã đo là sinh độc
-lập và bỏ phiếu, không đưa bài làm của model này vào ngữ cảnh model khác. Phần lớn ``cải
-thiện'' ghi nhận ban đầu của chính chúng tôi không sống qua bộ ba kiểm soát cộng điều kiện hợp
-lệ --- 16/32 lần chạy VOID, người đặt giả thuyết đoán đúng 21/43 --- và chúng tôi coi việc quy
-trình bắt được điều đó là một kết quả phương pháp ngang hàng các kết quả nội dung.
+lập và bỏ phiếu, không đưa bài làm của model này vào ngữ cảnh model khác. Phần lớn ``cải thiện''
+ghi nhận ban đầu của chính chúng tôi không sống qua bộ ba kiểm soát: một nửa số lần chạy trượt
+điều kiện kỹ thuật và bị loại, phần còn lại đa số không đạt ngưỡng thống kê.
 
 \paragraph{Hạn chế.}
 \begin{enumerate}\itemsep2pt
@@ -1226,8 +1213,6 @@ thang 0--1; \textbf{$g^\ast$}: mức chênh nơi đường khớp $\dceil$ đổ
 khỏi pipeline cùng cấu hình.
 \item[] \textbf{mức A / mức B}: tiền đăng ký hoặc 5 fold kèm t-test / đo một lần hoặc hậu
 nghiệm (chỉ minh hoạ cơ chế).
-\item[] \textbf{VOID}: nhãn cho lần chạy trượt điều kiện hợp lệ đã khoá trước; kết quả
-\emph{không được đọc}, để tách phép đo hỏng khỏi giả thuyết sai.
 \item[] \textbf{sàn nhiễu}: biên độ dao động của cùng cấu hình giữa các fold (hiệu chuẩn:
 $+1{,}0$ đến $+8{,}0$ điểm).
 \end{itemize}
@@ -1235,8 +1220,8 @@ $+1{,}0$ đến $+8{,}0$ điểm).
 \section{Con trỏ tư liệu gốc}
 \begin{itemize}\itemsep1pt
 \item[\textbf{B.}] Trích các bản tiền đăng ký (\#104, \#106, \#107, \#112) --- \texttt{docs/PREREGISTRATION.md}.
-\item[\textbf{C.}] Bảng niêm phong hash --- \texttt{docs/RESULT\_SEALS.md}; 16 lần chạy VOID (trên 32) và lý do.
-\item[\textbf{D.}] Sổ dự đoán trước (21/43); 37 quy tắc quy trình --- \texttt{docs/QUY\_TRINH\_VONG\_LAP.md}.
+\item[\textbf{C.}] Nhật ký các lần chạy bị loại (16 trên 32) và lý do --- \texttt{docs/RESULT\_SEALS.md}.
+\item[\textbf{D.}] Quy tắc quy trình đo --- \texttt{docs/QUY\_TRINH\_VONG\_LAP.md}.
 \item[\textbf{E.}] Bảng kết quả đầy đủ khối nhóm --- \texttt{docs/RESULTS.md}; phân tích Shapley theo vai --- \texttt{docs/}.
 \item[\textbf{F.}] Rà thống kê giữa kỳ và các phán quyết --- \texttt{report/CAU\_HOI\_THAO\_LUAN.md} (nhóm E, A6--A7, F).
 \end{itemize}

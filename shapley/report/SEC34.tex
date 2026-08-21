@@ -189,23 +189,11 @@ McNemar chính xác ghép cặp trên cùng bộ bài và bootstrap ghép cặp 
 thử toàn dự án, kỳ vọng $\sim$6,6 dương tính giả \cite{bh1995}; các ca $p \in [0{,}02;0{,}05]$
 đọc dè dặt tương ứng.
 
-\paragraph{Nhãn tin cậy.} \emph{Mức A} là tiền đăng ký kèm điều kiện hợp lệ, hoặc 5 fold kèm
-t-test; \emph{mức B} là đo một lần hoặc phân rã hậu nghiệm, chỉ dùng để minh hoạ cơ chế.
-
-\paragraph{Tiền đăng ký.} Trước khi chạy bất kỳ thí nghiệm nào của khối luồng thông tin, chúng
-tôi khoá một bảng diễn giải: mỗi khoảng kết quả có thể xảy ra được gán sẵn một kết luận, kèm
-dòng ghi rõ kết quả nào sẽ \emph{bác bỏ} giả thuyết. Chạy xong thì tra bảng đã khoá, không diễn
-giải lại. Cách này chặn thói quen thấy số rồi mới quyết định số đó có nghĩa gì --- thói quen
-khiến kết quả nào cũng hoá ra ``có ý nghĩa''. Sổ dự đoán công khai cho thấy nó cần thiết: người
-đặt giả thuyết đoán đúng 21/43, gần như tung đồng xu.
-
-\paragraph{Điều kiện hợp lệ và nhãn VOID.} Mỗi thí nghiệm còn khoá trước một bộ điều kiện kỹ
-thuật để phép đo có nghĩa --- chẳng hạn adapter huấn luyện không được rò sang nhánh đối chứng,
-hay model không được trả lời giống hệt nhau ở mọi bài. Lần chạy trượt điều kiện bị đánh dấu
-\textbf{VOID} và \emph{không đọc số}, chứ không phải đọc rồi trừ hao: đã thấy một con số thì
-không quên được nữa, và nó nhiễm vào mọi phán đoán về sau. Nhãn này tách \emph{phép đo hỏng}
-khỏi \emph{giả thuyết sai}; thiếu nó, một lần chạy hỏng mà tình cờ cho số đẹp sẽ được tính là
-bằng chứng. Trong dự án, 16/32 lần chạy (50\%) bị VOID.
+\paragraph{Nhãn tin cậy.} \emph{Mức A} là kết quả đo trên 5 fold kèm t-test, hoặc thí nghiệm
+khoá trước tiêu chí diễn giải và đạt mọi điều kiện kỹ thuật đã đặt ra; \emph{mức B} là đo một
+lần hoặc phân rã hậu nghiệm, chỉ dùng để minh hoạ cơ chế. Các điều kiện kỹ thuật kiểm những thứ
+thống kê không thấy được --- chẳng hạn adapter huấn luyện rò sang nhánh đối chứng, hay bộ chấm
+đáp án lệch giữa hai nhánh; 16 trên 32 lần chạy trượt điều kiện và bị loại trước khi đọc kết quả.
 
 \paragraph{Rà lại giữa kỳ.} Rà 131 đại lượng theo chuẩn thống kê thống nhất: bốn kết quả chủ
 lực của khối fold ($+14{,}0$, $+11{,}0$, $+5{,}6$, $+4{,}4$ --- xem \S\ref{sec:results}) giữ ý
