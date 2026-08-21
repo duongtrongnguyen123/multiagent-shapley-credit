@@ -138,7 +138,7 @@ cho thấy hai mốc đó cho hai dấu ngược nhau trên cùng một hệ (\S
 \paragraph{Thứ ba, mẫu số.} Trên MATH với model 1,5B, 57\% số câu nằm ngoài tầm với của mọi cơ
 chế chọn-trong-pool: 32\% quá khó (không lượt giải nào đúng --- không có gì để chọn), 25\% quá
 dễ (mọi lượt đều đúng --- không có gì để cải thiện). Một can thiệp thật $+10$ điểm trên phần
-còn lại sẽ hiện ra chỉ $+3$ điểm khi trung bình toàn tập --- dưới sàn nhiễu, và có nguy cơ bị
+còn lại sẽ hiện ra chỉ $+3$ điểm khi trung bình toàn tập --- dưới mức dao động nền, và có nguy cơ bị
 kết luận nhầm là vô dụng (\S\ref{sec:denominator}). Thiếu kiểm soát này thì \emph{đánh giá
 thấp}; thiếu hai kiểm soát trên thì \emph{đánh giá cao} --- ba sai lệch không cùng chiều.
 
@@ -192,8 +192,8 @@ $\dceil$ đổi dấu ($\approx 0{,}09$)\\
 \texttt{V\_gain}, \texttt{A\_gain} & accuracy thay đổi khi thêm vai $V$ (hoặc $A$) vào cùng
 pipeline\\
 điểm; KTC & điểm phần trăm ($+14{,}0$ điểm $=+0{,}140$); khoảng tin cậy 95\%\\
-fold; sàn nhiễu & 1 trong 5 phần bài rời nhau; biên dao động của phép đo lặp (tới 7
-điểm/100 bài) --- hiệu ứng tin được khi 5/5 fold cùng dấu và qua t-test\\
+fold; mức dao động nền & 1 trong 5 phần bài rời nhau; biên độ chênh lệch khi đo lại cùng
+cấu hình (tới 7 điểm/100 bài) --- hiệu ứng tin được khi 5/5 fold cùng dấu và qua t-test\\
 mức A / mức B & 5 fold kèm t-test (hoặc thí nghiệm khoá tiêu chí trước) / đo một lần, chỉ
 minh hoạ cơ chế\\\bottomrule
 \end{tabular}
@@ -413,7 +413,7 @@ cấu hình luôn cho cùng kết quả. Dao động giữa các fold vì vậy 
 không phải do nhiễu lấy mẫu.
 
 \paragraph{Thống kê.} Khối vai trò/chi phí chia 5 fold rời nhau (mỗi fold 60--100 bài). Để
-ước lượng mức dao động nền của phép đo --- gọi là \emph{sàn nhiễu} --- chúng tôi chạy cùng một
+ước lượng \emph{mức dao động nền} của phép đo, chúng tôi chạy cùng một
 cấu hình trên cả 5 fold: \texttt{V\_gain} dao động từ $+1{,}0$ đến $+8{,}0$ điểm, với độ lệch
 chuẩn giữa fold là 2,65 điểm. Vì thế, một phép đo đơn lẻ trên 100 bài gần như không mang thông
 tin. Suy diễn bằng t-test trên fold ($\mathrm{SE}=s/\sqrt{k}$;
@@ -462,7 +462,8 @@ trên MATH nó tốn chi phí gấp 6,63 lần để \emph{kém hơn} 6 điểm.
 nhất, kiểm định thống kê dùng một đại lượng gần nhưng không trùng: trên 5 fold,
 $\texttt{PSVA}-\texttt{PS} = +5{,}6$ điểm (KTC $[+3{,}3;+7{,}9]$; $t=6{,}89$) --- phần lợi trên
 GSM8K là thật; con số MATH là phép đo một lần, chưa có KTC theo fold. Thứ hai, phép hiệu chuẩn
-sàn nhiễu (\S\ref{sec:setup}) cho thấy một phép đo 100 bài dao động tới 7 điểm --- từ đây mọi
+mức dao động nền (\S\ref{sec:setup}) cho thấy hai phép đo 100 bài có thể chênh nhau tới 7 điểm ---
+từ đây mọi
 hiệu ứng đều đi kèm KTC.
 
 \emph{Mục tiếp theo áp phép kiểm soát thứ nhất: phần lợi này đến từ phối hợp, hay chỉ từ việc
@@ -527,7 +528,7 @@ hợp con --- cách phân bổ duy nhất thoả các tiên đề hiệu quả, 
 \begin{figure}[t]\centering
 \includegraphics[width=0.9\linewidth]{figs/pipeline_shapley_overview.png}
 \caption{Pipeline bốn vai, 16 tổ hợp bật/tắt để tính giá trị Shapley, và quy trình ước lượng
-sàn nhiễu bằng 5 fold. (Hình tái dụng từ báo cáo khối Shapley của nhóm.)}
+mức dao động nền bằng 5 fold. (Hình tái dụng từ báo cáo khối Shapley của nhóm.)}
 \label{fig:shapleyfw}
 \end{figure}
 
@@ -540,8 +541,8 @@ Aggregator & $+0{,}190$ $[+0{,}182;+0{,}199]$ & $+0{,}150$ $[+0{,}134;+0{,}167]$
 Planner    & $\mathbf{-0{,}014}$ $[-0{,}030;+0{,}002]$ & $+0{,}017$ $[-0{,}008;+0{,}043]$\\\bottomrule
 \end{tabular}
 \caption{Giá trị Shapley của bốn vai, mọi vai 1.5B (KTC 95\% bootstrap theo câu hỏi ---
-\emph{không có fold}, nên đọc kèm sàn nhiễu \S\ref{sec:setup}; trên MATH mọi chênh lệch giữa
-vai đều dưới sàn nhiễu, thứ hạng không có ý nghĩa).}
+\emph{không có fold}, nên đọc kèm mức dao động nền ở \S\ref{sec:setup}; trên MATH mọi chênh lệch giữa
+vai đều dưới mức dao động nền, thứ hạng không có ý nghĩa).}
 \label{tab:shapley}
 \end{table}
 
@@ -735,7 +736,7 @@ Trên tầng khả tác động, hiệu ứng của bỏ phiếu là $+21{,}5$ �
 điểm (tầng 2--4/5); trung bình toàn tập pha loãng còn $+9{,}3$ --- tỷ lệ pha loãng 2,3--3,3 lần
 tuỳ cách nhóm (tầng được xác định hậu nghiệm bằng chính kết quả sinh, nên đây là công cụ diễn
 giải, không phải mốc triển khai được). Một can thiệp $+10$ điểm thật chỉ tác động được tầng
-2--4/5 (30\% số bài) sẽ hiện ra $+3{,}0$ điểm toàn tập --- dưới sàn nhiễu.
+2--4/5 (30\% số bài) sẽ hiện ra $+3{,}0$ điểm toàn tập --- dưới mức dao động nền.
 
 Ba phép kiểm soát vậy là ngược chiều nhau: thiếu mẫu số $\Rightarrow$ đánh giá \emph{thấp};
 thiếu chi phí hoặc mốc $\Rightarrow$ đánh giá \emph{cao}. Hạn chế tự khai: các hiệu ứng chủ
@@ -983,7 +984,7 @@ so model yếu: $+17{,}0$ điểm (5/5 dương); so chính model kiểm tự gi�
 điểm (5/5 \emph{âm}) &
 RL chỉ gỡ 38\% thiệt hại tiếp xúc; 54\% bài hỏng ra đáp án \emph{thứ ba} không theo ai\\[2pt]
 ORPO aggregator (học từ cặp ưa thích) &
-MATH $+3{,}3$ (3/5 fold, dưới sàn nhiễu); GSM8K chéo task $-2{,}7$ &
+MATH $+3{,}3$ (3/5 fold, dưới mức dao động nền); GSM8K chéo task $-2{,}7$ &
 khuếch đại tật chép-ứng-viên-cuối ($0{,}71 \to 0{,}81$); học ``tự giải lại'' thay vì chọn\\[2pt]
 Credit-RL (thưởng $=$ phần đóng góp Shapley biên) &
 0/4 vai cải thiện theo chuẩn 5/5 fold &
@@ -1213,8 +1214,8 @@ thang 0--1; \textbf{$g^\ast$}: mức chênh nơi đường khớp $\dceil$ đổ
 khỏi pipeline cùng cấu hình.
 \item[] \textbf{mức A / mức B}: tiền đăng ký hoặc 5 fold kèm t-test / đo một lần hoặc hậu
 nghiệm (chỉ minh hoạ cơ chế).
-\item[] \textbf{sàn nhiễu}: biên độ dao động của cùng cấu hình giữa các fold (hiệu chuẩn:
-$+1{,}0$ đến $+8{,}0$ điểm).
+\item[] \textbf{mức dao động nền}: biên độ chênh lệch của cùng một cấu hình giữa các fold
+(đo được: $+1{,}0$ đến $+8{,}0$ điểm).
 \end{itemize}
 
 \section{Con trỏ tư liệu gốc}
