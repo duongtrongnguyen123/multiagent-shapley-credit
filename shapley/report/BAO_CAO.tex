@@ -93,30 +93,17 @@
 
 
 \begin{abstract}
-Các hệ nhiều tác tử ngôn ngữ lớn --- một model lập kế hoạch, một model giải, một model kiểm tra,
-một model tổng hợp --- thường được báo cáo là vượt trội so với một model chạy một mình. Khảo sát
-này đo lại nhận định đó trên bốn benchmark suy luận (GSM8K, MATH-500, MBPP, HumanEval) với các
-model 1,5--32 tỷ tham số, dưới ba phép kiểm soát mà phần lớn báo cáo trong lĩnh vực bỏ qua:
-so ở cùng chi phí tính toán; so với model mạnh chạy một mình thay vì với model yếu; và chỉ tính
-trên những câu mà phối hợp còn có thể tạo khác biệt.
-
-Sau ba phép kiểm soát, phần lớn hiệu ứng dương biến mất hoặc đổi dấu. Hiệu ứng dương lớn nhất
-(mười bốn điểm phần trăm) chỉ tồn tại khi so với model yếu; so cùng chi phí với model mạnh chạy
-một mình thì hoà hoặc thua. Thí nghiệm chính --- thiết kế chốt trước, tái lập trên hai miền --- định vị
-được nguồn thiệt hại: khi model mạnh nhìn thấy một bài làm \emph{sai} của model yếu, độ chính
-xác của nó rơi từ 46\% xuống 19\% trên chính những bài nó vốn giải được, trong khi bài làm đúng
-giúp nó tốt lên nhẹ. Hệ quả là một nghịch lý biểu kiến được giải: chênh lệch năng lực giữa hai
-model làm giao thức ``sửa bài của nhau'' ngày càng thua, nhưng lại làm phép so-với-model-yếu
-ngày càng đẹp --- cùng một biến, hai dấu, tuỳ mốc so sánh.
-
-Về phía bộ kiểm: nơi có cách kiểm chắc chắn (code chạy được test), phối hợp đạt đúng trần lý
-tưởng và không phá bài nào khi model chưa bão hoà; nơi không có, một bộ phân loại lỗi rất tốt
-(AUC 0,893) cũng chỉ đổi được hơn hai điểm --- khoảng cách giữa trần lý tưởng và bỏ phiếu đa số
-là chặn trên mà không tín hiệu học được nào trong khảo sát vượt qua. Bảy nỗ lực huấn luyện
-các vai trò (ba biến thể GRPO, ORPO, credit-RL hai giai đoạn, đồng huấn luyện) đều không vượt
-chuẩn: model nhất quán tìm ra lối tắt của hàm thưởng --- im lặng, nhại lại, bỏ kế hoạch ---
-thay vì học kiểm thật. Toàn bộ quy trình dùng
-chốt trước và điều kiện hợp lệ; một nửa số lần chạy không vượt qua và bị loại trước khi đọc số.
+Các hệ thống LLM đa tác tử ngày càng được quan tâm vì cho phép phân chia nhiệm vụ giữa nhiều vai
+trò như lập kế hoạch, giải bài, kiểm tra và tổng hợp, với kỳ vọng hiệu quả hơn một model đơn lẻ.
+Tuy nhiên, giá trị thực sự của cơ chế phối hợp vẫn khó đánh giá do khác biệt về ngân sách tính
+toán, model đối chứng và phạm vi tác động. Trong báo cáo này, chúng tôi xây dựng một khung thực
+nghiệm thống nhất trên các benchmark suy luận và lập trình để phân tích đóng góp của từng vai
+trò, tác động của việc đưa lời giải giữa các model và khả năng học đúng chức năng qua huấn
+luyện. Kết quả cho thấy phần lớn lợi ích suy giảm hoặc biến mất dưới các điều kiện so sánh công
+bằng; đặc biệt, lời giải sai của model yếu có thể làm giảm mạnh hiệu quả của model mạnh, trong
+khi tín hiệu kiểm chứng khách quan đáng tin cậy hơn việc để model tự đánh giá. Nhìn chung, phối
+hợp đa tác tử không mặc định tạo ra lợi ích mà phụ thuộc vào năng lực model, cách tổ chức thông
+tin và cơ chế lựa chọn, kiểm chứng lời giải.
 \end{abstract}
 
 % =====================================================================
@@ -127,7 +114,7 @@ Việc ghép nhiều model ngôn ngữ lớn (LLM) thành một hệ thống đa
 Tuy nhiên, một quan sát thực nghiệm đã chỉ ra tính bất ổn của trực giác ban đầu này. Trên bộ dữ liệu MATH, khi sử dụng một model Qwen-7B đơn lẻ làm baseline, độ chính xác đạt 46,4\%. Nhưng khi thêm vào ngữ cảnh một bài làm sai của model yếu hơn (Qwen-1,5B) cho chính bài toán đó, độ chính xác của Qwen-7B giảm mạnh xuống chỉ còn 19,2\%. Model mạnh đã giải sai chính những bài toán mà nó vốn giải được, chỉ vì nhìn thấy thông tin nhiễu từ một lời giải sai của agent khác
 (Hình~\ref{fig:exposure}, chi tiết ở \S\ref{sec:termL}). Ngược lại, nếu lời giải được thêm vào là đúng chỉ mang lại mức cải thiện khiêm tốn. Điều này cho thấy việc cho các model xem bài của nhau là con dao hai lưỡi mà trong đó tác động tiêu cực nhiều hơn so với tác động tích cực.
 
-\begin{figure}[t]\centering
+\begin{figure}[!ht]\centering
 \begin{tikzpicture}[
   box/.style={draw, rounded corners, align=center, font=\small, inner sep=6pt, minimum width=4.2cm},
   every path/.style={-{Stealth[length=2.6mm]}}]
