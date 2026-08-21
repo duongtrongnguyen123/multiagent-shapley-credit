@@ -1036,11 +1036,11 @@ năng lực tác động theo hai chiều trái ngược:
 \begin{itemize}\itemsep2pt
 \item \emph{So sánh với mô hình yếu} (mốc quy chiếu thường gặp trong các nghiên cứu): vai trò 
       kiểm tra thực chất tương đương một lượt giải độc lập bởi mô hình mạnh hơn (\S\ref{sec:roles}). 
-      Do đó, hiệu ứng ghi nhận phản ánh khoảng cách năng lực nội tại kết hợp với 
+      Từ đó phản ánh khoảng cách năng lực nội tại kết hợp với 
       lợi thế từ lượt sinh bổ sung, dẫn đến mức tăng tỷ lệ thuận với độ chênh lệch năng lực (từ 
       $+3{,}0$ điểm khi chênh lệch bằng 0 lên $+14{,}0$ điểm khi chênh lệch đạt 0,244).
 \item \emph{So sánh với mô hình mạnh chạy độc lập} (mốc quy chiếu thực tế trong triển khai):
-      giá trị ròng tuân theo biểu thức $G - L + R$. Trong đó, dư địa cải thiện $G$ suy giảm
+      giá trị ròng tuân theo biểu thức $G - L + R$. Trong đó, tiềm năng cải thiện $G$ suy giảm
       theo độ chênh lệch ($\beta_1 = -0{,}19$, \S\ref{sec:termG}), trong khi tổn thất $L$ lại
       tăng mạnh (MATH ở mức chênh lệch 0,244, $L$ lớn gấp $\sim$11 lần $G$). Hệ quả
       giá trị kết hợp giảm dần, cấu hình dương duy nhất xuất hiện khi hai
@@ -1103,7 +1103,7 @@ ngay trên tập bài toán mà bản thân nó có khả năng giải quyết �
   \node[above right=1pt, font=\footnotesize\bfseries, red!85!black] at (0, 7.7) {$+7{,}7$};
 
   % 10. Nhan chu thich vung
-  \node[font=\scriptsize\itshape, text=blue!80!black, anchor=north west] at (0.004, 15.2) {Vùng trần $\dceil > 0$ (có dư địa)};
+  \node[font=\scriptsize\itshape, text=blue!80!black, anchor=north west] at (0.004, 15.2) {Vùng trần $\dceil > 0$ (có tiềm năng)};
   \node[font=\scriptsize\itshape, text=red!70!black, anchor=center] at (0.165, -10.5) {Vùng trần $\dceil < 0$ (suy giảm ròng)};
 
   % 11. Hop Legend nam phia duoi do thi
@@ -1114,17 +1114,17 @@ ngay trên tập bài toán mà bản thân nó có khả năng giải quyết �
     \tikz[baseline=-0.5ex]{\node[draw=red!75!black, fill=white, inner sep=1.4pt] at (0.175cm,0) {};} Điểm đối chứng cùng quy mô ($\text{chênh}=0$)
   };
 \end{tikzpicture}
-\caption{Cơ chế nghịch lý mốc tham chiếu. Cùng trục hoành là khoảng cách năng lực: hiệu ứng đo so với
+\caption{Nghịch lý mốc tham chiếu. Trục hoành là khoảng cách năng lực: hiệu ứng đo so với
 \emph{mô hình yếu} (đường xanh liền) tăng mạnh do cộng hưởng năng lực; trong khi trần giá trị ròng $\dceil$
 so với \emph{mô hình mạnh} (đường đỏ đứt: khớp trên 15 cặp MBPP; các chấm đỏ: 3 điểm đo MATH) suy giảm
 nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \approx 0{,}09$ do tổn thất phơi nhiễm $L$
-áp đảo dư địa $G$.}
+áp đảo tiềm năng $G$.}
 \label{fig:paradox}
 \end{figure}
 
 Sáu kết quả thực nghiệm độc lập củng cố cho kết luận trên: (1) \emph{về mặt cấu trúc}, giao thức 
 chọn triệt tiêu hoàn toàn tổn thất ($L=0$) theo thiết kế; (2) \emph{về độ lớn}, tổn thất $L$
-vượt trội hoàn toàn dư địa $G$ ($L \approx 11G$) khi chênh lệch năng lực lớn trên MATH;
+vượt trội hoàn toàn tiềm năng $G$ ($L \approx 11G$) khi chênh lệch năng lực lớn trên MATH;
 (3) \emph{về cơ chế}, tổn thất bắt nguồn trực tiếp từ việc phơi nhiễm với ngữ cảnh sai lệch,
 đã được xác thực qua thử nghiệm tiền đăng ký trên hai miền tác vụ; (4) \emph{về trần lý thuyết},
 cơ chế định tuyến lý tưởng cũng chỉ mang lại mức cải thiện khiêm tốn $+1{,}8$ điểm trên
@@ -1144,7 +1144,7 @@ phương pháp self-consistency trên các mô hình quy mô nhỏ \cite{chen202
       sung bộ kiểm tra có thể làm giảm hiệu năng tổng thể (ghi nhận 26 trường hợp làm sai so với
       6 trường hợp sửa đúng trên GSM8K 7B).
 \item \textbf{Đối với các miền thiếu cơ chế kiểm chứng tất định}: kỹ thuật bỏ phiếu đa số khai
-      thác hiệu quả phần lớn dư địa trên các mô hình nhỏ (43\% trên MATH 1.5B) nhưng hiệu quả
+      thác hiệu quả phần lớn tiềm năng trên các mô hình nhỏ (43\% trên MATH 1.5B) nhưng hiệu quả
       giảm rõ rệt trên mô hình lớn (8\% trên 7B) và có thể phản tác dụng trong bài toán sinh
       mã. Vai trò tổng hợp bằng LLM nhìn chung không đem lại lợi ích vượt trội so với bỏ phiếu cơ
       học; các tín hiệu phân loại học được tuy đạt độ phân tách cao trên tập kiểm thử nhưng chưa
@@ -1187,7 +1187,7 @@ kỷ luật thực nghiệm trong việc đánh giá các hệ thống tác tử
       phân vùng dữ liệu và mức lượng tử hoá mô hình) cho thấy nhận định về tính trung tính của vai trò
       tổng hợp vẫn cần thêm các thực nghiệm kiểm chứng quy mô lớn hơn.
 \item \textbf{Mức độ giải thích phương sai của tổn thất $L$}: Chênh lệch năng lực giải thích được
-      82\% phương sai của dư địa $G$, nhưng chỉ giải thích được 35\% phương sai của tổn thất phơi
+      82\% phương sai của tiềm năng $G$, nhưng chỉ giải thích được 35\% phương sai của tổn thất phơi
       nhiễm $L$. Điều này cho thấy phần lớn biến thiên của $L$ còn chịu ảnh hưởng từ các yếu tố kiến
       trúc hoặc giao thức chưa được mô hình hoá đầy đủ.
 \item \textbf{Độ nhạy thống kê của một số nhóm đối chứng}: Thử nghiệm hoán vị vai trò trên MATH có
