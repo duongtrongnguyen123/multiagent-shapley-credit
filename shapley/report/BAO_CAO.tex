@@ -203,14 +203,14 @@ VOID & lần chạy bị loại vì trượt điều kiện hợp lệ đã kho�
 % =====================================================================
 \section{Công trình liên quan}\label{sec:related}
 
-\paragraph{Sinh rồi chọn.} Chuỗi suy luận \cite{wei2022} mở đường cho self-consistency
+\paragraph{Phương pháp tạo mẫu và chọn lọc (Generate-and-Select).} Chuỗi suy luận \cite{wei2022} mở đường cho self-consistency
 \cite{wang2023}: sinh nhiều lời giải độc lập rồi bỏ phiếu đa số --- chính là mốc
 \texttt{maj@}$k$ của khảo sát này (định nghĩa ở \S\ref{sec:setup}). Dòng chọn-bằng-bộ-kiểm gồm
 chấm theo quá trình \cite{lightman2024} và mở rộng compute lúc suy luận \cite{snell2024}. Đặc
 điểm chung của cả lớp: bước tổng hợp chỉ \emph{chọn} trong các lời giải đã sinh, không tạo lời
 giải mới --- nên theo phân rã ở \S\ref{sec:identity}, lớp này không thể tự phá bài đúng.
 
-\paragraph{Sinh rồi sửa.} Self-Refine \cite{madaan2023}, Reflexion \cite{shinn2023} và CRITIC
+\paragraph{Phương pháp sinh và hiệu chỉnh (Generate-and-Refine).} Self-Refine \cite{madaan2023}, Reflexion \cite{shinn2023} và CRITIC
 \cite{gou2024} cho model đọc sản phẩm (của chính nó hoặc model khác) rồi sửa. Huang và cộng sự
 \cite{huang2024} chỉ ra LLM chưa tự sửa được suy luận khi thiếu tín hiệu ngoài --- nhất quán với
 kết quả của chúng tôi ở \S\ref{sec:kappa}. Theo rà soát sơ bộ của chúng tôi, phần lớn công
@@ -240,7 +240,7 @@ khai thác được giá trị đó hay không, và bản thân giao thức có 
 vốn đã được giải đúng hay không. Từ ba câu hỏi này, các đại lượng định lượng được xây dựng
 và sử dụng nhất quán trong các thí nghiệm tiếp theo.
 
-\subsection{Ba câu hỏi cốt lõi}\label{sec:threeq}
+\subsection{Khung phân tích ba thành phần giá trị}\label{sec:threeq}
 
 Để xác định một cơ chế phối hợp có thực sự tạo ra giá trị, chúng tôi xem xét ba thành phần độc
 lập:
@@ -335,7 +335,7 @@ giữa $W$ và $E$ sau khi artifact của $W$ đã được đưa vào ngữ c�
 \emph{có nên cho model mạnh tiếp xúc với artifact hay không} là một lớp bài toán khác và có cận
 riêng, được phân tích ở \S\ref{sec:kappa}.
 
-\subsection{Hai lớp giao thức và biến ``chênh lệch năng lực''}\label{sec:protocols}
+\subsection{Phân loại giao thức và biến chênh lệch năng lực}\label{sec:protocols}
 
 Từ phân rã trên, một khác biệt quan trọng giữa các giao thức là liệu chúng có được phép tạo ra
 một lời giải mới hay chỉ được lựa chọn trong số các lời giải đã có. Chúng tôi phân giao thức
@@ -451,7 +451,7 @@ thừa số $G$, $L$, $\kappa$, và đóng bằng câu hỏi huấn luyện. S�
 ký hiệu tra nhanh ở Bảng~\ref{tab:cheatsheet}.}
 
 % ---------------------------------------------------------------
-\subsection{Điểm xuất phát: pipeline có giúp không, và nhiễu lớn cỡ nào}\label{sec:start}
+\subsection{Hiệu năng pipeline cơ sở và xác định sàn nhiễu thực nghiệm}\label{sec:start}
 
 \begin{table}[t]\centering\small
 \begin{tabular}{lcccc}\toprule
@@ -475,7 +475,7 @@ hiệu ứng đều đi kèm KTC.
 được sinh nhiều lượt hơn?}
 
 % ---------------------------------------------------------------
-\subsection{Kiểm soát chi phí: giá trị nằm ở lượt sinh, không ở vai tổng hợp}\label{sec:budget}
+\subsection{Kiểm soát ngân sách: So sánh lượt sinh độc lập và vai trò tổng hợp}\label{sec:budget}
 
 \begin{table}[t]\centering\small
 \begin{tabular}{lcc}\toprule
@@ -567,7 +567,7 @@ Giới hạn quan trọng của phép đo: Shapley phân bổ giá trị cho \em
 thật sự làm đúng việc của mình không?}
 
 % ---------------------------------------------------------------
-\subsection{Vai trò: chuyên biệt hoá là danh nghĩa; vai kiểm không thật sự kiểm}\label{sec:roles}
+\subsection{Đánh giá tính chuyên biệt hoá và cơ chế hoạt động của vai trò kiểm tra}\label{sec:roles}
 
 Lưới hành vi từ trace (Bảng~\ref{tab:behavior}) cho thấy ``chuyên biệt hoá vai'' phần lớn là
 danh nghĩa ở model nhỏ: planner --- bị cấm tính đáp án --- vẫn chứa sẵn đáp án đúng ở 34,7\%
@@ -652,7 +652,7 @@ không phải 0 theo cấu trúc.
 nhất cùng lúc: so đúng mốc model mạnh, ở đúng đơn giá token.}
 
 % ---------------------------------------------------------------
-\subsection{Kiểm soát mốc so sánh và đơn giá token}\label{sec:baseline}
+\subsection{Kiểm soát mốc so sánh và chuẩn hoá chi phí FLOP}\label{sec:baseline}
 
 \begin{table}[t]\centering\small
 \begin{tabular}{lcccc}\toprule
@@ -717,7 +717,7 @@ và ba dòng sau chính là hiện tượng trung tâm của khảo sát: đổi
 những câu không cơ chế nào cứu nổi.}
 
 % ---------------------------------------------------------------
-\subsection{Kiểm soát mẫu số: phần lớn số câu vốn bất động}\label{sec:denominator}
+\subsection{Kiểm soát mẫu số: Phân tầng bài toán theo tập khả tác động}\label{sec:denominator}
 
 \begin{table}[t]\centering\small
 \begin{tabular}{lcccc}\toprule
@@ -754,7 +754,7 @@ thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II 
 quy luật nào đoán trước được không?}
 
 % ---------------------------------------------------------------
-\subsection{Số hạng $G$: cơ hội co lại khi chênh lệch tăng}\label{sec:termG}
+\subsection{Phân tích tiềm năng cải thiện $G$ theo khoảng cách năng lực}\label{sec:termG}
 
 Quan sát thô trên 7 cặp model gộp nhiều lần chạy: cặp \emph{khác họ} có dư địa $G$ cao hơn
 khoảng 24\% ($0{,}0597$ so với $0{,}0481$) --- nhưng các cặp khác họ cũng có chênh lệch nhỏ hơn
@@ -795,7 +795,7 @@ giảm năng lực nội tại của model mạnh.)}
 \emph{Quy luật rút trên code. Trước khi hỏi ``$L$ do đâu'', thử xem nó có chuyển miền không.}
 
 % ---------------------------------------------------------------
-\subsection{Quy luật có chuyển miền không?}\label{sec:transfer}
+\subsection{Khảo sát tính tổng quát hoá và chuyển dịch liên miền}\label{sec:transfer}
 
 Dùng đường khớp~\eqref{eq:rule} \emph{trên MBPP} dự báo $\dceil$ \emph{trên MATH} (tiền đăng
 ký; 3 cặp Qwen; KTC bootstrap ghép cặp 10\,000 lần) --- Bảng~\ref{tab:transfer}:
@@ -821,7 +821,7 @@ so với bài.
 \emph{Cặp ngoại lệ ấy có $L$ áp đảo. Mục tiếp theo mổ xẻ $L$: thiệt hại đến từ đâu?}
 
 % ---------------------------------------------------------------
-\subsection{Số hạng $L$: hình phạt của nội dung sai --- và giao thức sửa là ống dẫn}\label{sec:termL}
+\subsection{Phân tích tổn thất $L$: Cơ chế phơi nhiễm ngữ cảnh sai lệch}\label{sec:termL}
 
 Đây là thí nghiệm chính của khảo sát (tiền đăng ký; chọn MATH-500 để \emph{đổi miền} so với
 quan sát thăm dò gốc trên MBPP), chính là thiết kế đã giới thiệu ở Hình~\ref{fig:exposure}:
@@ -884,9 +884,9 @@ artifact vào ngữ cảnh bảo vệ được vùng đó.
 có tín hiệu khả thi nào nhặt được phần giá trị còn lại không?}
 
 % ---------------------------------------------------------------
-\subsection{$\kappa$ và định tuyến: tín hiệu chắc chắn ăn trọn chặn trên; tín hiệu học được thì không}\label{sec:kappa}
+\subsection{Khả năng khai thác $\kappa$: Tín hiệu kiểm chứng tất định so với tín hiệu học được}\label{sec:kappa}
 
-\paragraph{Tín hiệu chắc chắn.} HumanEval, cùng model, cùng 4 lượt sinh, khác duy nhất nguồn
+\paragraph{Tín hiệu kiểm chứng tất định (Deterministic verification).} HumanEval, cùng model, cùng 4 lượt sinh, khác duy nhất nguồn
 kiểm --- Bảng~\ref{tab:exec}:
 
 \begin{table}[t]\centering\small
@@ -912,7 +912,7 @@ nguyên văn): $\texttt{exec3}-\text{greedy}$ dao động $+6{,}3$ đến $+10{,
 kiểm thực thi độ chính xác 0,837 vẫn cho hiệu ứng ròng âm (26 phá / 6 sửa) --- ``có bộ kiểm
 chắc chắn'' chỉ đáng giá khi còn dư địa.
 
-\paragraph{Tín hiệu học được.} Bộ phân loại huấn luyện trên \emph{lỗi tiêm} --- lấy lời giải
+\paragraph{Tín hiệu phân loại học được (Learned classifier).} Bộ phân loại huấn luyện trên \emph{lỗi tiêm} --- lấy lời giải
 đúng rồi đổi một chữ số trong đáp án --- rồi đem phát hiện lỗi thật; đây cũng chính là phép thử
 ``thay một số trong đáp án, verifier có thấy không'' --- Bảng~\ref{tab:clf}:
 
@@ -936,7 +936,7 @@ loại trừ khả năng bộ phân loại bắt đặc trưng bề mặt như �
 chính chúng tôi, mức tăng này chưa phân biệt được với 0. Tín hiệu đo được không tự động là tín
 hiệu dùng được --- và điều đó \emph{củng cố} phát biểu chặn trên dưới đây.
 
-\paragraph{Phát biểu hợp nhất.} Đặt cạnh nhau: trên code, khoảng cách
+\paragraph{Tổng hợp và chặn trên lý thuyết.} Đặt cạnh nhau: trên code, khoảng cách
 $\texttt{oracle@}k-\texttt{maj@}k$ là $+21{,}3$ điểm và \texttt{exec3} lấy gần trọn (đạt đúng
 \texttt{oracle@4}, phá 0); trên toán, khoảng cách là 12--13 điểm (Bảng~\ref{tab:budget}) nhưng
 tín hiệu học được tốt nhất chỉ lấy $+2{,}4$ điểm.
@@ -968,7 +968,7 @@ bộ cổng có trần thấp; cấu hình mặc định không đưa artifact v
 kiểm thì sao?}
 
 % ---------------------------------------------------------------
-\subsection{Huấn luyện các vai: bảy phương pháp, bảy lối tắt}\label{sec:rl}
+\subsection{Tối ưu hoá vai trò qua huấn luyện và các hiện tượng tìm lối tắt}\label{sec:rl}
 
 Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai (Bảng~\ref{tab:rl}); không phương pháp nào
 đạt chuẩn dự án (hiệu ứng vượt ngưỡng và 5/5 fold cùng dấu) trên tập lạ, và mỗi thất bại đều
@@ -1025,7 +1025,7 @@ huấn luyện của nghịch lý mốc so sánh (\S\ref{sec:synthesis}): RL thu
 tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm thật.
 
 % =====================================================================
-\section{Tổng hợp: nghịch lý nằm ở mốc so sánh}\label{sec:synthesis}
+\section{Tổng hợp và thảo luận: Cơ chế nghịch lý mốc tham chiếu}\label{sec:synthesis}
 
 Hai quan sát thực nghiệm tưởng chừng mâu thuẫn: \S\ref{sec:roles} ghi nhận chênh lệch năng lực
 lớn với mức tăng $+14{,}0$ điểm, \S\ref{sec:termG} lại chỉ ra chênh lệch
