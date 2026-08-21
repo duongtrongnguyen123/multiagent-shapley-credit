@@ -44,9 +44,9 @@
 \newcommand{\todoD}[1]{\textcolor{red!70!black}{[\textbf{Đ}: #1]}}
 \newcommand{\todoTD}[1]{\textcolor{red!70!black}{[\textbf{TD}: #1]}}
 \newcommand{\mucB}{\textsuperscript{\,(mức B)}}
-\newcommand{\dceil}{\Delta_{\mathrm{tran}}}
-\newcommand{\dhonest}{\Delta_{\mathrm{thuc}}}
-\newcommand{\CEIL}{\mathrm{TRAN}}
+\newcommand{\dceil}{\Delta_{\mathrm{ceil}}}
+\newcommand{\dhonest}{\Delta_{\mathrm{real}}}
+\newcommand{\CEIL}{\mathrm{CEIL}}
 \newcommand{\acc}{\mathrm{acc}}
 
 \title{\bfseries Khi nào phối hợp đa tác tử LLM tạo ra giá trị?\\
@@ -180,8 +180,9 @@ $W$ / $I$ / $E$ & ba \emph{nhân vật} của thí nghiệm tiếp xúc: model y
 mình / \emph{cùng} model mạnh nhưng thấy bài của $W$\\
 artifact & bài làm của model yếu --- thứ được đưa (hoặc không) vào ngữ cảnh model mạnh\\
 $G, L, R$ & cơ hội / thiệt hại / cứu --- ba số hạng của $\dceil = G-L+R$\\
-$\dceil$ & trần lý tưởng trừ model mạnh; cần đáp án chuẩn nên \emph{chỉ để sàng lọc}\\
-$\dhonest$ & $\acc(E)-\acc(I)$ --- đại lượng \emph{triển khai được}\\
+$\dceil$ & (\emph{ceiling}) trần lý tưởng trừ model mạnh; cần đáp án chuẩn nên \emph{chỉ để
+sàng lọc}\\
+$\dhonest$ & (\emph{real}) $\acc(E)-\acc(I)$ --- đại lượng \emph{triển khai được} thật\\
 chênh; $g^\ast$ & hiệu accuracy model mạnh $-$ model yếu (thang 0--1); mức chênh nơi
 $\dceil$ đổi dấu ($\approx 0{,}09$)\\
 \texttt{maj@}$k$; \texttt{oracle@}$k$ & bỏ phiếu đa số trong $k$ lượt sinh; trần lý tưởng
