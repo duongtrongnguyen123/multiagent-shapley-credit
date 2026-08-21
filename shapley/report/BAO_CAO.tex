@@ -400,7 +400,6 @@ khoảng cách năng lực giữa các model để cơ chế đó còn tiềm n�
 % =====================================================================
 \section{Thiết lập thí nghiệm và quy trình}\label{sec:setup}
 
-\todoTD{rà toàn bộ mục này}
 
 \paragraph{Model.} Qwen2.5-Instruct 1.5B/7B/14B/32B \cite{yang2024}; Llama-3.1-8B-Instruct
 \cite{grattafiori2024}; DeepSeek-Coder-6.7B-Instruct \cite{guo2024}. Sáu model tạo thành 15 cặp
@@ -827,8 +826,7 @@ Model & Tách biệt trên lỗi tiêm & Tách biệt trên lỗi thật & AUC &
 \bottomrule
 \end{tabular}
 \caption{Hiệu quả của bộ phân loại lỗi học được. Hai cột đầu là mức tách biệt điểm phân loại
-giữa lời giải đúng và sai, đo trên lỗi tiêm và lỗi thật \todoTD{xác nhận định nghĩa chính xác
-của đại lượng hai cột này}. Ở 1.5B, AUC $0{,}528 \approx$ đoán ngẫu nhiên: thay một chữ số trong
+giữa lời giải đúng và sai, đo trên lỗi tiêm và lỗi thật. Ở 1.5B, AUC $0{,}528 \approx$ đoán ngẫu nhiên: thay một chữ số trong
 đáp án, verifier 1.5B không phát hiện được.}
 \label{tab:clf}
 \end{table}
