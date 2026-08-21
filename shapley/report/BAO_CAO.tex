@@ -3,7 +3,7 @@
 % Bản v2.0 — cấu trúc lại theo khuôn báo cáo môn học (CS224n):
 %   lời thường -> ví dụ -> hình -> hình thức hoá; ký hiệu định nghĩa trước khi dùng;
 %   đổi bộ ký hiệu W/I/E và G/L/R để hết trùng tên vai trò P/S/V/A;
-%   sửa ba mâu thuẫn nội dung (nghịch lý mốc so sánh, E>I tại chênh 0, chặn trên kappa).
+%   sửa ba mâu thuẫn nội dung (đổi dấu theo mốc so sánh, E>I tại chênh 0, chặn trên kappa).
 % v2.1: thêm khối Shapley (16 tổ hợp), lưới hành vi vai trò, verifier-không-kiểm,
 %   khối huấn luyện (GRPO x3/ORPO/credit-RL/MAPoRL); tái dụng 2 hình khối Shapley;
 %   đính chính "tái sử dụng 0%" (lỗi lệch cột) và đối chứng bối cảnh vô quan (-3,6 điểm).
@@ -152,7 +152,7 @@ với token của model 1,5B, vì chi phí suy luận tỷ lệ với số tham 
   \item \textbf{Ba phép kiểm soát} Đưa ra bằng chứng thực nghiệm cho thấy khi áp dụng đồng thời ba phép kiểm soát (Chi phí, mốc so sánh và mẫu số), phần lớn các hiệu ứng tích cực của sự phối hợp đa tác tử đều suy giảm hoặc đảo chiều (\S\ref{sec:results}).
   \item \textbf{Thí nghiệm tác động artifact} --- cho model mạnh xem bài làm của model yếu ---
         thiết kế chốt trước, tái lập hai miền (Hình~\ref{fig:exposure}): Tái lập thí nghiệm trên 2 miền để xác định nguyên nhân thiệt hại của cơ chế sinh-rồi-sửa xuất phát trực tiếp từ việc tiếp xúc với thông tin sai lệch từ model yếu, chứ không phải đến từ việc nhìn thấy lời giải, qua đó khẳng định cơ chế sinh-rồi-sửa hoạt động như một kênh truyền dẫn đáp án hơn là 1 cơ chế tự sửa lỗi (\S\ref{sec:termL}).
-  \item \textbf{Lời giải cho nghịch lý ``cùng biến, hai dấu''}: Sự chênh lệch năng lực giữa các model khiến kết quả khi so với model yếu ngày càng tốt, tạo cảm giác cải thiện lớn, nhưng giá trị thực tế khi so với model mạnh đơn lẻ lại ngày càng âm. Sự mâu thuẫn này nằm ở việc chọn sai mốc baseline chứ không phải do ưu thế của cơ chế đa tác tử (\S\ref{sec:synthesis}).
+  \item \textbf{Dấu của hiệu ứng do mốc so sánh quyết định}: so với model yếu, hiệu ứng tăng theo chênh lệch năng lực gần như theo định nghĩa; so với model mạnh chạy một mình --- mốc mà người triển khai thực sự đối mặt --- hiệu ứng giảm và đổi dấu. Cùng một hệ, hai mốc, hai kết luận ngược nhau; mốc phổ biến trong tài liệu là mốc bị thổi phồng (\S\ref{sec:synthesis}).
   \item \textbf{Một chặn trên cho giá trị của bộ kiểm}: Mức độ đóng góp của bộ kiểm bị chặn bởi khoảng cách giữa trần lý tưởng (Oracle) và phương pháp bỏ phiếu đa số (Majority Voting). Nghiên cứu chỉ ra rằng các tín hiệu kiểm tra chắc chắn (thực thi mã chạy test) có thể đạt tiệm cận mức trần này, trong khi các tín hiệu học được như cơ chế LLM-as-a-judge chỉ đóng góp một phần rất hạn chế (\S\ref{sec:kappa}).
 \end{enumerate}
 Toàn bộ số liệu đi kèm quy trình chống tự đánh lừa (chốt trước, điều kiện hợp lệ) mô tả ở
@@ -865,16 +865,16 @@ bộ phân loại supervised --- đã ở Bảng~\ref{tab:clf}.}
 \end{table}
 
 \looseness=-1
-Hình~\ref{fig:grpoexample} minh hoạ một ca cụ thể. Đáng chú ý nhất là thí nghiệm bất đối xứng thông tin (phương pháp thứ ba), khi đo được đồng thời hai mốc trên cùng một lần chạy. So với model yếu, hiệu ứng là $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi không xem bài, hiệu ứng là $-10{,}4$ điểm (5/5 fold âm). Đây là bản tái lập bằng huấn luyện của nghịch lý mốc so sánh (\S\ref{sec:synthesis}): RL thu hẹp thiệt hại tiếp xúc (gỡ 38\%) nhưng không đảo được dấu của $\dhonest$. Kết luận chung của toàn bộ các phương pháp nối thẳng vào \S\ref{sec:kappa}: khi tín hiệu thưởng cũng chỉ là một tín hiệu học được, quá trình tối ưu hoá tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm tra thực sự.
+Hình~\ref{fig:grpoexample} minh hoạ một ca cụ thể. Đáng chú ý nhất là thí nghiệm bất đối xứng thông tin (phương pháp thứ ba), khi đo được đồng thời hai mốc trên cùng một lần chạy. So với model yếu, hiệu ứng là $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi không xem bài, hiệu ứng là $-10{,}4$ điểm (5/5 fold âm). Đây là bản tái lập bằng huấn luyện của hiện tượng đổi dấu theo mốc so sánh (\S\ref{sec:synthesis}): RL thu hẹp thiệt hại tiếp xúc (gỡ 38\%) nhưng không đảo được dấu của $\dhonest$. Kết luận chung của toàn bộ các phương pháp nối thẳng vào \S\ref{sec:kappa}: khi tín hiệu thưởng cũng chỉ là một tín hiệu học được, quá trình tối ưu hoá tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm tra thực sự.
 
-\section{Tổng hợp và thảo luận: Cơ chế nghịch lý mốc tham chiếu}\label{sec:synthesis}
+\section{Tổng hợp: dấu của hiệu ứng phụ thuộc mốc so sánh}\label{sec:synthesis}
 
-Hai quan sát thực nghiệm tưởng chừng mâu thuẫn: \S\ref{sec:roles} ghi nhận chênh lệch năng lực
-lớn với mức tăng $+14{,}0$ điểm, \S\ref{sec:termG} lại chỉ ra chênh lệch
-lớn khiến mức cải thiện tối đa $\dceil$ chuyển sang giá trị âm.
+Hai quan sát ở trên thoạt nhìn ngược nhau: \S\ref{sec:roles} ghi nhận chênh lệch năng lực lớn
+đi kèm mức tăng $+14{,}0$ điểm, còn \S\ref{sec:termG} lại chỉ ra chênh lệch lớn khiến mức cải
+thiện tối đa $\dceil$ chuyển sang âm.
 
-Sự tương phản này bắt nguồn từ việc sử dụng hai mốc tham chiếu khác nhau, trong đó chênh lệch
-năng lực tác động theo hai chiều trái ngược (Hình~\ref{fig:paradox}):
+Chúng không mâu thuẫn --- chỉ là hai phép đo trên hai mốc khác nhau, và chênh lệch năng lực tác
+động lên hai mốc theo hai chiều ngược nhau (Hình~\ref{fig:twobaselines}):
 \begin{itemize}\itemsep2pt
 \item \emph{So sánh với model yếu $W$} (mốc quy chiếu thường gặp trong các nghiên cứu): vai trò 
       kiểm tra thực chất tương đương một lượt giải độc lập bởi model mạnh hơn (\S\ref{sec:roles}). 
@@ -889,7 +889,7 @@ năng lực tác động theo hai chiều trái ngược (Hình~\ref{fig:paradox
       model có năng lực tương đương ($+7{,}7$ điểm tại mức chênh lệch bằng 0,
       \S\ref{sec:baseline}).
 \end{itemize}
-Như vậy, nghịch lý trên không xuất phát từ cơ chế phối hợp mà do sự thiên lệch trong cách chọn
+Như vậy, hiện tượng trên không xuất phát từ cơ chế phối hợp mà do sự thiên lệch trong cách chọn
 mốc so sánh: chênh lệch năng lực làm phóng đại hiệu quả biểu kiến so với model yếu, nhưng lại
 làm suy giảm giá trị gia tăng thực tế so với model mạnh. Cơ chế tổn thất do phơi nhiễm
 (\S\ref{sec:termL}) lý giải nguyên nhân dẫn đến sự suy giảm này: khi khoảng cách năng lực càng
@@ -956,12 +956,12 @@ ngay trên tập bài toán mà bản thân nó có khả năng giải quyết �
     \tikz[baseline=-0.5ex]{\node[draw=red!75!black, fill=white, inner sep=1.4pt] at (0.175cm,0) {};} Điểm đối chứng cùng quy mô ($\text{chênh}=0$)
   };
 \end{tikzpicture}
-\caption{Nghịch lý mốc tham chiếu. Trục hoành là khoảng cách năng lực: hiệu ứng đo so với
+\caption{Hai mốc so sánh, hai chiều biến thiên. Trục hoành là khoảng cách năng lực: hiệu ứng đo so với
 \emph{model yếu} $W$ (đường xanh liền) tăng mạnh do cộng hưởng năng lực; trong khi trần giá trị ròng $\dceil$
 so với \emph{model mạnh} $I$ (đường đỏ đứt: khớp trên 15 cặp MBPP; các chấm đỏ: 3 điểm đo MATH) suy giảm
 nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \approx 0{,}09$ do tổn thất phơi nhiễm $L$
 áp đảo cơ hội cải thiện $G$.}
-\label{fig:paradox}
+\label{fig:twobaselines}
 \end{figure}
 
 Sáu kết quả thực nghiệm độc lập củng cố cho kết luận trên: (1) \emph{về mặt cấu trúc}, giao thức 
