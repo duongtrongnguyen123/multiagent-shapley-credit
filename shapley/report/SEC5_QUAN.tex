@@ -14,17 +14,17 @@ GSM8K & 0,632 & \textbf{0,744} & $+11{,}2$ & $2{,}9\times$\\
 MATH  & \textbf{0,405} & 0,345 & $-6{,}0$ & $6{,}63\times$\\
 \bottomrule
 \end{tabular}
-\caption{So sánh pipeline đầy đủ bốn vai với một lượt giải duy nhất (Qwen-1.5B; đo một lần trên
+\caption{So sánh pipeline đầy đủ bốn vai trò với một lượt giải duy nhất (Qwen-1.5B; đo một lần trên
 toàn bộ tập). Hai cột giữa là độ chính xác, thang 0--1; cột \emph{Chênh lệch} tính bằng điểm phần trăm.}
 \label{tab:pipeline}
 \end{table}
 
 Bảng~\ref{tab:pipeline} cho thấy kết quả trước khi áp dụng bất kỳ biện pháp kiểm soát nào. Trên GSM8K, pipeline hơn 11,2 điểm, trong khi trên MATH, nó tiêu tốn gấp 6,63 lần chi phí sinh token nhưng lại kém hơn 6 điểm. Cần lưu ý hai điểm quan trọng. \emph{Thứ nhất}, kiểm định thống kê dựa trên một đại lượng gần tương tự nhưng không hoàn toàn trùng khớp: qua 5 fold, hiệu số $\texttt{PSVA}-\texttt{PS} = +5{,}6$ điểm (KTC $[+3{,}3;+7{,}9]$; $t=6{,}89$) --- lợi ích trên GSM8K là có ý nghĩa thống kê. \emph{Thứ hai}, phép hiệu chuẩn mức dao động nền (\S\ref{sec:setup}) cho thấy hai phép đo trên 100 bài có thể chênh nhau tới 7 điểm; vì vậy, các hiệu ứng từ phép đo đơn lẻ chỉ được đọc như tín hiệu thăm dò.
 
-Mục tiếp theo áp dụng phép kiểm soát thứ nhất: lợi ích này đến từ sự phối hợp giữa các vai hay chỉ đơn thuần là do số lượng lượt sinh tăng lên?
+Mục tiếp theo áp dụng phép kiểm soát thứ nhất: lợi ích này đến từ sự phối hợp giữa các vai trò hay chỉ đơn thuần là do số lượng lượt sinh tăng lên?
 
 % ---------------------------------------------------------------
-\subsection{Kiểm soát chi phí: giá trị nằm ở lượt sinh bổ sung, không phải ở vai tổng hợp}\label{sec:budget}
+\subsection{Kiểm soát chi phí: giá trị nằm ở lượt sinh bổ sung, không phải ở vai trò tổng hợp}\label{sec:budget}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c@{}}
@@ -47,27 +47,27 @@ Bảng~\ref{tab:budget} cố định ngân sách và chỉ thay đổi \emph{ph�
 
 \emph{Thứ hai}, lợi ích của bỏ phiếu đa số giảm khi năng lực model nền tăng. Ở model 1.5B, \texttt{maj@8} cải thiện 10 điểm phần trăm, chiếm 43\% mức cải thiện tối đa lý thuyết 23 điểm phần trăm. Ở model 7B, mức cải thiện chỉ còn 1 điểm phần trăm, tương ứng 8\% trên mức tối đa 13 điểm phần trăm. Khoảng cách \texttt{oracle@8} - \texttt{maj@8} (13 và 12 điểm phần trăm) sẽ được dùng lại ở \S\ref{sec:kappa} như chặn trên cho mọi bộ chọn.
 
-\emph{Thứ ba}, một đối chứng tách được ảnh hưởng của ``phối hợp'' khỏi ảnh hưởng của ``thêm lượt sinh''. Khi cho giải lại mà \emph{không} xem phê bình của verifier, kết quả bằng đúng giải lại \emph{có} xem phê bình ($\texttt{rerun} = \texttt{loop}$, cùng cho $0{,}453$). Lợi ích vì vậy đến từ lượt sinh thêm, không từ nội dung phản hồi. (Một phép đo đơn lẻ trước đó cho $+20$ điểm nhưng không tái lập: trên 5 fold chỉ còn $+4{,}0$ điểm.) Nhất quán với điều đó, biến thể vòng lặp giải-rồi-chấm --- rẻ hơn pipeline đủ vai --- còn thắng nó trên MATH: $+4{,}0$ điểm (KTC $[+0{,}5;+7{,}5]$; $t=3{,}21$) ở cùng chi phí.
+\emph{Thứ ba}, một đối chứng tách được ảnh hưởng của ``phối hợp'' khỏi ảnh hưởng của ``thêm lượt sinh''. Khi cho giải lại mà \emph{không} xem phê bình của verifier, kết quả bằng đúng giải lại \emph{có} xem phê bình ($\texttt{rerun} = \texttt{loop}$, cùng cho $0{,}453$). Lợi ích vì vậy đến từ lượt sinh thêm, không từ nội dung phản hồi. (Một phép đo đơn lẻ trước đó cho $+20$ điểm nhưng không tái lập: trên 5 fold chỉ còn $+4{,}0$ điểm.) Nhất quán với điều đó, biến thể vòng lặp giải-rồi-chấm --- rẻ hơn pipeline đủ vai trò --- còn thắng nó trên MATH: $+4{,}0$ điểm (KTC $[+0{,}5;+7{,}5]$; $t=3{,}21$) ở cùng chi phí.
 
 \emph{Thứ tư}, phần ``gây hại'' của aggregator phần lớn là hiện vật đo lường. Chỉ 73--81\% lượt tổng hợp phát ra đáp án trong khung để chấm được; thêm một cơ chế dự phòng miễn phí (thiếu khung thì lấy đáp án của verifier, không gọi thêm model) đưa \texttt{A\_gain} trên MATH 1.5B từ $-6{,}4$ điểm lên $+0{,}8$ điểm. Một lần chạy khác (bộ bài khác, không lượng tử hoá) cho $+8{,}0$ điểm; sau khi vá lỗi định dạng, hai ước lượng cùng phía không âm, phần chênh còn lại quy cho khác bộ bài và khác độ chính xác số.\mucB
 
-Sau phép kiểm soát chi phí, yếu tố chắc chắn có giá trị duy nhất là ``các lượt sinh độc lập bổ sung''. Mục tiếp theo đặt câu hỏi: những lượt sinh đó nên do vai nào và model cỡ nào đảm nhiệm?
+Sau phép kiểm soát chi phí, yếu tố chắc chắn có giá trị duy nhất là ``các lượt sinh độc lập bổ sung''. Mục tiếp theo đặt câu hỏi: những lượt sinh đó nên do vai trò nào và model cỡ nào đảm nhiệm?
 
 % ---------------------------------------------------------------
-\subsection{Phân rã đóng góp theo vai bằng giá trị Shapley}\label{sec:shapley}
+\subsection{Phân rã đóng góp theo vai trò bằng giá trị Shapley}\label{sec:shapley}
 
-Trước khi phân tích hành vi chi tiết, chúng tôi đo lường đóng góp của từng vai bằng giá trị Shapley \cite{shapley1953}: chạy đủ $2^4 = 16$ tổ hợp bật/tắt bốn vai (xem Hình~\ref{fig:shapleyfw}); đóng góp $\varphi_i$ của một vai là trung bình mức thay đổi độ chính xác khi thêm nó vào mọi tổ hợp con --- đây là cách phân bổ duy nhất thỏa mãn các tiên đề về hiệu quả, đối xứng và cộng tính.
+Trước khi phân tích hành vi chi tiết, chúng tôi đo lường đóng góp của từng vai trò bằng giá trị Shapley \cite{shapley1953}: chạy đủ $2^4 = 16$ tổ hợp bật/tắt bốn vai trò (xem Hình~\ref{fig:shapleyfw}); đóng góp $\varphi_i$ của một vai trò là trung bình mức thay đổi độ chính xác khi thêm nó vào mọi tổ hợp con --- đây là cách phân bổ duy nhất thỏa mãn các tiên đề về hiệu quả, đối xứng và cộng tính.
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.9\linewidth]{figs/pipeline_shapley_overview.png}
-\caption{Sơ đồ pipeline bốn vai, 16 tổ hợp bật/tắt để tính giá trị Shapley, và quy trình ước lượng nhiễu qua 5 fold.}
+\caption{Sơ đồ pipeline bốn vai trò, 16 tổ hợp bật/tắt để tính giá trị Shapley, và quy trình ước lượng nhiễu qua 5 fold.}
 \label{fig:shapleyfw}
 \end{figure}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c@{}}
 \toprule
-Vai & GSM8K 1.5B ($N=1319$) & MATH-500 1.5B ($N=500$)\\
+Vai trò & GSM8K 1.5B ($N=1319$) & MATH-500 1.5B ($N=500$)\\
 \midrule
 Solver     & $+0{,}252$ $[+0{,}242;+0{,}263]$ & $+0{,}145$ $[+0{,}128;+0{,}161]$\\
 Verifier   & $+0{,}252$ (đối xứng cấu trúc với Solver) & $+0{,}145$ (đối xứng)\\
@@ -75,21 +75,21 @@ Aggregator & $+0{,}190$ $[+0{,}182;+0{,}199]$ & $+0{,}150$ $[+0{,}134;+0{,}167]$
 Planner    & $\mathbf{-0{,}014}$ $[-0{,}030;+0{,}002]$ & $+0{,}017$ $[-0{,}008;+0{,}043]$\\
 \bottomrule
 \end{tabular}
-\caption{Giá trị Shapley của bốn vai, mọi vai đều 1.5B. Các giá trị $\varphi$ ở thang 0--1
-(phần độ chính xác quy cho vai đó). KTC 95\% bootstrap theo câu hỏi --- \emph{không có fold},
-nên đọc kèm mức dao động nền ở \S\ref{sec:setup}; trên MATH mọi chênh lệch giữa các vai đều dưới
+\caption{Giá trị Shapley của bốn vai trò, mọi vai trò đều 1.5B. Các giá trị $\varphi$ ở thang 0--1
+(phần độ chính xác quy cho vai trò đó). KTC 95\% bootstrap theo câu hỏi --- \emph{không có fold},
+nên đọc kèm mức dao động nền ở \S\ref{sec:setup}; trên MATH mọi chênh lệch giữa các vai trò đều dưới
 mức dao động nền nên thứ hạng không có ý nghĩa.}
 \label{tab:shapley}
 \end{table}
 
-Bảng~\ref{tab:shapley} cho thấy ba điểm chính. \emph{Thứ nhất}, Solver và Verifier chiếm phần lớn giá trị; Planner ở 1.5B có đóng góp âm trên GSM8K --- rõ nhất ở cặp tổ hợp: $SA = 0{,}682 \to PSA = 0{,}562$, việc thêm planner làm giảm 12 điểm. \emph{Thứ hai}, đóng góp thay đổi theo năng lực: khi nâng riêng planner lên 7B, $\varphi_P$ chuyển từ $-0{,}023$ lên $+0{,}055$ (chênh $+0{,}078$; KTC $[+0{,}049;+0{,}109]$) --- planner âm là hệ quả của model yếu, không phải bản chất vai trò. Nâng riêng verifier lên 7B đẩy $\varphi_V$ từ $+0{,}269$ lên $+0{,}462$ --- verifier là vai nhạy cảm nhất với năng lực, báo trước cho \S\ref{sec:roles}. \emph{Thứ ba}, chỉ số tương tác Shapley cho thấy $S$, $V$, $A$ thay thế lẫn nhau mạnh ($I \approx -0{,}21$ đến $-0{,}27$ ở cả hai task): ba vai này đang thực hiện các phiên bản của cùng một nhiệm vụ, chứ không bổ sung cho nhau.
+Bảng~\ref{tab:shapley} cho thấy ba điểm chính. \emph{Thứ nhất}, Solver và Verifier chiếm phần lớn giá trị; Planner ở 1.5B có đóng góp âm trên GSM8K --- rõ nhất ở cặp tổ hợp: $SA = 0{,}682 \to PSA = 0{,}562$, việc thêm planner làm giảm 12 điểm. \emph{Thứ hai}, đóng góp thay đổi theo năng lực: khi nâng riêng planner lên 7B, $\varphi_P$ chuyển từ $-0{,}023$ lên $+0{,}055$ (chênh $+0{,}078$; KTC $[+0{,}049;+0{,}109]$) --- planner âm là hệ quả của model yếu, không phải bản chất vai trò. Nâng riêng verifier lên 7B đẩy $\varphi_V$ từ $+0{,}269$ lên $+0{,}462$ --- verifier là vai trò nhạy cảm nhất với năng lực, báo trước cho \S\ref{sec:roles}. \emph{Thứ ba}, chỉ số tương tác Shapley cho thấy $S$, $V$, $A$ thay thế lẫn nhau mạnh ($I \approx -0{,}21$ đến $-0{,}27$ ở cả hai task): ba vai trò này đang thực hiện các phiên bản của cùng một nhiệm vụ, chứ không bổ sung cho nhau.
 
-Một giới hạn quan trọng của phép đo này: Shapley phân bổ giá trị cho \emph{nhãn vai}, không cho \emph{chức năng} --- nếu planner lén giải bài, công của nó vẫn được ghi cho nhãn ``Planner'' dù hành vi thực tế là của solver. Mục tiếp theo phân tích trace để trả lời liệu các vai có thực sự làm đúng chức năng của mình hay không.
+Một giới hạn quan trọng của phép đo này: Shapley phân bổ giá trị cho \emph{nhãn vai trò}, không cho \emph{chức năng} --- nếu planner lén giải bài, công của nó vẫn được ghi cho nhãn ``Planner'' dù hành vi thực tế là của solver. Mục tiếp theo phân tích trace để trả lời liệu các vai trò có thực sự làm đúng chức năng của mình hay không.
 
 % ---------------------------------------------------------------
-\subsection{Vai trò: chuyên biệt hoá chỉ là danh nghĩa và vai kiểm không thực sự kiểm soát}\label{sec:roles}
+\subsection{Khoảng cách giữa vai trò được gán và vai trò thực thi}\label{sec:roles}
 
-Bảng~\ref{tab:behavior} tổng hợp hành vi từ trace, cho thấy sự chuyên biệt hoá vai trò phần lớn chỉ là hình thức ở model nhỏ: planner --- mặc dù bị cấm tính đáp án --- vẫn chứa đáp án đúng trong 34,7\% câu MATH (45,3\% trường hợp còn đưa ra cả khung đáp án); khi có plan, solver chỉ sao chép (độ dài trung vị lời giải là 19 ký tự, so với 664 khi không có plan). Ở model 7B, các hiện tượng này gần như biến mất --- nhưng ở mức năng lực đó, pipeline lại thua solver đơn lẻ. Trên 2.000 lượt ở cả bốn ô, aggregator chỉ 3 lần đưa ra một đáp án mới và đúng: vai tổng hợp không thực hiện tính toán ở mọi mức năng lực.
+Bảng~\ref{tab:behavior} tổng hợp hành vi từ trace, cho thấy sự chuyên biệt hoá vai trò phần lớn chỉ là hình thức ở model nhỏ: planner --- mặc dù bị cấm tính đáp án --- vẫn chứa đáp án đúng trong 34,7\% câu MATH (45,3\% trường hợp còn đưa ra cả khung đáp án); khi có plan, solver chỉ sao chép (độ dài trung vị lời giải là 19 ký tự, so với 664 khi không có plan). Ở model 7B, các hiện tượng này gần như biến mất --- nhưng ở mức năng lực đó, pipeline lại thua solver đơn lẻ. Trên 2.000 lượt ở cả bốn ô, aggregator chỉ 3 lần đưa ra một đáp án mới và đúng: vai trò tổng hợp không thực hiện tính toán ở mọi mức năng lực.
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c c c@{}}
@@ -107,9 +107,9 @@ Aggregator lặp lại đáp án của verifier & 93,3\% & 73,3\% & 100\% & 97,0
 \label{tab:behavior}
 \end{table}
 
-Hai bằng chứng nhân quả hỗ trợ cho bảng này. \emph{Thứ nhất}: chỉ cần bỏ dòng cấm ``Do NOT compute the final answer'' khỏi prompt của planner, solver hạ nguồn \emph{tăng} $+3{,}8$ điểm trên MATH và $+3{,}3$ trên GSM8K --- hướng dẫn chỉ che giấu đáp án chứ không ngăn planner tính toán, và việc che giấu này lại gây hại. \emph{Thứ hai}, khi hoán vị prompt giữa các vị trí, độ chính xác không phân biệt được: trên GSM8K $0{,}660 = 0{,}660$ (cấu hình \texttt{solo} đạt $0{,}673$); trên MATH $\texttt{swap}-\texttt{normal} = +5{,}3$ điểm nhưng $t=1{,}84$, KTC $[-2{,}7;+13{,}4]$ --- không đạt ý nghĩa thống kê. Mặc dù KTC rộng không cho phép loại trừ hoàn toàn hiệu ứng cỡ vừa, chúng tôi chỉ ghi nhận rằng không có bằng chứng cho thấy ``danh tính vai'' ảnh hưởng đến kết quả.
+Hai bằng chứng nhân quả hỗ trợ cho bảng này. \emph{Thứ nhất}: chỉ cần bỏ dòng cấm ``Do NOT compute the final answer'' khỏi prompt của planner, solver hạ nguồn \emph{tăng} $+3{,}8$ điểm trên MATH và $+3{,}3$ trên GSM8K --- hướng dẫn chỉ che giấu đáp án chứ không ngăn planner tính toán, và việc che giấu này lại gây hại. \emph{Thứ hai}, khi hoán vị prompt giữa các vị trí, độ chính xác không phân biệt được: trên GSM8K $0{,}660 = 0{,}660$ (cấu hình \texttt{solo} đạt $0{,}673$); trên MATH $\texttt{swap}-\texttt{normal} = +5{,}3$ điểm nhưng $t=1{,}84$, KTC $[-2{,}7;+13{,}4]$ --- không đạt ý nghĩa thống kê. Mặc dù KTC rộng không cho phép loại trừ hoàn toàn hiệu ứng cỡ vừa, chúng tôi chỉ ghi nhận rằng không có bằng chứng cho thấy ``danh tính vai trò'' ảnh hưởng đến kết quả.
 
-Vai kiểm cũng không thực sự kiểm soát. Ba phép đo độc lập: (i) Khi can thiệp, verifier 1.5B đúng chỉ 56--59\% số lần --- gần như ngẫu nhiên; verifier 7B đúng 98\%. (ii) Thí nghiệm tiêm lỗi --- sửa kết quả một bước tính trong chuỗi lời giải vàng rồi hỏi model ``có lỗi tính toán không'' --- cho thấy 1.5B trả lời ``không có lỗi'' gần 100\% số bài, tức mù với lỗi đã tiêm; 7B vượt qua cổng hiệu lực và phân biệt được bài sạch với bài đã bị sửa ($+0{,}651$ trên tầng bài nó tự giải được; tầng nó \emph{không} tự giải được chỉ có $n=9$ nên câu hỏi ``kiểm có tách khỏi giải không'' còn bỏ ngỏ). (iii) Lưới \texttt{V\_gain} (Bảng~\ref{tab:vgaingrid}) cho thấy lượt kiểm chỉ sinh lợi trong một dải hẹp.
+Vai trò kiểm cũng không thực sự kiểm soát. Ba phép đo độc lập: (i) Khi can thiệp, verifier 1.5B đúng chỉ 56--59\% số lần --- gần như ngẫu nhiên; verifier 7B đúng 98\%. (ii) Thí nghiệm tiêm lỗi --- sửa kết quả một bước tính trong chuỗi lời giải vàng rồi hỏi model ``có lỗi tính toán không'' --- cho thấy 1.5B trả lời ``không có lỗi'' gần 100\% số bài, tức mù với lỗi đã tiêm; 7B vượt qua cổng hiệu lực và phân biệt được bài sạch với bài đã bị sửa ($+0{,}651$ trên tầng bài nó tự giải được; tầng nó \emph{không} tự giải được chỉ có $n=9$ nên câu hỏi ``kiểm có tách khỏi giải không'' còn bỏ ngỏ). (iii) Lưới \texttt{V\_gain} (Bảng~\ref{tab:vgaingrid}) cho thấy lượt kiểm chỉ sinh lợi trong một dải hẹp.
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c@{}}
@@ -366,11 +366,11 @@ Khoảng cách $\texttt{oracle@}k - \texttt{maj@}k$ là chặn trên cho giá tr
 \end{quote}
 
 \paragraph{Định tuyến.}
-Hai kết quả về “chọn lúc nào cần gọi thêm” đều ở mức B (đo một lần, $n=300$). Bộ định tuyến đồng thuận (chạy $S$ và $V$, chỉ gọi $A$ khi hai vai bất đồng) trên GSM8K giữ gần trọn phần lợi của pipeline với 77\% chi phí (0,720 so với 0,723 ở 2,32 so với 3 lượt); trên MATH đạt 0,413, bằng với solver đơn lẻ và không mang lại lợi ích. Cơ chế phía sau nhất quán với \S\ref{sec:termL}: tỷ lệ bài model yếu sai (tức tỷ lệ artifact sai trong ngữ cảnh) khoảng 33\% trên GSM8K so với 59\% trên MATH; khi hai vai bất đồng, $A$ cứu được 45,4\% trường hợp trên GSM8K nhưng chỉ 25,0\% trên MATH. Do đó, quan sát “định tuyến tiết kiệm ở đúng nơi ít cần tiết kiệm nhất” chỉ dừng ở mức B.
+Hai kết quả về “chọn lúc nào cần gọi thêm” đều ở mức B (đo một lần, $n=300$). Bộ định tuyến đồng thuận (chạy $S$ và $V$, chỉ gọi $A$ khi hai vai trò bất đồng) trên GSM8K giữ gần trọn phần lợi của pipeline với 77\% chi phí (0,720 so với 0,723 ở 2,32 so với 3 lượt); trên MATH đạt 0,413, bằng với solver đơn lẻ và không mang lại lợi ích. Cơ chế phía sau nhất quán với \S\ref{sec:termL}: tỷ lệ bài model yếu sai (tức tỷ lệ artifact sai trong ngữ cảnh) khoảng 33\% trên GSM8K so với 59\% trên MATH; khi hai vai trò bất đồng, $A$ cứu được 45,4\% trường hợp trên GSM8K nhưng chỉ 25,0\% trên MATH. Do đó, quan sát “định tuyến tiết kiệm ở đúng nơi ít cần tiết kiệm nhất” chỉ dừng ở mức B.
 
 Hai trần cho cổng tiếp xúc (tính trên dữ liệu \S\ref{sec:termL}): cổng theo artifact hoàn hảo (chỉ cho xem artifact đúng --- oracle) đạt $+1{,}8$ điểm so với $I$; bộ phân loại thật cần độ chính xác khoảng 88--89\% để hòa vốn (hòa vốn $\approx 27{,}2/(27{,}2+3{,}8)$ theo hai hiệu ứng ở Bảng~\ref{tab:exposure}). Cổng biết khi $I$ sai (oracle mạnh hơn) đạt $+3{,}2$ điểm, nhưng đòi hỏi phát hiện lỗi của chính model mạnh --- đúng loại tín hiệu vừa cho thấy đo được nhưng không dùng được. Hàm ý: cải thiện bộ cổng có trần thấp; cấu hình mặc định không đưa artifact vào ngữ cảnh có kỳ vọng cao hơn.
 
-\subsection{Huấn luyện các vai: bảy phương pháp, bảy lối tắt}\label{sec:rl}
+\subsection{Huấn luyện các vai trò: bảy phương pháp, bảy lối tắt}\label{sec:rl}
 
 \begin{figure}[h]
 \centering
@@ -379,7 +379,7 @@ Hai trần cho cổng tiếp xúc (tính trên dữ liệu \S\ref{sec:termL}): c
 \label{fig:grpoexample}
 \end{figure}
 
-Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai (Bảng~\ref{tab:rl}). Không phương pháp nào đạt chuẩn dự án (hiệu ứng vượt ngưỡng và 5/5 fold cùng dấu) trên tập lạ, và mỗi thất bại đều truy được về việc model tìm ra lối tắt của hàm mục tiêu thay vì học năng lực đích.
+Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai trò (Bảng~\ref{tab:rl}). Không phương pháp nào đạt chuẩn dự án (hiệu ứng vượt ngưỡng và 5/5 fold cùng dấu) trên tập lạ, và mỗi thất bại đều truy được về việc model tìm ra lối tắt của hàm mục tiêu thay vì học năng lực đích.
 
 \emph{thứ nhất}: GRPO verifier với thưởng $+1$ cho sửa đúng, $-1$ cho phá, $0$ cho im lặng. Sau huấn luyện, precision tăng từ $0{,}70$--$0{,}90$ lên $1{,}00$ (5/5 fold), nhưng \texttt{V\_gain} giảm từ $+6{,}8$ xuống $+4{,}4$ điểm, và số lần can thiệp giảm từ $20{,}2$ còn $8{,}4$ trên 100 câu. Lối tắt được xác định là “im lặng miễn phí”: precision hoàn hảo đạt được nhờ model nói ít đi một nửa.
 
@@ -390,7 +390,7 @@ Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai (Bảng~\ref{
 
 \emph{thứ tư}: ORPO aggregator (học từ cặp ưa thích) đạt $+3{,}3$ điểm trên MATH (3/5 fold, dưới mức dao động nền) và $-2{,}7$ điểm trên GSM8K chéo task. Lối tắt là khuếch đại tật chép ứng viên cuối (từ $0{,}71$ lên $0{,}81$) và học “tự giải lại” thay vì chọn.
 
-\emph{thứ năm}: Credit-RL (thưởng bằng phần đóng góp Shapley biên) không giúp vai nào cải thiện theo chuẩn 5/5 fold. Planner sập về plan rỗng trong 200/200 câu; verifier có 23 lần sửa và 24 lần phá.
+\emph{thứ năm}: Credit-RL (thưởng bằng phần đóng góp Shapley biên) không giúp vai trò nào cải thiện theo chuẩn 5/5 fold. Planner sập về plan rỗng trong 200/200 câu; verifier có 23 lần sửa và 24 lần phá.
 
 \emph{thứ sáu}: Credit-RL giai đoạn 2 (thiết kế chống lối tắt) cho V-COND $+3{,}0$ điểm (4/5 fold dương) trên GSM8K, là biến thể dương duy nhất, nhưng không chuyển miền: trên MATH cho $-7{,}0$ điểm (5/5 fold âm).
 
@@ -414,7 +414,7 @@ ORPO aggregator (học từ cặp ưa thích) &
 MATH $+3{,}3$ (3/5 fold, dưới mức dao động nền); GSM8K chéo task $-2{,}7$ &
 khuếch đại tật chép-ứng-viên-cuối ($0{,}71 \to 0{,}81$); học ``tự giải lại'' thay vì chọn\\[2pt]
 Credit-RL (thưởng $=$ phần đóng góp Shapley biên) &
-0/4 vai cải thiện theo chuẩn 5/5 fold &
+0/4 vai trò cải thiện theo chuẩn 5/5 fold &
 planner sập về plan \emph{rỗng} 200/200 câu; verifier 23 sửa / 24 phá\\[2pt]
 Credit-RL giai đoạn 2 (thiết kế chống lối tắt) &
 V-COND $+3{,}0$ (4/5) trên GSM8K --- biến thể dương duy nhất &
@@ -423,7 +423,7 @@ MAPoRL đồng huấn luyện S/V/A &
 $0{,}690 \to 0{,}690$ ($+0{,}000$) &
 aggregator nghẽn suốt quá trình huấn luyện\\\bottomrule
 \end{tabular}
-\caption{Bảy phương pháp huấn luyện vai (mỗi phương pháp có tiền đăng ký hoặc cổng hiệu lực;
+\caption{Bảy phương pháp huấn luyện vai trò (mỗi phương pháp có tiền đăng ký hoặc cổng hiệu lực;
 chi tiết và đính chính từng lần chạy trong \texttt{docs/}). Phương pháp thứ tám ---
 bộ phân loại supervised --- đã ở Bảng~\ref{tab:clf}.}
 \label{tab:rl}
