@@ -50,6 +50,11 @@ Cập nhật 2026-08-21. Nguồn: lịch sử git (724 commit), `shapley/docs/` 
 **Hình:** Hình 1 tác động artifact (Đức vẽ lại) · Hình 2 pipeline + Shapley (tái dụng từ khối
 Quân) · Hình 3 ví dụ GRPO (tái dụng) · Hình 4 hai mốc so sánh (Tùng Dương vẽ lại bằng TikZ).
 
+**Slide thuyết trình:** `SLIDE_BAO_CAO.tex` — beamer 16:9, 18 slide, Tùng Dương dựng.
+Lưu ý: slide dựng từ bản báo cáo **trước** vòng sửa số liệu, nên mỗi lần chốt lại một con số ở
+mục C phải soát lại slide. Đã kiểm: các số C1–C5 chưa lọt vào slide; đã gom "phơi nhiễm" →
+"tiếp xúc" cho khớp báo cáo.
+
 ---
 
 ## C. Việc còn lại — để phân công
