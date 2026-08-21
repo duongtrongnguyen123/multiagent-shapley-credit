@@ -178,10 +178,11 @@ accuracy.
 cấu hình luôn cho cùng kết quả. Dao động giữa các fold vì vậy hoàn toàn do \emph{khác bài},
 không phải do nhiễu lấy mẫu.
 
-\paragraph{Thống kê.} Khối vai trò/chi phí dùng 5 fold rời nhau (mỗi fold 60--100 bài). Sàn
-nhiễu được hiệu chuẩn bằng cách đo cùng cấu hình trên 5 fold: \texttt{V\_gain} dao động từ
-$+1{,}0$ đến $+8{,}0$ điểm, với độ lệch chuẩn giữa fold là 2,65 điểm. Vì thế, một phép đo đơn
-lẻ trên 100 bài gần như không mang thông tin. Suy diễn dùng t-test trên fold ($\mathrm{SE}=s/\sqrt{k}$;
+\paragraph{Thống kê.} Khối vai trò/chi phí chia 5 fold rời nhau (mỗi fold 60--100 bài). Để
+ước lượng mức dao động nền của phép đo --- gọi là \emph{sàn nhiễu} --- chúng tôi chạy cùng một
+cấu hình trên cả 5 fold: \texttt{V\_gain} dao động từ $+1{,}0$ đến $+8{,}0$ điểm, với độ lệch
+chuẩn giữa fold là 2,65 điểm. Vì thế, một phép đo đơn lẻ trên 100 bài gần như không mang thông
+tin. Suy diễn bằng t-test trên fold ($\mathrm{SE}=s/\sqrt{k}$;
 $t_{0{,}975}(4)=2{,}776$, tức ngưỡng hiệu dụng $\sim$3,3 điểm), khoảng tin cậy 95\% (KTC), và
 phép thử dấu (5/5 fold cùng dấu $\Rightarrow p=0{,}031$ một phía). Khối luồng thông tin dùng
 McNemar chính xác ghép cặp trên cùng bộ bài và bootstrap ghép cặp (10\,000 lần). Với 131 phép
