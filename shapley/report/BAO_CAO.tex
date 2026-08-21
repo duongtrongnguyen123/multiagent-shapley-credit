@@ -646,7 +646,7 @@ $-16{,}6$ điểm & $\dceil$ (trần lý tưởng) & model mạnh & prompt sửa
 Còn một phép kiểm soát chưa áp dụng: mẫu số. Mọi con số trên đều là trung bình toàn tập --- bao gồm cả những câu mà không có cơ chế nào cứu được.
 
 % ---------------------------------------------------------------
-\subsection{Kiểm soát mẫu số: phần lớn số câu vốn bất động}\label{sec:denominator}
+\subsection{Phân tầng theo phạm vi tác động của bộ tổng hợp}\label{sec:denominator}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c c c@{}}
@@ -672,7 +672,7 @@ Ba phép kiểm soát vậy là ngược chiều nhau: thiếu mẫu số $\Righ
 \emph{Hết mạch thứ nhất.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lần sinh thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
 
 % ---------------------------------------------------------------
-\subsection{Số hạng $G$: cơ hội co lại khi chênh lệch tăng}\label{sec:termG}
+\subsection{Chênh lệch năng lực thu hẹp cơ hội cải thiện}\label{sec:termG}
 
 Quan sát thô trên 7 cặp model gộp nhiều lần chạy cho thấy: các cặp khác họ có cơ hội $G$ cao hơn khoảng 24\% (0,0597 so với 0,0481), nhưng các cặp khác họ cũng có chênh lệch năng lực nhỏ hơn (0,130 so với 0,167); hai biến này bị trộn hoàn toàn. Thiết kế tách biệt (tiền đăng ký) sử dụng 6 model, 15 cặp có hướng, trên cùng 499 bài MBPP, hồi quy
 \begin{align*}
@@ -690,7 +690,7 @@ g^\ast \approx 0{,}09,
 trong đó $g^\ast = \beta_0/|\beta_1|$ là mức chênh nơi đường khớp cắt 0 (tức $\approx 9$ điểm accuracy; chúng tôi chưa ước lượng KTC cho $g^\ast$ nên nó là mô tả xu hướng, chưa phải quy tắc vận hành). Đẳng thức~\eqref{eq:identity} khớp 15/15 cặp. Đọc kèm bắt buộc: 0/15 cặp dương có ý nghĩa, 3/15 âm có ý nghĩa --- trên MBPP quy luật chỉ phát biểu được chiều phủ định (chênh vượt $\sim$0,09 thì giao thức sửa cho hiệu ứng âm); xác lập vùng dương cần cỡ 8 lần dữ liệu MBPP. Hai điểm dữ liệu ngoài MBPP soi vào nửa dương: cặp 7B$\to$14B trên MATH (chênh $0{,}044 < g^\ast$) đo được $-1{,}4$ điểm, KTC chứa cả hai phía, nên không ủng hộ; cấu hình cùng cỡ (chênh $=0$) trên MATH đo được $+7{,}7$ điểm có ý nghĩa (\S\ref{sec:baseline}), ủng hộ. Nửa dương vì vậy dừng ở mức "một điểm thuận, một điểm không kết luận". Chênh giải thích 82\% phương sai của $G$ nhưng chỉ 35\% của $L$; phần lớn biến thiên của thiệt hại đến từ yếu tố khác chưa định danh (đưa vào Hạn chế). (Ghi chú cơ chế\mucB: ngưỡng bảo toàn mà lượt sửa phải vượt tăng theo chênh nhanh gấp đôi khả năng bảo toàn thực của nó --- hệ số 2,18 so với 1,10; $p=0{,}0066$ --- gợi ý hiệu ứng âm phát sinh từ cấu trúc ngân sách $G$--$L$, không từ suy giảm năng lực nội tại của model mạnh.)
 
 % ---------------------------------------------------------------
-\subsection{Khả năng chuyển miền của quy luật}\label{sec:transfer}
+\subsection{Kiểm tra khả năng chuyển miền của quy luật chênh lệch năng lực}\label{sec:transfer}
 
 Chúng tôi sử dụng đường khớp~\eqref{eq:rule} ước lượng trên MBPP để dự báo $\dceil$ trên MATH (tiền đăng ký; 3 cặp Qwen; KTC bootstrap ghép cặp 10\,000 lần). Kết quả được trình bày trong Bảng~\ref{tab:transfer}.
 
@@ -712,7 +712,7 @@ Cặp & Chênh & $\dceil$ đo được & KTC 95\% & Dự báo từ MBPP & Kết 
 
 Hai trong ba dự báo nằm trong khoảng tin cậy 95\%, do đó quy luật không bị bác bỏ. Tuy nhiên, khoảng tin cậy khá rộng (0,064--0,084) nên phép kiểm có độ phân giải thấp. Hơn nữa, thứ tự ba điểm không đơn điệu (chênh 0,244 cho hiệu ứng âm sâu hơn chênh 0,288), vì vậy tính đơn điệu của quy luật chưa được xác nhận trên miền toán. Cặp 1.5B$\to$7B nằm ngoài một cách hệ thống, với $L = 0{,}208$, gấp khoảng 11 lần $G$. Hiện tượng này tái lập trong một phép đo độc lập trên cùng cặp ($-0{,}1380 \to -0{,}1660$). Như vậy, quy luật chỉ mô tả xu hướng chung; ngoại lệ xuất hiện khi model yếu quá kém so với độ khó của bài toán.
 
-\subsection{Số hạng $L$: hình phạt của nội dung sai và vai trò ống dẫn của giao thức sửa}\label{sec:termL}
+\subsection{Nội dung artifact quyết định tác động của việc tiếp xúc}\label{sec:termL}
 
 Đây là thí nghiệm chính của khảo sát (tiền đăng ký; chọn MATH-500 để đổi miền so với quan sát thăm dò gốc trên MBPP). Thiết kế được mô tả trong Hình~\ref{fig:exposure}: hai nhánh $I$ và $E$ dùng cùng một lệnh giải, chỉ khác nhau ở việc ngữ cảnh có kèm artifact của $W$ hay không. Kết quả được phân tầng theo nội dung artifact và trình bày trong Bảng~\ref{tab:exposure}.
 
@@ -754,7 +754,7 @@ Cả hai sai & 140 & 4,3\\
 
 Từ Bảng~\ref{tab:222} rút ra ba nhận xét chính. Thứ nhất, giao thức sửa đóng vai trò như một ống dẫn, không phải bộ sửa lỗi: gần như không tạo ra lời giải mới khi cả hai model đều trượt (4,3\% = 6/140), phá hủy ở quy mô lớn trên vùng rủi ro (63,6\% = 77/121), và truyền lại đáp án đúng của $W$ khi có (10/11 bài --- tầng quá nhỏ để ước lượng chặt chẽ). Thứ hai, ở cặp này tầng khai thác được nhỏ hơn vùng rủi ro 11 lần (11 so với 121 bài); tỷ lệ này co giãn theo chênh lệch, nhưng chưa được đo ở các mức chênh khác. Thứ ba, chiến lược “$W$ đúng thì giữ $W$” tương đương với oracle $\CEIL$. Ngay cả khi được cung cấp oracle này, mức tăng cũng chỉ là $+0{,}4$ điểm (đúng thêm 2/500 bài), vì $E$ vốn đã giữ được 99,6\% và 90,9\% trong hai tầng tương ứng. Kể cả với $\CEIL = 0{,}578$, giá trị này vẫn thấp hơn $I = 0{,}698$. Trong lớp giao thức sửa bất đối xứng đã đo, không có cấu hình nào đạt $\acc(E) > \acc(I)$ (0/15 cặp MBPP, tốt nhất $-3{,}0$ điểm; các cặp MATH trong Bảng~\ref{tab:transfer}); trường hợp $E>I$ duy nhất là cấu hình cùng cỡ ở \S\ref{sec:baseline}. Vấn đề không nằm ở việc “quên giữ $W$”, mà là $E$ phá vùng rủi ro. Trong các phương án đã thử (hai cổng oracle ở \S\ref{sec:kappa}), chỉ có việc không đưa artifact vào ngữ cảnh mới bảo vệ được vùng đó.
 
-\subsection{Khả năng khai thác $\kappa$ và định tuyến: tín hiệu chắc chắn đạt chặn trên, tín hiệu học được không đạt}\label{sec:kappa}
+\subsection{Từ tín hiệu kiểm chứng đến lựa chọn và định tuyến}\label{sec:kappa}
 
 \paragraph{Tín hiệu chắc chắn.}
 Trên HumanEval, cùng model, cùng 4 lần sinh, chỉ khác nhau ở nguồn kiểm tra, kết quả được trình bày trong Bảng~\ref{tab:exec}.
@@ -813,7 +813,7 @@ Hai kết quả về “chọn lúc nào cần gọi thêm” đều ở mức B
 
 Hai trần cho cổng tiếp xúc (tính trên dữ liệu \S\ref{sec:termL}): cổng theo artifact hoàn hảo (chỉ cho xem artifact đúng --- oracle) đạt $+1{,}8$ điểm so với $I$; bộ phân loại thật cần độ chính xác khoảng 88--89\% để hòa vốn (hòa vốn $\approx 27{,}2/(27{,}2+3{,}8)$ theo hai hiệu ứng ở Bảng~\ref{tab:exposure}). Cổng biết khi $I$ sai (oracle mạnh hơn) đạt $+3{,}2$ điểm, nhưng đòi hỏi phát hiện lỗi của chính model mạnh --- đúng loại tín hiệu vừa cho thấy đo được nhưng không dùng được. Hàm ý: cải thiện bộ cổng có trần thấp; cấu hình mặc định không đưa artifact vào ngữ cảnh có kỳ vọng cao hơn.
 
-\subsection{Huấn luyện các vai trò: bảy phương pháp, bảy lối tắt}\label{sec:rl}
+\subsection{Huấn luyện vai trò và các lối tắt của hàm mục tiêu}\label{sec:rl}
 
 \begin{figure}[h]
 \centering
