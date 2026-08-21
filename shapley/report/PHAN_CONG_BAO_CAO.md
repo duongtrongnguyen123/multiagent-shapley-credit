@@ -1,8 +1,8 @@
 # Phân công sửa báo cáo — làm việc trên nhánh riêng
 
-Mỗi người sửa một phần của `BAO_CAO.tex` trên nhánh riêng của mình, rồi gộp về `main`.
+Mỗi người sửa một phần của `BAO_CAO_NHOM13.tex` trên nhánh riêng của mình, rồi gộp về `main`.
 
-| Người | Nhánh | Phần phụ trách trong `BAO_CAO.tex` |
+| Người | Nhánh | Phần phụ trách trong `BAO_CAO_NHOM13.tex` |
 |---|---|---|
 | **Nguyên** | `nguyen-report` | **§3 Phương pháp đo lường**, **§4 Thiết lập thí nghiệm và quy trình** |
 | Đức | `duc` | §2 Công trình liên quan (giải quyết các marker `\todoD`) |
@@ -15,11 +15,11 @@ Mỗi người sửa một phần của `BAO_CAO.tex` trên nhánh riêng của 
    `CAU_HOI_THAO_LUAN.md` chứ đừng sửa trực tiếp.
 2. **Không chạm vào preamble** (dòng 1–60: `\documentclass`, các `\usepackage`, `\newcommand`).
    Cần macro mới thì báo trong nhóm — đây là chỗ dễ xung đột nhất.
-3. **Không sửa `BAO_CAO.pdf`.** File PDF là kết quả biên dịch, sửa cùng lúc là chắc chắn xung
+3. **Không sửa `BAO_CAO_NHOM13.pdf`.** File PDF là kết quả biên dịch, sửa cùng lúc là chắc chắn xung
    đột. Ai gộp về `main` thì biên dịch lại một lần ở đó.
 4. **Kéo `main` về trước khi bắt đầu một phiên làm việc:**
    `git fetch origin && git merge origin/main`
-5. **Biên dịch thử trước khi đẩy:** `tectonic BAO_CAO.tex` phải ra 0 lỗi.
+5. **Biên dịch thử trước khi đẩy:** `tectonic BAO_CAO_NHOM13.tex` phải ra 0 lỗi.
 
 ## Ký hiệu và giọng văn đã thống nhất (đừng đổi một mình)
 

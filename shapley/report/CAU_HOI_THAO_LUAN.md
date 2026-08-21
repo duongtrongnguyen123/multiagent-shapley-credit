@@ -601,7 +601,7 @@ trên dữ liệu mức A, phần ước lượng token 1.5B là xấp xỉ có 
 
 ## Nhóm F — từ vòng phản biện độc lập về giọng văn (v1.1, 2026-08-20)
 
-Một agent đóng vai reviewer đã rà toàn bộ `BAO_CAO.tex`; ~50 chỗ giọng văn thiếu trung tính
+Một agent đóng vai reviewer đã rà toàn bộ `BAO_CAO_NHOM13.tex`; ~50 chỗ giọng văn thiếu trung tính
 (cách ngôn kịch tính, mệnh lệnh, in đậm cảm xúc, khẳng định vượt bằng chứng) **đã được sửa
 trực tiếp** trong v1.1. Các mục dưới đây reviewer nêu nhưng cần nhóm quyết:
 

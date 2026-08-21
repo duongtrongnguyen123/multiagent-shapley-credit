@@ -2,7 +2,7 @@
 
 ---
 
-Trong `report/BAO_CAO.tex`, cụm **"tiền đăng ký"** xuất hiện 17 chỗ và nghe nặng nề. Hãy thay
+Trong `report/BAO_CAO_NHOM13.tex`, cụm **"tiền đăng ký"** xuất hiện 17 chỗ và nghe nặng nề. Hãy thay
 bằng cách diễn đạt tự nhiên hơn, **giữ nguyên thông tin**.
 
 ## Thông tin cần giữ
@@ -77,9 +77,9 @@ Ghi đè file, rồi liệt kê mỗi chỗ sửa một dòng: `dòng ~N: "cũ" 
 ## Kiểm sau khi AI trả kết quả
 
 ```bash
-tectonic BAO_CAO.tex                       # 0 lỗi
-grep -c "tiền đăng ký" BAO_CAO.tex         # kỳ vọng 0
-grep -c "chốt trước\|thăm dò" BAO_CAO.tex   # kỳ vọng ~17
+tectonic BAO_CAO_NHOM13.tex                       # 0 lỗi
+grep -c "tiền đăng ký" BAO_CAO_NHOM13.tex         # kỳ vọng 0
+grep -c "chốt trước\|thăm dò" BAO_CAO_NHOM13.tex   # kỳ vọng ~17
 ```
 
 Rồi so số liệu bằng script trong `PROMPT_VANPHONG.md` bước 3.

@@ -1,7 +1,7 @@
 # Quy trình nhờ model sửa văn phong một phần báo cáo (tiết kiệm token)
 
 Dùng khi muốn một model mới (context sạch) đánh bóng văn phong tiếng Việt cho **một phần**
-của `BAO_CAO.tex`, mà không tốn token đọc cả bài.
+của `BAO_CAO_NHOM13.tex`, mà không tốn token đọc cả bài.
 
 ## Nguyên tắc tiết kiệm
 
@@ -12,25 +12,25 @@ Cho đọc kết quả vừa tốn token vừa khiến model dễ tự ý "sửa
 2. **Danh sách thuật ngữ đã thống nhất** (dán thẳng trong prompt, ~20 dòng) để nó không đổi tên.
 3. **Luật hard-constraint** để không phá LaTeX.
 
-So sánh với §3+§4: cắt riêng ≈ **3,7k token**; cả `BAO_CAO.tex` ≈ **19,7k token** → tiết kiệm 5,3×.
+So sánh với §3+§4: cắt riêng ≈ **3,7k token**; cả `BAO_CAO_NHOM13.tex` ≈ **19,7k token** → tiết kiệm 5,3×.
 
 ## Bước 1 — cắt phần cần sửa
 
 ```bash
 cd report
-a=$(grep -n '^\\section{Phương pháp đo lường}' BAO_CAO.tex | cut -d: -f1)
-b=$(grep -n '^\\section{Kết quả}' BAO_CAO.tex | cut -d: -f1)
-sed -n "${a},$((b-1))p" BAO_CAO.tex > SEC34.tex
+a=$(grep -n '^\\section{Phương pháp đo lường}' BAO_CAO_NHOM13.tex | cut -d: -f1)
+b=$(grep -n '^\\section{Kết quả}' BAO_CAO_NHOM13.tex | cut -d: -f1)
+sed -n "${a},$((b-1))p" BAO_CAO_NHOM13.tex > SEC34.tex
 ```
 
 Đổi hai tên `\section{...}` cho phần khác. Sau khi model trả kết quả, ghép lại:
 
 ```bash
-head -n $((a-1)) BAO_CAO.tex  > /tmp/new.tex
+head -n $((a-1)) BAO_CAO_NHOM13.tex  > /tmp/new.tex
 cat SEC34.tex                >> /tmp/new.tex
-tail -n +$b BAO_CAO.tex      >> /tmp/new.tex
-mv /tmp/new.tex BAO_CAO.tex
-tectonic BAO_CAO.tex    # phải ra 0 lỗi
+tail -n +$b BAO_CAO_NHOM13.tex      >> /tmp/new.tex
+mv /tmp/new.tex BAO_CAO_NHOM13.tex
+tectonic BAO_CAO_NHOM13.tex    # phải ra 0 lỗi
 ```
 
 ## Bước 2 — prompt (dán nguyên văn, đổi tên file cho đúng phần)
@@ -99,9 +99,9 @@ Trung tính, mô tả, không cảm thán. **Không** thêm tính từ đánh gi
 ## Bước 3 — kiểm tra sau khi ghép
 
 ```bash
-tectonic BAO_CAO.tex          # 0 lỗi
+tectonic BAO_CAO_NHOM13.tex          # 0 lỗi
 git diff --stat               # chỉ SEC34/BAO_CAO thay đổi
-git diff BAO_CAO.tex | grep -E '^[-+].*[0-9]{1,3}\{,\}[0-9]'   # soi xem có số nào bị đổi
+git diff BAO_CAO_NHOM13.tex | grep -E '^[-+].*[0-9]{1,3}\{,\}[0-9]'   # soi xem có số nào bị đổi
 ```
 
 Câu lệnh cuối là chốt chặn quan trọng nhất: nếu nó in ra cặp `-`/`+` nào mà con số khác nhau
