@@ -15,7 +15,8 @@ Kết quả thí nghiệm nằm ở thư mục `../docs/`. Không nên dùng l�
 | `MACH_DAN_DAT.md` | **Các thí nghiệm dẫn tới nhau như thế nào** — mạch 10 bước, dùng khi viết phần thân theo dạng survey | Trước khi viết §5 |
 | `CAU_HOI_THAO_LUAN.md` | **Những gì cả nhóm cần thống nhất** — 11 câu hỏi chia ba nhóm, kèm mức độ ưu tiên | Bước 0 và trong lúc viết |
 | **`THUAT_NGU.md`** | **Định nghĩa thuật ngữ và ký hiệu** — `oracle@k`, `maj@k`, `A`/`B`/`C`, `H`/`κ`/`D`, vai trò, độ tin cậy | Tra bất cứ lúc nào; đưa cho người đọc ngoài nhóm |
-| `BAO_CAO.md` | Bản thảo báo cáo | Chưa tồn tại; Bước 1 của quy trình sẽ tạo |
+| **`BAO_CAO.tex`** | **BÁO CÁO v2.0 (LaTeX)** — cấu trúc lại theo khuôn CS224n: dẫn dắt ví dụ-trước-công-thức, ký hiệu mới W/I/E và G/L/R (hết trùng vai P/S/V/A), 2 hình TikZ, 10 bảng có nhãn, đã sửa 3 mâu thuẫn nội dung (nghịch lý = mốc so sánh; +7,7 là điểm E>I tại chênh 0; chặn trên oracle−maj với khoảng cách toán 12–13 điểm). Còn marker [Đ]/[TD] chờ Đức & Tùng Dương | **Bản chính để nộp** |
+| `BAO_CAO.md` | Bản thảo v0.1 (Markdown) — giữ làm tham chiếu; nội dung đã chuyển sang `.tex` | Không sửa nữa |
 
 ---
 
@@ -65,9 +66,12 @@ nội dung đáng chú ý nhất của báo cáo:
 ## Các việc còn tồn đọng
 
 1. **Bước 0** trong `QUY_TRINH_VIET_BAO_CAO.md`: cả nhóm thống nhất một câu luận điểm. Chưa thực hiện.
-2. Thí nghiệm **H100e** chưa hoàn tất (thiếu 2 trên 6 ô đo). Xem Bước 6 để biết cách bổ sung kết quả
+2. **Chuẩn thống kê đang được đề xuất sửa** — xem `CAU_HOI_THAO_LUAN.md` nhóm **E**: ngưỡng sàn
+   nhiễu 5 điểm được suy ra cho phép đo đơn lẻ nhưng đang áp cho kết quả 5 fold; ngưỡng đúng
+   khoảng 3,3 điểm. Cần cả nhóm quyết.
+3. Thí nghiệm **H100e** chưa hoàn tất (thiếu 2 trên 6 ô đo). Xem Bước 6 để biết cách bổ sung kết quả
    và những mục bắt buộc phải sửa lại.
-3. Tệp `EFFICIENCY.md` (Tùng Dương, 210 dòng) hiện chỉ có trên nhánh `nguoi3-router`, chưa có trên
+4. Tệp `EFFICIENCY.md` (Tùng Dương, 210 dòng) hiện chỉ có trên nhánh `nguoi3-router`, chưa có trên
    `main`. Tài liệu này cần cho mục §5.3. Việc hợp nhất nhánh thuộc quyền quyết định của tác giả nhánh.
 
 ---

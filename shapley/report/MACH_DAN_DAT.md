@@ -302,9 +302,13 @@ Cấu hình `S1.5B + V7B` đã dùng một model 7B. Vậy câu hỏi công bằ
 trong dự án ghi solver 7B trên MATH đạt 0,720, nhưng đó là lần chạy khác (n = 100, lượng tử hoá
 4-bit); không được ghép số độ chính xác của lần chạy đó với số token của bảng này.*
 
-- Trên **GSM8K**: cấu hình bất đối xứng **kém hơn 10 điểm** so với chỉ dùng 7B, dù rẻ hơn 12% token.
+- Trên **GSM8K**: cấu hình bất đối xứng **kém hơn 10 điểm** so với chỉ dùng 7B. Cột token thô ghi
+  "rẻ hơn 12%" nhưng đó là so sánh **sai đơn vị**: trường đo chỉ đếm token do 7B sinh (bỏ sót token
+  của solver 1.5B), và token hai cỡ model không cùng giá. Quy về trọng số FLOP (tham số × token):
+  **tiết kiệm biến mất** (tỷ lệ 1,00–1,05) — cấu hình này bị chi phối hoàn toàn.
 - Trên **MATH**: kém hơn 3 điểm. Chênh lệch theo từng fold nằm trong khoảng [−0,083; +0,033], tức
-  **chứa số 0** ⇒ ngang bằng về mặt thống kê, và rẻ hơn **22%** token.
+  **chứa số 0** ⇒ ngang bằng về mặt thống kê. Token thô ghi rẻ hơn 22%, nhưng quy về trọng số
+  FLOP chỉ còn **rẻ hơn ~3–8%** (xem chú thích ở dòng GSM8K).
 
 **Phát biểu đúng: cấu hình bất đối xứng là một lựa chọn TIẾT KIỆM CHI PHÍ, không phải một cải thiện
 độ chính xác.** Lợi ích +14,0 chỉ tồn tại khi so với model yếu; so với model mạnh chạy một mình ở
