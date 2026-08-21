@@ -1124,39 +1124,8 @@ Arena.} NeurIPS, 2023.
 
 % =====================================================================
 \appendix
-\section{Thuật ngữ và ký hiệu}\label{app:glossary}
-\begin{itemize}\itemsep1pt
-\item[] \textbf{greedy}: giải mã tất định, luôn chọn token xác suất cao nhất; cùng cấu hình cho
-kết quả giống hệt.
-\item[] \textbf{\texttt{maj@}$k$ / \texttt{oracle@}$k$ / \texttt{llm\_agg@}$k$}: xem
-\S\ref{sec:setup} (kèm ví dụ $\{7,7,7,12,15\}$).
-\item[] \textbf{artifact}: bài làm của model yếu $W$, thứ được đưa (hoặc không) vào ngữ cảnh
-model mạnh.
-\item[] \textbf{$W$ / $I$ / $E$}: model yếu; model mạnh độc lập; cùng model mạnh nhưng tiếp xúc
-artifact (\S\ref{sec:identity}).
-\item[] \textbf{$H$ / $\kappa$ / $D$}: tiềm năng cải thiện (giá trị tiềm tàng trong pool) / khả năng khai
-thác (chất lượng bộ chọn) / thiệt hại do giao thức --- ba câu hỏi của khung đo.
-\item[] \textbf{$G$ / $L$ / $R$}: cơ hội / thiệt hại / cứu --- ba số hạng của
-$\dceil = G - L + R$.
-\item[] \textbf{$\dceil$}: trần lý tưởng trừ model mạnh (cần đáp án chuẩn --- chỉ để sàng lọc);
-\textbf{$\dhonest$}: $\acc(E)-\acc(I)$, triển khai được.
-\item[] \textbf{chênh (lệch năng lực)}: hiệu accuracy một lượt giữa model mạnh và model yếu,
-thang 0--1; \textbf{$g^\ast$}: mức chênh nơi đường khớp $\dceil$ đổi dấu.
-\item[] \textbf{\texttt{V\_gain} / \texttt{A\_gain}}: hiệu accuracy khi thêm/bỏ vai trò $V$/$A$
-khỏi pipeline cùng cấu hình.
-\item[] \textbf{mức A / mức B}: tiền đăng ký hoặc 5 fold kèm t-test / đo một lần hoặc hậu
-nghiệm (chỉ minh hoạ cơ chế).
-\item[] \textbf{mức dao động nền}: biên độ chênh lệch của cùng một cấu hình giữa các fold
-(đo được: $+1{,}0$ đến $+8{,}0$ điểm).
-\end{itemize}
-
-\section{Con trỏ tư liệu gốc}
-\begin{itemize}\itemsep1pt
-\item[\textbf{B.}] Trích các bản tiền đăng ký (\#104, \#106, \#107, \#112) --- \texttt{docs/PREREGISTRATION.md}.
-\item[\textbf{C.}] Nhật ký các lần chạy bị loại (16 trên 32) và lý do --- \texttt{docs/RESULT\_SEALS.md}.
-\item[\textbf{D.}] Quy tắc quy trình đo --- \texttt{docs/QUY\_TRINH\_VONG\_LAP.md}.
-\item[\textbf{E.}] Bảng kết quả đầy đủ khối nhóm --- \texttt{docs/RESULTS.md}; phân tích Shapley theo vai trò --- \texttt{docs/}.
-\item[\textbf{F.}] Rà thống kê giữa kỳ và các phán quyết --- \texttt{report/CAU\_HOI\_THAO\_LUAN.md} (nhóm E, A6--A7, F).
-\end{itemize}
+\section*{Mã nguồn và dữ liệu}
+Toàn bộ mã nguồn, dữ liệu thô và nhật ký thí nghiệm được công bố tại\\
+\url{https://github.com/duongtrongnguyen123/multiagent-shapley-credit}
 
 \end{document}
