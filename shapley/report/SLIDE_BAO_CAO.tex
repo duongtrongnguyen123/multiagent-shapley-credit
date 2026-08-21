@@ -71,7 +71,7 @@
 \begin{document}
 
 % ---------------------------------------------------------------------
-% SLIDE 1: TRANG BÌA (CĂN CHỈNH RÕ RÀNG LOGO & TÊN TRƯỜNG)
+% SLIDE 1: TRANG BÌA
 % ---------------------------------------------------------------------
 \begin{frame}[plain]
   \vspace{0.1cm}
@@ -124,24 +124,24 @@
 % ---------------------------------------------------------------------
 % SLIDE 2: MỤC LỤC
 % ---------------------------------------------------------------------
-\begin{frame}{Nội dung bài thuyết trình}
+\begin{frame}{Mục lục}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
-      \begin{block}{\textbf{Khung lý thuyết \& Cơ chế}}
+      \begin{block}{\textbf{Lý thuyết \& Cơ chế}}
         \begin{enumerate}
-          \item[\textbf{I.}] \textbf{Đặt vấn đề \& Khung định nghĩa}
+          \item[\textbf{I.}] \textbf{Đặt vấn đề \& Ký hiệu}
           \begin{itemize}\footnotesize
-            \item Kỳ vọng lý thuyết vs Thực tế thực nghiệm
+            \item Kỳ vọng lý thuyết vs Thực tế
             \item Hệ ký hiệu $W, I, E$ và 3 câu hỏi cơ chế
           \end{itemize}
-          \item[\textbf{II.}] \textbf{Ba phép kiểm soát phương pháp luận}
+          \item[\textbf{II.}] \textbf{Ba phép kiểm soát}
           \begin{itemize}\footnotesize
-            \item Ngân sách tính toán, Mốc đối chứng, Mẫu số
+            \item Ngân sách tính toán, Baseline, Mẫu số
           \end{itemize}
-          \item[\textbf{III.}] \textbf{Tương tác Artifact \& Tổn thất phơi nhiễm}
+          \item[\textbf{III.}] \textbf{Tác động của Artifact}
           \begin{itemize}\footnotesize
             \item Thí nghiệm $46{,}4\% \to 19{,}2\%$ trên MATH
-            \item Kênh truyền dẫn vs Sửa lỗi suy luận
+            \item Truyền dẫn đáp án vs Sửa lỗi logic
           \end{itemize}
         \end{enumerate}
       \end{block}
@@ -150,17 +150,17 @@
     \begin{column}{0.48\textwidth}
       \begin{block}{\textbf{Thực nghiệm \& Ứng dụng}}
         \begin{enumerate}
-          \item[\textbf{IV.}] \textbf{Đóng góp vai trò \& Huấn luyện RL}
+          \item[\textbf{IV.}] \textbf{Đóng góp vai trò \& RL}
           \begin{itemize}\footnotesize
-            \item Phân rã giá trị Shapley (16 liên minh)
-            \item Verifier tất định vs Lối tắt hàm thưởng (RL)
+            \item Phân tích Shapley (16 liên minh)
+            \item Verifier tất định vs Lối tắt hàm thưởng
           \end{itemize}
-          \item[\textbf{V.}] \textbf{Cơ chế mốc tham chiếu \& Thiết kế}
+          \item[\textbf{V.}] \textbf{Mốc so sánh \& Thiết kế}
           \begin{itemize}\footnotesize
             \item Ngưỡng đổi dấu $g^* \approx 0{,}09$
-            \item Ma trận khuyến nghị kiến trúc thực tế
+            \item Ma trận khuyến nghị kiến trúc
           \end{itemize}
-          \item[\textbf{VI.}] \textbf{Hạn chế \& Tiềm năng phát triển}
+          \item[\textbf{VI.}] \textbf{Hạn chế \& Tiềm năng}
           \begin{itemize}\footnotesize
             \item Phạm vi quy mô và Hướng phát triển Hybrid
           \end{itemize}
@@ -171,11 +171,11 @@
 \end{frame}
 
 % =====================================================================
-% PHẦN I: ĐẶT VẤN ĐỀ & KHUNG ĐỊNH NGHĨA
+% PHẦN I: ĐẶT VẤN ĐỀ & KÝ HIỆU
 % =====================================================================
-\section{Phần I: Đặt vấn đề \& Khung định nghĩa}
+\section{I. Đặt vấn đề và Ký hiệu}
 
-\begin{frame}{1.1. Đặt vấn đề: Kỳ vọng lý thuyết vs Thực tế thực nghiệm}
+\begin{frame}{1.1. Đặt vấn đề và Động lực}
   \begin{columns}[c]
     \begin{column}{0.52\textwidth}
       \begin{block}{\textbf{Kỳ vọng về hệ Multi-Agent LLM}}
@@ -211,7 +211,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{1.2. Hệ ký hiệu \& Khung phân tích 3 câu hỏi cơ chế}
+\begin{frame}{1.2. Ký hiệu và Khung phân tích}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{block}{\textbf{1. Ba trạng thái mô hình}}
@@ -250,11 +250,11 @@
 \end{frame}
 
 % =====================================================================
-% PHẦN II: BA PHÉP KIỂM SOÁT PHƯƠNG PHÁP LUẬN
+% PHẦN II: BA PHÉP KIỂM SOÁT
 % =====================================================================
-\section{Phần II: Ba phép kiểm soát phương pháp luận}
+\section{II. Ba phép kiểm soát}
 
-\begin{frame}{2.1. Ba sai lệch đo lường phổ biến trong y văn}
+\begin{frame}{2.1. Sai lệch đo lường trong y văn}
   \begin{columns}[c]
     \begin{column}{0.32\textwidth}
       \begin{alertblock}{\textbf{1. Bỏ qua Compute}}
@@ -294,7 +294,7 @@
   \end{block}
 \end{frame}
 
-\begin{frame}{2.2. Thiết lập 3 phép kiểm soát đối chứng công bằng}
+\begin{frame}{2.2. Ba phép kiểm soát đối chứng}
   \begin{columns}[t]
     \begin{column}{0.32\textwidth}
       \begin{block}{\textbf{1. Kiểm soát Compute}}
@@ -335,11 +335,11 @@
 \end{frame}
 
 % =====================================================================
-% PHẦN III: TƯƠNG TÁC ARTIFACT & BÓC TÁCH CƠ CHẾ
+% PHẦN III: TÁC ĐỘNG CỦA ARTIFACT
 % =====================================================================
-\section{Phần III: Tương tác Artifact \& Bóc tách cơ chế}
+\section{III. Tác động của Artifact}
 
-\begin{frame}{3.1. Thí nghiệm tác động của Artifact (Artifact Exposure)}
+\begin{frame}{3.1. Thí nghiệm phơi nhiễm Artifact}
   \begin{columns}[c]
     \begin{column}{0.55\textwidth}
       \begin{tikzpicture}[scale=0.85, transform shape,
@@ -382,7 +382,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{3.2. Bóc tách cơ chế: Kênh truyền dẫn vs Sửa lỗi suy luận}
+\begin{frame}{3.2. Cơ chế: Truyền dẫn vs Sửa lỗi}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{block}{\textbf{Bản chất giao thức Sửa bài (Correction)}}
@@ -414,17 +414,16 @@
 \end{frame}
 
 % =====================================================================
-% PHẦN IV: ĐÓNG GÓP THEO VAI TRÒ & HUÂN LUYỆN RL
+% PHẦN IV: ĐÓNG GÓP VAI TRÒ & RL
 % =====================================================================
-\section{Phần IV: Đóng góp vai trò \& Huấn luyện RL}
+\section{IV. Đóng góp vai trò và RL}
 
-% SLIDE RIÊNG BIỆT DÀNH TRỌN CHO HÌNH SHAPLEY
-\begin{frame}{4.1. Phân rã giá trị đóng góp Shapley: Kiến trúc \& 16 Liên minh}
+\begin{frame}{4.1. Kiến trúc và 16 Liên minh Shapley}
   \centering
   \includegraphics[width=0.96\textwidth, height=0.82\textheight, keepaspectratio]{figs/pipeline_shapley_overview.png}
 \end{frame}
 
-\begin{frame}{4.1. Nhận định từ phân tích Shapley}
+\begin{frame}{4.1. Đóng góp từng vai trò}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{block}{\textbf{Đóng góp từng vai trò ($P, S, V, A$)}}
@@ -452,7 +451,7 @@
   \end{alertblock}
 \end{frame}
 
-\begin{frame}{4.2. Năng lực Verifier: Tín hiệu tất định vs LLM-as-a-Judge}
+\begin{frame}{4.2. Năng lực Bộ kiểm (Verifier)}
   \begin{columns}[t]
     \begin{column}{0.50\textwidth}
       \begin{block}{\textbf{Kiểm chứng tất định (Code Execution)}}
@@ -490,8 +489,7 @@
   \end{columns}
 \end{frame}
 
-% SLIDE 4.3: CẮT ĐÔI HÌNH VERIFIER ĐỂ HIỂN THỊ TRỌN VẸN 2 NỬA
-\begin{frame}{4.3. Huấn luyện tác tử: Hiện tượng lối tắt hàm thưởng (Reward Hacking)}
+\begin{frame}{4.3. Huấn luyện RL và Lối tắt hàm thưởng}
   \begin{columns}[c]
     \begin{column}{0.48\textwidth}
       \centering
@@ -514,11 +512,11 @@
 \end{frame}
 
 % =====================================================================
-% PHẦN V: CƠ CHẾ MỐC THAM CHIẾU & THIẾT KẾ
+% PHẦN V: MỐC SO SÁNH & THIẾT KẾ
 % =====================================================================
-\section{Phần V: Cơ chế mốc tham chiếu \& Thiết kế}
+\section{V. Mốc so sánh và Thiết kế}
 
-\begin{frame}{5.1. Tác động của mốc tham chiếu \& Khoảng cách năng lực}
+\begin{frame}{5.1. Tác động của Mốc tham chiếu}
   \begin{columns}[c]
     \begin{column}{0.58\textwidth}
       \begin{tikzpicture}[scale=0.82, transform shape]
@@ -562,7 +560,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{5.2. Khuyến nghị thiết kế hệ thống thực tế}
+\begin{frame}{5.2. Khuyến nghị thiết kế hệ thống}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{exampleblock}{\textbf{1. Miền có Kiểm chứng tất định (Code)}}
@@ -591,11 +589,11 @@
 \end{frame}
 
 % =====================================================================
-% PHẦN VI: HẠN CHẾ & TIỀM NĂNG PHÁT TRIỂN
+% PHẦN VI: HẠN CHẾ & TIỀM NĂNG
 % =====================================================================
-\section{Phần VI: Hạn chế \& Tiềm năng phát triển}
+\section{VI. Hạn chế và Tiềm năng}
 
-\begin{frame}{6.1. Hạn chế của nghiên cứu hiện tại}
+\begin{frame}{6.1. Hạn chế nghiên cứu}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{block}{\textbf{1. Phạm vi quy mô mô hình}}
@@ -630,7 +628,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{6.2. Tiềm năng phát triển \& Hướng nghiên cứu tương lai}
+\begin{frame}{6.2. Tiềm năng phát triển}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{exampleblock}{\textbf{1. Kiến trúc Hybrid Verifier}}
@@ -668,7 +666,7 @@
 % =====================================================================
 % TỔNG KẾT & LỜI CẢM ƠN
 % =====================================================================
-\begin{frame}{Tổng kết bài học kỹ thuật cốt lõi}
+\begin{frame}{Tổng kết}
   \begin{columns}[c]
     \begin{column}{0.95\textwidth}
       \begin{block}{\textbf{Ba kết luận kỹ thuật then chốt}}
@@ -702,7 +700,7 @@
   {\Huge\bfseries LỜI CẢM ƠN}\\[10pt]
   {\color{AmberGold}\rule{0.25\linewidth}{1.5pt}}\\[24pt]
   
-  {\Large\bfseries Cảm ơn thầy Trần Hồng Việt và các bạn đã chú ý lắng nghe!}\\[32pt]
+  {\Large\bfseries Cảm ơn thầy và các bạn đã chú ý lắng nghe!}\\[32pt]
   
   {\LARGE\bfseries Q \& A}\\[8pt]
   {\normalsize\itshape Xin trân trọng lắng nghe ý kiến đóng góp và câu hỏi thảo luận!}
