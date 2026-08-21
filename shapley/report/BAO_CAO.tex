@@ -267,7 +267,7 @@ Khung trên chỉ đóng vai trò tổ chức các câu hỏi thực nghiệm; n
 báo. Các đại lượng dùng để kiểm chứng từng thành phần được định nghĩa trong các tiểu mục tiếp
 theo.
 
-\subsection{Tiếp xúc với artifact: đo tác động và phân rã kết quả}\label{sec:identity}
+\subsection{Tiếp xúc với artifact: đo tác động và tách cơ hội khỏi thiệt hại}\label{sec:identity}
 
 Để cô lập tác động khi một model mạnh nhìn thấy lời giải của model yếu, xét một cặp model gồm
 model yếu và model mạnh, chẳng hạn Qwen-1.5B và Qwen-7B. Ba ký hiệu dưới đây khác với các vai trò
@@ -430,7 +430,7 @@ thử toàn dự án, kỳ vọng $\sim$6,6 dương tính giả \cite{bh1995}; c
 
 \paragraph{Nhãn tin cậy.} \emph{Mức A} là kết quả đo trên 5 fold kèm t-test, hoặc thí nghiệm
 khoá trước tiêu chí diễn giải và đạt mọi điều kiện kỹ thuật đã đặt ra; \emph{mức B} là đo một
-lần hoặc phân rã hậu nghiệm, chỉ dùng để minh hoạ cơ chế. Các điều kiện kỹ thuật kiểm những thứ
+lần hoặc phân tầng hậu nghiệm, chỉ dùng để minh hoạ cơ chế. Các điều kiện kỹ thuật kiểm những thứ
 thống kê không thấy được --- chẳng hạn adapter huấn luyện rò sang nhánh đối chứng, hay bộ chấm
 đáp án lệch giữa hai nhánh; 16 trên 32 lần chạy trượt điều kiện và bị loại trước khi đọc kết quả.
 
@@ -727,7 +727,7 @@ artifact sai  & $-19{,}0$ & $-19{,}3$ & $-27{,}2$ ($p\approx 0$; $n=261$)\\
 artifact đúng & $+6{,}4$ & $+2{,}5$ & $+3{,}8$ ($p=0{,}012$; $n=239$)\\
 \bottomrule
 \end{tabular}
-\caption{Hiệu ứng tiếp xúc $\acc(E)-\acc(I)$ (đơn vị: điểm phần trăm), phân tầng theo nội dung artifact. Hai cột MBPP là phân rã hậu nghiệm (mức B); cột MATH là thí nghiệm tiền đăng ký (mức A).}
+\caption{Hiệu ứng tiếp xúc $\acc(E)-\acc(I)$ (đơn vị: điểm phần trăm), phân tầng theo nội dung artifact. Hai cột MBPP là phân tầng hậu nghiệm (mức B); cột MATH là thí nghiệm tiền đăng ký (mức A).}
 \label{tab:exposure}
 \end{table}
 
@@ -994,7 +994,7 @@ ghi nhận ban đầu của chính chúng tôi không sống qua bộ ba kiểm 
 \item Tính chuyển miền dựa trên 3 cặp, KTC rộng, thứ tự không đơn điệu; vùng dương của quy
       luật chênh chỉ có một điểm thuận ($+7{,}7$ tại chênh 0) và không thể xác lập trên MBPP
       (thiếu lực $\sim$8 lần); $g^\ast$ chưa có KTC.
-\item Định tuyến và các phân rã MBPP là mức B; khối luồng thông tin chỉ dùng greedy (mỗi cấu
+\item Định tuyến và các phân tầng MBPP là mức B; khối luồng thông tin chỉ dùng greedy (mỗi cấu
       hình một điểm); các hiệu ứng chủ lực chưa phân tầng lại theo mẫu số khả tác động.
 \item Phạm vi khẳng định: model 1,5B--32B trên bài toán suy luận; chưa nói được về model rất
       lớn. Hai chuẩn kiểm chứng của hai khối (fold so với tiền đăng ký) chưa kiểm chéo.
