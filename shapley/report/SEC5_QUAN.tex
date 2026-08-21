@@ -1,6 +1,6 @@
 \section{Kết quả}\label{sec:results}
 
-Phần này trình bày kết quả theo hai hồi. \textbf{Hồi I} (từ \S\ref{sec:start} đến~\ref{sec:denominator}) phân tích tác động tuần tự của ba phép kiểm soát lên hiệu quả hợp tác giữa các tác nhân. \textbf{Hồi II} (từ \S\ref{sec:termG} đến~\ref{sec:rl}) xác định giá trị còn lại thông qua ba thừa số $G$, $L$ và $\kappa$, và kết thúc bằng thảo luận về huấn luyện. Các số liệu được báo cáo ở mức A (chính xác trên toàn tập) trừ khi có ghi chú khác. Bảng tra cứu ký hiệu được cung cấp tại Bảng~\ref{tab:cheatsheet}.
+Phần này trình bày kết quả theo hai mạch phân tích. \textbf{Mạch thứ nhất} (từ \S\ref{sec:start} đến~\ref{sec:denominator}) phân tích tác động tuần tự của ba phép kiểm soát lên hiệu quả hợp tác giữa các tác nhân. \textbf{Mạch thứ hai} (từ \S\ref{sec:termG} đến~\ref{sec:rl}) xác định giá trị còn lại thông qua ba thừa số $G$, $L$ và $\kappa$, và kết thúc bằng thảo luận về huấn luyện. Trừ khi ghi chú khác, các số liệu đều ở mức tin cậy A (\S\ref{sec:setup}); phạm vi đo của từng phép được ghi ngay tại bảng tương ứng. Bảng tra cứu ký hiệu ở Bảng~\ref{tab:cheatsheet}.
 
 % ---------------------------------------------------------------
 \subsection{Điểm xuất phát: đánh giá lợi ích của pipeline và mức dao động nền}\label{sec:start}
@@ -14,11 +14,12 @@ GSM8K & 0,632 & \textbf{0,744} & $+11{,}2$ & $2{,}9\times$\\
 MATH  & \textbf{0,405} & 0,345 & $-6{,}0$ & $6{,}63\times$\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{So sánh pipeline đầy đủ bốn vai với một lần giải duy nhất (model Qwen-1.5B; đo một lần trên toàn bộ tập dữ liệu). Đơn vị: độ chính xác (điểm).}}
+\caption{So sánh pipeline đầy đủ bốn vai với một lượt giải duy nhất (Qwen-1.5B; đo một lần trên
+toàn bộ tập). Hai cột giữa là độ chính xác, thang 0--1; cột \emph{Chênh lệch} tính bằng điểm phần trăm.}
 \label{tab:pipeline}
 \end{table}
 
-Bảng~\ref{tab:pipeline} cho thấy kết quả trước khi áp dụng bất kỳ biện pháp kiểm soát nào. Trên GSM8K, pipeline hơn 11,2 điểm, trong khi trên MATH, nó tiêu tốn gấp 6,63 lần chi phí sinh token nhưng lại kém hơn 6 điểm. Cần lưu ý hai điểm quan trọng. \emph{Thứ nhất}, kiểm định thống kê dựa trên một đại lượng gần tương tự nhưng không hoàn toàn trùng khớp: qua 5-fold, hiệu số $\texttt{PSVA}-\texttt{PS} = +5{,}6$ điểm; $t=6{,}89$) --- lợi ích trên GSM8K là có ý nghĩa thống kê. \emph{Thứ hai}, quy trình hiệu chuẩn nhiễu (\S\ref{sec:setup}) chỉ ra rằng một phép đo trên 100 mẫu có thể dao động tới 7 điểm; vì vậy, tất cả các hiệu ứng sẽ được báo cáo.
+Bảng~\ref{tab:pipeline} cho thấy kết quả trước khi áp dụng bất kỳ biện pháp kiểm soát nào. Trên GSM8K, pipeline hơn 11,2 điểm, trong khi trên MATH, nó tiêu tốn gấp 6,63 lần chi phí sinh token nhưng lại kém hơn 6 điểm. Cần lưu ý hai điểm quan trọng. \emph{Thứ nhất}, kiểm định thống kê dựa trên một đại lượng gần tương tự nhưng không hoàn toàn trùng khớp: qua 5 fold, hiệu số $\texttt{PSVA}-\texttt{PS} = +5{,}6$ điểm (KTC $[+3{,}3;+7{,}9]$; $t=6{,}89$) --- lợi ích trên GSM8K là có ý nghĩa thống kê. \emph{Thứ hai}, phép hiệu chuẩn mức dao động nền (\S\ref{sec:setup}) cho thấy hai phép đo trên 100 bài có thể chênh nhau tới 7 điểm; vì vậy, các hiệu ứng từ phép đo đơn lẻ chỉ được đọc như tín hiệu thăm dò.
 
 Mục tiếp theo áp dụng phép kiểm soát thứ nhất: lợi ích này đến từ sự phối hợp giữa các vai hay chỉ đơn thuần là do số lượng lượt sinh tăng lên?
 
@@ -36,21 +37,19 @@ Bộ tổng hợp (cùng 8 lượt sinh) & MATH 1.5B & MATH 7B\\
 \texttt{oracle@8}      & 0,73 & \textbf{0,85}\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{So sánh các bộ tổng hợp với cùng ngân sách 8 lượt sinh (hàng trên cùng là mốc 1 lượt để tham chiếu). Đơn vị: độ chính xác.}}
+\caption{So sánh các bộ tổng hợp với cùng ngân sách 8 lượt sinh (hàng trên cùng là mốc 1 lượt để tham chiếu). Các ô là độ chính xác, thang 0--1.}
 \label{tab:budget}
 \end{table}
 
-Bảng~\ref{tab:budget} cố định ngân sách và chỉ thay đổi \emph{phương thức tổng hợp}. Từ đó rút ra ba kết luận.
+Bảng~\ref{tab:budget} cố định ngân sách và chỉ thay đổi \emph{phương thức tổng hợp}. Từ đó rút ra bốn kết luận.
 
 \emph{Thứ nhất}, bộ tổng hợp dùng LLM - \texttt{llm\_agg@8} kém hơn bỏ phiếu đa số - \texttt{maj@8} từ 19 đến 26 điểm ở cùng chi phí; ở model 7B, nó thậm chí còn kém cả \texttt{greedy} một lượt. Nó làm hỏng 21 câu trả lời đúng (với 1.5B) và 26 câu (với 7B), trong khi chỉ sửa được 2 và 0 câu sai. Phân tích 600 trace cho thấy 65\% số lần nó sao chép nguyên văn ứng viên \emph{cuối cùng} --- gần như một quy tắc dựa trên vị trí hơn là một bộ chọn dựa trên nội dung; 100\% lượt không sinh ra đáp án mới.
 
 \emph{Thứ hai}, lợi ích của bỏ phiếu đa số giảm khi năng lực model nền tăng. Ở model 1.5B, \texttt{maj@8} cải thiện 10 điểm phần trăm, chiếm 43\% mức cải thiện tối đa lý thuyết 23 điểm phần trăm. Ở model 7B, mức cải thiện chỉ còn 1 điểm phần trăm, tương ứng 8\% trên mức tối đa 13 điểm phần trăm. Khoảng cách \texttt{oracle@8} - \texttt{maj@8} (13 và 12 điểm phần trăm) sẽ được dùng lại ở \S\ref{sec:kappa} như chặn trên cho mọi bộ chọn.
 
-\emph{Thứ ba}, hai thí nghiệm đối chứng giúp tách riêng ảnh hưởng của ``phối hợp'' và ``thêm lượt'':
-\begin{itemize}\itemsep2pt
-\item \texttt{rerun} = \texttt{loop} (\: khi giải lại mà không xem phê bình của verifier, kết quả tương đương với giải lại có xem. Như vậy, lợi ích đến từ việc có thêm lượt sinh, không từ nội dung phản hồi. Biến thể lặp \textbf{giải-rồi-chấm} thậm chí còn thắng pipeline đầy đủ trên MATH: $+4{,}0$ điểm ở cùng ngân sách.
-\item Tác hại của aggregator chủ yếu đến từ vấn đề đo lường: chỉ 73--81\% lượt tổng hợp đưa ra đáp án trong khung để có thể chấm điểm. Khi thêm cơ chế fallback (nếu thiếu khung, lấy đáp án của verifier, không gọi thêm model), \texttt{A\_gain} trên MATH 1.5B tăng từ $-6{,}4$ điểm lên $+0{,}8$ điểm. Một lần chạy khác (bộ đề khác, không lượng tử hoá) cho $+8{,}0$ điểm; sau khi sửa lỗi định dạng, hai ước lượng đều không âm, phần chênh lệch còn lại được quy cho sự khác biệt về bộ đề và độ chính xác số học.
-\end{itemize}
+\emph{Thứ ba}, một đối chứng tách được ảnh hưởng của ``phối hợp'' khỏi ảnh hưởng của ``thêm lượt sinh''. Khi cho giải lại mà \emph{không} xem phê bình của verifier, kết quả bằng đúng giải lại \emph{có} xem phê bình ($\texttt{rerun} = \texttt{loop}$, cùng cho $0{,}453$). Lợi ích vì vậy đến từ lượt sinh thêm, không từ nội dung phản hồi. Nhất quán với điều đó, biến thể vòng lặp giải-rồi-chấm --- rẻ hơn pipeline đủ vai --- còn thắng nó trên MATH: $+4{,}0$ điểm (KTC $[+0{,}5;+7{,}5]$; $t=3{,}21$) ở cùng chi phí.
+
+\emph{Thứ tư}, phần ``gây hại'' của aggregator phần lớn là hiện vật đo lường. Chỉ 73--81\% lượt tổng hợp phát ra đáp án trong khung để chấm được; thêm một cơ chế dự phòng miễn phí (thiếu khung thì lấy đáp án của verifier, không gọi thêm model) đưa \texttt{A\_gain} trên MATH 1.5B từ $-6{,}4$ điểm lên $+0{,}8$ điểm. Một lần chạy khác (bộ bài khác, không lượng tử hoá) cho $+8{,}0$ điểm; sau khi vá lỗi định dạng, hai ước lượng cùng phía không âm, phần chênh còn lại quy cho khác bộ bài và khác độ chính xác số.\mucB
 
 Sau phép kiểm soát chi phí, yếu tố chắc chắn có giá trị duy nhất là ``các lượt sinh độc lập bổ sung''. Mục tiếp theo đặt câu hỏi: những lượt sinh đó nên do vai nào và model cỡ nào đảm nhiệm?
 
@@ -61,7 +60,7 @@ Trước khi phân tích hành vi chi tiết, chúng tôi đo lường đóng g�
 
 \begin{figure}[t]\centering
 \includegraphics[width=0.9\linewidth]{figs/pipeline_shapley_overview.png}
-\caption{\textbf{Sơ đồ pipeline bốn vai, 16 tổ hợp bật/tắt để tính giá trị Shapley, và quy trình ước lượng nhiễu qua 5 fold.}}
+\caption{Sơ đồ pipeline bốn vai, 16 tổ hợp bật/tắt để tính giá trị Shapley, và quy trình ước lượng nhiễu qua 5 fold.}
 \label{fig:shapleyfw}
 \end{figure}
 
@@ -76,7 +75,10 @@ Aggregator & $+0{,}190$  & $+0{,}150$ \\
 Planner    & $\mathbf{-0{,}014}$  & $+0{,}017$ \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Giá trị Shapley của bốn vai, với tất cả các vai đều là 1.5B. KTC 95\% bootstrap theo câu hỏi (không áp dụng fold, nên cần đọc kèm với mức dao động nền đã đề cập ở \S\ref{sec:setup}). Trên MATH, mọi chênh lệch giữa các vai đều nằm dưới mức dao động nền, do đó thứ hạng không có ý nghĩa thống kê. Đơn vị: độ chính xác (điểm).}}
+\caption{Giá trị Shapley của bốn vai, mọi vai đều 1.5B. Các giá trị $\varphi$ ở thang 0--1
+(phần độ chính xác quy cho vai đó). KTC 95\% bootstrap theo câu hỏi --- \emph{không có fold},
+nên đọc kèm mức dao động nền ở \S\ref{sec:setup}; trên MATH mọi chênh lệch giữa các vai đều dưới
+mức dao động nền nên thứ hạng không có ý nghĩa.}
 \label{tab:shapley}
 \end{table}
 
@@ -101,7 +103,7 @@ Verifier can thiệp & 32,7\% & 38,0\% & 4,0\% & 14,0\%\\
 Aggregator lặp lại đáp án của verifier & 93,3\% & 73,3\% & 100\% & 97,0\%\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Hành vi theo từng ô (task $\times$ năng lực, với $n=100--150$ mỗi ô, đo trên trace).}}
+\caption{Hành vi theo từng ô (task $\times$ năng lực, với $n=100--150$ mỗi ô, đo trên trace).}
 \label{tab:behavior}
 \end{table}
 
@@ -118,7 +120,7 @@ Vai kiểm cũng không thực sự kiểm soát. Ba phép đo độc lập: (i)
 7B   & $+1{,}0$ $[-3;+5]$ & $+4{,}4$ $[+2;+8]$\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Bảng \texttt{V\_gain} theo task $\times$ năng lực (5 fold mỗi ô).}}
+\caption{Bảng \texttt{V\_gain} theo task $\times$ năng lực (5 fold mỗi ô).}
 \label{tab:vgaingrid}
 \end{table}
 
@@ -133,7 +135,7 @@ Verifier 7B (solver 1.5B) & $\mathbf{+14{,}0}$ & $[+7{,}4;\,+20{,}6]$ & $43:1$\\
 Verifier 1.5B (solver 1.5B) & $+3{,}0$ & 0 & $15:6$\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Tác động bất đối xứng năng lực ở lượt kiểm trên MATH. ``Sửa : Phá'' = số bài sai được sửa thành đúng so với số bài đúng bị phá thành sai; verifier cùng cỡ phá 6 bài, trong khi verifier 7B chỉ phá 1 bài trên cùng 300 bài.}}
+\caption{Tác động bất đối xứng năng lực ở lượt kiểm trên MATH. ``Sửa : Phá'' = số bài sai được sửa thành đúng so với số bài đúng bị phá thành sai; verifier cùng cỡ phá 6 bài, trong khi verifier 7B chỉ phá 1 bài trên cùng 300 bài.}
 \label{tab:verifier}
 \end{table}
 
@@ -154,7 +156,7 @@ S1.5B + V7B & 0,810 & 0,563 & 105k & 119k\\
 S7B + V7B & 0,900 & \textbf{0,670} & 205k & 261k\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{So sánh với mốc model mạnh: các cấu hình có lượt kiểm so với model mạnh chạy đơn lẻ (5 fold). Cột token chỉ tính token do model 7B sinh --- không thể so sánh trực tiếp giữa các cấu hình có cỡ model khác nhau; hiệu chỉnh được trình bày ở Bảng~\ref{tab:flop}. Đơn vị: độ chính xác (điểm) và số token (nghìn).}}
+\caption{So sánh với mốc model mạnh: các cấu hình có lượt kiểm so với model mạnh chạy đơn lẻ (5 fold). Cột token chỉ tính token do model 7B sinh --- không thể so sánh trực tiếp giữa các cấu hình có cỡ model khác nhau; hiệu chỉnh được trình bày ở Bảng~\ref{tab:flop}. Hai cột giữa là độ chính xác (thang 0--1), hai cột cuối là số token (nghìn).}
 \label{tab:baseline}
 \end{table}
 
@@ -169,7 +171,7 @@ GSM8K & $0{,}88\times$ (``rẻ hơn 12\%'') & $\mathbf{1{,}00\text{--}1{,}05\tim
 MATH & $0{,}78\times$ (``rẻ hơn 22\%'') & $\mathbf{0{,}92\text{--}0{,}96\times}$ \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Hiệu chỉnh đơn giá token (độ nhạy ký tự/token quét 3,0--4,0). Chưa tính phần prefill --- model 7B phải \emph{đọc} bài làm của 1.5B --- nên hiệu chỉnh vẫn thiên vị cho cấu hình bất đối xứng.}}
+\caption{Hiệu chỉnh đơn giá token (độ nhạy ký tự/token quét 3,0--4,0). Chưa tính phần prefill --- model 7B phải \emph{đọc} bài làm của 1.5B --- nên hiệu chỉnh vẫn thiên vị cho cấu hình bất đối xứng.}
 \label{tab:flop}
 \end{table}
 
@@ -190,7 +192,7 @@ $-12{,}4$ điểm & $\dhonest = \acc(E)-\acc(I)$ & model mạnh & prompt \emph{g
 $-16{,}6$ điểm & $\dceil$ (trần lý tưởng) & model mạnh & prompt sửa, bootstrap & \S\ref{sec:transfer}\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Cùng cặp 1.5B$\to$7B trên miền toán, bốn đại lượng khác nhau. Sự khác dấu giữa dòng đầu và ba dòng sau phản ánh chính hiện tượng trung tâm: thay đổi mốc so sánh sẽ thay đổi dấu của hiệu ứng.}}
+\caption{Cùng cặp 1.5B$\to$7B trên miền toán, bốn đại lượng khác nhau. Sự khác dấu giữa dòng đầu và ba dòng sau phản ánh chính hiện tượng trung tâm: thay đổi mốc so sánh sẽ thay đổi dấu của hiệu ứng.}
 \label{tab:doichieu}
 \end{table}
 
@@ -212,7 +214,7 @@ Số lượt đúng /5 & $n$ & Solver & maj@5 & $\Delta$ (điểm)\\
 5/5 --- quá dễ & 37 (25\%) & 1,000 & 1,000 & 0\\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Phân tầng theo số lượt đúng trong 5 lượt sinh (MATH 1.5B, $n=150$). Cột $\Delta$ là chênh lệch độ chính xác giữa \texttt{maj@5} và Solver.}}
+\caption{Phân tầng theo số lượt đúng trong 5 lượt sinh (MATH 1.5B, $n=150$). Cột $\Delta$ là chênh lệch độ chính xác giữa \texttt{maj@5} và Solver.}
 \label{tab:strata}
 \end{table}
 
@@ -220,7 +222,7 @@ Bảng~\ref{tab:strata} phân 150 bài theo ``pool chứa bao nhiêu lời giả
 
 Ba phép kiểm soát vậy là ngược chiều nhau: thiếu mẫu số $\Rightarrow$ đánh giá thấp; thiếu chi phí hoặc mốc $\Rightarrow$ đánh giá cao. Hạn chế tự khai: các hiệu ứng chủ lực ở \S\ref{sec:roles}--\ref{sec:baseline} chưa được phân tầng lại theo cách này (thiếu dữ liệu theo-bài cho từng tầng); con số toàn tập của chúng vì vậy là ước lượng thấp của hiệu ứng trên tầng khả tác động.
 
-\emph{Hết Hồi I.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lượt sinh thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
+\emph{Hết mạch thứ nhất.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lượt sinh thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
 
 % ---------------------------------------------------------------
 \subsection{Số hạng $G$: cơ hội co lại khi chênh lệch tăng}\label{sec:termG}
