@@ -1,32 +1,31 @@
 \section{Phương pháp đo lường}\label{sec:framework}
 
-Phần này xây dựng khung đo lường cho các cơ chế phối hợp giữa các model. Trước hết, chúng tôi
-tách bài toán thành ba câu hỏi cốt lõi --- \emph{tiềm năng cải thiện}, \emph{khả năng khai
-thác}, \emph{thiệt hại}: pool lời giải có chứa giá trị mới hay không, một bộ chọn khả thi có
-khai thác được giá trị đó hay không, và bản thân giao thức có gây ra tổn thất trên những bài
-vốn đã được giải đúng hay không. Từ ba câu hỏi này, các đại lượng định lượng được xây dựng
-và sử dụng nhất quán trong các thí nghiệm tiếp theo.
+Phần này xây dựng khung đo lường cho các cơ chế phối hợp giữa các model. Chúng tôi tách bài
+toán thành ba câu hỏi cốt lõi --- \emph{tiềm năng cải thiện}, \emph{khả năng khai thác},
+\emph{thiệt hại}: pool lời giải có chứa giá trị mới hay không; một bộ chọn khả thi có khai
+thác được giá trị đó hay không; và giao thức có làm giảm kết quả ở những bài vốn đã giải đúng
+hay không. Từ đó, các thí nghiệm sau dùng nhất quán những đại lượng định lượng tương ứng.
 
 \subsection{Ba câu hỏi cốt lõi}\label{sec:threeq}
 
-Để xác định một cơ chế phối hợp có thực sự tạo ra giá trị, chúng tôi xem xét ba thành phần độc
-lập:
+Để biết một cơ chế phối hợp có thực sự tạo ra giá trị hay không, chúng tôi xem xét ba thành
+phần độc lập:
 
 \begin{itemize}\itemsep1pt
 \item \textbf{Tiềm năng cải thiện} ($H$) --- \emph{dư địa} của pool: pool các lời giải được
       sinh ra có chứa lời giải mà model mạnh khi hoạt động đơn lẻ không tìm được hay không?
       Nếu không, dù bộ chọn hoạt động hoàn hảo, cơ chế phối hợp cũng không thể cải thiện kết
       quả.
-\item \textbf{Khả năng khai thác} ($\kappa$) --- chất lượng của \emph{bộ chọn}: nếu pool thực
-      sự chứa một lời giải mới, một tín hiệu khả thi mà không cần biết đáp án có thể chọn đúng
-      lời giải đó hay không?
+\item \textbf{Khả năng khai thác} ($\kappa$) --- chất lượng \emph{bộ chọn}: nếu pool thực sự
+      chứa một lời giải mới, một tín hiệu khả thi, không cần biết đáp án, có thể chọn đúng lời
+      giải đó hay không?
 \item \textbf{Thiệt hại} ($D$): giao thức có làm hỏng những bài mà model mạnh vốn đã giải
       đúng hay không, và mức độ thiệt hại là bao nhiêu?
 \end{itemize}
 
-Do đó, một cơ chế chỉ có thể tạo ra giá trị ròng khi đồng thời có ba điều kiện: có tiềm năng
-cải thiện (pool chứa lời giải mới), có khả năng khai thác nó (bộ chọn nhặt được), và thiệt hại
-do giao thức gây ra nhỏ hơn phần cải thiện thu được. Ba nhánh nghiên cứu trong báo cáo tương ứng với ba thành phần này.
+Vì vậy, một cơ chế chỉ tạo ra giá trị ròng khi đồng thời thỏa ba điều kiện: pool có lời giải
+mới, bộ chọn khai thác được lời giải đó, và thiệt hại do giao thức gây ra nhỏ hơn phần cải
+thiện thu được. Ba nhánh nghiên cứu của báo cáo lần lượt tương ứng với ba thành phần này.
 
 Khung trên chỉ đóng vai trò tổ chức các câu hỏi thực nghiệm; nó không phải là một mô hình dự
 báo. Các đại lượng dùng để kiểm chứng từng thành phần được định nghĩa trong các tiểu mục tiếp
@@ -34,9 +33,9 @@ theo.
 
 \subsection{Thí nghiệm tiếp xúc và đẳng thức phân rã}\label{sec:identity}
 
-Để cô lập tác động của việc một model mạnh nhìn thấy lời giải do model yếu sinh ra, xét một cặp
-model gồm model yếu và model mạnh, chẳng hạn Qwen-1.5B và Qwen-7B. Chúng tôi sử dụng ba ký hiệu
-khác với các vai $P/S/V/A$ ở \S\ref{sec:setup} để tránh nhầm lẫn:
+Để cô lập tác động khi một model mạnh nhìn thấy lời giải của model yếu, xét một cặp model gồm
+model yếu và model mạnh, chẳng hạn Qwen-1.5B và Qwen-7B. Ba ký hiệu dưới đây khác với các vai
+$P/S/V/A$ ở \S\ref{sec:setup} để tránh nhầm lẫn:
 
 \begin{itemize}\itemsep1pt
 \item $W$ --- model \textbf{y}ếu, tự giải bài; lời giải sinh ra được gọi là \emph{artifact}.
@@ -45,18 +44,17 @@ khác với các vai $P/S/V/A$ ở \S\ref{sec:setup} để tránh nhầm lẫn:
       của $W$ trong ngữ cảnh đầu vào.
 \end{itemize}
 
-Điểm quan trọng của thiết kế này là $I$ và $E$ sử dụng cùng một model và cùng nhiệm vụ; khác
-biệt duy nhất là $E$ được nhìn thấy artifact của $W$. Vì vậy, hiệu $\acc(E)-\acc(I)$ đo trực
-tiếp tác động của việc tiếp xúc với lời giải của model yếu. Đây là đại lượng có thể đo trong
-triển khai thực tế mà không cần biết đáp án, ký hiệu là $\dhonest$.
+$I$ và $E$ dùng cùng một model cho cùng một nhiệm vụ; điểm khác biệt duy nhất là $E$ nhìn thấy
+artifact của $W$. Do đó, hiệu $\acc(E)-\acc(I)$ đo trực tiếp tác động của việc tiếp xúc với lời
+giải của model yếu. Đại lượng này, ký hiệu $\dhonest$, có thể đo trong triển khai thực tế mà
+không cần biết đáp án.
 
-Tiếp theo, để biết cơ chế tiếp xúc này có \emph{dư địa} cải thiện đến đâu, ta xét một bộ chọn lý
-tưởng có quyền biết đáp án. Bộ chọn này trả lời đúng nếu $W$ đúng hoặc $E$ đúng; nói cách khác,
-nó đạt mức chính xác
+Để xác định \emph{dư địa} cải thiện của cơ chế tiếp xúc, ta xét một bộ chọn lý tưởng biết đáp
+án. Bộ chọn này trả lời đúng nếu $W$ đúng hoặc $E$ đúng, nên đạt mức chính xác
 \[
 \acc(\CEIL) = P(W \text{ đúng} \vee E \text{ đúng}).
 \]
-Gọi mức cải thiện tối đa này so với model mạnh chạy độc lập là $\dceil$. Khi đó:
+Gọi mức cải thiện tối đa so với model mạnh chạy độc lập là $\dceil$. Khi đó:
 \begin{equation}\label{eq:identity}
 \dceil \;=\; \acc(\CEIL) - \acc(I) \;=\; G - L + R,
 \end{equation}
@@ -75,8 +73,8 @@ R &= P(W \text{ sai} \wedge I \text{ sai} \wedge E \text{ đúng})
 P(W \vee E) - P(I) \;=\; P(W \wedge \neg I) \;-\; P(\neg W \wedge I \wedge \neg E)
 \;+\; P(\neg W \wedge \neg I \wedge E).
 \]
-Nó cho phép phân tách mức cải thiện tối đa thành ba nguồn: cơ hội do model yếu cung cấp, thiệt
-hại do việc tiếp xúc gây ra, và các trường hợp được cứu khi cả hai model ban đầu đều thất bại.
+Đẳng thức này tách mức cải thiện tối đa thành ba nguồn: cơ hội do model yếu cung cấp, thiệt hại
+do tiếp xúc gây ra, và các trường hợp được cứu khi cả hai model ban đầu đều thất bại.
 
 Ví dụ, trên 100 bài, giả sử có 15 bài $W$ đúng nhưng $I$ sai ($G=0{,}15$), 20 bài $W$ sai,
 $I$ đúng nhưng $E$ sai ($L=0{,}20$), và 5 bài cả $W$ lẫn $I$ đều sai nhưng $E$ đúng
@@ -86,28 +84,26 @@ $I$ đúng nhưng $E$ sai ($L=0{,}20$), và 5 bài cả $W$ lẫn $I$ đều sai
 \]
 nghĩa là ngay cả bộ chọn lý tưởng cũng không thể vượt model mạnh hoạt động đơn lẻ.
 
-Do là một cận lý tưởng, $\dceil$ cần đáp án chuẩn và vì vậy không phải là đại lượng có thể triển
-khai trực tiếp. Vai trò của nó là \textbf{sàng lọc}: nếu $\dceil<0$, ngay cả bộ chọn biết đáp án
-cũng không thể cải thiện model mạnh, do đó không có lý do để tiếp tục tìm một bộ chọn khả thi
-$\kappa$. Ngược lại, $\dceil\geq0$ chỉ cho biết rằng về mặt thông tin vẫn tồn tại dư địa để cải
-thiện; nó không đảm bảo một bộ chọn thực tế có thể khai thác được dư địa đó.
+Vì là một cận lý tưởng, $\dceil$ cần đáp án chuẩn nên không thể triển khai trực tiếp. Nó đóng
+vai trò \textbf{sàng lọc}: nếu $\dceil<0$, ngay cả bộ chọn biết đáp án cũng không thể cải thiện
+model mạnh; khi đó không cần tiếp tục tìm bộ chọn khả thi $\kappa$. Ngược lại,
+$\dceil\geq0$ chỉ cho biết về mặt thông tin vẫn còn dư địa cải thiện, chứ không bảo đảm một bộ
+chọn thực tế có thể khai thác được dư địa đó.
 
-Đẳng thức~\eqref{eq:identity} cũng được dùng như một kiểm tra tính nhất quán của sổ sách. Nó
-khớp dữ liệu ở toàn bộ các cặp có lưu vết: 4/4 cặp trong khối thăm dò và 15/15 cặp trong thí
-nghiệm chính, tổng cộng 19/19 cặp. Tuy nhiên, đây chỉ là kiểm tra đại số của dữ liệu, không phải
-bằng chứng cho bất kỳ giả thuyết thực nghiệm nào.
+Đẳng thức~\eqref{eq:identity} cũng là một phép kiểm tính nhất quán của sổ sách. Nó khớp dữ
+liệu ở tất cả các cặp có lưu vết: 4/4 cặp trong khối thăm dò và 15/15 cặp trong thí nghiệm
+chính, tổng cộng 19/19 cặp. Tuy nhiên, đây chỉ là kiểm tra đại số trên dữ liệu, không phải bằng
+chứng cho bất kỳ giả thuyết thực nghiệm nào.
 
-Cuối cùng, cần phân biệt giới hạn của $\dceil$. Đại lượng này chỉ mô tả lớp cơ chế \emph{chọn
-giữa $W$ và $E$ sau khi artifact của $W$ đã được đưa vào ngữ cảnh}. Các cơ chế quyết định
-\emph{có nên cho model mạnh tiếp xúc với artifact hay không} là một lớp bài toán khác và có cận
-riêng, được phân tích ở \S\ref{sec:kappa}.
+$\dceil$ chỉ áp dụng cho lớp cơ chế \emph{chọn giữa $W$ và $E$ sau khi artifact của $W$ đã được
+đưa vào ngữ cảnh}. Các cơ chế quyết định \emph{có nên cho model mạnh tiếp xúc với artifact hay
+không} thuộc một lớp bài toán khác, với cận riêng được phân tích ở \S\ref{sec:kappa}.
 
 \subsection{Hai lớp giao thức và biến ``chênh lệch năng lực''}\label{sec:protocols}
 
-Từ phân rã trên, một khác biệt quan trọng giữa các giao thức là liệu chúng có được phép tạo ra
-một lời giải mới hay chỉ được lựa chọn trong số các lời giải đã có. Chúng tôi phân giao thức
-thành hai lớp dựa trên tiêu chí vận hành này: \emph{đầu ra cuối có bắt buộc phải là một phần tử
-của pool đã sinh hay không}.
+Từ phân rã trên, điểm khác biệt quan trọng giữa các giao thức là chúng có thể tạo lời giải mới
+hay chỉ chọn trong số lời giải sẵn có. Vì vậy, chúng tôi chia giao thức thành hai lớp theo tiêu
+chí vận hành: \emph{đầu ra cuối có bắt buộc phải là một phần tử của pool đã sinh hay không}.
 
 \begin{itemize}\itemsep1pt
 \item \textbf{Tuyển chọn}: đầu ra cuối phải là một phần tử của pool, chẳng hạn bỏ phiếu đa số
@@ -120,16 +116,15 @@ của pool đã sinh hay không}.
       lớn hơn đáng kể (\S\ref{sec:termL}).
 \end{itemize}
 
-Ngoài loại giao thức, một biến quan trọng khác là \textbf{chênh lệch năng lực} giữa hai model.
-Chúng tôi định nghĩa \emph{chênh} là hiệu giữa độ chính xác greedy của model mạnh và model yếu
-trên cùng benchmark, với độ chính xác được chuẩn hoá trên thang 0--1. Ví dụ, với cặp
-1.5B$\to$7B trên MBPP, chênh lệch này là $0{,}244$.
+Ngoài loại giao thức, \textbf{chênh lệch năng lực} giữa hai model cũng là một biến quan trọng.
+\emph{Chênh} là hiệu giữa độ chính xác greedy của model mạnh và model yếu trên cùng benchmark;
+độ chính xác được chuẩn hoá trên thang 0--1. Ví dụ, với cặp 1.5B$\to$7B trên MBPP, chênh lệch
+này là $0{,}244$.
 
-Chênh lệch năng lực được sử dụng như biến giải thích chính trong các thí nghiệm tiếp theo. Ký
-hiệu $g^\ast$ được dành cho mức chênh tại đó đường khớp của $\dceil$ đổi dấu
-(\S\ref{sec:termG}). Qua đó, chúng tôi có thể khảo sát không chỉ liệu một cơ chế phối hợp có
-hiệu quả hay không, mà còn \emph{điều kiện về khoảng cách năng lực giữa các model để cơ chế đó
-còn có dư địa tạo giá trị}.
+Các thí nghiệm tiếp theo dùng chênh lệch năng lực làm biến giải thích chính. Ký hiệu $g^\ast$
+chỉ mức chênh mà tại đó đường khớp của $\dceil$ đổi dấu (\S\ref{sec:termG}). Nhờ vậy, ta không
+chỉ khảo sát một cơ chế phối hợp có hiệu quả hay không, mà còn xác định \emph{điều kiện về
+khoảng cách năng lực giữa các model để cơ chế đó còn có dư địa tạo giá trị}.
 
 
 % =====================================================================
@@ -138,74 +133,74 @@ còn có dư địa tạo giá trị}.
 \todoTD{rà toàn bộ mục này}
 
 \paragraph{Model.} Qwen2.5-Instruct 1.5B/7B/14B/32B \cite{yang2024}; Llama-3.1-8B-Instruct
-\cite{grattafiori2024}; DeepSeek-Coder-6.7B-Instruct \cite{guo2024}. Sáu model này lập thành 15
-cặp có hướng của thí nghiệm \S\ref{sec:termG}; các khối còn lại dùng Qwen 1.5B/7B/14B. Lượng tử
-hoá đo từng model, không suy theo họ: DeepSeek-6.7B nạp nf4 hết 3,61 GB; Qwen-7B 5,21 GB;
-Llama-8B và Qwen-14B không lượng tử hoá được trên bản chạy (fp16 $\sim$16/28 GB). Phần cứng:
-Kaggle 2$\times$T4 (nf4/fp16) và RTX 6000 Pro (bf16). Đo được nf4 so với bf16 dịch kết quả tới
-3 điểm --- cùng cỡ với ngưỡng ý nghĩa hiệu dụng ($\sim$3,3 điểm, xem Thống kê) --- nên so sánh
-chéo phần cứng chỉ đọc theo \emph{dấu}, và mọi so sánh định lượng đều trong cùng (phần cứng +
-độ chính xác số + bộ bài).
+\cite{grattafiori2024}; DeepSeek-Coder-6.7B-Instruct \cite{guo2024}. Sáu model tạo thành 15 cặp
+có hướng trong thí nghiệm \S\ref{sec:termG}; các khối còn lại dùng Qwen 1.5B/7B/14B. Lượng tử
+hoá được đo theo từng model, không suy theo họ: DeepSeek-6.7B nạp nf4 hết 3,61 GB; Qwen-7B hết
+5,21 GB; Llama-8B và Qwen-14B không lượng tử hoá được trên bản chạy (fp16 $\sim$16/28 GB).
+Phần cứng gồm Kaggle 2$\times$T4 (nf4/fp16) và RTX 6000 Pro (bf16). Kết quả nf4 và bf16 chênh
+nhau tới 3 điểm --- cùng cỡ với ngưỡng ý nghĩa hiệu dụng ($\sim$3,3 điểm, xem Thống kê). Vì
+vậy, so sánh chéo phần cứng chỉ đọc theo \emph{dấu}; mọi so sánh định lượng đều nằm trong cùng
+tổ hợp phần cứng, độ chính xác số và bộ bài.
 
 \paragraph{Benchmark.} GSM8K \cite{cobbe2021}; MATH-500 \cite{hendrycks2021}; MBPP
 \cite{austin2021} (dải chính \texttt{task\_id} 11--510, $\sim$499 bài sau lọc; dải giữ lại
-511--974, 464 bài); HumanEval \cite{chen2021}. Điểm mấu chốt cho \S\ref{sec:kappa}:
-MBPP/HumanEval có cách kiểm \emph{chắc chắn} (chạy test --- lời giải qua test là bằng chứng
-trực tiếp), còn MATH/GSM8K không có.
+511--974, 464 bài); HumanEval \cite{chen2021}. Với \S\ref{sec:kappa}, điểm mấu chốt là
+MBPP/HumanEval có cách kiểm \emph{chắc chắn}: lời giải qua test là bằng chứng trực tiếp. MATH
+và GSM8K không có tín hiệu này.
 
-\paragraph{Vai và pipeline.} Bốn vai: $P$ (planner --- lập dàn ý), $S$ (solver --- giải), $V$
-(verifier --- kiểm và được phép sửa), $A$ (aggregator --- nhận nhiều ứng viên, chọn đáp án
-cuối); các tổ hợp viết liền, ví dụ \texttt{PSVA} là pipeline đủ bốn vai. Lưu ý các chữ này chỉ
-\emph{vai trong pipeline}; ba nhân vật $W/I/E$ và ba số hạng $G/L/R$ ở \S\ref{sec:identity} là
-bộ ký hiệu riêng của thí nghiệm tiếp xúc.
+\paragraph{Vai và pipeline.} Bốn vai gồm $P$ (planner --- lập dàn ý), $S$ (solver --- giải),
+$V$ (verifier --- kiểm và được phép sửa), $A$ (aggregator --- nhận nhiều ứng viên, chọn đáp án
+cuối). Các tổ hợp viết liền; chẳng hạn, \texttt{PSVA} là pipeline đủ bốn vai. Những chữ này chỉ
+\emph{vai trong pipeline}; $W/I/E$ và $G/L/R$ ở \S\ref{sec:identity} là bộ ký hiệu riêng của
+thí nghiệm tiếp xúc.
 
 \paragraph{Bộ tổng hợp và các mốc.} Với $k$ lượt giải độc lập cho một bài:
-\texttt{maj@}$k$ = lấy đáp án xuất hiện nhiều nhất (bỏ phiếu đa số);
-\texttt{oracle@}$k$ = đúng nếu \emph{ít nhất một} lượt đúng (trần lý tưởng của mọi cách chọn
-trong pool --- cần đáp án chuẩn, chỉ dùng làm trần);
-\texttt{llm\_agg@}$k$ = một lượt LLM đọc cả $k$ ứng viên rồi chọn/tổng hợp.
-\emph{Ví dụ}: 5 lượt cho đáp án $\{7, 7, 7, 12, 15\}$, đáp án chuẩn 12 --- \texttt{maj@5} chọn
-7 (sai), \texttt{oracle@5} đúng (vì có một lượt ra 12). Trên code, \texttt{exec}$k$ = chạy test
-với từng ứng viên, lấy ứng viên qua test (tín hiệu chắc chắn); \texttt{llm}$k$ = để LLM tự
-duyệt thay vì chạy test (tín hiệu học được).
+\texttt{maj@}$k$ lấy đáp án xuất hiện nhiều nhất (bỏ phiếu đa số);
+\texttt{oracle@}$k$ đúng nếu \emph{ít nhất một} lượt đúng (trần lý tưởng của mọi cách chọn
+trong pool, cần đáp án chuẩn, chỉ dùng làm trần);
+\texttt{llm\_agg@}$k$ là một lượt LLM đọc cả $k$ ứng viên rồi chọn hoặc tổng hợp.
+\emph{Ví dụ}: 5 lượt cho đáp án $\{7, 7, 7, 12, 15\}$, trong khi đáp án chuẩn là 12.
+\texttt{maj@5} chọn 7 (sai), còn \texttt{oracle@5} đúng vì có một lượt ra 12. Trên code,
+\texttt{exec}$k$ chạy test với từng ứng viên và lấy ứng viên qua test (tín hiệu chắc chắn);
+\texttt{llm}$k$ để LLM tự duyệt thay vì chạy test (tín hiệu học được).
 
-\paragraph{Đại lượng dẫn xuất.} \texttt{V\_gain} = độ chính xác pipeline có $V$ trừ pipeline
-cùng cấu hình bỏ $V$; \texttt{A\_gain} tương tự cho $A$. AUC (diện tích dưới đường ROC) đo khả
-năng một bộ phân loại tách lời giải đúng khỏi lời giải sai: 0,5 = đoán ngẫu nhiên, 1,0 = hoàn
-hảo.
+\paragraph{Đại lượng dẫn xuất.} \texttt{V\_gain} là độ chính xác của pipeline có $V$ trừ
+pipeline cùng cấu hình bỏ $V$; \texttt{A\_gain} được định nghĩa tương tự cho $A$. AUC (diện
+tích dưới đường ROC) đo khả năng của bộ phân loại trong việc tách lời giải đúng khỏi lời giải
+sai: 0,5 là đoán ngẫu nhiên, 1,0 là hoàn hảo.
 
-\paragraph{Quy ước đơn vị.} Độ chính xác viết ở thang 0--1; hiệu ứng viết bằng ``điểm'' = điểm
-phần trăm ($+14{,}0$ điểm $= +0{,}140$); ``chênh'' cũng là hiệu accuracy, thang 0--1 (chênh
-$0{,}09 \approx 9$ điểm). Chi phí có ba thang không thay thế được cho nhau: \emph{ký tự sinh}
-(đo thô), \emph{token}, và \emph{FLOP} (tham số $\times$ token) --- chỉ thang FLOP so được giữa
-hai cỡ model; tỷ số chi phí viết kèm dấu $\times$ (ví dụ $0{,}88\times$) để không lẫn với
+\paragraph{Quy ước đơn vị.} Độ chính xác được viết trên thang 0--1; hiệu ứng viết bằng ``điểm''
+(điểm phần trăm: $+14{,}0$ điểm $= +0{,}140$). ``Chênh'' cũng là hiệu accuracy trên thang 0--1
+(chênh $0{,}09 \approx 9$ điểm). Chi phí có ba thang không thể thay thế cho nhau: \emph{ký tự
+sinh} (đo thô), \emph{token}, và \emph{FLOP} (tham số $\times$ token). Chỉ thang FLOP so được
+giữa hai cỡ model; tỷ số chi phí luôn kèm dấu $\times$ (ví dụ $0{,}88\times$) để không lẫn với
 accuracy.
 
 \paragraph{Giải mã và tính tất định.} Khối luồng thông tin dùng greedy
-(\texttt{do\_sample=False}): cùng cấu hình cho kết quả giống hệt từng bài (kiểm 499/499 giữa
-hai tài khoản, hai ngày). Hệ quả: chạy lại cùng cấu hình không phải bằng chứng độc lập; dao
-động giữa các fold đến từ \emph{khác bài}, không phải nhiễu lấy mẫu.
+(\texttt{do\_sample=False}): cùng cấu hình cho kết quả giống hệt trên từng bài (kiểm 499/499
+giữa hai tài khoản, hai ngày). Vì vậy, chạy lại cùng cấu hình không tạo ra bằng chứng độc lập;
+dao động giữa các fold đến từ \emph{khác bài}, không phải từ nhiễu lấy mẫu.
 
 \paragraph{Thống kê.} Khối vai trò/chi phí dùng 5 fold rời nhau (mỗi fold 60--100 bài). Sàn
-nhiễu được hiệu chuẩn bằng cách đo cùng cấu hình trên 5 fold: \texttt{V\_gain} dao động
-$+1{,}0$ đến $+8{,}0$ điểm, độ lệch chuẩn giữa fold 2,65 điểm --- một phép đo đơn lẻ 100 bài
-gần như không mang thông tin. Suy diễn bằng t-test trên fold ($\mathrm{SE}=s/\sqrt{k}$;
+nhiễu được hiệu chuẩn bằng cách đo cùng cấu hình trên 5 fold: \texttt{V\_gain} dao động từ
+$+1{,}0$ đến $+8{,}0$ điểm, với độ lệch chuẩn giữa fold là 2,65 điểm. Vì thế, một phép đo đơn
+lẻ trên 100 bài gần như không mang thông tin. Suy diễn dùng t-test trên fold ($\mathrm{SE}=s/\sqrt{k}$;
 $t_{0{,}975}(4)=2{,}776$, tức ngưỡng hiệu dụng $\sim$3,3 điểm), khoảng tin cậy 95\% (KTC), và
 phép thử dấu (5/5 fold cùng dấu $\Rightarrow p=0{,}031$ một phía). Khối luồng thông tin dùng
 McNemar chính xác ghép cặp trên cùng bộ bài và bootstrap ghép cặp (10\,000 lần). Với 131 phép
 thử toàn dự án, kỳ vọng $\sim$6,6 dương tính giả \cite{bh1995}; các ca $p \in [0{,}02;0{,}05]$
 đọc dè dặt tương ứng.
 
-\paragraph{Nhãn tin cậy và quy trình.} \emph{Mức A} = tiền đăng ký với điều kiện hợp lệ, hoặc 5
-fold kèm t-test; \emph{mức B} = đo một lần hoặc phân rã hậu nghiệm --- chỉ dùng minh hoạ cơ
-chế. Mọi thí nghiệm khối luồng thông tin khoá bảng diễn giải \emph{trước} khi chạy (kèm dòng
-bác bỏ giả thuyết); kết quả niêm phong hash trước khi đọc; lần chạy không đạt điều kiện hợp lệ
-bị đánh dấu VOID và không đọc số. Thành tích của bộ lọc này: 16/32 lần chạy VOID (50\%); sổ dự
-đoán trước công khai đoán đúng 21/43 --- người đặt giả thuyết đoán sai một nửa, đó chính là lý
-do phải khoá diễn giải trước khi thấy số. Trong lần rà giữa kỳ trên 131 đại lượng: bốn kết quả
-chủ lực của khối fold ($+14{,}0$, $+11{,}0$, $+5{,}6$, $+4{,}4$ --- xem \S\ref{sec:results})
-giữ ý nghĩa ($t=3{,}3$--$6{,}9$); kết quả $+7{,}7$ của khối McNemar cũng giữ ($p=0{,}0075$);
-6 kết quả được phục hồi sau khi đối chiếu cờ hợp lệ; 1 mất ý nghĩa ($k{=}3$ fold); 2 ca treo
-được phán bằng dữ liệu fold còn trên Kaggle, không cần chạy lại.
+\paragraph{Nhãn tin cậy và quy trình.} \emph{Mức A} là tiền đăng ký với điều kiện hợp lệ, hoặc
+5 fold kèm t-test; \emph{mức B} là đo một lần hoặc phân rã hậu nghiệm, chỉ dùng để minh hoạ cơ
+chế. Trước khi chạy, mọi thí nghiệm trong khối luồng thông tin đều khoá bảng diễn giải (kèm dòng
+bác bỏ giả thuyết); kết quả được niêm phong hash trước khi đọc. Lần chạy không đạt điều kiện hợp
+lệ bị đánh dấu VOID và không đọc số. Bộ lọc này loại 16/32 lần chạy (50\%). Sổ dự đoán trước
+công khai đoán đúng 21/43, tức người đặt giả thuyết sai khoảng một nửa; đó là lý do phải khoá
+diễn giải trước khi thấy số. Trong lần rà giữa kỳ trên 131 đại lượng, bốn kết quả chủ lực của
+khối fold ($+14{,}0$, $+11{,}0$, $+5{,}6$, $+4{,}4$ --- xem \S\ref{sec:results}) giữ ý nghĩa
+($t=3{,}3$--$6{,}9$); kết quả $+7{,}7$ của khối McNemar cũng giữ ($p=0{,}0075$). 6 kết quả
+được phục hồi sau khi đối chiếu cờ hợp lệ; 1 mất ý nghĩa ($k{=}3$ fold); 2 ca treo được phán
+bằng dữ liệu fold còn trên Kaggle, không cần chạy lại.
 
 % =====================================================================
