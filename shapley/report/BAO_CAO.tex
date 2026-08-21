@@ -163,7 +163,39 @@ vai, phân tích chi phí--lợi ích của định tuyến, và phân tích lu�
 \end{enumerate}
 Toàn bộ số liệu đi kèm quy trình chống tự đánh lừa (tiền đăng ký, điều kiện hợp lệ, niêm phong
 kết quả) mô tả ở \S\ref{sec:setup}; 50\% số lần chạy không vượt qua điều kiện và bị loại trước
-khi đọc số.
+khi đọc số. Báo cáo dùng một số ký hiệu riêng; Bảng~\ref{tab:cheatsheet} là chỗ tra nhanh ---
+mọi ký hiệu đều được định nghĩa đầy đủ ở \S\ref{sec:framework}--\ref{sec:setup} trước khi
+dùng.
+
+\begin{table}[t]\centering\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}p{0.24\linewidth}p{0.71\linewidth}@{}}\toprule
+\multicolumn{2}{@{}l}{\textbf{Tra nhanh ký hiệu} (chi tiết: \S\ref{sec:framework}--\ref{sec:setup}; ví dụ bằng số: Phụ lục~\ref{app:glossary})}\\\midrule
+$P, S, V, A$ & bốn \emph{vai} pipeline: lập dàn ý -- giải -- kiểm-và-sửa -- chọn đáp án cuối;
+viết liền là tổ hợp vai (\texttt{PSVA} = đủ bốn vai)\\
+$W$ / $I$ / $E$ & ba \emph{nhân vật} của thí nghiệm tiếp xúc: model yếu / model mạnh giải một
+mình / \emph{cùng} model mạnh nhưng thấy bài của $W$\\
+artifact & bài làm của model yếu --- thứ được đưa (hoặc không) vào ngữ cảnh model mạnh\\
+$G, L, R$ & cơ hội / thiệt hại / cứu --- ba số hạng của $\dceil = G-L+R$\\
+$\dceil$ & trần lý tưởng trừ model mạnh; cần đáp án chuẩn nên \emph{chỉ để sàng lọc}\\
+$\dhonest$ & $\acc(E)-\acc(I)$ --- đại lượng \emph{triển khai được}\\
+chênh; $g^\ast$ & hiệu accuracy model mạnh $-$ model yếu (thang 0--1); mức chênh nơi
+$\dceil$ đổi dấu ($\approx 0{,}09$)\\
+\texttt{maj@}$k$; \texttt{oracle@}$k$ & bỏ phiếu đa số trong $k$ lượt sinh; trần lý tưởng
+(đúng nếu $\geq 1$ lượt đúng)\\
+\texttt{exec3} / \texttt{llm3} & trên code: chọn ứng viên bằng \emph{chạy test} / để LLM
+\emph{tự duyệt}\\
+\texttt{V\_gain}, \texttt{A\_gain} & accuracy thay đổi khi thêm vai $V$ (hoặc $A$) vào cùng
+pipeline\\
+điểm; KTC & điểm phần trăm ($+14{,}0$ điểm $=+0{,}140$); khoảng tin cậy 95\%\\
+fold; sàn nhiễu & 1 trong 5 phần bài rời nhau; biên dao động của phép đo lặp (tới 7
+điểm/100 bài) --- hiệu ứng tin được khi 5/5 fold cùng dấu và qua t-test\\
+mức A / mức B & tiền đăng ký hoặc 5 fold kèm t-test / đo một lần, chỉ minh hoạ cơ chế\\
+VOID & lần chạy bị loại vì trượt điều kiện hợp lệ đã khoá trước --- không đọc số\\\bottomrule
+\end{tabular}
+\caption{Bảng tra nhanh toàn bộ ký hiệu và thuật ngữ riêng của báo cáo.}
+\label{tab:cheatsheet}
+\end{table}
 
 % =====================================================================
 \section{Công trình liên quan}\label{sec:related}
@@ -357,7 +389,8 @@ giữ ý nghĩa ($t=3{,}3$--$6{,}9$); kết quả $+7{,}7$ của khối McNemar 
 \emph{Phần kết quả chia hai hồi. \textbf{Hồi I} (\S\ref{sec:start}--\ref{sec:denominator}) áp
 lần lượt ba phép kiểm soát và cho thấy bức tranh ``phối hợp giúp X điểm'' thay đổi thế nào sau
 mỗi phép. \textbf{Hồi II} (\S\ref{sec:termG}--\ref{sec:rl}) định vị giá trị còn lại bằng ba
-thừa số $G$, $L$, $\kappa$, và đóng bằng câu hỏi huấn luyện. Số liệu ở mức A trừ khi ghi khác (\S\ref{sec:setup}).}
+thừa số $G$, $L$, $\kappa$, và đóng bằng câu hỏi huấn luyện. Số liệu ở mức A trừ khi ghi khác;
+ký hiệu tra nhanh ở Bảng~\ref{tab:cheatsheet}.}
 
 % ---------------------------------------------------------------
 \subsection{Điểm xuất phát: pipeline có giúp không, và nhiễu lớn cỡ nào}\label{sec:start}
@@ -1037,7 +1070,7 @@ trình bắt được điều đó là một kết quả phương pháp ngang h�
 \begin{enumerate}\itemsep2pt
 \item \textbf{$\dhonest$ mới phủ một phần không gian cấu hình.} Đại lượng triển khai được đã đo
       ở: 15 cặp MBPP (0/15 dương), 1 cặp MATH bất đối xứng ($-12{,}4$ điểm), và 1 cấu hình cùng
-      cỡ ($+7{,}7$ điểm). Ba cặp xác nhận chéo mới (thiết kế H100) chạy dở vì giới hạn VRAM
+      cỡ ($+7{,}7$ điểm). Ba cặp xác nhận chéo mới (ba cặp model chưa đo) chạy dở vì giới hạn VRAM
       14,6 GB: 8/9 nhánh sinh đã xong, còn một nhánh --- kết quả chưa đọc theo đúng quy trình
       niêm phong.
 \item \textbf{Mâu thuẫn \texttt{A\_gain} đã thu hẹp nhưng chưa khép}: sau khi vá định dạng
@@ -1061,17 +1094,7 @@ trình bắt được điều đó là một kết quả phương pháp ngang h�
 \end{enumerate}
 
 % =====================================================================
-\section{Đóng góp thành viên}
-
-\todoD{Nhóm xác nhận/điền ở Bước 0 --- bản nháp:} \textbf{Nguyên}: thiết kế và chạy các thí
-nghiệm khối luồng thông tin và chi phí (\S\ref{sec:baseline}--\ref{sec:kappa}), quy trình tiền
-đăng ký, chấp bút báo cáo. \textbf{Đức}: rà và xác nhận trích dẫn \S\ref{sec:related}, đối
-chiếu mốc so sánh của các công trình sinh-rồi-sửa, hình bất đối xứng verifier. \textbf{Tùng
-Dương}: rà thiết lập thí nghiệm \S\ref{sec:setup}, kiểm định nghĩa các cột bảng
-\ref{tab:exec}--\ref{tab:clf}, các hình còn lại. \textbf{Quân}: khối giá trị Shapley 16 tổ
-hợp và khối huấn luyện GRPO (\S\ref{sec:shapley}, \S\ref{sec:rl}); hai hình tái dụng từ báo
-cáo của khối này.
-
+% (Mục "Đóng góp thành viên" sẽ được nhóm bổ sung khi hoàn chỉnh.)
 % =====================================================================
 \begin{thebibliography}{99}\small
 \bibitem{austin2021} J. Austin et al. \emph{Program Synthesis with Large Language Models.}
