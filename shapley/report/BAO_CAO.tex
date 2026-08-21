@@ -883,134 +883,197 @@ bộ phân loại supervised --- đã ở Bảng~\ref{tab:clf}.}
 \label{tab:rl}
 \end{table}
 
-Đáng chú ý nhất là thí nghiệm bất đối xứng thông tin (phương pháp thứ ba), khi đo được đồng thời hai mốc trên cùng một lần chạy. So với model yếu, hiệu ứng là $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi không xem bài, hiệu ứng là $-10{,}4$ điểm (5/5 fold âm). Đây là bản tái lập bằng huấn luyện của nghịch lý mốc so sánh (\S\ref{sec:synthesis}): RL thu hẹp thiệt hại tiếp xúc (gỡ 38\%) nhưng không đảo được dấu của $\dhonest$. Kết luận chung của toàn bộ các phương pháp nối thẳng vào \S\ref{sec:kappa}: khi tín hiệu thưởng cũng chỉ là một tín hiệu học được, quá trình tối ưu hoá tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm tra thực sự.
+\looseness=-1
+Hình~\ref{fig:grpoexample} minh hoạ một ca cụ thể. Đáng chú ý nhất là thí nghiệm bất đối xứng thông tin (phương pháp thứ ba), khi đo được đồng thời hai mốc trên cùng một lần chạy. So với model yếu, hiệu ứng là $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi không xem bài, hiệu ứng là $-10{,}4$ điểm (5/5 fold âm). Đây là bản tái lập bằng huấn luyện của nghịch lý mốc so sánh (\S\ref{sec:synthesis}): RL thu hẹp thiệt hại tiếp xúc (gỡ 38\%) nhưng không đảo được dấu của $\dhonest$. Kết luận chung của toàn bộ các phương pháp nối thẳng vào \S\ref{sec:kappa}: khi tín hiệu thưởng cũng chỉ là một tín hiệu học được, quá trình tối ưu hoá tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm tra thực sự.
 
-\section{Tổng hợp: nghịch lý nằm ở mốc so sánh}\label{sec:synthesis}
+\section{Tổng hợp và thảo luận: Cơ chế nghịch lý mốc tham chiếu}\label{sec:synthesis}
 
-Hai kết quả tưởng chừng đối nghịch: \S\ref{sec:roles} nói chênh lệch năng lực lớn cho
-$+14{,}0$ điểm; \S\ref{sec:termG} nói chênh lệch lớn đẩy $\dceil$ âm. Cùng một biến, hai dấu.
+Hai quan sát thực nghiệm tưởng chừng mâu thuẫn: \S\ref{sec:roles} ghi nhận chênh lệch năng lực
+lớn với mức tăng $+14{,}0$ điểm, \S\ref{sec:termG} lại chỉ ra chênh lệch
+lớn khiến mức cải thiện tối đa $\dceil$ chuyển sang giá trị âm.
 
-\textbf{Lời giải: hai con số dùng hai mốc so sánh, và chênh lệch năng lực tác động ngược chiều
-lên hai mốc.}
+Sự tương phản này bắt nguồn từ việc sử dụng hai mốc tham chiếu khác nhau, trong đó chênh lệch
+năng lực tác động theo hai chiều trái ngược (Hình~\ref{fig:paradox}):
 \begin{itemize}\itemsep2pt
-\item \emph{So với model yếu} (cách đo phổ biến của dòng sinh-rồi-sửa): lượt kiểm là một
-      lần sinh bằng model mạnh hơn (\S\ref{sec:roles}), nên hiệu ứng xấp xỉ chênh lệch năng
-      lực cộng phần lượt-sinh-thêm --- \emph{tăng theo chênh gần như theo định nghĩa}: $+3{,}0$
-      điểm ở chênh 0 lên $+14{,}0$ điểm ở chênh 0,244.
-\item \emph{So với model mạnh} (mốc đúng của người triển khai): giá trị là $G - L + R$, trong
-      đó $G$ \emph{giảm} theo chênh ($\beta_1 = -0{,}19$, \S\ref{sec:termG}) và $L$ \emph{tăng}
-      --- ở chênh 0,244 trên MATH, $L$ gấp $\sim$11 lần $G$ --- nên giá trị giảm, và điểm dương
-      duy nhất đo được nằm ở chênh $= 0$ ($+7{,}7$ điểm, \S\ref{sec:baseline}).
+\item \emph{So sánh với model yếu $W$} (mốc quy chiếu thường gặp trong các nghiên cứu): vai trò 
+      kiểm tra thực chất tương đương một lượt giải độc lập bởi model mạnh hơn (\S\ref{sec:roles}). 
+      Từ đó phản ánh khoảng cách năng lực nội tại kết hợp với 
+      lợi thế từ lần sinh bổ sung, dẫn đến mức tăng tỷ lệ thuận với độ chênh lệch năng lực (từ 
+      $+3{,}0$ điểm khi chênh lệch bằng 0 lên $+14{,}0$ điểm khi chênh lệch đạt 0,244).
+\item \emph{So sánh với model mạnh chạy độc lập $I$} (mốc quy chiếu thực tế trong triển khai):
+      giá trị ròng tuân theo biểu thức $G - L + R$. Trong đó, cơ hội cải thiện $G$ suy giảm
+      theo độ chênh lệch ($\beta_1 = -0{,}19$, \S\ref{sec:termG}), trong khi tổn thất $L$ lại
+      tăng mạnh (MATH ở mức chênh lệch 0,244, $L$ lớn gấp $\sim$11 lần $G$). Hệ quả
+      giá trị kết hợp giảm dần, cấu hình dương duy nhất xuất hiện khi hai
+      model có năng lực tương đương ($+7{,}7$ điểm tại mức chênh lệch bằng 0,
+      \S\ref{sec:baseline}).
 \end{itemize}
-Nghịch lý vì vậy không nằm ở cơ chế mà ở phép đo: \emph{chênh lệch năng lực chính là cái làm
-mốc-so-với-model-yếu phồng lên và làm giá trị thật xẹp xuống}. Cơ chế nội dung sai
-(\S\ref{sec:termL}) giải thích vì sao phía mốc-mạnh âm sâu đến vậy: càng chênh, artifact càng
-hay sai, model mạnh càng bị neo vào lời giải sai trên chính vùng nó vốn làm được.
+Như vậy, nghịch lý trên không xuất phát từ cơ chế phối hợp mà do sự thiên lệch trong cách chọn
+mốc so sánh: chênh lệch năng lực làm phóng đại hiệu quả biểu kiến so với model yếu, nhưng lại
+làm suy giảm giá trị gia tăng thực tế so với model mạnh. Cơ chế tổn thất do phơi nhiễm
+(\S\ref{sec:termL}) lý giải nguyên nhân dẫn đến sự suy giảm này: khi khoảng cách năng lực càng
+lớn, xác suất xuất hiện artifact sai càng cao, khiến model mạnh bị định hướng sai
+ngay trên tập bài toán mà bản thân nó có khả năng giải quyết độc lập.
 
-\begin{figure}[t]\centering
-\begin{tikzpicture}[scale=1.0]
-  % axes: x = chênh (0..0,32) -> 0..8cm ; y = điểm (−18..+16) -> ×0,15cm
-  \draw[-{Stealth}] (0,-2.9) -- (0,2.6) node[above,font=\small]{hiệu ứng (điểm)};
-  \draw[-{Stealth}] (-0.2,0) -- (8.3,0) node[right,font=\small]{chênh lệch năng lực};
-  \foreach \x/\l in {0/0, 2.5/0{,}1, 5.0/0{,}2, 7.5/0{,}3}
-    \draw (\x,0.06) -- (\x,-0.06) node[below,font=\footnotesize]{\l};
-  \foreach \y/\l in {1.5/+10, -1.5/-10}
-    \draw (0.06,\y) -- (-0.06,\y) node[left,font=\footnotesize]{\l};
-  % đường so với model yếu: (0,+3) -> (0,244,+14)  [x*25, y*0.15]
-  \draw[very thick, blue!60!black] (0,0.45) -- (6.6,2.25)
-    node[pos=0.45, above, sloped, font=\small]{so với model yếu};
-  \fill[blue!60!black] (0,0.45) circle (2pt) node[above left,font=\footnotesize]{$+3{,}0$};
-  \fill[blue!60!black] (6.1,2.1) circle (2pt) node[above,font=\footnotesize]{$+14{,}0$};
-  % đường khớp Δtran (MBPP): y = 2,18 − 23,92x (điểm)
-  \draw[very thick, red!70!black, dashed] (0,0.33) -- (8.0,-0.75)
-    node[pos=0.52, below, sloped, font=\small]{trần $\dceil$ (khớp MBPP)};
-  % điểm đo MATH
-  \fill[red!70!black] (1.1,-0.21) circle (2pt);
-  \fill[red!70!black] (6.1,-2.49) circle (2pt) node[below,font=\footnotesize]{$-16{,}6$};
-  \fill[red!70!black] (7.2,-1.02) circle (2pt);
-  \node[red!70!black, font=\footnotesize] at (3.5,-1.5) {điểm đo MATH};
-  \draw[red!70!black,-{Stealth},thin] (2.6,-1.35) -- (1.35,-0.4);
-  \draw[red!70!black,-{Stealth},thin] (4.4,-1.65) -- (5.85,-2.35);
-  % điểm E>I tại chênh 0
-  \node[draw, red!70!black, fill=white, inner sep=1.6pt] at (0,1.16) {};
-  \node[font=\footnotesize, red!70!black, anchor=west] at (0.18,1.16) {$+7{,}7$ (cùng cỡ, so với model mạnh)};
-  % g*
-  \draw[gray, dotted, thick] (2.28,-2.6) -- (2.28,1.9);
-  \node[gray, font=\footnotesize, anchor=south] at (2.28,1.9) {$g^\ast \approx 0{,}09$};
+\begin{figure}[!ht]\centering
+\begin{tikzpicture}[x=255mm, y=1.85mm]
+  % 1. Vung nen phan chia
+  \fill[blue!5, rounded corners=3pt] (0, 0) rectangle (0.091, 16.5);
+  \fill[red!4, rounded corners=3pt] (0.091, -18.5) rectangle (0.32, 0);
+
+  % 2. Luoi toa do nhe
+  \draw[help lines, color=gray!25, xstep=0.05, ystep=5] (0, -18.5) grid (0.32, 16.5);
+
+  % 3. Truc toa do
+  \draw[->, >=Stealth, thick, black!80] (-0.012, 0) -- (0.335, 0) node[right=4pt, font=\footnotesize\bfseries] {Khoảng cách năng lực};
+  \draw[->, >=Stealth, thick, black!80] (0, -19.5) -- (0, 18.5) node[above=4pt, font=\footnotesize\bfseries] {Hiệu ứng ròng (điểm)};
+
+  % 4. Ticks tren truc
+  \foreach \x/\l in {0.05/0{,}05, 0.1/0{,}10, 0.15/0{,}15, 0.2/0{,}20, 0.25/0{,}25, 0.3/0{,}30}
+    \draw[thick, black!75] (\x, 0.6) -- (\x, -0.6) node[below=3pt, font=\footnotesize] {$\l$};
+  \foreach \y in {-15, -10, -5, 5, 10, 15}
+    \draw[thick, black!75] (0.002, \y) -- (-0.002, \y) node[left=3pt, font=\footnotesize] {$\y$};
+  \node[below left=2pt, font=\footnotesize] at (0,0) {$0$};
+
+  % 5. Nguong doi dau g*
+  \draw[dashed, thick, gray!80!black] (0.091, -18.5) -- (0.091, 16.5);
+  \node[draw=gray!50, fill=white, rounded corners=2pt, font=\scriptsize\bfseries, inner sep=2.5pt] at (0.091, 17.5) {Ngưỡng $g^\ast \approx 0{,}09$};
+
+  % 6. Duong xanh: So voi mo hinh yeu (MATH)
+  \draw[very thick, blue!80!black] (0, 3.0) -- (0.244, 14.0);
+  \fill[blue!80!black] (0, 3.0) circle (2.2pt);
+  \node[above right=1pt, blue!90!black, font=\footnotesize\bfseries] at (0, 3.0) {$+3{,}0$};
+  \fill[blue!80!black] (0.244, 14.0) circle (2.2pt);
+  \node[above=2pt, blue!90!black, font=\footnotesize\bfseries] at (0.244, 14.0) {$+14{,}0$};
+
+  % 7. Duong do: Tran Delta_tran so voi mo hinh manh (MBPP)
+  \draw[very thick, red!75!black, dashed] (0, 2.18) -- (0.32, -5.47);
+
+  % 8. Diem do thuc nghiem MATH
+  \fill[red!75!black] (0.044, -1.4) circle (2.2pt);
+  \node[left=3pt, font=\scriptsize\bfseries, red!85!black] at (0.044, -1.4) {$-1{,}4$};
+
+  \fill[red!75!black] (0.244, -16.6) circle (2.2pt);
+  \node[below=2pt, font=\footnotesize\bfseries, red!85!black] at (0.244, -16.6) {$-16{,}6$};
+
+  \fill[red!75!black] (0.288, -6.8) circle (2.2pt);
+  \node[below right=-1pt, font=\scriptsize\bfseries, red!85!black] at (0.288, -6.8) {$-6{,}8$};
+
+  % 9. Diem cung quy mo tai chenh = 0
+  \node[draw=red!75!black, fill=white, line width=1.1pt, inner sep=2.2pt] at (0, 7.7) {};
+  \node[above right=1pt, font=\footnotesize\bfseries, red!85!black] at (0, 7.7) {$+7{,}7$};
+
+  % 10. Nhan chu thich vung
+  \node[font=\scriptsize\itshape, text=blue!80!black, anchor=north west] at (0.004, 15.2) {Vùng trần $\dceil > 0$ (có cơ hội cải thiện)};
+  \node[font=\scriptsize\itshape, text=red!70!black, anchor=center] at (0.165, -10.5) {Vùng trần $\dceil < 0$ (suy giảm ròng)};
+
+  % 11. Hop Legend nam phia duoi do thi
+  \node[draw=gray!45, fill=white, fill opacity=0.98, text opacity=1, rounded corners=3pt, font=\scriptsize, anchor=north, align=center, inner sep=4pt] at (0.16, -22.5) {
+    \tikz[baseline=-0.5ex]{\draw[very thick, blue!80!black] (0,0) -- (0.35cm,0); \fill[blue!80!black] (0.175cm,0) circle (1.8pt);} So với \emph{model yếu} $W$ (MATH) \qquad\qquad
+    \tikz[baseline=-0.5ex]{\draw[very thick, red!75!black, dashed] (0,0) -- (0.35cm,0);} Trần $\dceil$ so với \emph{model mạnh} $I$ (khớp MBPP) \\[2pt]
+    \tikz[baseline=-0.5ex]{\fill[red!75!black] (0.175cm,0) circle (2pt);} Điểm $\dceil$ thực nghiệm trên MATH (Bảng~\ref{tab:transfer}) \qquad
+    \tikz[baseline=-0.5ex]{\node[draw=red!75!black, fill=white, inner sep=1.4pt] at (0.175cm,0) {};} Điểm đối chứng cùng quy mô ($\text{chênh}=0$)
+  };
 \end{tikzpicture}
-\caption{Nghịch lý mốc so sánh. Cùng trục hoành là chênh lệch năng lực: hiệu ứng đo so với
-\emph{model yếu} (đường liền; hai điểm đo MATH) tăng; giá trị so với \emph{model mạnh} (đường
-đứt: khớp trên 15 cặp MBPP; chấm đỏ: ba điểm đo MATH của Bảng~\ref{tab:transfer}; ô vuông:
-điểm $+7{,}7$ tại chênh 0) giảm và âm sau $g^\ast$. Hình vẽ đúng số liệu nhưng nối hai thiết
-lập khác nhau --- xem Bảng~\ref{tab:doichieu} trước khi so hai đường theo trục tung.}
+\caption{Nghịch lý mốc tham chiếu. Trục hoành là khoảng cách năng lực: hiệu ứng đo so với
+\emph{model yếu} $W$ (đường xanh liền) tăng mạnh do cộng hưởng năng lực; trong khi trần giá trị ròng $\dceil$
+so với \emph{model mạnh} $I$ (đường đỏ đứt: khớp trên 15 cặp MBPP; các chấm đỏ: 3 điểm đo MATH) suy giảm
+nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \approx 0{,}09$ do tổn thất phơi nhiễm $L$
+áp đảo cơ hội cải thiện $G$.}
 \label{fig:paradox}
 \end{figure}
 
-Sáu mảnh bằng chứng nội bộ hội tụ về bức tranh này: (1) cấu trúc --- lớp chỉ-chọn đặt $L=0$
-theo định nghĩa; (2) độ lớn --- $L \approx 11 G$ ở chênh lớn trên MATH; (3) cơ chế --- thiệt
-hại do tiếp xúc nội dung sai, tiền đăng ký, hai miền; (4) trần --- cổng lọc hoàn hảo chỉ thu
-$+1{,}8$ điểm trên nền $-12{,}4$ điểm; (5) liên miền --- quy luật MBPP không bị bác bỏ trên
-MATH ở 2/3 cặp (độ phân giải thấp); (6) tái lập bằng huấn luyện --- RL bất đối xứng thông tin
-đo đồng thời $+17{,}0$ điểm so model yếu và $-10{,}4$ điểm so model mạnh, cả hai 5/5 fold
-(\S\ref{sec:rl}). Một quan sát ngoài --- tranh biện không nhất quán vượt được
-self-consistency, và giảm khoảng 16 điểm ở Llama-3.1-8B trên GSM8K
-\cite{mad2025baseline} --- nhất quán về hướng với mẫu hình suy giảm ở model nhỏ mà chúng tôi
-quan sát độc lập.
+Sáu kết quả thực nghiệm độc lập củng cố cho kết luận trên: (1) \emph{về mặt cấu trúc}, giao thức 
+tuyển chọn triệt tiêu hoàn toàn tổn thất ($L=0$) theo thiết kế; (2) \emph{về độ lớn}, tổn thất $L$
+vượt trội hoàn toàn cơ hội cải thiện $G$ ($L \approx 11G$) khi chênh lệch năng lực lớn trên MATH;
+(3) \emph{về cơ chế}, tổn thất bắt nguồn trực tiếp từ việc phơi nhiễm với artifact sai lệch,
+đã được xác thực qua thử nghiệm chốt trước trên hai miền task; (4) \emph{về trần lý thuyết},
+cơ chế định tuyến lý tưởng cũng chỉ mang lại mức cải thiện khiêm tốn $+1{,}8$ điểm trên
+nền suy giảm $-12{,}4$ điểm; (5) \emph{về tính tổng quát}, quy luật thiết lập trên MBPP duy trì
+tính nhất quán trên 2/3 cặp model của tập MATH; và (6) \emph{về tính tái lập qua huấn luyện},
+phương pháp học tăng cường dưới điều kiện bất đối xứng thông tin ghi nhận đồng thời mức tăng
+$+17{,}0$ điểm so với model yếu và mức giảm $-10{,}4$ điểm so với model mạnh qua 5/5 fold
+(\S\ref{sec:rl}). Ngoài ra, các công bố độc lập về việc tranh biện đa tác tử kém hiệu quả hơn
+phương pháp self-consistency trên các model quy mô nhỏ \cite{chen2025debate} tương tự cho thấy sự tương
+đồng về xu hướng.
 
-\paragraph{Cây quyết định thực dụng} (trong phạm vi model 1,5B--32B, bốn benchmark suy luận):
+\paragraph{Khuyến nghị thiết kế hệ thống} (áp dụng cho dải model 1,5B--32B trên các task suy luận):
 \begin{itemize}\itemsep2pt
-\item \textbf{Miền có cách kiểm chắc chắn} (code chạy test) \emph{và model chưa bão hoà}: sinh
-      độc lập rồi chọn bằng test --- đạt trần, phá 0 bài. Khi model đã bão hoà, thêm bộ kiểm
-      vẫn lỗ (26 phá / 6 sửa ở GSM8K 7B).
-\item \textbf{Miền không có}: bỏ phiếu đa số lấy được phần đáng kể tiềm năng cải thiện ở model nhỏ
-      (43\% ở MATH 1.5B) nhưng gần cạn ở model mạnh (8\% ở 7B) và có hại trên code; thành phần
-      LLM tổng hợp trung tính-đến-hại; tín hiệu học được đo tốt nhưng chưa đổi được thành độ
-      chính xác.
-\item \textbf{Trong các miền đã khảo sát}: cấu hình cho model mạnh xem bài model yếu để sửa cho
-      hiệu ứng âm hoặc không dương, rõ nhất khi chênh vượt $\sim$0,09 (trên MBPP); mốc phải so
-      luôn là gọi thẳng model mạnh.
+\item \textbf{Đối với các miền có cơ chế kiểm chứng tất định} \emph{khi model chưa đạt ngưỡng bão hoà}: phương pháp tối ưu là tạo tập ứng viên độc
+      lập và chọn lọc dựa trên kết quả thực thi; cơ chế này tiệm cận trần oracle mà không làm suy
+      giảm các lời giải chính xác. Ngược lại, khi model nền tảng đã bão hoà độ chính xác, việc bổ
+      sung bộ kiểm tra có thể làm giảm hiệu năng tổng thể (ghi nhận 26 trường hợp làm sai so với
+      6 trường hợp sửa đúng trên GSM8K 7B).
+\item \textbf{Đối với các miền thiếu cơ chế kiểm chứng tất định}: kỹ thuật bỏ phiếu đa số khai
+      thác hiệu quả phần lớn tiềm năng trên các model nhỏ (43\% trên MATH 1.5B) nhưng hiệu quả
+      giảm rõ rệt trên model lớn (8\% trên 7B) và có thể phản tác dụng trong bài toán sinh
+      mã. Vai trò tổng hợp bằng LLM nhìn chung không đem lại lợi ích vượt trội so với bỏ phiếu cơ
+      học; các tín hiệu phân loại học được tuy đạt độ phân tách cao trên tập kiểm thử nhưng chưa
+      tác động tích cực đến độ chính xác thực tế.
+\item \textbf{Nguyên tắc phối hợp liên model}: việc chuyển giao artifact của model nhỏ để model
+      lớn hiệu chỉnh nhìn chung dẫn đến hiệu quả âm hoặc không có ý nghĩa thống kê, đặc biệt khi
+      khoảng cách năng lực vượt ngưỡng $\sim$0,09 (trên MBPP). Trong trường hợp này, phương án tối
+      ưu về cả hiệu năng và chi phí là kích hoạt trực tiếp model mạnh đơn lẻ.
 \end{itemize}
 
 % =====================================================================
 \section{Kết luận và hạn chế}\label{sec:limits}
 
-``Đa tác tử có giúp không'' không có câu trả lời duy nhất; câu trả lời phụ thuộc ba thừa số đo
-được. Tiềm năng cải thiện (số hạng $G$) do chênh lệch năng lực quyết định --- và co lại khi
-chênh tăng; khả năng khai thác $\kappa$ do tính chắc chắn của tín hiệu kiểm quyết định --- không
-phải chất lượng đo; thiệt hại
-$L$ do tiếp xúc với nội dung sai quyết định --- và giao thức sửa, theo số liệu
-\S\ref{sec:termL}, hoạt động như ống dẫn đáp án hơn là bộ sửa lỗi. Cùng một chênh lệch năng lực
-làm phép so-với-model-yếu đẹp lên và giá trị thật xấu đi; nơi có bộ kiểm chắc chắn và còn dư
-địa, phối hợp chạm trần mà không phá bài nào; nơi không có, cấu hình tốt nhất đã đo là sinh độc
-lập và bỏ phiếu, không đưa bài làm của model này vào ngữ cảnh model khác. Phần lớn ``cải thiện''
-ghi nhận ban đầu của chính chúng tôi không sống qua bộ ba kiểm soát: một nửa số lần chạy trượt
-điều kiện kỹ thuật và bị loại, phần còn lại đa số không đạt ngưỡng thống kê.
+Hiệu quả thực tế của các hệ thống đa tác tử LLM không thể được khái quát hoá bằng một kết luận
+đơn tuyến, mà phụ thuộc có hệ thống vào ba yếu tố định lượng: (1) cơ hội cải thiện $G$, được
+quy định bởi khoảng cách năng lực và có xu hướng thu hẹp khi khoảng cách này gia tăng; (2) khả năng
+khai thác $\kappa$, phụ thuộc vào tính tất định của tín hiệu kiểm chứng thay vì chất lượng phân
+loại ước tính; và (3) tổn thất phơi nhiễm $L$, phát sinh từ việc tiếp xúc với artifact sai lệch,
+trong đó các giao thức hiệu chỉnh chủ yếu đóng vai trò truyền dẫn đáp án thay vì sửa lỗi suy luận
+thực chất (\S\ref{sec:termL}). Khoảng cách năng lực giữa các model vừa làm tăng mức cải thiện
+biểu kiến so với model yếu $W$, vừa đồng thời làm suy giảm giá trị ròng so với model mạnh $I$. Trong
+những miền bài toán có cơ chế kiểm chứng tất định, phối hợp đa tác tử tiệm cận trần hiệu năng
+oracle mà không gây hại đến các lời giải đúng; ngược lại, ở các miền suy luận mở, kiến trúc
+hiệu quả nhất là tạo mẫu độc lập và tổng hợp cơ học, tránh đưa artifact trung gian vào ngữ cảnh
+của các model kế tiếp. Cuối cùng, việc nhiều kết quả khả quan ban đầu không còn duy trì ý nghĩa
+thống kê khi áp dụng đồng thời ba phép kiểm soát nghiêm ngặt và quy trình chốt trước (với 16/32
+lần chạy bị vô hiệu hoá và tỷ lệ dự đoán đúng của giả thuyết là 21/43) cho thấy tầm quan trọng của
+kỷ luật thực nghiệm trong việc đánh giá các hệ thống tác tử ngôn ngữ.
 
 \paragraph{Hạn chế.}
 \begin{enumerate}\itemsep2pt
-\item \textbf{$\dhonest$ mới phủ một phần không gian cấu hình.} Đại lượng triển khai được đã đo
-      ở: 15 cặp MBPP (0/15 dương), 1 cặp MATH bất đối xứng ($-12{,}4$ điểm), và 1 cấu hình cùng
-      cỡ ($+7{,}7$ điểm). Ba cặp xác nhận chéo mới (ba cặp model chưa đo) chạy dở vì giới hạn VRAM
-      14,6 GB: 8/9 nhánh sinh đã xong, còn một nhánh --- kết quả chưa được đọc.
-\item \textbf{Mâu thuẫn \texttt{A\_gain} đã thu hẹp nhưng chưa khép}: sau khi vá định dạng
-      \verb|\boxed|, hai lần chạy cho $+0{,}8$ và $+8{,}0$ điểm --- cùng phía không-âm, còn
-      khác độ lớn (khác bộ bài, khác lượng tử hoá); kết luận ``aggregator trung tính sau xử lý
-      định dạng'' vì vậy ở mức giả thuyết.
-\item Chênh giải thích 82\% phương sai của $G$ nhưng chỉ 35\% của $L$: phần lớn biến thiên của
-      thiệt hại chưa được định danh.
-\item Phép thử danh tính vai trò trên MATH thiếu lực (KTC tới $+13{,}4$ điểm); đối chứng
-      thêm-lượt-7B-không-kèm-artifact, đối chứng độ-dài-ngữ-cảnh trong đúng thiết lập tiếp
-      xúc, và đối chứng khác-model-cùng-họ đều chưa chạy. Bảng Shapley
-      (\S\ref{sec:shapley}) chỉ có KTC bootstrap theo câu, không có fold; các kết quả huấn
-      luyện (\S\ref{sec:rl}) đều trên model 0,5--1,5B, chưa thử ở quy mô lớn hơn.
-\item Tính chuyển miền dựa trên 3 cặp, KTC rộng, thứ tự không đơn điệu; vùng dương của quy
-      luật chênh chỉ có một điểm thuận ($+7{,}7$ tại chênh 0) và không thể xác lập trên MBPP
-      (thiếu lực $\sim$8 lần); $g^\ast$ chưa có KTC.
-\item Định tuyến và các phân tầng MBPP là mức B; khối luồng thông tin chỉ dùng greedy (mỗi cấu
-      hình một điểm); các hiệu ứng chủ lực chưa phân tầng lại theo mẫu số khả tác động.
-\item Phạm vi khẳng định: model 1,5B--32B trên bài toán suy luận; chưa nói được về model rất
-      lớn. Hai chuẩn kiểm chứng của hai khối (fold so với tiền đăng ký) chưa kiểm chéo.
+\item \textbf{Độ bao phủ của đại lượng triển khai $\dhonest$}: Không gian thực nghiệm của $\dhonest$
+      mới được khảo sát trên 15 cặp model của tập MBPP (trong đó 0/15 cặp đạt giá trị dương có ý
+      nghĩa), một cặp bất đối xứng trên MATH ($-12{,}4$ điểm), và một cấu hình cùng quy mô năng lực
+      ($+7{,}7$ điểm). Ba cặp kiểm chứng chéo mở rộng chưa hoàn tất vì giới hạn VRAM 14,6 GB của
+      GPU miễn phí: 8/9 nhánh sinh đã xong, còn một nhánh --- kết quả chưa được đọc.
+\item \textbf{Độ biến thiên của chỉ số \texttt{A\_gain}}: Sau khi chuẩn hoá định dạng đầu ra
+      \verb|\boxed|, hai lần chạy thực nghiệm độc lập ghi nhận mức cải thiện lần lượt là $+0{,}8$
+      và $+8{,}0$ điểm. Mặc dù đều mang giá trị không âm, sự khác biệt về biên độ (do sai khác về
+      phân vùng dữ liệu và mức lượng tử hoá model) cho thấy nhận định về tính trung tính của vai trò
+      tổng hợp vẫn cần thêm các thực nghiệm kiểm chứng quy mô lớn hơn.
+\item \textbf{Mức độ giải thích phương sai của tổn thất $L$}: Chênh lệch năng lực giải thích được
+      82\% phương sai của cơ hội cải thiện $G$, nhưng chỉ giải thích được 35\% phương sai của tổn thất phơi
+      nhiễm $L$. Điều này cho thấy phần lớn biến thiên của $L$ còn chịu ảnh hưởng từ các yếu tố kiến
+      trúc hoặc giao thức chưa được model hoá đầy đủ.
+\item \textbf{Độ nhạy thống kê của một số nhóm đối chứng}: Thử nghiệm hoán vị vai trò trên MATH có
+      khoảng tin cậy tương đối rộng (biên độ trên đạt $+13{,}4$ điểm). Một số điều kiện kiểm soát
+      chuyên sâu bao gồm lần sinh bổ sung không kèm artifact, kiểm soát độ dài ngữ cảnh trong
+      điều kiện phơi nhiễm, và so sánh giữa các model khác nhau trong cùng một họ kiến trúc vẫn
+      chưa được triển khai đầy đủ. Ngoài ra, phân tích giá trị Shapley (\S\ref{sec:shapley}) hiện dựa
+      trên bootstrap theo mẫu bài toán mà chưa phân tích theo fold dữ liệu độc lập.
+\item \textbf{Khả năng tổng quát hoá liên miền}: Phân tích chuyển dịch quy luật sang miền toán học
+      mới chỉ dựa trên 3 cặp model với khoảng tin cậy rộng; vùng giá trị dương của hàm hồi quy chênh
+      lệch năng lực hiện chỉ có một điểm thực nghiệm ($+7{,}7$ điểm tại mức chênh lệch bằng 0) và chưa
+      đủ độ nhạy thống kê để xác lập chắc chắn trên tập MBPP; ngưỡng đổi dấu $g^\ast$ chưa được gắn
+      khoảng tin cậy tham số.
+\item \textbf{Chiến lược giải mã và phân tầng mẫu số}: Nhánh nghiên cứu về luồng thông tin hiện chủ
+      yếu sử dụng chiến lược giải mã tất định (greedy decoding), dẫn đến việc mỗi cấu hình chỉ có một
+      ước lượng điểm duy nhất; các hiệu ứng chính chưa được phân tầng triệt để theo tập bài toán có
+      khả năng tác động.
+\item \textbf{Phạm vi quy mô model}: Toàn bộ các kết luận thực nghiệm trong nghiên cứu này được xác
+      lập trên dải model từ 1,5B đến 32B tham số cho các task suy luận có cấu trúc, do đó chưa thể
+      suy rộng trực tiếp cho các model ngôn ngữ quy mô siêu lớn ($>70$B); riêng các kết quả huấn
+      luyện (\S\ref{sec:rl}) đều chạy trên model 0,5--1,5B. Hai chuẩn đánh giá thực
+      nghiệm (thanh sai số 5-fold và quy trình khoá chốt trước) cũng cần được kiểm chứng chéo toàn
+      diện hơn trong các nghiên cứu tiếp theo.
 \end{enumerate}
+
 
 % =====================================================================
 % (Mục "Đóng góp thành viên" sẽ được nhóm bổ sung khi hoàn chỉnh.)
@@ -1022,6 +1085,8 @@ arXiv:2108.07732, 2021.
 JRSS--B 57(1), 1995.
 \bibitem{chen2021} M. Chen et al. \emph{Evaluating Large Language Models Trained on Code.}
 arXiv:2107.03374, 2021.
+\bibitem{chen2025debate} Y. Chen et al. \emph{When and Why Does Multi-Agent Debate Fail and Does It
+Really Underperform?} arXiv:2510.20963, 2025.
 \bibitem{cobbe2021} K. Cobbe et al. \emph{Training Verifiers to Solve Math Word Problems.}
 arXiv:2110.14168, 2021.
 \bibitem{du2024} Y. Du et al. \emph{Improving Factuality and Reasoning in Language Models
