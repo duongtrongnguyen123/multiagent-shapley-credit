@@ -102,7 +102,7 @@ trên những câu mà phối hợp còn có thể tạo khác biệt.
 
 Sau ba phép kiểm soát, phần lớn hiệu ứng dương biến mất hoặc đổi dấu. Hiệu ứng dương lớn nhất
 (mười bốn điểm phần trăm) chỉ tồn tại khi so với model yếu; so cùng chi phí với model mạnh chạy
-một mình thì hoà hoặc thua. Thí nghiệm chính --- tiền đăng ký, tái lập trên hai miền --- định vị
+một mình thì hoà hoặc thua. Thí nghiệm chính --- thiết kế chốt trước, tái lập trên hai miền --- định vị
 được nguồn thiệt hại: khi model mạnh nhìn thấy một bài làm \emph{sai} của model yếu, độ chính
 xác của nó rơi từ 46\% xuống 19\% trên chính những bài nó vốn giải được, trong khi bài làm đúng
 giúp nó tốt lên nhẹ. Hệ quả là một nghịch lý biểu kiến được giải: chênh lệch năng lực giữa hai
@@ -140,7 +140,8 @@ Tuy nhiên, một quan sát thực nghiệm đã chỉ ra tính bất ổn của
   \draw (i) -- (ri); \draw (e) -- (re);
   \node[font=\small\itshape] at (0,-3.0) {cùng model, cùng lệnh giải};
 \end{tikzpicture}
-\caption{Thí nghiệm tiếp xúc (tiền đăng ký, MATH-500): hai nhánh chỉ khác nhau ở việc ngữ cảnh
+\caption{\emph{Thí nghiệm tác động artifact} --- cho model mạnh xem bài làm của model yếu
+(thiết kế chốt trước, MATH-500): hai nhánh chỉ khác nhau ở việc ngữ cảnh
 có kèm bài làm sai của model yếu hay không. Chênh lệch $-27{,}2$ điểm ($p \approx 0$) là nguồn
 thiệt hại chính của các giao thức cho model sửa bài của nhau (\S\ref{sec:termL}).}
 \label{fig:exposure}
@@ -162,13 +163,13 @@ với token của model 1,5B, vì chi phí suy luận tỷ lệ với số tham 
 \paragraph{Đóng góp.} Khảo sát này hợp nhất 3 hướng nghiên cứu vào 1 khung đo duy nhất: Phân rã đóng góp theo vai trò, phân tích chi phí, lợi ích của định tuyến, và phân tích luồng thông tin. Bốn đóng góp chính bao gồm:
 \begin{enumerate}\itemsep2pt
   \item \textbf{Ba phép kiểm soát} Đưa ra bằng chứng thực nghiệm cho thấy khi áp dụng đồng thời ba phép kiểm soát (Chi phí, mốc so sánh và mẫu số), phần lớn các hiệu ứng tích cực của sự phối hợp đa tác tử đều suy giảm hoặc đảo chiều (\S\ref{sec:results}).
-  \item \textbf{Thí nghiệm tiếp xúc} tiền đăng ký, tái lập hai miền (Hình~\ref{fig:exposure}): Tái lập thí nghiệm trên 2 miền để xác định nguyên nhân thiệt hại của cơ chế sinh-rồi-sửa xuất phát trực tiếp từ việc tiếp xúc với thông tin sai lệch từ model yếu, chứ không phải đến từ việc nhìn thấy lời giải, qua đó khẳng định cơ chế sinh-rồi-sửa hoạt động như một kênh truyền dẫn đáp án hơn là 1 cơ chế tự sửa lỗi (\S\ref{sec:termL}).
+  \item \textbf{Thí nghiệm tác động artifact} --- cho model mạnh xem bài làm của model yếu ---
+        thiết kế chốt trước, tái lập hai miền (Hình~\ref{fig:exposure}): Tái lập thí nghiệm trên 2 miền để xác định nguyên nhân thiệt hại của cơ chế sinh-rồi-sửa xuất phát trực tiếp từ việc tiếp xúc với thông tin sai lệch từ model yếu, chứ không phải đến từ việc nhìn thấy lời giải, qua đó khẳng định cơ chế sinh-rồi-sửa hoạt động như một kênh truyền dẫn đáp án hơn là 1 cơ chế tự sửa lỗi (\S\ref{sec:termL}).
   \item \textbf{Lời giải cho nghịch lý ``cùng biến, hai dấu''}: Sự chênh lệch năng lực giữa các model khiến kết quả khi so với model yếu ngày càng tốt, tạo cảm giác cải thiện lớn, nhưng giá trị thực tế khi so với model mạnh đơn lẻ lại ngày càng âm. Sự mâu thuẫn này nằm ở việc chọn sai mốc baseline chứ không phải do ưu thế của cơ chế đa tác tử (\S\ref{sec:synthesis}).
   \item \textbf{Một chặn trên cho giá trị của bộ kiểm}: Mức độ đóng góp của bộ kiểm bị chặn bởi khoảng cách giữa trần lý tưởng (Oracle) và phương pháp bỏ phiếu đa số (Majority Voting). Nghiên cứu chỉ ra rằng các tín hiệu kiểm tra chắc chắn (thực thi mã chạy test) có thể đạt tiệm cận mức trần này, trong khi các tín hiệu học được như cơ chế LLM-as-a-judge chỉ đóng góp một phần rất hạn chế (\S\ref{sec:kappa}).
 \end{enumerate}
-Toàn bộ số liệu đi kèm quy trình chống tự đánh lừa (tiền đăng ký, điều kiện hợp lệ, niêm phong
-kết quả) mô tả ở \S\ref{sec:setup}; 50\% số lần chạy không vượt qua điều kiện và bị loại trước
-khi đọc số. Báo cáo dùng một số ký hiệu riêng; Bảng~\ref{tab:cheatsheet} là chỗ tra nhanh ---
+Cách chúng tôi kiểm soát độ tin cậy của từng phép đo được mô tả ở \S\ref{sec:setup}; một nửa
+số lần chạy trượt điều kiện kỹ thuật và bị loại trước khi đọc kết quả. Báo cáo dùng một số ký hiệu riêng; Bảng~\ref{tab:cheatsheet} là chỗ tra nhanh ---
 mọi ký hiệu đều được định nghĩa đầy đủ ở \S\ref{sec:framework}--\ref{sec:setup} trước khi
 dùng.
 
@@ -183,7 +184,7 @@ lần sinh & một lần model sinh trọn một lời giải; $k$ lần sinh th
 $H$ / $\kappa$ / $D$ & ba câu hỏi của khung đo (\S\ref{sec:threeq}): \emph{tiềm năng cải
 thiện} (pool có giá trị tiềm tàng nào không) / \emph{khả năng khai thác} (bộ chọn nhặt được không) /
 \emph{thiệt hại} (giao thức phá bao nhiêu)\\
-$W$ / $I$ / $E$ & ba \emph{nhân vật} của thí nghiệm tiếp xúc: model yếu / model mạnh giải một
+$W$ / $I$ / $E$ & ba \emph{nhân vật} của thí nghiệm tác động artifact: model yếu / model mạnh giải một
 mình / \emph{cùng} model mạnh nhưng thấy bài của $W$\\
 artifact & bài làm của model yếu --- thứ được đưa (hoặc không) vào ngữ cảnh model mạnh\\
 $G, L, R$ & cơ hội cải thiện / thiệt hại / phần cứu được --- ba số hạng của $\dceil = G-L+R$\\
