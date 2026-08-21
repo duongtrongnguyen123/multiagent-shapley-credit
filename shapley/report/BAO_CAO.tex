@@ -1036,7 +1036,7 @@ năng lực tác động theo hai chiều trái ngược:
 \begin{itemize}\itemsep2pt
 \item \emph{So sánh với mô hình yếu} (mốc quy chiếu thường gặp trong các nghiên cứu): vai trò 
       kiểm tra thực chất tương đương một lượt giải độc lập bởi mô hình mạnh hơn (\S\ref{sec:roles}). 
-      Do đó, hiệu ứng quan sát phản ánh khoảng cách năng lực nội tại kết hợp với 
+      Do đó, hiệu ứng ghi nhận phản ánh khoảng cách năng lực nội tại kết hợp với 
       lợi thế từ lượt sinh bổ sung, dẫn đến mức tăng tỷ lệ thuận với độ chênh lệch năng lực (từ 
       $+3{,}0$ điểm khi chênh lệch bằng 0 lên $+14{,}0$ điểm khi chênh lệch đạt 0,244).
 \item \emph{So sánh với mô hình mạnh chạy độc lập} (mốc quy chiếu thực tế trong triển khai):
@@ -1055,42 +1055,70 @@ lớn, xác suất xuất hiện lời giải trung gian sai càng cao, khiến 
 ngay trên tập bài toán mà bản thân nó có khả năng giải quyết độc lập.
 
 \begin{figure}[t]\centering
-\begin{tikzpicture}[scale=1.0]
-  % axes: x = chênh (0..0,32) -> 0..8cm ; y = điểm (−18..+16) -> ×0,15cm
-  \draw[-{Stealth}] (0,-2.9) -- (0,2.6) node[above,font=\small]{hiệu ứng (điểm)};
-  \draw[-{Stealth}] (-0.2,0) -- (8.3,0) node[right,font=\small]{chênh lệch năng lực};
-  \foreach \x/\l in {0/0, 2.5/0{,}1, 5.0/0{,}2, 7.5/0{,}3}
-    \draw (\x,0.06) -- (\x,-0.06) node[below,font=\footnotesize]{\l};
-  \foreach \y/\l in {1.5/+10, -1.5/-10}
-    \draw (0.06,\y) -- (-0.06,\y) node[left,font=\footnotesize]{\l};
-  % đường so với model yếu: (0,+3) -> (0,244,+14)  [x*25, y*0.15]
-  \draw[very thick, blue!60!black] (0,0.45) -- (6.6,2.25)
-    node[pos=0.45, above, sloped, font=\small]{so với mô hình yếu};
-  \fill[blue!60!black] (0,0.45) circle (2pt) node[above left,font=\footnotesize]{$+3{,}0$};
-  \fill[blue!60!black] (6.1,2.1) circle (2pt) node[above,font=\footnotesize]{$+14{,}0$};
-  % đường khớp Δtran (MBPP): y = 2,18 − 23,92x (điểm)
-  \draw[very thick, red!70!black, dashed] (0,0.33) -- (8.0,-0.75)
-    node[pos=0.52, below, sloped, font=\small]{trần $\dceil$ (khớp MBPP)};
-  % điểm đo MATH
-  \fill[red!70!black] (1.1,-0.21) circle (2pt);
-  \fill[red!70!black] (6.1,-2.49) circle (2pt) node[below,font=\footnotesize]{$-16{,}6$};
-  \fill[red!70!black] (7.2,-1.02) circle (2pt);
-  \node[red!70!black, font=\footnotesize] at (3.5,-1.5) {điểm đo MATH};
-  \draw[red!70!black,-{Stealth},thin] (2.6,-1.35) -- (1.35,-0.4);
-  \draw[red!70!black,-{Stealth},thin] (4.4,-1.65) -- (5.85,-2.35);
-  % điểm E>I tại chênh 0
-  \node[draw, red!70!black, fill=white, inner sep=1.6pt] at (0,1.16) {};
-  \node[font=\footnotesize, red!70!black, anchor=west] at (0.18,1.16) {$+7{,}7$ (cùng quy mô, so với mô hình mạnh)};
-  % g*
-  \draw[gray, dotted, thick] (2.28,-2.6) -- (2.28,1.9);
-  \node[gray, font=\footnotesize, anchor=south] at (2.28,1.9) {$g^\ast \approx 0{,}09$};
+\begin{tikzpicture}[x=255mm, y=1.85mm]
+  % 1. Vung nen phan chia
+  \fill[blue!5, rounded corners=3pt] (0, 0) rectangle (0.091, 16.5);
+  \fill[red!4, rounded corners=3pt] (0.091, -18.5) rectangle (0.32, 0);
+
+  % 2. Luoi toa do nhe
+  \draw[help lines, color=gray!25, xstep=0.05, ystep=5] (0, -18.5) grid (0.32, 16.5);
+
+  % 3. Truc toa do
+  \draw[->, >=Stealth, thick, black!80] (-0.012, 0) -- (0.335, 0) node[right=4pt, font=\footnotesize\bfseries] {Khoảng cách năng lực};
+  \draw[->, >=Stealth, thick, black!80] (0, -19.5) -- (0, 18.5) node[above=4pt, font=\footnotesize\bfseries] {Hiệu ứng ròng (điểm)};
+
+  % 4. Ticks tren truc
+  \foreach \x/\l in {0.05/0{,}05, 0.1/0{,}10, 0.15/0{,}15, 0.2/0{,}20, 0.25/0{,}25, 0.3/0{,}30}
+    \draw[thick, black!75] (\x, 0.6) -- (\x, -0.6) node[below=3pt, font=\footnotesize] {$\l$};
+  \foreach \y in {-15, -10, -5, 5, 10, 15}
+    \draw[thick, black!75] (0.002, \y) -- (-0.002, \y) node[left=3pt, font=\footnotesize] {$\y$};
+  \node[below left=2pt, font=\footnotesize] at (0,0) {$0$};
+
+  % 5. Nguong doi dau g*
+  \draw[dashed, thick, gray!80!black] (0.091, -18.5) -- (0.091, 16.5);
+  \node[draw=gray!50, fill=white, rounded corners=2pt, font=\scriptsize\bfseries, inner sep=2.5pt] at (0.091, 17.5) {Ngưỡng $g^\ast \approx 0{,}09$};
+
+  % 6. Duong xanh: So voi mo hinh yeu (MATH)
+  \draw[very thick, blue!80!black] (0, 3.0) -- (0.244, 14.0);
+  \fill[blue!80!black] (0, 3.0) circle (2.2pt);
+  \node[above right=1pt, blue!90!black, font=\footnotesize\bfseries] at (0, 3.0) {$+3{,}0$};
+  \fill[blue!80!black] (0.244, 14.0) circle (2.2pt);
+  \node[above=2pt, blue!90!black, font=\footnotesize\bfseries] at (0.244, 14.0) {$+14{,}0$};
+
+  % 7. Duong do: Tran Delta_tran so voi mo hinh manh (MBPP)
+  \draw[very thick, red!75!black, dashed] (0, 2.18) -- (0.32, -5.47);
+
+  % 8. Diem do thuc nghiem MATH
+  \fill[red!75!black] (0.044, -1.4) circle (2.2pt);
+  \node[left=3pt, font=\scriptsize\bfseries, red!85!black] at (0.044, -1.4) {$-1{,}4$};
+
+  \fill[red!75!black] (0.244, -16.6) circle (2.2pt);
+  \node[below=2pt, font=\footnotesize\bfseries, red!85!black] at (0.244, -16.6) {$-16{,}6$};
+
+  \fill[red!75!black] (0.288, -6.8) circle (2.2pt);
+  \node[below right=-1pt, font=\scriptsize\bfseries, red!85!black] at (0.288, -6.8) {$-6{,}8$};
+
+  % 9. Diem cung quy mo tai chenh = 0
+  \node[draw=red!75!black, fill=white, line width=1.1pt, inner sep=2.2pt] at (0, 7.7) {};
+  \node[above right=1pt, font=\footnotesize\bfseries, red!85!black] at (0, 7.7) {$+7{,}7$};
+
+  % 10. Nhan chu thich vung
+  \node[font=\scriptsize\itshape, text=blue!80!black, anchor=north west] at (0.004, 15.2) {Vùng trần $\dceil > 0$ (có dư địa)};
+  \node[font=\scriptsize\itshape, text=red!70!black, anchor=center] at (0.165, -10.5) {Vùng trần $\dceil < 0$ (suy giảm ròng)};
+
+  % 11. Hop Legend nam phia duoi do thi
+  \node[draw=gray!45, fill=white, fill opacity=0.98, text opacity=1, rounded corners=3pt, font=\scriptsize, anchor=north, align=center, inner sep=4pt] at (0.16, -22.5) {
+    \tikz[baseline=-0.5ex]{\draw[very thick, blue!80!black] (0,0) -- (0.35cm,0); \fill[blue!80!black] (0.175cm,0) circle (1.8pt);} So với \emph{mô hình yếu} (MATH) \qquad\qquad
+    \tikz[baseline=-0.5ex]{\draw[very thick, red!75!black, dashed] (0,0) -- (0.35cm,0);} Trần $\dceil$ so với \emph{mô hình mạnh} (khớp MBPP) \\[2pt]
+    \tikz[baseline=-0.5ex]{\fill[red!75!black] (0.175cm,0) circle (2pt);} Điểm $\dceil$ thực nghiệm trên MATH (Bảng~\ref{tab:transfer}) \qquad
+    \tikz[baseline=-0.5ex]{\node[draw=red!75!black, fill=white, inner sep=1.4pt] at (0.175cm,0) {};} Điểm đối chứng cùng quy mô ($\text{chênh}=0$)
+  };
 \end{tikzpicture}
-\caption{Nghịch lý mốc so sánh. Cùng trục hoành là chênh lệch năng lực: hiệu ứng đo so với
-\emph{mô hình yếu} (đường liền; hai điểm đo MATH) tăng; giá trị so với \emph{mô hình mạnh} (đường
-đứt: khớp trên 15 cặp MBPP; chấm đỏ: ba điểm đo MATH của Bảng~\ref{tab:transfer}; ô vuông:
-điểm $+7{,}7$ tại chênh 0) giảm và âm sau $g^\ast$. Hình vẽ phản ánh đúng số liệu thực nghiệm
-nhưng kết nối hai thiết lập khác nhau --- xem Bảng~\ref{tab:doichieu} trước khi so sánh hai
-đường theo trục tung.}
+\caption{Cơ chế nghịch lý mốc tham chiếu. Cùng trục hoành là khoảng cách năng lực: hiệu ứng đo so với
+\emph{mô hình yếu} (đường xanh liền) tăng mạnh do cộng hưởng năng lực; trong khi trần giá trị ròng $\dceil$
+so với \emph{mô hình mạnh} (đường đỏ đứt: khớp trên 15 cặp MBPP; các chấm đỏ: 3 điểm đo MATH) suy giảm
+nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \approx 0{,}09$ do tổn thất phơi nhiễm $L$
+áp đảo dư địa $G$.}
 \label{fig:paradox}
 \end{figure}
 
