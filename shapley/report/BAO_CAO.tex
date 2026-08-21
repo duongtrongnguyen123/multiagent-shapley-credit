@@ -4,6 +4,9 @@
 %   lời thường -> ví dụ -> hình -> hình thức hoá; ký hiệu định nghĩa trước khi dùng;
 %   đổi bộ ký hiệu W/I/E và G/L/R để hết trùng tên vai P/S/V/A;
 %   sửa ba mâu thuẫn nội dung (nghịch lý mốc so sánh, E>I tại chênh 0, chặn trên kappa).
+% v2.1: thêm khối Shapley (16 tổ hợp), lưới hành vi vai, verifier-không-kiểm,
+%   khối huấn luyện (GRPO x3/ORPO/credit-RL/MAPoRL); tái dụng 2 hình khối Shapley;
+%   đính chính "tái sử dụng 0%" (lỗi lệch cột) và đối chứng bối cảnh vô quan (-3,6 điểm).
 % Biên dịch: tectonic (XeTeX) hoặc pdflatex/Overleaf.
 % Ghi chú rà soát: \todoD{...} = Đức, \todoTD{...} = Tùng Dương
 % =====================================================================
@@ -32,6 +35,7 @@
 \usepackage[margin=2.4cm]{geometry}
 \usepackage{microtype}
 \usepackage{xcolor}
+\usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 \usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
@@ -73,7 +77,10 @@ ngày càng đẹp --- cùng một biến, hai dấu, tuỳ mốc so sánh.
 Về phía bộ kiểm: nơi có cách kiểm chắc chắn (code chạy được test), phối hợp đạt đúng trần lý
 tưởng và không phá bài nào khi model chưa bão hoà; nơi không có, một bộ phân loại lỗi rất tốt
 (AUC 0,893) cũng chỉ đổi được hơn hai điểm --- khoảng cách giữa trần lý tưởng và bỏ phiếu đa số
-là chặn trên mà không tín hiệu học được nào trong khảo sát vượt qua. Toàn bộ quy trình dùng
+là chặn trên mà không tín hiệu học được nào trong khảo sát vượt qua. Bảy nỗ lực huấn luyện
+các vai (ba biến thể GRPO, ORPO, credit-RL hai giai đoạn, đồng huấn luyện) đều không vượt
+chuẩn: model nhất quán tìm ra lối tắt của hàm thưởng --- im lặng, nhại lại, bỏ kế hoạch ---
+thay vì học kiểm thật. Toàn bộ quy trình dùng
 tiền đăng ký và điều kiện hợp lệ; một nửa số lần chạy không vượt qua và bị loại trước khi đọc số.
 \end{abstract}
 
@@ -349,8 +356,8 @@ giữ ý nghĩa ($t=3{,}3$--$6{,}9$); kết quả $+7{,}7$ của khối McNemar 
 
 \emph{Phần kết quả chia hai hồi. \textbf{Hồi I} (\S\ref{sec:start}--\ref{sec:denominator}) áp
 lần lượt ba phép kiểm soát và cho thấy bức tranh ``phối hợp giúp X điểm'' thay đổi thế nào sau
-mỗi phép. \textbf{Hồi II} (\S\ref{sec:termG}--\ref{sec:kappa}) định vị giá trị còn lại bằng ba
-thừa số $G$, $L$, $\kappa$. Số liệu ở mức A trừ khi ghi khác (\S\ref{sec:setup}).}
+mỗi phép. \textbf{Hồi II} (\S\ref{sec:termG}--\ref{sec:rl}) định vị giá trị còn lại bằng ba
+thừa số $G$, $L$, $\kappa$, và đóng bằng câu hỏi huấn luyện. Số liệu ở mức A trừ khi ghi khác (\S\ref{sec:setup}).}
 
 % ---------------------------------------------------------------
 \subsection{Điểm xuất phát: pipeline có giúp không, và nhiễu lớn cỡ nào}\label{sec:start}
@@ -425,16 +432,102 @@ kiểm.
 Mục tiếp theo hỏi: các lượt đó nên do vai gì, model cỡ nào đảm nhiệm?}
 
 % ---------------------------------------------------------------
-\subsection{Vai trò: danh tính vai không đo được tác động; năng lực lượt kiểm thì có}\label{sec:roles}
+\subsection{Phân rã đóng góp theo vai bằng giá trị Shapley}\label{sec:shapley}
 
-Chỉ số hành vi từ trace ở 1.5B cho thấy ``chuyên biệt hoá vai'' phần lớn là danh nghĩa: planner
---- bị cấm tính đáp án --- vẫn chứa sẵn đáp án ở 34,7\% câu MATH; solver khi có plan chỉ sao
-chép (lời giải dài 19 ký tự, so với 664 khi không có plan). Ở 7B hai vai hồi phục (rò đáp án
-1--4\%) --- nhưng ở mức đó pipeline lại thua solver đơn lẻ. Đối chứng nhân quả bằng hoán vị
-prompt giữa các vị trí cho accuracy không phân biệt được: GSM8K $0{,}660 = 0{,}660$ (solo
-$0{,}673$); MATH $\texttt{swap}-\texttt{normal} = +5{,}3$ điểm nhưng $t=1{,}84$, KTC
-$[-2{,}7;+13{,}4]$ --- không đạt ý nghĩa, và vì KTC rộng, phép thử này \emph{không đủ lực loại
-trừ} một hiệu ứng cỡ vừa; chúng tôi chỉ ghi nhận là không tìm thấy bằng chứng.
+Trước khi mổ xẻ hành vi từng vai, nhóm đo đóng góp của chúng bằng giá trị Shapley
+\cite{shapley1953}: chạy đủ $2^4 = 16$ tổ hợp bật/tắt bốn vai (Hình~\ref{fig:shapleyfw});
+đóng góp $\varphi$ của một vai là trung bình phần thay đổi accuracy khi thêm nó vào mọi tổ
+hợp con --- cách phân bổ duy nhất thoả các tiên đề hiệu quả, đối xứng, cộng tính.
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.9\linewidth]{figs/pipeline_shapley_overview.png}
+\caption{Pipeline bốn vai, 16 tổ hợp bật/tắt để tính giá trị Shapley, và quy trình ước lượng
+sàn nhiễu bằng 5 fold. (Hình tái dụng từ báo cáo khối Shapley của nhóm.)}
+\label{fig:shapleyfw}
+\end{figure}
+
+\begin{table}[t]\centering\small
+\begin{tabular}{lcc}\toprule
+Vai & GSM8K 1.5B ($N{=}1319$) & MATH-500 1.5B ($N{=}500$)\\\midrule
+Solver     & $+0{,}252$ $[+0{,}242;+0{,}263]$ & $+0{,}145$ $[+0{,}128;+0{,}161]$\\
+Verifier   & $+0{,}252$ (đối xứng cấu trúc với Solver) & $+0{,}145$ (đối xứng)\\
+Aggregator & $+0{,}190$ $[+0{,}182;+0{,}199]$ & $+0{,}150$ $[+0{,}134;+0{,}167]$\\
+Planner    & $\mathbf{-0{,}014}$ $[-0{,}030;+0{,}002]$ & $+0{,}017$ $[-0{,}008;+0{,}043]$\\\bottomrule
+\end{tabular}
+\caption{Giá trị Shapley của bốn vai, mọi vai 1.5B (KTC 95\% bootstrap theo câu hỏi ---
+\emph{không có fold}, nên đọc kèm sàn nhiễu \S\ref{sec:setup}; trên MATH mọi chênh lệch giữa
+vai đều dưới sàn nhiễu, thứ hạng không có ý nghĩa).}
+\label{tab:shapley}
+\end{table}
+
+Ba đọc số từ Bảng~\ref{tab:shapley}. \emph{Một}, Solver và Verifier gánh phần lớn giá trị;
+Planner ở 1.5B đóng góp \emph{âm} trên GSM8K --- rõ nhất ở cặp tổ hợp: $SA = 0{,}682 \to
+PSA = 0{,}562$, thêm planner trừ 12 điểm. \emph{Hai}, đóng góp lật theo năng lực: nâng riêng
+planner lên 7B lật dấu $\varphi_P$ từ $-0{,}023$ lên $+0{,}055$ (chênh $+0{,}078$, KTC
+$[+0{,}049;+0{,}109]$) --- planner âm là hiện vật của model yếu, không phải của vai; nâng
+riêng verifier lên 7B đẩy $\varphi_V$ từ $+0{,}269$ lên $+0{,}462$ --- verifier là vai nhạy
+năng lực nhất, báo trước \S\ref{sec:roles}. \emph{Ba}, chỉ số tương tác Shapley cho thấy
+$S$/$V$/$A$ \emph{thay thế} nhau mạnh ($I \approx -0{,}21$ đến $-0{,}27$ ở cả hai task): ba
+vai đang làm các phiên bản của cùng một việc, không bổ sung nhau.
+
+Giới hạn quan trọng của phép đo: Shapley phân bổ giá trị cho \emph{nhãn} vai, không cho
+\emph{chức năng} --- nếu planner lén giải luôn bài thì công của nó được ghi cho dòng
+``Planner'' dù hành vi là hành vi solver. \emph{Mục tiếp theo soi trace để hỏi: các vai có
+thật sự làm đúng việc của mình không?}
+
+% ---------------------------------------------------------------
+\subsection{Vai trò: chuyên biệt hoá là danh nghĩa; vai kiểm không thật sự kiểm}\label{sec:roles}
+
+Lưới hành vi từ trace (Bảng~\ref{tab:behavior}) cho thấy ``chuyên biệt hoá vai'' phần lớn là
+danh nghĩa ở model nhỏ: planner --- bị cấm tính đáp án --- vẫn chứa sẵn đáp án đúng ở 34,7\%
+câu MATH (45,3\% còn phát cả khung đáp án); solver khi có plan chỉ sao chép (lời giải trung vị
+19 ký tự, so với 664 khi không có plan). Ở 7B các bệnh này gần biến mất --- nhưng ở mức đó
+pipeline lại thua solver đơn lẻ. Trên 2\,000 lượt ở cả bốn ô, aggregator chỉ 3 lần phát ra một
+đáp án mới-và-đúng: vai tổng hợp không tính toán ở \emph{mọi} mức năng lực.
+
+\begin{table}[t]\centering\small
+\begin{tabular}{lcccc}\toprule
+Chỉ số hành vi (trace) & GSM8K 1.5B & MATH 1.5B & GSM8K 7B & MATH 7B\\\midrule
+Planner rò đáp án đúng & 14,0\% & 34,7\% & 1,0\% & 4,0\%\\
+Solver không sinh số mới & 60,7\% & 62,0\% & 1,0\% & 11,0\%\\
+Độ dài lời giải solver (trung vị, ký tự) & 19 & 344 & 821 & 1247\\
+Verifier can thiệp & 32,7\% & 38,0\% & 4,0\% & 14,0\%\\
+Aggregator vọng lại đáp án verifier & 93,3\% & 73,3\% & 100\% & 97,0\%\\\bottomrule
+\end{tabular}
+\caption{Lưới hành vi task $\times$ năng lực ($n=100$--150 mỗi ô, đo trên trace).}
+\label{tab:behavior}
+\end{table}
+
+Hai bằng chứng nhân quả đóng khung bảng này. \emph{Một} (tiền đăng ký): chỉ cần bỏ dòng cấm
+``Do NOT compute the final answer'' khỏi prompt planner, solver hạ nguồn \emph{tăng} $+3{,}8$
+điểm MATH (5/5 fold) và $+3{,}3$ GSM8K (4/5) --- chỉ dẫn chỉ \emph{giấu} đáp án chứ không
+ngăn planner tính, và việc giấu còn gây hại. \emph{Hai}, hoán vị prompt giữa các vị trí cho
+accuracy không phân biệt được: GSM8K $0{,}660 = 0{,}660$ (solo $0{,}673$); MATH
+$\texttt{swap}-\texttt{normal} = +5{,}3$ điểm nhưng $t=1{,}84$, KTC $[-2{,}7;+13{,}4]$ ---
+không đạt ý nghĩa, và vì KTC rộng, phép thử này không đủ lực loại trừ hiệu ứng cỡ vừa; chúng
+tôi chỉ ghi nhận là không tìm thấy bằng chứng cho ``danh tính vai''.
+
+Vai kiểm cũng không thật sự \emph{kiểm}. Ba phép đo độc lập: (i) khi can thiệp, verifier 1.5B
+đúng chỉ 56--59\% số lần (đếm trace, một lần đo) --- gần tung đồng xu; verifier 7B đúng 98\%.
+(ii) Phép thử tiêm lỗi --- sửa kết quả một bước tính trong chuỗi lời giải vàng rồi hỏi model
+``có lỗi tính toán không'' (tiền đăng ký, ngưỡng hiệu lực khoá trước): 1.5B trả lời ``không có
+lỗi'' gần 100\% số bài --- mù với lỗi tiêm sẵn; 7B qua cổng hiệu lực và phân biệt được bài
+sạch/bài tiêm ($+0{,}651$ trên tầng bài nó tự giải được; tầng nó \emph{không} tự giải được chỉ
+có $n=9$, nên câu ``kiểm có tách khỏi giải không'' còn bỏ ngỏ). (iii) Lưới \texttt{V\_gain}
+(Bảng~\ref{tab:vgaingrid}): lượt kiểm chỉ sinh lợi trong một dải hẹp.
+
+\begin{table}[t]\centering\small
+\begin{tabular}{lcc}\toprule
+\texttt{V\_gain} (điểm; min--max theo fold) & GSM8K & MATH\\\midrule
+1.5B & $+4{,}4$ $[+1;+8]$, 5/5 dương & $+1{,}4$ $[-1;+4]$\\
+7B   & $+1{,}0$ $[-3;+5]$ & $+4{,}4$ $[+2;+8]$, 5/5 dương\\\bottomrule
+\end{tabular}
+\caption{Lưới \texttt{V\_gain} theo task $\times$ năng lực (5 fold mỗi ô). Xếp bốn ô theo
+accuracy của solver --- 0,402 (ngợp); 0,598 (có lợi); 0,668 (có lợi); 0,884 (bão hoà) ---
+lượt kiểm chỉ sinh lợi trong dải solver-accuracy $\approx 0{,}60$--$0{,}67$: dưới dải thì
+ngợp, trên dải thì hết lỗi để sửa.}
+\label{tab:vgaingrid}
+\end{table}
 
 Biến đo được tác động rõ là \textbf{năng lực của model ở lượt kiểm}. Cùng 300 bài MATH
 (5 fold $\times$ 60), Bảng~\ref{tab:verifier}:
@@ -452,8 +545,10 @@ Phần riêng do cỡ model lớn hơn & $+11{,}0$ & $[+3{,}9;\,+18{,}1]$ & ---\
 \label{tab:verifier}
 \end{table}
 
-Cơ chế từ trace: khi can thiệp, verifier tái sử dụng 0\% số liệu trung gian của solver --- nó
-không dò từng bước mà \emph{giải lại từ đầu}. Về hành vi, lượt kiểm là một lượt giải thứ hai;
+Cơ chế từ trace: mức verifier tái sử dụng số liệu trung gian của solver khi can thiệp thấp
+hơn $\sim$5 lần so với khi đồng ý ($0{,}20$--$0{,}23$ so với $0{,}96$; một ước lượng ``0\%''
+ban đầu là lỗi lệch cột, đã đính chính trong tư liệu). Hành vi khi can thiệp vì vậy gần với
+\emph{giải lại} hơn là dò từng bước; về tác dụng, lượt kiểm là một lượt giải thứ hai;
 điều này \emph{nhất quán với} giả thuyết rằng $+14{,}0$ chủ yếu là lợi ích của việc thêm một
 lượt giải bằng model mạnh hơn (đối chứng tách hẳn hai khả năng --- thêm lượt 7B \emph{không}
 kèm bài của solver trên cùng 300 bài --- chúng tôi chưa chạy). Nhất quán cùng hướng:
@@ -658,10 +753,11 @@ giải được gần một nửa; artifact đúng cải thiện nó. Tổng h�
 $\dhonest = -12{,}4$ điểm. Kết luận cơ chế: $D$ không phải hình phạt của việc nhìn thấy
 artifact nói chung, mà của việc nhìn thấy \emph{nội dung sai}; và vì thiết kế không có lệnh
 sửa, chỉ riêng sự hiện diện của nội dung sai trong ngữ cảnh đã đủ tạo hiệu ứng âm. (Đối chứng
-loại trừ ảnh hưởng thuần độ dài ngữ cảnh --- chèn một artifact đúng-nhưng-không-liên-quan cùng
-độ dài --- chưa chạy; ghi ở Hạn chế.) Quan sát này tương thích với ``verifier tái sử dụng 0\%''
-ở \S\ref{sec:roles}: model mạnh không \emph{sao chép} bề mặt nội dung sai, nhưng vẫn bị nó
-\emph{neo} hướng giải --- ảnh hưởng đi qua định hướng, không qua trích dẫn.
+cùng-thiết-lập cho ảnh hưởng thuần độ dài ngữ cảnh chưa chạy; đối chứng gần nhất --- chèn bối
+cảnh \emph{vô quan} trong thiết lập kiểm\mucB{} --- cho $-3{,}6$ điểm: nhiễu ngữ cảnh thuần có
+hại nhẹ, nhỏ hơn hình phạt nội dung sai 7--8 lần.) Quan sát này khớp với mức tái-sử-dụng thấp khi can thiệp
+ở \S\ref{sec:roles}: model mạnh ít \emph{sao chép} bề mặt nội dung sai, nhưng vẫn bị nó
+\emph{neo} hướng giải --- ảnh hưởng đi qua định hướng nhiều hơn qua trích dẫn.
 
 Bảng~\ref{tab:222} chấm lại toàn bộ 500 bài theo ($W$ đúng/sai) $\times$ ($I$ đúng/sai), và ghi
 tỷ lệ $E$ đúng trong từng ô --- trả lời câu hỏi tự nhiên ``khi model mạnh sai thì sửa có giúp
@@ -777,6 +873,66 @@ biết-khi-$I$-sai (oracle mạnh hơn) được $+3{,}2$ điểm --- nhưng đ�
 chính model mạnh}, đúng loại tín hiệu vừa cho thấy đo được mà không dùng được. Hàm ý: cải thiện
 bộ cổng có trần thấp; cấu hình mặc định không đưa artifact vào ngữ cảnh có kỳ vọng cao hơn.
 
+\emph{Câu hỏi cuối của Hồi II: nếu mọi tín hiệu sẵn có đều không đủ, huấn luyện thẳng vai
+kiểm thì sao?}
+
+% ---------------------------------------------------------------
+\subsection{Huấn luyện các vai: bảy phương pháp, bảy lối tắt}\label{sec:rl}
+
+Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai (Bảng~\ref{tab:rl}); không phương pháp nào
+đạt chuẩn dự án (hiệu ứng vượt ngưỡng và 5/5 fold cùng dấu) trên tập lạ, và mỗi thất bại đều
+truy được về việc model tìm ra \emph{lối tắt} của hàm mục tiêu thay vì học năng lực đích.
+
+\begin{table}[t]\centering\small
+\begin{tabular}{p{0.29\linewidth}p{0.33\linewidth}p{0.29\linewidth}}\toprule
+Phương pháp & Kết quả chính & Lối tắt tìm thấy\\\midrule
+GRPO verifier; thưởng $+1$ sửa / $-1$ phá / $0$ im lặng &
+precision $0{,}70$--$0{,}90 \to 1{,}00$ (5/5 fold) \emph{nhưng} \texttt{V\_gain}
+$+6{,}8 \to +4{,}4$ điểm; can thiệp $20{,}2 \to 8{,}4$/100 câu &
+``im lặng miễn phí'': precision hoàn hảo nhờ nói ít đi một nửa\\[2pt]
+GRPO; thưởng theo đáp án cuối (vá lỗ im lặng) &
+$+1{,}8$ điểm $<$ ngưỡng $+2{,}0$ đã khoá trước &
+nhại solver: trung vị đầu ra $480 \to 19$ ký tự; đồng ý-khi-solver-sai $0{,}50 \to 0{,}64$\\[2pt]
+GRPO + bất đối xứng thông tin (solver 0,5B, verifier 1,5B; tiền đăng ký, đủ nhánh $I$) &
+so model yếu: $+17{,}0$ điểm (5/5 dương); so chính model kiểm tự giải: $\mathbf{-10{,}4}$
+điểm (5/5 \emph{âm}) &
+RL chỉ gỡ 38\% thiệt hại tiếp xúc; 54\% bài hỏng ra đáp án \emph{thứ ba} không theo ai\\[2pt]
+ORPO aggregator (học từ cặp ưa thích) &
+MATH $+3{,}3$ (3/5 fold, dưới sàn nhiễu); GSM8K chéo task $-2{,}7$ &
+khuếch đại tật chép-ứng-viên-cuối ($0{,}71 \to 0{,}81$); học ``tự giải lại'' thay vì chọn\\[2pt]
+Credit-RL (thưởng $=$ phần đóng góp Shapley biên) &
+0/4 vai cải thiện theo chuẩn 5/5 fold &
+planner sập về plan \emph{rỗng} 200/200 câu; verifier 23 sửa / 24 phá\\[2pt]
+Credit-RL giai đoạn 2 (thiết kế chống lối tắt) &
+V-COND $+3{,}0$ (4/5) trên GSM8K --- biến thể dương duy nhất &
+không chuyển miền: trên MATH $-7{,}0$ (5/5 âm)\\[2pt]
+MAPoRL đồng huấn luyện S/V/A &
+$0{,}690 \to 0{,}690$ ($+0{,}000$) &
+aggregator nghẽn suốt quá trình huấn luyện\\\bottomrule
+\end{tabular}
+\caption{Bảy phương pháp huấn luyện vai (mỗi phương pháp có tiền đăng ký hoặc cổng hiệu lực;
+chi tiết và đính chính từng lần chạy trong \texttt{docs/}). Phương pháp thứ tám ---
+bộ phân loại supervised --- đã ở Bảng~\ref{tab:clf}.}
+\label{tab:rl}
+\end{table}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.78\linewidth]{figs/verifier_grpo_example.png}
+\caption{Một ví dụ cụ thể (GSM8K): solver giải đúng (20\%), verifier gốc ``sửa'' thành sai
+(25\%) --- đúng kiểu phá vùng rủi ro của \S\ref{sec:termL}; verifier sau GRPO giữ nguyên đáp
+án đúng --- nhưng đạt điều đó chủ yếu bằng can thiệp ít đi, không phải kiểm giỏi hơn (hàng 1,
+Bảng~\ref{tab:rl}). (Hình tái dụng từ báo cáo khối Shapley của nhóm.)}
+\label{fig:grpoexample}
+\end{figure}
+
+Hàng thứ ba của Bảng~\ref{tab:rl} đáng chú ý nhất: thí nghiệm bất đối xứng thông tin đo được
+\emph{đồng thời} hai mốc trên cùng một lần chạy --- so với model yếu $+17{,}0$ điểm, so với
+chính model kiểm khi không xem bài $-10{,}4$ điểm, cả hai 5/5 fold. Đây là bản tái lập bằng
+huấn luyện của nghịch lý mốc so sánh (\S\ref{sec:synthesis}): RL thu hẹp thiệt hại tiếp xúc
+(gỡ 38\%) nhưng không đảo được dấu của $\dhonest$. Kết luận chung của cả bảng nối thẳng vào
+\S\ref{sec:kappa}: khi tín hiệu thưởng cũng chỉ là một tín hiệu \emph{học được}, tối ưu hoá
+tìm đến lối tắt của tín hiệu nhanh hơn tìm đến năng lực kiểm thật.
+
 % =====================================================================
 \section{Tổng hợp: nghịch lý nằm ở mốc so sánh}\label{sec:synthesis}
 
@@ -839,11 +995,13 @@ lập khác nhau --- xem Bảng~\ref{tab:doichieu} trước khi so hai đường
 \label{fig:paradox}
 \end{figure}
 
-Năm mảnh bằng chứng nội bộ hội tụ về bức tranh này: (1) cấu trúc --- lớp chỉ-chọn đặt $L=0$
+Sáu mảnh bằng chứng nội bộ hội tụ về bức tranh này: (1) cấu trúc --- lớp chỉ-chọn đặt $L=0$
 theo định nghĩa; (2) độ lớn --- $L \approx 11 G$ ở chênh lớn trên MATH; (3) cơ chế --- thiệt
 hại do tiếp xúc nội dung sai, tiền đăng ký, hai miền; (4) trần --- cổng lọc hoàn hảo chỉ thu
 $+1{,}8$ điểm trên nền $-12{,}4$ điểm; (5) liên miền --- quy luật MBPP không bị bác bỏ trên
-MATH ở 2/3 cặp (độ phân giải thấp). Một quan sát ngoài --- tranh biện kém self-consistency ở
+MATH ở 2/3 cặp (độ phân giải thấp); (6) tái lập bằng huấn luyện --- RL bất đối xứng thông tin
+đo đồng thời $+17{,}0$ điểm so model yếu và $-10{,}4$ điểm so model mạnh, cả hai 5/5 fold
+(\S\ref{sec:rl}). Một quan sát ngoài --- tranh biện kém self-consistency ở
 model nhỏ trong số liệu công bố \todoD{nguồn} --- nhất quán về hướng nhưng chờ xác nhận.
 
 \paragraph{Cây quyết định thực dụng} (trong phạm vi model 1,5B--32B, bốn benchmark suy luận):
@@ -889,8 +1047,10 @@ trình bắt được điều đó là một kết quả phương pháp ngang h�
 \item Chênh giải thích 82\% phương sai của $G$ nhưng chỉ 35\% của $L$: phần lớn biến thiên của
       thiệt hại chưa được định danh.
 \item Phép thử danh tính vai trên MATH thiếu lực (KTC tới $+13{,}4$ điểm); đối chứng
-      thêm-lượt-7B-không-kèm-artifact, đối chứng artifact trung tính cùng độ dài, và đối chứng
-      khác-model-cùng-họ đều chưa chạy.
+      thêm-lượt-7B-không-kèm-artifact, đối chứng độ-dài-ngữ-cảnh trong đúng thiết lập tiếp
+      xúc, và đối chứng khác-model-cùng-họ đều chưa chạy. Bảng Shapley
+      (\S\ref{sec:shapley}) chỉ có KTC bootstrap theo câu, không có fold; các kết quả huấn
+      luyện (\S\ref{sec:rl}) đều trên model 0,5--1,5B, chưa thử ở quy mô lớn hơn.
 \item Tính chuyển miền dựa trên 3 cặp, KTC rộng, thứ tự không đơn điệu; vùng dương của quy
       luật chênh chỉ có một điểm thuận ($+7{,}7$ tại chênh 0) và không thể xác lập trên MBPP
       (thiếu lực $\sim$8 lần); $g^\ast$ chưa có KTC.
@@ -908,7 +1068,9 @@ nghiệm khối luồng thông tin và chi phí (\S\ref{sec:baseline}--\ref{sec:
 đăng ký, chấp bút báo cáo. \textbf{Đức}: rà và xác nhận trích dẫn \S\ref{sec:related}, đối
 chiếu mốc so sánh của các công trình sinh-rồi-sửa, hình bất đối xứng verifier. \textbf{Tùng
 Dương}: rà thiết lập thí nghiệm \S\ref{sec:setup}, kiểm định nghĩa các cột bảng
-\ref{tab:exec}--\ref{tab:clf}, các hình còn lại.
+\ref{tab:exec}--\ref{tab:clf}, các hình còn lại. \textbf{Quân}: khối giá trị Shapley 16 tổ
+hợp và khối huấn luyện GRPO (\S\ref{sec:shapley}, \S\ref{sec:rl}); hai hình tái dụng từ báo
+cáo của khối này.
 
 % =====================================================================
 \begin{thebibliography}{99}\small
