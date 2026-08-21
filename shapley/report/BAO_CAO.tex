@@ -91,6 +91,42 @@
 \vfill
 \end{titlepage}
 
+% ---------------------------------------------------------------- TRANG LỜI CẢM ƠN
+\newpage
+\thispagestyle{empty}
+\vspace*{1.5cm}
+
+\begin{center}
+  {\LARGE\bfseries LỜI CẢM ƠN\par}
+  \vspace{10pt}
+  \rule{0.3\linewidth}{0.6pt}\par
+\end{center}
+\vspace{1.2cm}
+
+Nhóm chúng em xin gửi lời cảm ơn chân thành và sâu sắc nhất tới thầy \textbf{Trần Hồng Việt}, giảng viên phụ trách môn học Xử lý ngôn ngữ tự nhiên, Trường Đại học Công nghệ --- ĐHQGHN.
+
+Trong suốt học kỳ vừa qua, những bài giảng tâm huyết của thầy đã giúp chúng em nắm vững nền tảng kiến thức chuyên môn cũng như các hướng tiếp cận hiện đại về mô hình ngôn ngữ lớn. Quan trọng hơn, thầy đã rèn luyện cho chúng em tư duy nghiên cứu khoa học chuẩn mực, tinh thần phản biện và yêu cầu khắt khe về tính công bằng, kỷ luật khi đánh giá thực nghiệm.
+
+Báo cáo này là kết quả từ sự nỗ lực và tinh thần làm việc nghiêm túc của cả nhóm. Để làm rõ câu hỏi nghiên cứu, chúng em đã dành rất nhiều thời gian cùng nhau trao đổi, thiết lập các điều kiện kiểm soát đối chứng và phân tích tỉ mỉ từng trường hợp lỗi. Dù quá trình thực nghiệm gặp không ít trở ngại về mặt phương pháp và giới hạn tài nguyên tính toán, sự kiên trì và tinh thần học hỏi đã giúp nhóm hoàn thành đề tài một cách trọn vẹn nhất có thể.
+
+Dù đã rất cố gắng, báo cáo chắc chắn khó tránh khỏi những hạn chế và thiếu sót. Nhóm chúng em rất mong tiếp tục nhận được những nhận xét, chỉ dẫn quý báu từ thầy để có thể nhìn nhận vấn đề sâu sắc hơn và hoàn thiện bản thân trong chặng đường học tập phía trước.
+
+Kính chúc thầy luôn dồi dào sức khỏe, niềm vui và đạt được nhiều thành công trong công tác giảng dạy cũng như nghiên cứu khoa học.
+
+\vspace{1.8cm}
+\begin{flushright}
+\textit{Hà Nội, tháng 08 năm 2026}\\[6pt]
+\textbf{Nhóm sinh viên thực hiện}\\[8pt]
+\begin{tabular}{rl}
+\textbf{Dương Trọng Nguyên} & --- 24022420\\
+\textbf{Trương Đình Đức}    & --- 24021419\\
+\textbf{Trần Tùng Dương}    & --- 24022309\\
+\textbf{Lê Hoàng Quân}      & --- 24022433
+\end{tabular}
+\end{flushright}
+
+\vfill
+\newpage
 
 \begin{abstract}
 Các hệ thống LLM đa tác tử ngày càng được quan tâm vì cho phép phân chia nhiệm vụ giữa nhiều vai
@@ -174,37 +210,26 @@ mọi ký hiệu đều được định nghĩa đầy đủ ở \S\ref{sec:fram
 dùng.
 
 \begin{table}[t]\centering\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{@{}p{0.24\linewidth}p{0.71\linewidth}@{}}\toprule
-\multicolumn{2}{@{}l}{\textbf{Tra nhanh ký hiệu} (chi tiết: \S\ref{sec:framework}--\ref{sec:setup}; ví dụ bằng số: Phụ lục~\ref{app:glossary})}\\\midrule
-$P, S, V, A$ & bốn \emph{vai trò} pipeline: lập dàn ý -- giải -- kiểm-và-sửa -- chọn đáp án cuối;
-viết liền là tổ hợp vai trò (\texttt{PSVA} = đủ bốn vai trò)\\
-lần sinh & một lần model sinh trọn một lời giải; $k$ lần sinh thì độc lập và bình đẳng ---
-đơn vị đếm ngân sách suy luận (khác \emph{lượt}: bước nối tiếp trong pipeline)\\
-$H$ / $\kappa$ / $D$ & ba câu hỏi của khung đo (\S\ref{sec:threeq}): \emph{tiềm năng cải
-thiện} (pool có giá trị tiềm tàng nào không) / \emph{khả năng khai thác} (bộ chọn nhặt được không) /
-\emph{thiệt hại} (giao thức phá bao nhiêu)\\
-$W$ / $I$ / $E$ & ba \emph{nhân vật} của thí nghiệm tác động artifact: model yếu / model mạnh giải một
-mình / \emph{cùng} model mạnh nhưng thấy bài của $W$\\
-artifact & bài làm của model yếu --- thứ được đưa (hoặc không) vào ngữ cảnh model mạnh\\
-$G, L, R$ & cơ hội cải thiện / thiệt hại / phần cứu được --- ba số hạng của $\dceil = G-L+R$\\
-$\dceil$ & (\emph{ceiling}) trần lý tưởng trừ model mạnh; cần đáp án chuẩn nên \emph{chỉ để sàng lọc}\\
-$\dhonest$ & (\emph{real}) $\acc(E)-\acc(I)$ --- đại lượng \emph{triển khai được} thật\\
-chênh; $g^\ast$ & hiệu accuracy model mạnh $-$ model yếu (thang 0--1); mức chênh nơi
-$\dceil$ đổi dấu ($\approx 0{,}09$)\\
-\texttt{maj@}$k$; \texttt{oracle@}$k$ & bỏ phiếu đa số trong $k$ lần sinh; trần lý tưởng
-(đúng nếu $\geq 1$ lượt đúng)\\
-\texttt{exec3} / \texttt{llm3} & trên code: chọn ứng viên bằng \emph{chạy test} / để LLM
-\emph{tự duyệt}\\
-\texttt{V\_gain}, \texttt{A\_gain} & accuracy thay đổi khi thêm vai trò $V$ (hoặc $A$) vào cùng
-pipeline\\
-điểm; KTC & điểm phần trăm ($+14{,}0$ điểm $=+0{,}140$); khoảng tin cậy 95\%\\
-fold; mức dao động nền & 1 trong 5 phần bài rời nhau; biên dao động của phép đo lặp (tới 7
-điểm/100 bài) --- hiệu ứng tin được khi 5/5 fold cùng dấu và qua t-test\\
-mức A / mức B & 5 fold kèm t-test (hoặc thí nghiệm khoá tiêu chí trước) / đo một lần, chỉ
-minh hoạ cơ chế\\\bottomrule
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}p{0.25\linewidth}p{0.70\linewidth}@{}}\toprule
+\multicolumn{2}{@{}l}{\textbf{Tra nhanh ký hiệu} (chi tiết: \S\ref{sec:framework}--\ref{sec:setup})}\\\midrule
+$P, S, V, A$ & Bốn vai trò: Lập dàn ý -- Giải -- Kiểm/Sửa -- Chọn đáp án\\
+$H$ / $\kappa$ / $D$ & Ba câu hỏi: Tiềm năng cải thiện / Khả năng khai thác / Thiệt hại\\
+$W$ / $I$ / $E$ & Model yếu / Model mạnh độc lập / Model mạnh thấy $W$\\
+artifact & Bài làm của model yếu (nhiễu đưa vào context)\\
+$G, L, R$ & Cơ hội ($G$), thiệt hại ($L$), cứu được ($R$)\\
+$\dceil$ & Trần lý tưởng $\dceil = G-L+R$\\
+$\dhonest$ & Hiệu quả thực tế triển khai: $\acc(E) - \acc(I)$\\
+chênh; $g^\ast$ & Hiệu accuracy (mạnh $-$ yếu); điểm đổi dấu $\dceil$ ($\approx 0{,}09$)\\
+lần sinh & Một lần model sinh trọn một lời giải; $k$ lần sinh thì độc lập và bình đẳng\\
+\texttt{maj@}k; \texttt{oracle@}k & Bỏ phiếu đa số; Trần lý tưởng ($k$ lần sinh)\\
+\texttt{exec3} / \texttt{llm3} & Chọn ứng viên bằng: Chạy test / LLM tự duyệt\\
+\texttt{V\_gain}, \texttt{A\_gain} & Accuracy thay đổi khi thêm vai trò $V$ hoặc $A$\\
+điểm; KTC & Điểm phần trăm ($+14{,}0$ điểm $=+0{,}140$); Khoảng tin cậy 95\%\\
+mức dao động nền & Biên chênh lệch khi đo lại cùng cấu hình (tới 7 điểm/100 bài)\\
+fold; Mức A / B & 1/5 phần dữ liệu; Kiểm chứng 5-fold ($t$-test) / Đo 1 lần minh hoạ\\\bottomrule
 \end{tabular}
-\caption{Bảng tra nhanh toàn bộ ký hiệu và thuật ngữ riêng của báo cáo.}
+\caption{Bảng tra nhanh ký hiệu và thuật ngữ trong báo cáo.}
 \label{tab:cheatsheet}
 \end{table}
 
