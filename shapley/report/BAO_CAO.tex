@@ -232,13 +232,7 @@ quán vượt được} self-consistency hay thậm chí CoT, dù tốn nhiều 
 GSM8K, tranh biện còn giảm khoảng 16 điểm so với CoT (80,13 $\to$ 63,87) --- nhất quán với mẫu
 hình suy giảm ở model nhỏ mà chúng tôi quan sát độc lập (\S\ref{sec:roles}). Hai hệ gần nhất về
 kiến trúc và phương pháp là MAS\_RPSV (một cấu hình Reader--Planner--Solver--Verifier nối tiếp,
-trong khảo sát của MASPRM \cite{masprm2025} trên GSM8K/MATH) và SHARP \cite{sharp2025} (cùng
-dùng giá trị Shapley cho phân bổ đóng góp trong tối ưu hoá đa tác tử). Hai điểm đáng nói ở SHARP:
-(i) họ dùng xấp xỉ marginal-credit leave-one-out chứ không phải Shapley chính xác trên toàn bộ
-$2^4=16$ tổ hợp như chúng tôi (\S\ref{sec:shapley}); (ii) họ báo cáo tỉ lệ subagent \emph{có ích}
-tăng từ 11,03\% lên \textbf{12,96\%} sau huấn luyện, và dù vậy ``useful subagents vẫn là thiểu
-số'' --- song song với kết luận ``phân công lao động sụp đổ ở model yếu'' của chúng tôi
-(\S\ref{sec:roles}).
+trong khảo sát của MASPRM \cite{masprm2025} trên GSM8K/MATH) và SHARP \cite{sharp2025}
 
 
 \paragraph{Vị trí của khảo sát.} Khác với các công trình trước đây, khảo sát này không mục đích đề xuất một kiến trúc đa tác tử mới. Thay vào đó, chúng tôi đề xuất một khung đo lường thực nghiệm bao gồm 3 phép kiểm soát, một đẳng thức phân rã và khung phân tích 3 thừa số nhằm trả lời câu hỏi khi nào thì một cơ chế phối hợp đa tác tử tạo ra giá trị thật sự
