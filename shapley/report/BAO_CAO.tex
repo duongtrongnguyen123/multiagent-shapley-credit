@@ -368,17 +368,15 @@ khoảng cách năng lực giữa các model để cơ chế đó còn tiềm n�
 
 \paragraph{Model.} Qwen2.5-Instruct 1.5B/7B/14B/32B \cite{yang2024}; Llama-3.1-8B-Instruct
 \cite{grattafiori2024}; DeepSeek-Coder-6.7B-Instruct \cite{guo2024}. Sáu model tạo thành 15 cặp
-có hướng trong thí nghiệm \S\ref{sec:termG}; các khối còn lại dùng Qwen 1.5B/7B/14B. Lượng tử
-hoá được đo theo từng model, không suy theo họ: DeepSeek-6.7B nạp nf4 hết 3,61 GB; Qwen-7B hết
-5,21 GB; Llama-8B và Qwen-14B không lượng tử hoá được trên bản chạy (fp16 $\sim$16/28 GB).
-Phần cứng gồm Kaggle 2$\times$T4 (nf4/fp16) và RTX 6000 Pro (bf16). Kết quả nf4 và bf16 chênh
-nhau tới 3 điểm --- cùng cỡ với ngưỡng ý nghĩa hiệu dụng ($\sim$3,3 điểm, xem Thống kê). Vì
-vậy, so sánh chéo phần cứng chỉ đọc theo \emph{dấu}; mọi so sánh định lượng đều nằm trong cùng
+có hướng trong thí nghiệm \S\ref{sec:termG}; các khối còn lại dùng Qwen 1.5B/7B/14B. Các lần
+chạy trải trên hai hệ phần cứng và hai mức độ chính xác số (4-bit và 16-bit); riêng chênh lệch
+do mức độ chính xác đã tới 3 điểm --- cùng cỡ ngưỡng ý nghĩa hiệu dụng (xem Thống kê). Vì vậy
+so sánh chéo phần cứng chỉ đọc theo \emph{dấu}; mọi so sánh định lượng đều nằm trong cùng một
 tổ hợp phần cứng, độ chính xác số và bộ bài.
 
-\paragraph{Benchmark.} GSM8K \cite{cobbe2021}; MATH-500 \cite{hendrycks2021}; MBPP
-\cite{austin2021} (dải chính \texttt{task\_id} 11--510, $\sim$499 bài sau lọc; dải giữ lại
-511--974, 464 bài); HumanEval \cite{chen2021}. Với \S\ref{sec:kappa}, điểm mấu chốt là
+\paragraph{Benchmark.} GSM8K \cite{cobbe2021} (1319 bài); MATH-500 \cite{hendrycks2021}
+(500 bài); MBPP \cite{austin2021} (499 bài ở dải chính; 464 bài ở dải giữ lại, dùng để kiểm
+chuyển miền); HumanEval \cite{chen2021} (164 bài). Với \S\ref{sec:kappa}, điểm mấu chốt là
 MBPP/HumanEval có cách kiểm \emph{chắc chắn}: lời giải qua test là bằng chứng trực tiếp. MATH
 và GSM8K không có tín hiệu này.
 
@@ -889,10 +887,10 @@ kiểm --- Bảng~\ref{tab:exec}:
 \begin{tabular}{lccccc}\toprule
 Ô & greedy & \texttt{exec3} & \texttt{llm3} & \texttt{exec3} phá & \texttt{llm3} phá\\
  & & & & (bài/fold) & (bài/fold)\\\midrule
-HE 1.5B (Kaggle) & 0,5375 & \textbf{0,6000} & 0,4812 & \textbf{0,0} & 2,8\\
-HE 1.5B (5090)   & 0,5625 & \textbf{0,6438} & 0,4375 & \textbf{0,0} & 4,6\\
-HE 7B (5090)     & 0,8000 & \textbf{0,8812} & 0,7812 & \textbf{0,0} & 2,6\\
-HE 7B (Kaggle)   & 0,7938 & \textbf{0,9000} & 0,7438 & \textbf{0,0} & 3,2\\\bottomrule
+HE 1.5B, hệ A & 0,5375 & \textbf{0,6000} & 0,4812 & \textbf{0,0} & 2,8\\
+HE 1.5B, hệ B & 0,5625 & \textbf{0,6438} & 0,4375 & \textbf{0,0} & 4,6\\
+HE 7B, hệ B   & 0,8000 & \textbf{0,8812} & 0,7812 & \textbf{0,0} & 2,6\\
+HE 7B, hệ A   & 0,7938 & \textbf{0,9000} & 0,7438 & \textbf{0,0} & 3,2\\\bottomrule
 \end{tabular}
 \caption{Chọn bằng chạy test (\texttt{exec3}) so với LLM tự duyệt (\texttt{llm3}). Bốn ô là bốn
 điều kiện khác nhau (hai model $\times$ hai hệ phần cứng; độ trôi phần cứng $\sim$0,03 nhỏ hơn
