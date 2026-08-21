@@ -446,7 +446,7 @@ giữ ý nghĩa ($t=3{,}3$--$6{,}9$); kết quả $+7{,}7$ của khối McNemar 
 Phần này trình bày kết quả theo hai hồi. \textbf{Hồi I} (từ Mục~\ref{sec:start} đến~\ref{sec:denominator}) phân tích tác động tuần tự của ba phép kiểm soát lên hiệu quả hợp tác giữa các tác nhân. \textbf{Hồi II} (từ Mục~\ref{sec:termG} đến~\ref{sec:rl}) xác định giá trị còn lại thông qua ba thừa số \(G\), \(L\) và \(\kappa\), và kết thúc bằng thảo luận về huấn luyện. Các số liệu được báo cáo ở mức A (chính xác trên toàn tập) trừ khi có ghi chú khác. Bảng tra cứu ký hiệu được cung cấp tại Bảng~\ref{tab:cheatsheet}.
 
 % ---------------------------------------------------------------
-\subsection{Điểm xuất phát: Đánh giá lợi ích của pipeline và mức nhiễu}\label{sec:start}
+\subsection{Đánh giá ban đầu về pipeline và mức nhiễu}\label{sec:start}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c c c@{}}
@@ -463,10 +463,8 @@ MATH  & \textbf{0,405} & 0,345 & \(-6{,}0\) & \(6{,}63\times\)\\
 
 Bảng~\ref{tab:pipeline} cho thấy kết quả trước khi áp dụng bất kỳ biện pháp kiểm soát nào. Trên GSM8K, pipeline vượt trội hơn 11,2 điểm, trong khi trên MATH, nó tiêu tốn gấp 6,63 lần chi phí sinh token nhưng lại kém hơn 6 điểm. Cần lưu ý hai điểm quan trọng. \textit{Thứ nhất}, kiểm định thống kê dựa trên một đại lượng gần tương tự nhưng không hoàn toàn trùng khớp: qua 5-fold, hiệu số \(\textit{PSVA}-\textit{PS} = +5{,}6\) điểm; \(t=6{,}89\)) --- lợi ích trên GSM8K là có ý nghĩa thống kê. \textit{Thứ hai}, quy trình hiệu chuẩn nhiễu (\S\ref{sec:setup}) chỉ ra rằng một phép đo trên 100 mẫu có thể dao động tới 7 điểm; vì vậy, tất cả các hiệu ứng sẽ được báo cáo.
 
-Mục tiếp theo áp dụng phép kiểm soát thứ nhất: lợi ích này đến từ sự phối hợp giữa các vai hay chỉ đơn thuần là do số lượng lượt sinh tăng lên?
-
 % ---------------------------------------------------------------
-\subsection{Kiểm soát chi phí: Giá trị nằm ở lượt sinh bổ sung, không phải ở vai tổng hợp}\label{sec:budget}
+\subsection{Kiểm soát chi phí: vai trò của lượt sinh bổ sung}\label{sec:budget}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c@{}}
@@ -495,10 +493,9 @@ Bảng~\ref{tab:budget} cố định ngân sách và chỉ thay đổi \textit{p
 \item Tác hại của aggregator chủ yếu đến từ vấn đề đo lường: chỉ 73--81\% lượt tổng hợp đưa ra đáp án trong khung để có thể chấm điểm. Khi thêm cơ chế fallback (nếu thiếu khung, lấy đáp án của verifier, không gọi thêm mô hình), \textit{A\_gain} trên MATH 1.5B tăng từ \(-6{,}4\) điểm lên \(+0{,}8\) điểm. Một lần chạy khác (bộ đề khác, không lượng tử hóa) cho \(+8{,}0\) điểm; sau khi sửa lỗi định dạng, hai ước lượng đều không âm, phần chênh lệch còn lại được quy cho sự khác biệt về bộ đề và độ chính xác số học.
 \end{itemize}
 
-Sau phép kiểm soát chi phí, yếu tố chắc chắn có giá trị duy nhất là ``các lượt sinh độc lập bổ sung''. Mục tiếp theo đặt câu hỏi: những lượt sinh đó nên do vai nào và mô hình cỡ nào đảm nhiệm?
 
 % ---------------------------------------------------------------
-\subsection{Phân rã đóng góp theo vai bằng giá trị Shapley}\label{sec:shapley}
+\subsection{Phân rã đóng góp bằng giá trị Shapley}\label{sec:shapley}
 
 Trước khi phân tích hành vi chi tiết, chúng tôi đo lường đóng góp của từng vai bằng giá trị Shapley \cite{shapley1953}: chạy đủ \(2^4 = 16\) tổ hợp bật/tắt bốn vai (xem Hình~\ref{fig:shapleyfw}); đóng góp \(\varphi_i\) của một vai là trung bình mức thay đổi độ chính xác khi thêm nó vào mọi tổ hợp con --- đây là cách phân bổ duy nhất thỏa mãn các tiên đề về hiệu quả, đối xứng và cộng tính.
 
@@ -525,10 +522,10 @@ Planner    & \(\mathbf{-0{,}014}\)  & \(+0{,}017\) \\
 
 Bảng~\ref{tab:shapley} cho thấy ba điểm chính. \textit{Thứ nhất}, Solver và Verifier chiếm phần lớn giá trị; Planner ở 1.5B có đóng góp âm trên GSM8K --- rõ nhất ở cặp tổ hợp: \(SA = 0{,}682 \to PSA = 0{,}562\), việc thêm planner làm giảm 12 điểm. \textit{Thứ hai}, đóng góp thay đổi theo năng lực: khi nâng riêng planner lên 7B, \(\varphi_P\) chuyển từ \(-0{,}023\) lên \(+0{,}055\)  --- planner âm là hệ quả của mô hình yếu, không phải bản chất vai trò. Nâng riêng verifier lên 7B đẩy \(\varphi_V\) từ \(+0{,}269\) lên \(+0{,}462\) --- verifier là vai nhạy cảm nhất với năng lực, báo trước cho Mục~\ref{sec:roles}. \textit{Thứ ba}, chỉ số tương tác Shapley cho thấy \(S\), \(V\), \(A\) thay thế lẫn nhau mạnh (\(I \approx -0{,}21\) đến \(-0{,}27\) ở cả hai tác vụ): ba vai này đang thực hiện các phiên bản của cùng một nhiệm vụ, chứ không bổ sung cho nhau.
 
-Một giới hạn quan trọng của phép đo này: Shapley phân bổ giá trị cho \textit{nhãn vai}, không cho \textit{chức năng} --- nếu planner lén giải bài, công của nó vẫn được ghi cho nhãn ``Planner'' dù hành vi thực tế là của solver. Mục tiếp theo phân tích các vết để trả lời liệu các vai có thực sự làm đúng chức năng của mình hay không.
+Một giới hạn quan trọng của phép đo này: Shapley phân bổ giá trị cho \textit{nhãn vai}, không cho \textit{chức năng} --- nếu planner lén giải bài, công của nó vẫn được ghi cho nhãn ``Planner'' dù hành vi thực tế là của solver.
 
 % ---------------------------------------------------------------
-\subsection{Vai trò: Chuyên biệt hóa chỉ là danh nghĩa và vai kiểm không thực sự kiểm soát}\label{sec:roles}
+\subsection{Phân tích hành vi và vai trò của các tác nhân}\label{sec:roles}
 
 Bảng~\ref{tab:behavior} tổng hợp hành vi từ các vết, cho thấy sự chuyên biệt hóa vai trò phần lớn chỉ là hình thức ở mô hình nhỏ: planner --- mặc dù bị cấm tính đáp án --- vẫn chứa đáp án đúng trong 34,7\% câu MATH (45,3\% trường hợp còn đưa ra cả khung đáp án); khi có plan, solver chỉ sao chép (độ dài trung vị lời giải là 19 ký tự, so với 664 khi không có plan). Ở mô hình 7B, các hiện tượng này gần như biến mất --- nhưng ở mức năng lực đó, pipeline lại thua solver đơn lẻ. Trên 2.000 lượt ở cả bốn ô, aggregator chỉ 3 lần đưa ra một đáp án mới và đúng: vai tổng hợp không thực hiện tính toán ở mọi mức năng lực.
 
@@ -585,7 +582,7 @@ Cơ chế từ vết: khi verifier can thiệp, nó tái sử dụng số liệu
 Con số \(+14{,}0\) đang so với mô hình yếu. Mục tiếp theo áp dụng phép kiểm soát thứ hai và thứ nhất đồng thời: so sánh với mốc mô hình mạnh và xét đến chi phí token.
 
 % ---------------------------------------------------------------
-\subsection{Kiểm soát mốc so sánh và đơn giá token}\label{sec:baseline}
+\subsection{So sánh với mốc mô hình mạnh và chi phí token}\label{sec:baseline}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c c c@{}}
@@ -640,7 +637,7 @@ Con số & Đại lượng & Mốc so sánh & Thiết lập & Mục\\
 Còn một phép kiểm soát chưa áp dụng: mẫu số. Mọi con số trên đều là trung bình toàn tập --- bao gồm cả những câu mà không có cơ chế nào cứu được.
 
 % ---------------------------------------------------------------
-\subsection{Kiểm soát mẫu số: Phần lớn số câu vốn bất động}\label{sec:denominator}
+\subsection{Phân tầng mẫu số: tỷ lệ câu hỏi bất động}\label{sec:denominator}
 
 \begin{table}[h]\centering\small
 \begin{tabular}{@{}l c c c c@{}}
@@ -666,7 +663,7 @@ Ba phép kiểm soát vậy là ngược chiều nhau: thiếu mẫu số \(\Rig
 \textit{Hết Hồi I.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lượt sinh thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
 
 % ---------------------------------------------------------------
-\subsection{Số hạng \(G\): Cơ hội co lại khi chênh lệch tăng}\label{sec:termG}
+\subsection{Số hạng \(G\): cơ hội và chênh lệch năng lực}\label{sec:termG}
 
 Quan sát thô trên 7 cặp model gộp nhiều lần chạy cho thấy: các cặp khác họ có cơ hội \(G\) cao hơn khoảng 24% (0,0597 so với 0,0481), nhưng các cặp khác họ cũng có chênh lệch năng lực nhỏ hơn (0,130 so với 0,167); hai biến này bị trộn hoàn toàn. Thiết kế tách biệt (tiền đăng ký) sử dụng 6 model, 15 cặp có hướng, trên cùng 499 bài MBPP, hồi quy
 \begin{align*}
@@ -706,7 +703,7 @@ Cặp & Chênh & \(\dceil\) đo được & KTC 95\% & Dự báo từ MBPP & Kế
 
 Hai trong ba dự báo nằm trong khoảng tin cậy 95\%, do đó quy luật không bị bác bỏ. Tuy nhiên, khoảng tin cậy khá rộng (0,064--0,084) nên phép kiểm có độ phân giải thấp. Hơn nữa, thứ tự ba điểm không đơn điệu (chênh 0,244 cho hiệu ứng âm sâu hơn chênh 0,288), vì vậy tính đơn điệu của quy luật chưa được xác nhận trên miền toán. Cặp 1.5B\(\to\)7B nằm ngoài một cách hệ thống, với \(L = 0{,}208\), gấp khoảng 11 lần \(G\). Hiện tượng này tái lập trong một phép đo độc lập trên cùng cặp (\(-0{,}1380 \to -0{,}1660\)). Như vậy, quy luật chỉ mô tả xu hướng chung; ngoại lệ xuất hiện khi mô hình yếu quá kém so với độ khó của bài toán.
 
-\subsection{Số hạng \(L\): Hình phạt của nội dung sai và vai trò ống dẫn của giao thức sửa}\label{sec:termL}
+\subsection{Số hạng \(L\): hình phạt của nội dung sai}\label{sec:termL}
 
 Đây là thí nghiệm chính của khảo sát (tiền đăng ký; chọn MATH-500 để đổi miền so với quan sát thăm dò gốc trên MBPP). Thiết kế được mô tả trong Hình~\ref{fig:exposure}: hai nhánh \(I\) và \(E\) dùng cùng một lệnh giải, chỉ khác nhau ở việc ngữ cảnh có kèm artifact của \(W\) hay không. Kết quả được phân tầng theo nội dung artifact và trình bày trong Bảng~\ref{tab:exposure}.
 
@@ -748,7 +745,7 @@ Cả hai sai & 140 & 4,3\\
 
 Từ Bảng~\ref{tab:222} rút ra ba nhận xét chính. Thứ nhất, giao thức sửa đóng vai trò như một ống dẫn, không phải bộ sửa lỗi: gần như không tạo ra lời giải mới khi cả hai mô hình đều trượt (4,3\% = 6/140), phá hủy ở quy mô lớn trên vùng rủi ro (63,6\% = 77/121), và truyền lại đáp án đúng của \(W\) khi có (10/11 bài --- tầng quá nhỏ để ước lượng chặt chẽ). Thứ hai, ở cặp này tầng khai thác được nhỏ hơn vùng rủi ro 11 lần (11 so với 121 bài); tỷ lệ này co giãn theo chênh lệch, nhưng chưa được đo ở các mức chênh khác. Thứ ba, chiến lược “\(W\) đúng thì giữ \(W\)” tương đương với oracle \(\CEIL\). Ngay cả khi được cung cấp oracle này, mức tăng cũng chỉ là \(+0{,}4\) điểm (đúng thêm 2/500 bài), vì \(E\) vốn đã giữ được 99,6\% và 90,9\% trong hai tầng tương ứng. Kể cả với \(\CEIL = 0{,}578\), giá trị này vẫn thấp hơn \(I = 0{,}698\). Trong lớp giao thức sửa bất đối xứng đã đo, không có cấu hình nào đạt \(\acc(E) > \acc(I)\) (0/15 cặp MBPP, tốt nhất \(-3{,}0\) điểm; các cặp MATH trong Bảng~\ref{tab:transfer}); trường hợp \(E>I\) duy nhất là cấu hình cùng cỡ ở Mục~\ref{sec:baseline}. Vấn đề không nằm ở việc “quên giữ \(W\)”, mà là \(E\) phá vùng rủi ro. Trong các phương án đã thử (hai cổng oracle ở Mục~\ref{sec:kappa}), chỉ có việc không đưa artifact vào ngữ cảnh mới bảo vệ được vùng đó.
 
-\subsection{Bộ chọn \(\kappa\) và định tuyến: Tín hiệu chắc chắn đạt chặn trên, tín hiệu học được không đạt}\label{sec:kappa}
+\subsection{Bộ chọn \(\kappa\) và định tuyếnc}\label{sec:kappa}
 
 \paragraph{Tín hiệu chắc chắn.}
 Trên HumanEval, cùng mô hình, cùng 4 lượt sinh, chỉ khác nhau ở nguồn kiểm tra, kết quả được trình bày trong Bảng~\ref{tab:exec}.
@@ -804,7 +801,7 @@ Hai kết quả về “chọn lúc nào cần gọi thêm” đều ở mức B
 
 Hai trần cho cổng tiếp xúc (tính trên dữ liệu Mục~\ref{sec:termL}): cổng theo artifact hoàn hảo (chỉ cho xem artifact đúng --- oracle) đạt \(+1{,}8\) điểm so với \(I\); bộ phân loại thật cần độ chính xác khoảng 88--89\% để hòa vốn (hòa vốn \(\approx 27{,}2/(27{,}2+3{,}8)\) theo hai hiệu ứng ở Bảng~\ref{tab:exposure}). Cổng biết khi \(I\) sai (oracle mạnh hơn) đạt \(+3{,}2\) điểm, nhưng đòi hỏi phát hiện lỗi của chính mô hình mạnh --- đúng loại tín hiệu vừa cho thấy đo được nhưng không dùng được. Hàm ý: cải thiện bộ cổng có trần thấp; cấu hình mặc định không đưa artifact vào ngữ cảnh có kỳ vọng cao hơn.
 
-\subsection{Huấn luyện các vai: Bảy phương pháp, bảy lối tắt}\label{sec:rl}
+\subsection{Huấn luyện các vai: bảy phương pháp và các lối tắt}\label{sec:rl}
 
 \begin{figure}[h]
 \centering
