@@ -57,6 +57,8 @@ sửa văn phong** file `report/SEC34.tex` cho tự nhiên như người Việt 
   - Bốn vai pipeline: $P$ planner / $S$ solver / $V$ verifier / $A$ aggregator.
   - **chênh** (chênh lệch năng lực), $g^\ast$, **sàn nhiễu**, **fold**, **mức A / mức B**,
     **VOID**, **tiền đăng ký**, **điều kiện hợp lệ**, **niêm phong**.
+  - Gọi $H$ là **tiềm năng cải thiện**. **Không dùng "dư địa"** (sắc thái kinh tế) và không
+    dùng "khả năng cải thiện" (dễ lẫn với "khả năng khai thác" của $\kappa$).
   - Từ mượn giữ nguyên, đừng dịch cưỡng ép: *model, pool, prompt, token, benchmark, greedy,
     oracle, artifact, adapter, trace, fold, pipeline*.
 - Cấu trúc mục: giữ nguyên số lượng và thứ tự `\section` / `\subsection` / `\paragraph`,
