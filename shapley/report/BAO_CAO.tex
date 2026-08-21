@@ -476,7 +476,7 @@ quả được phục hồi sau khi đối chiếu cờ hợp lệ; 1 mất ý n
 % =====================================================================
 \section{Kết quả}\label{sec:results}
 
-Phần này trình bày kết quả theo hai mạch phân tích. \textbf{Mạch thứ nhất} (từ \S\ref{sec:start} đến~\ref{sec:denominator}) phân tích tác động tuần tự của ba phép kiểm soát lên hiệu quả hợp tác giữa các tác tử. \textbf{Mạch thứ hai} (từ \S\ref{sec:termG} đến~\ref{sec:rl}) xác định giá trị còn lại thông qua ba thừa số $G$, $L$ và $\kappa$, và kết thúc bằng thảo luận về huấn luyện. Trừ khi ghi chú khác, các số liệu đều ở mức tin cậy A (\S\ref{sec:setup}); phạm vi đo của từng phép được ghi ngay tại bảng tương ứng. Bảng tra cứu ký hiệu ở Bảng~\ref{tab:cheatsheet}.
+Phần này trình bày kết quả theo hai mạch phân tích. \textbf{Mạch thứ nhất} (từ \S\ref{sec:start} đến~\ref{sec:denominator}) phân tích tác động tuần tự của ba phép kiểm soát lên hiệu quả hợp tác giữa các tác nhân. \textbf{Mạch thứ hai} (từ \S\ref{sec:termG} đến~\ref{sec:rl}) xác định giá trị còn lại thông qua ba thừa số $G$, $L$ và $\kappa$, và kết thúc bằng thảo luận về huấn luyện. Trừ khi ghi chú khác, các số liệu đều ở mức tin cậy A (\S\ref{sec:setup}); phạm vi đo của từng phép được ghi ngay tại bảng tương ứng. Bảng tra cứu ký hiệu ở Bảng~\ref{tab:cheatsheet}.
 
 % ---------------------------------------------------------------
 \subsection{Lợi ích của pipeline và mức dao động nền của phép đo}\label{sec:start}
@@ -702,12 +702,12 @@ Bảng~\ref{tab:strata} phân 150 bài theo ``pool chứa bao nhiêu lời giả
 
 Ba phép kiểm soát vậy là ngược chiều nhau: thiếu mẫu số $\Rightarrow$ đánh giá thấp; thiếu chi phí hoặc mốc $\Rightarrow$ đánh giá cao. Hạn chế tự khai: các hiệu ứng chủ lực ở \S\ref{sec:roles}--\ref{sec:baseline} chưa được phân tầng lại theo cách này (thiếu dữ liệu theo-bài cho từng tầng); con số toàn tập của chúng vì vậy là ước lượng thấp của hiệu ứng trên tầng khả tác động.
 
-\emph{Hết mạch thứ nhất.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lần sinh thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Mạch thứ hai xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
+\emph{Hết mạch thứ nhất.} Bức tranh sau ba phép kiểm soát: giá trị dương chắc chắn duy nhất là lần sinh thêm; cấu hình sửa-bài-của-nhau thua model mạnh đơn lẻ. Hồi II xác định giá trị mất đi đâu và có quy luật nào đoán trước được hay không.
 
 % ---------------------------------------------------------------
 \subsection{Chênh lệch năng lực thu hẹp cơ hội cải thiện}\label{sec:termG}
 
-Quan sát thô trên 7 cặp model gộp nhiều lần chạy cho thấy: các cặp khác họ có cơ hội $G$ cao hơn khoảng 24\% (0,0597 so với 0,0481), nhưng các cặp khác họ cũng có chênh lệch năng lực nhỏ hơn (0,130 so với 0,167); hai biến này bị trộn hoàn toàn. Thiết kế tách biệt (chốt trước) sử dụng 6 model, 15 cặp có hướng, trên cùng 499 bài MBPP, hồi quy
+Quan sát thô trên 7 cặp model gộp nhiều lần chạy cho thấy: các cặp khác họ có cơ hội $G$ cao hơn khoảng 24\% (0,0597 so với 0,0481), nhưng các cặp khác họ cũng có chênh lệch năng lực nhỏ hơn (0,130 so với 0,167); hai biến này bị trộn hoàn toàn. Thiết kế tách biệt (tiền đăng ký) sử dụng 6 model, 15 cặp có hướng, trên cùng 499 bài MBPP, hồi quy
 \begin{align*}
 G &= \beta_0 + \beta_1\cdot\text{chênh} + \beta_2\cdot\text{khác\_họ}\\
 \beta_1 &= -0{,}1922\ (p \approx 0)\\
@@ -715,7 +715,7 @@ G &= \beta_0 + \beta_1\cdot\text{chênh} + \beta_2\cdot\text{khác\_họ}\\
 \end{align*}
 $R^2$ chỉ với chênh lệch là 0,824. KTC của $\beta_2$ nằm trọn dưới ngưỡng tương đương $+0{,}02$ đã khoá trước, cho thấy một kết quả null có thông tin: khác họ là tương quan giả; biến giải thích chính là chênh lệch năng lực. Dấu của $\beta_1$ đáng chú ý: chênh lệch càng lớn, cơ hội $G$ càng nhỏ --- model yếu càng đuối thì càng hiếm bài nó cứu được model mạnh. (Kết quả đa dạng pool --- 3 model cho 2,70/3 ứng viên phân biệt so với 1,91/3 khi cùng model --- chỉ được ghi là khác model; đối chứng khác-model-cùng-họ chưa chạy.)
 
-Thêm nhánh sửa cho cả 15 cặp (chốt trước) cho quy luật của trần:
+Thêm nhánh sửa cho cả 15 cặp (tiền đăng ký) cho quy luật của trần:
 \begin{equation}\label{eq:rule}
 \dceil = +0{,}0218 - 0{,}2392 \times \text{chênh};\qquad R^2 = 0{,}60;\ p = 10^{-5};\
 g^\ast \approx 0{,}09,
@@ -725,7 +725,7 @@ trong đó $g^\ast = \beta_0/|\beta_1|$ là mức chênh nơi đường khớp c
 % ---------------------------------------------------------------
 \subsection{Kiểm tra khả năng chuyển miền của quy luật chênh lệch năng lực}\label{sec:transfer}
 
-Chúng tôi sử dụng đường khớp~\eqref{eq:rule} ước lượng trên MBPP để dự báo $\dceil$ trên MATH (chốt trước; 3 cặp Qwen; KTC bootstrap ghép cặp 10\,000 lần). Kết quả được trình bày trong Bảng~\ref{tab:transfer}.
+Chúng tôi sử dụng đường khớp~\eqref{eq:rule} ước lượng trên MBPP để dự báo $\dceil$ trên MATH (tiền đăng ký; 3 cặp Qwen; KTC bootstrap ghép cặp 10\,000 lần). Kết quả được trình bày trong Bảng~\ref{tab:transfer}.
 
 \begin{table}[htbp]
 \centering
@@ -747,7 +747,7 @@ Hai trong ba dự báo nằm trong khoảng tin cậy 95\%, do đó quy luật k
 
 \subsection{Nội dung artifact quyết định tác động của việc tiếp xúc}\label{sec:termL}
 
-Đây là thí nghiệm chính của khảo sát (chốt trước; chọn MATH-500 để đổi miền so với quan sát thăm dò gốc trên MBPP). Thiết kế được mô tả trong Hình~\ref{fig:exposure}: hai nhánh $I$ và $E$ dùng cùng một lệnh giải, chỉ khác nhau ở việc ngữ cảnh có kèm artifact của $W$ hay không. Kết quả được phân tầng theo nội dung artifact và trình bày trong Bảng~\ref{tab:exposure}.
+Đây là thí nghiệm chính của khảo sát (tiền đăng ký; chọn MATH-500 để đổi miền so với quan sát thăm dò gốc trên MBPP). Thiết kế được mô tả trong Hình~\ref{fig:exposure}: hai nhánh $I$ và $E$ dùng cùng một lệnh giải, chỉ khác nhau ở việc ngữ cảnh có kèm artifact của $W$ hay không. Kết quả được phân tầng theo nội dung artifact và trình bày trong Bảng~\ref{tab:exposure}.
 
 \begin{table}[htbp]
 \centering
@@ -760,7 +760,7 @@ artifact sai  & $-19{,}0$ & $-19{,}3$ & $-27{,}2$ ($p\approx 0$; $n=261$)\\
 artifact đúng & $+6{,}4$ & $+2{,}5$ & $+3{,}8$ ($p=0{,}012$; $n=239$)\\
 \bottomrule
 \end{tabular}
-\caption{Hiệu ứng tiếp xúc $\acc(E)-\acc(I)$ (đơn vị: điểm phần trăm), phân tầng theo nội dung artifact. Hai cột MBPP là phân tầng hậu nghiệm (mức B); cột MATH là thí nghiệm chốt trước (mức A).}
+\caption{Hiệu ứng tiếp xúc $\acc(E)-\acc(I)$ (đơn vị: điểm phần trăm), phân tầng theo nội dung artifact. Hai cột MBPP là phân tầng hậu nghiệm (mức B); cột MATH là thí nghiệm tiền đăng ký (mức A).}
 \label{tab:exposure}
 \end{table}
 
@@ -809,7 +809,7 @@ HE 7B   & 0,7938 & 0,9000 & 0,7438 & 0,0 & 3,2\\
 \label{tab:exec}
 \end{table}
 
-exec3 không phá hủy bài nào trong cả 20/20 fold và đạt đúng \texttt{oracle@4} ở hai ô có ghi số (0,6438 và 0,8812). Ngược lại, llm3 phá hủy ở cả 20/20 fold. Mốc trung thực là greedy; bỏ phiếu đa số có hại trên code ($-11{,}3$ và $-13{,}1$ điểm) vì lời giải dài hiếm khi trùng nhau nguyên văn. Chênh lệch $exec3-\text{greedy}$ dao động từ $+6{,}3$ đến $+10{,}6$ điểm qua bốn điều kiện. Một điều kiện áp dụng quan trọng: khi model nền bão hoà (GSM8K 7B, solver 0,916), một bộ kiểm thực thi có độ chính xác 0,837 vẫn cho hiệu ứng ròng âm (26 phá / 6 sửa). Do đó, “có bộ kiểm chắc chắn” chỉ có giá trị khi còn tiềm năng cải thiện.
+exec3 không phá hủy bài nào trong cả 20/20 fold và đạt đúng \texttt{oracle@4} ở hai ô có ghi số (0,6438 và 0,8812). Ngược lại, llm3 phá hủy thì ở tất cả 20 fold. Mốc trung thực là greedy; bỏ phiếu đa số có hại trên code ($-11{,}3$ và $-13{,}1$ điểm) vì lời giải dài hiếm khi trùng nhau nguyên văn. Chênh lệch $exec3-\text{greedy}$ dao động từ $+6{,}3$ đến $+10{,}6$ điểm qua bốn điều kiện. Một điều kiện áp dụng quan trọng: khi model nền bão hòa (GSM8K 7B, solver 0,916), một bộ kiểm thực thi có độ chính xác 0,837 vẫn cho hiệu ứng ròng âm (26 phá / 6 sửa). Do đó, “có bộ kiểm chắc chắn” chỉ có giá trị khi còn tiềm năng cải thiện cải thiện.
 
 \paragraph{Tín hiệu học được.}
 Bộ phân loại được huấn luyện trên lỗi tiêm (lấy lời giải đúng rồi đổi một chữ số trong đáp án) và sau đó được dùng để phát hiện lỗi thật. Đây cũng chính là phép thử “thay một số trong đáp án, verifier có thấy không”. Kết quả được trình bày trong Bảng~\ref{tab:clf}.
@@ -837,7 +837,7 @@ giữa lời giải đúng và sai, đo trên lỗi tiêm và lỗi thật. Ở 
 Đặt cạnh nhau: trên code, khoảng cách $\texttt{oracle@}k-\texttt{maj@}k$ là $+21{,}3$ điểm và exec3 lấy gần trọn (đạt đúng \texttt{oracle@4}, phá 0 lần); trên toán, khoảng cách là 12--13 điểm (Bảng~\ref{tab:budget}) nhưng tín hiệu học được tốt nhất chỉ lấy $+2{,}4$ điểm.
 
 \begin{quote}
-Khoảng cách $\texttt{oracle@}k - \texttt{maj@}k$ là chặn trên cho giá trị của mọi bộ kiểm trên cùng pool. Tín hiệu chắc chắn (chạy test) lấy gần trọn chặn đó; tín hiệu học được trong khảo sát của chúng tôi chỉ lấy được một phần nhỏ, dù chất lượng đo lỗi rất cao. Nút thắt của miền toán vì vậy mang tính kép: vừa thiếu tín hiệu chắc chắn, vừa nghèo pool. Trong số bài mà \texttt{maj@5} sai, 65\% (48/74, tính từ Bảng~\ref{tab:strata}) là bài pool không chứa nổi một ứng viên đúng, tức không bộ chọn nào có thể cứu được.
+Khoảng cách $\texttt{oracle@}k - \texttt{maj@}k$ là chặn trên cho giá trị của mọi bộ kiểm trên cùng pool. Tín hiệu chắc chắn (chạy test) lấy gần trọn chặn đó; tín hiệu học được trong khảo sát của chúng tôi chỉ lấy được một phần nhỏ, dù chất lượng đo lỗi rất cao. Nút thắt của miền toán vì vậy mang tính kép: vừa thiếu tín hiệu chắc chắn, vừa nghèo pool. Trong số bài mà \texttt{maj@5} sai, 71\% (48/68, tính từ Bảng~\ref{tab:strata}) là bài pool không chứa nổi một ứng viên đúng, tức không bộ chọn nào có thể cứu được.
 \end{quote}
 
 \paragraph{Định tuyến.}
@@ -863,7 +863,7 @@ Nhóm đã thử bảy phương pháp huấn luyện/tối ưu vai trò. Không 
 
 \item[\textbf{Thứ hai.}] GRPO theo đáp án cuối (vá lỗ im lặng) đạt $+1{,}8$ điểm, thấp hơn ngưỡng $+2{,}0$ đã đăng ký trước. Lối tắt là nhại solver: trung vị độ dài đầu ra giảm từ $480$ xuống $19$ ký tự, tỷ lệ đồng ý khi solver sai tăng từ $0{,}50$ lên $0{,}64$.
 
-\item[\textbf{Thứ ba.}] GRPO + bất đối xứng thông tin (solver 0,5B, verifier 1,5B; chốt trước, đủ nhánh $I$) đo đồng thời hai mốc: so với model yếu cho $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi tự giải cho $-10{,}4$ điểm (5/5 fold âm). RL chỉ gỡ được 38\% thiệt hại tiếp xúc; 54\% bài hỏng sinh ra đáp án thứ ba không theo ai.
+\item[\textbf{Thứ ba.}] GRPO + bất đối xứng thông tin (solver 0,5B, verifier 1,5B; tiền đăng ký, đủ nhánh $I$) đo đồng thời hai mốc: so với model yếu cho $+17{,}0$ điểm (5/5 fold dương); so với chính model kiểm khi tự giải cho $-10{,}4$ điểm (5/5 fold âm). RL chỉ gỡ được 38\% thiệt hại tiếp xúc; 54\% bài hỏng sinh ra đáp án thứ ba không theo ai.
 
 \item[\textbf{Thứ tư.}] ORPO aggregator (học từ cặp ưa thích) đạt $+3{,}3$ điểm trên MATH (3/5 fold, dưới mức dao động nền) và $-2{,}7$ điểm trên GSM8K chéo task. Lối tắt là khuếch đại tật chép ứng viên cuối (từ $0{,}71$ lên $0{,}81$) và học “tự giải lại” thay vì chọn.
 
@@ -905,7 +905,7 @@ Chúng không mâu thuẫn --- chỉ là hai phép đo trên hai mốc khác nha
 \end{itemize}
 Như vậy, hiện tượng trên không xuất phát từ cơ chế phối hợp mà do sự thiên lệch trong cách chọn
 mốc so sánh: chênh lệch năng lực làm phóng đại hiệu quả biểu kiến so với model yếu, nhưng lại
-làm suy giảm giá trị gia tăng thực tế so với model mạnh. Cơ chế tổn thất do tiếp xúc
+làm suy giảm giá trị gia tăng thực tế so với model mạnh. Cơ chế tổn thất do phơi nhiễm
 (\S\ref{sec:termL}) lý giải nguyên nhân dẫn đến sự suy giảm này: khi khoảng cách năng lực càng
 lớn, xác suất xuất hiện artifact sai càng cao, khiến model mạnh bị định hướng sai
 ngay trên tập bài toán mà bản thân nó có khả năng giải quyết độc lập.
@@ -973,7 +973,7 @@ ngay trên tập bài toán mà bản thân nó có khả năng giải quyết �
 \caption{Hai mốc so sánh, hai chiều biến thiên. Trục hoành là khoảng cách năng lực: hiệu ứng đo so với
 \emph{model yếu} $W$ (đường xanh liền) tăng mạnh do cộng hưởng năng lực; trong khi trần giá trị ròng $\dceil$
 so với \emph{model mạnh} $I$ (đường đỏ đứt: khớp trên 15 cặp MBPP; các chấm đỏ: 3 điểm đo MATH) suy giảm
-nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \approx 0{,}09$ do tổn thất tiếp xúc $L$
+nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \approx 0{,}09$ do tổn thất phơi nhiễm $L$
 áp đảo cơ hội cải thiện $G$.}
 \label{fig:twobaselines}
 \end{figure}
@@ -981,7 +981,7 @@ nhanh và đổi dấu sang âm khi vượt ngưỡng tới hạn $g^\ast \appro
 Sáu kết quả thực nghiệm độc lập củng cố cho kết luận trên: (1) \emph{về mặt cấu trúc}, giao thức 
 tuyển chọn triệt tiêu hoàn toàn tổn thất ($L=0$) theo thiết kế; (2) \emph{về độ lớn}, tổn thất $L$
 vượt trội hoàn toàn cơ hội cải thiện $G$ ($L \approx 11G$) khi chênh lệch năng lực lớn trên MATH;
-(3) \emph{về cơ chế}, tổn thất bắt nguồn trực tiếp từ việc tiếp xúc với artifact sai lệch,
+(3) \emph{về cơ chế}, tổn thất bắt nguồn trực tiếp từ việc phơi nhiễm với artifact sai lệch,
 đã được xác thực qua thử nghiệm chốt trước trên hai miền task; (4) \emph{về trần lý thuyết},
 cơ chế định tuyến lý tưởng cũng chỉ mang lại mức cải thiện khiêm tốn $+1{,}8$ điểm trên
 nền suy giảm $-12{,}4$ điểm; (5) \emph{về tính tổng quát}, quy luật thiết lập trên MBPP duy trì
@@ -1018,7 +1018,7 @@ Hiệu quả thực tế của các hệ thống đa tác tử LLM không thể 
 đơn tuyến, mà phụ thuộc có hệ thống vào ba yếu tố định lượng: (1) cơ hội cải thiện $G$, được
 quy định bởi khoảng cách năng lực và có xu hướng thu hẹp khi khoảng cách này gia tăng; (2) khả năng
 khai thác $\kappa$, phụ thuộc vào tính tất định của tín hiệu kiểm chứng thay vì chất lượng phân
-loại ước tính; và (3) tổn thất tiếp xúc $L$, phát sinh từ việc tiếp xúc với artifact sai lệch,
+loại ước tính; và (3) tổn thất phơi nhiễm $L$, phát sinh từ việc tiếp xúc với artifact sai lệch,
 trong đó các giao thức hiệu chỉnh chủ yếu đóng vai trò truyền dẫn đáp án thay vì sửa lỗi suy luận
 thực chất (\S\ref{sec:termL}). Khoảng cách năng lực giữa các model vừa làm tăng mức cải thiện
 biểu kiến so với model yếu $W$, vừa đồng thời làm suy giảm giá trị ròng so với model mạnh $I$. Trong
@@ -1049,7 +1049,7 @@ kỷ luật thực nghiệm trong việc đánh giá các hệ thống tác tử
 \item \textbf{Độ nhạy thống kê của một số nhóm đối chứng}: Thử nghiệm hoán vị vai trò trên MATH có
       khoảng tin cậy tương đối rộng (biên độ trên đạt $+13{,}4$ điểm). Một số điều kiện kiểm soát
       chuyên sâu bao gồm lần sinh bổ sung không kèm artifact, kiểm soát độ dài ngữ cảnh trong
-      điều kiện tiếp xúc, và so sánh giữa các model khác nhau trong cùng một họ kiến trúc vẫn
+      điều kiện phơi nhiễm, và so sánh giữa các model khác nhau trong cùng một họ kiến trúc vẫn
       chưa được triển khai đầy đủ. Ngoài ra, phân tích giá trị Shapley (\S\ref{sec:shapley}) hiện dựa
       trên bootstrap theo mẫu bài toán mà chưa phân tích theo fold dữ liệu độc lập.
 \item \textbf{Khả năng tổng quát hoá liên miền}: Phân tích chuyển dịch quy luật sang miền toán học
