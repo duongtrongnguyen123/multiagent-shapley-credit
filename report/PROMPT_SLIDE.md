@@ -677,8 +677,35 @@ Dòng cuối cùng, cỡ nhỏ, màu xám: địa chỉ repo mã nguồn và d�
 ## SLIDE DỰ PHÒNG (đặt sau slide 19, không trình bày trừ khi được hỏi)
 
 - **D1 — Bảy phương pháp huấn luyện, bảng đầy đủ.** Cả bảy dòng với lối tắt tương ứng.
-- **D2 — Bảng giá trị Shapley đầy đủ**, cả hai task, kèm khoảng tin cậy, kèm ghi chú rõ giá trị
-  nào là đo và giá trị nào là suy ra bằng đối xứng.
+- **D2 — Bảng giá trị Shapley đầy đủ.**
+
+  **Tiêu đề:** `Giá trị Shapley theo vai trò, cả hai task`
+
+  **Hai dòng chú ngay dưới tiêu đề** (cỡ 18 px, xám) — viết đúng nguyên văn, đây là chỗ dễ ghi
+  sai nhất:
+
+  > $\varphi$ ở thang 0–1 (phần độ chính xác quy cho vai trò đó), **không phải đơn vị điểm**.
+  > Mọi vai trò đều 1,5B. KTC 95% bootstrap **theo câu hỏi — không chia fold**.
+
+  | Vai trò | $\varphi$ trên GSM8K ($N=1319$) | $\varphi$ trên MATH-500 | Nguồn giá trị |
+  |---|---|---|---|
+  | Planner | $-0{,}014$ $[-0{,}030;\ +0{,}002]$ | $+0{,}017$ $[-0{,}008;\ +0{,}043]$ | đo |
+  | Solver | $+0{,}252$ $[+0{,}242;\ +0{,}263]$ | $+0{,}145$ $[+0{,}128;\ +0{,}161]$ | đo |
+  | Verifier | $+0{,}252$ | $+0{,}145$ | suy ra bằng đối xứng, **không phải đo** |
+  | Aggregator | $+0{,}190$ $[+0{,}182;\ +0{,}199]$ | $+0{,}150$ $[+0{,}134;\ +0{,}167]$ | đo |
+
+  **Định dạng bắt buộc:** hàng Verifier in xám nhạt hơn ba hàng kia và không có KTC — để mắt
+  nhận ra ngay đó không phải số đo. Hai ô KTC cắt qua 0 (planner ở cả hai task) tô nền xám nhạt.
+
+  **Hai dòng kết luận dưới bảng:**
+
+  > Trên MATH, mọi chênh lệch giữa các vai trò đều dưới mức dao động nền, nên thứ hạng ở cột đó
+  > không có ý nghĩa.
+  >
+  > Số đo duy nhất được đưa lên slide chính: thêm planner vào tổ hợp $SA$ làm giảm 12 điểm, từ
+  > $0{,}682$ xuống $0{,}562$ — đây là **một cặp tổ hợp**, không phải trung bình.
+
+
 - **D3 — Quy đổi chi phí về FLOP.** Cho thấy con số "rẻ hơn 12%" biến mất khi quy đổi.
 - **D4 — Kiểm chuyển miền.** Ba cặp model, dự báo so với đo được, 2 trên 3 nằm trong khoảng.
 - **D5 — Phân tầng năm lần sinh đầy đủ.** Sáu tầng từ 0/5 đến 5/5 với $n$ và $\Delta$ từng tầng.
