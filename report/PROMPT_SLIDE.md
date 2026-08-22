@@ -693,7 +693,7 @@ Dòng cuối cùng, cỡ nhỏ, màu xám: địa chỉ repo mã nguồn và d�
 | Mã | Slide | Loại | Ghi chú |
 |---|---|---|---|
 | A | 3 | Sơ đồ khối | Bốn vai nối tiếp, đơn sắc |
-| B | 9 | Cột ngang | Bốn vai, có cột âm, đường 0 rõ |
+| B | 9 | Cột ngang | **Ba** vai (không có verifier), thanh KTC, đường 0 rõ |
 | C | 12 | Hai đường | Hai mốc, cắt nhau, đánh dấu điểm giao |
 | D | 13 | Thanh chia đoạn | Ba đoạn 32/25/43 |
 | E | 17 | Ảnh chụp ví dụ | Dùng lại từ báo cáo |
