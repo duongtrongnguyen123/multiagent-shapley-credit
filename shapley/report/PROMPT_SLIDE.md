@@ -16,7 +16,7 @@ quả là **kết quả âm hoặc null** — nhóm đo và thấy các lợi í
 biến mất khi áp đủ điều kiện so sánh công bằng. Toàn bộ slide phải phản ánh đúng tinh thần đó:
 trình bày bằng chứng, không quảng cáo.
 
-**Đầu ra mong muốn:** một bộ slide 16:9, khoảng 20 slide chính + 6 slide dự phòng, dùng cho
+**Đầu ra mong muốn:** một bộ slide 16:9, khoảng 19 slide chính + 6 slide dự phòng, dùng cho
 trình chiếu trong giảng đường (người ngồi cuối phòng phải đọc được).
 
 ---
@@ -161,7 +161,7 @@ Chiều cao dòng thân 1,45. Không viết hoa toàn bộ. Không chữ nghiên
 | Cảnh báo / âm | `#B5442E` (đỏ gạch) | giá trị âm, thiệt hại |
 | Trung tính | `#C9C9C9` | lưới, đường phụ, cột nền |
 
-Chỉ hai slide trong cả bộ được dùng nền tối (slide 1 và slide 20), để tạo điểm ngắt.
+Chỉ hai slide trong cả bộ được dùng nền tối (slide 1 và slide 19), để tạo điểm ngắt.
 
 ### 3.4. Năm kiểu bố cục
 
@@ -293,32 +293,14 @@ không cái nào thay được cái nào.`
 mã tất định (`sample = false`), nên chênh lệch giữa các fold hoàn toàn do khác bài chứ không do
 ngẫu nhiên lấy mẫu.
 
-**Cột phải — cách đọc số:** mọi hiệu ứng chia 5 fold; ngưỡng hiệu dụng ≈ 3,3 điểm; hiệu ứng
-dưới ngưỡng được ghi là dưới ngưỡng chứ không được coi là có thật; thiết kế và tiêu chí đánh
-giá được **chốt trước** khi chạy.
+**Cột phải — cách đọc số:** mỗi cấu hình được đo trên **500 bài, chia năm fold**, để tương
+xứng với mốc so sánh; con số báo cáo là trung bình năm fold. Ngưỡng hiệu dụng ≈ 3,3 điểm —
+hiệu ứng dưới ngưỡng được ghi rõ là dưới ngưỡng. Thiết kế và tiêu chí đánh giá được **chốt
+trước** khi chạy.
 
 ---
 
-## Slide 7 — Mức dao động nền
-
-**Tiêu đề:** `Chạy cùng một cấu hình trên năm fold cho kết quả lệch nhau tới 7 điểm`
-
-**Thông điệp:** Không có mốc nhiễu thì không đọc được kết quả nào.
-
-**Bố cục:** L2.
-
-**Số lớn:** `2,65 điểm` — kèm nhãn nhỏ `độ lệch chuẩn giữa các fold`.
-
-**Diễn giải bên phải:** cùng cấu hình, chỉ khác bài, `V_gain` dao động từ +1,0 đến +8,0 điểm.
-Suy ra ngưỡng hiệu dụng ≈ 3,3 điểm. Một phép đo đơn lẻ trên 100 bài gần như không mang thông
-tin; mọi con số trong các slide sau đều là trung bình năm fold.
-
-**Hình B — dot plot:** năm chấm trên một trục ngang từ 0 đến +10 điểm, tại các giá trị đo được;
-đường nét đứt xám tại 3,3 ghi `ngưỡng hiệu dụng`.
-
----
-
-## Slide 8 — Pipeline có lợi trên một task, có hại trên task kia
+## Slide 7 — Pipeline có lợi trên một task, có hại trên task kia
 
 **Tiêu đề:** `Pipeline bốn vai hơn 11,2 điểm trên GSM8K nhưng kém 6,0 điểm trên MATH`
 
@@ -339,7 +321,7 @@ gấp 3 đến 6 lần token.`
 
 ---
 
-## Slide 9 — Giá trị nằm ở đâu
+## Slide 8 — Giá trị nằm ở đâu
 
 **Tiêu đề:** `Bỏ phản hồi của verifier đi, kết quả không đổi: 0,453 so với 0,453`
 
@@ -359,7 +341,7 @@ gì, và bộ tổng hợp bằng model còn làm hỏng.`
 
 ---
 
-## Slide 10 — Phân rã theo vai trò
+## Slide 9 — Phân rã theo vai trò
 
 **Tiêu đề:** `Planner đóng góp âm ở model 1,5B, và dương khi nâng lên 7B`
 
@@ -367,7 +349,7 @@ gì, và bộ tổng hợp bằng model còn làm hỏng.`
 
 **Bố cục:** L3.
 
-**Hình C — biểu đồ cột ngang.** Bốn vai trò, giá trị $\varphi$ trên GSM8K. Cột dương màu xanh,
+**Hình B — biểu đồ cột ngang.** Bốn vai trò, giá trị $\varphi$ trên GSM8K. Cột dương màu xanh,
 cột âm màu đỏ gạch, đường 0 rõ. Ghi giá trị lên đầu mỗi cột. Planner là cột âm duy nhất.
 
 **Bên phải:** giải thích cách đo — chạy đủ $2^4 = 16$ tổ hợp bật/tắt bốn vai, $\varphi_i$ là
@@ -380,7 +362,7 @@ bằng nét đứt và ghi chú `suy ra bằng đối xứng`.
 
 ---
 
-## Slide 11 — Vai trò được gán khác vai trò thực thi
+## Slide 10 — Vai trò được gán khác vai trò thực thi
 
 **Tiêu đề:** `Trên MATH, planner giải sẵn đáp án trong 34,7% số câu thay vì lập kế hoạch`
 
@@ -406,7 +388,7 @@ cho mọi model, trong khi báo cáo chỉ kết luận cho model nhỏ.
 
 ---
 
-## Slide 12 — Verifier
+## Slide 11 — Verifier
 
 **Tiêu đề:** `Verifier cùng cỡ với solver gần như không phát hiện được lỗi`
 
@@ -425,7 +407,7 @@ giá trị của bước kiểm đến từ việc dùng model mạnh hơn, khô
 
 ---
 
-## Slide 13 — Mốc so sánh
+## Slide 12 — Mốc so sánh
 
 **Tiêu đề:** `Đổi mốc so sánh làm đảo dấu kết luận`
 
@@ -433,7 +415,7 @@ giá trị của bước kiểm đến từ việc dùng model mạnh hơn, khô
 
 **Bố cục:** L3.
 
-**Hình D — biểu đồ hai đường.** Trục hoành là khoảng cách năng lực giữa hai model (từ 0 tăng
+**Hình C — biểu đồ hai đường.** Trục hoành là khoảng cách năng lực giữa hai model (từ 0 tăng
 dần). Đường xanh: hiệu ứng đo **so với model yếu** — tăng dần theo khoảng cách. Đường đỏ gạch:
 hiệu ứng đo **so với model mạnh chạy độc lập** — giảm dần và xuống dưới 0. Hai đường cắt nhau.
 Đánh dấu điểm tại khoảng cách bằng 0, ghi `+7,7 điểm — trường hợp duy nhất hệ đa tác tử hơn
@@ -444,7 +426,7 @@ yếu sẽ kết luận "càng chênh càng tốt"; đo trên mốc mạnh thì 
 
 ---
 
-## Slide 14 — Mẫu số
+## Slide 13 — Mẫu số
 
 **Tiêu đề:** `57% số bài nằm ngoài tầm can thiệp của mọi cơ chế chọn ứng viên`
 
@@ -452,7 +434,7 @@ yếu sẽ kết luận "càng chênh càng tốt"; đo trên mốc mạnh thì 
 
 **Bố cục:** L3.
 
-**Hình E — cột chồng ngang một dải.** Một thanh ngang chia ba đoạn theo tỷ lệ: `32% quá khó —
+**Hình D — cột chồng ngang một dải.** Một thanh ngang chia ba đoạn theo tỷ lệ: `32% quá khó —
 mọi ứng viên đều sai` (xám), `25% quá dễ — mọi ứng viên đều đúng` (xám), `43% còn lại — vùng
 có thể tác động` (xanh). Ghi phần trăm trực tiếp trên từng đoạn.
 
@@ -462,7 +444,7 @@ luận nhầm là vô dụng.
 
 ---
 
-## Slide 15 — Thí nghiệm trung tâm
+## Slide 14 — Thí nghiệm trung tâm
 
 **Tiêu đề:** `Cùng một lệnh giải, chỉ khác nội dung artifact đưa vào — dấu hiệu ứng đảo ngược`
 
@@ -485,11 +467,11 @@ mạnh giải với artifact của model yếu trong ngữ cảnh. Cùng lệnh,
 
 ---
 
-## Slide 16 — Cơ chế
+## Slide 15 — Cơ chế
 
 **Tiêu đề:** `Giao thức sinh-rồi-sửa hoạt động như ống dẫn, không phải bộ sửa lỗi`
 
-**Thông điệp:** Giải thích *tại sao* kết quả slide 15 xảy ra.
+**Thông điệp:** Giải thích *tại sao* kết quả slide 14 xảy ra.
 
 **Bố cục:** L4, bảng $2\times2$.
 
@@ -506,7 +488,7 @@ của một cơ chế sửa lỗi.`
 
 ---
 
-## Slide 17 — Tín hiệu kiểm chứng
+## Slide 16 — Tín hiệu kiểm chứng
 
 **Tiêu đề:** `Chạy test không phá bài nào trong cả 20 fold; để model tự chấm thì phá ở cả 20`
 
@@ -525,7 +507,7 @@ pool: nếu không ứng viên nào đúng thì không bộ chọn nào cứu đ
 
 ---
 
-## Slide 18 — Huấn luyện
+## Slide 17 — Huấn luyện
 
 **Tiêu đề:** `Bảy phương pháp huấn luyện, bảy lối tắt khác nhau, không cái nào cải thiện thật`
 
@@ -545,12 +527,12 @@ Bảng bốn dòng chọn lọc (không liệt kê cả bảy, sẽ quá dày �
 **Dòng kết luận:** `Mỗi lần bịt một lối tắt, phương pháp tìm ra lối khác. Vấn đề không nằm ở
 thuật toán huấn luyện mà ở chỗ hàm mục tiêu không buộc được vai trò làm đúng chức năng.`
 
-**Hình F (tuỳ chọn, nếu còn chỗ):** dùng lại hình ví dụ GRPO trong báo cáo — solver giải đúng,
+**Hình E (tuỳ chọn, nếu còn chỗ):** dùng lại hình ví dụ GRPO trong báo cáo — solver giải đúng,
 verifier "sửa" thành sai.
 
 ---
 
-## Slide 19 — Khi nào nên dùng đa tác tử
+## Slide 18 — Khi nào nên dùng đa tác tử
 
 **Tiêu đề:** `Ba điều kiện, và nếu thiếu một thì model mạnh đơn lẻ là lựa chọn tốt hơn`
 
@@ -558,7 +540,7 @@ verifier "sửa" thành sai.
 
 **Bố cục:** L3, hình là cây quyết định.
 
-**Hình G — cây quyết định** ba nút, mỗi nút một câu hỏi, nhánh "không" đều dẫn về cùng một ô
+**Hình F — cây quyết định** ba nút, mỗi nút một câu hỏi, nhánh "không" đều dẫn về cùng một ô
 kết luận `dùng model mạnh đơn lẻ`:
 
 1. Có tín hiệu kiểm chứng khách quan không (chạy được test, đối chiếu được)?
@@ -572,7 +554,7 @@ của model yếu vào ngữ cảnh của model mạnh.`
 
 ---
 
-## Slide 20 — Chốt
+## Slide 19 — Chốt
 
 **Tiêu đề:** `Phối hợp đa tác tử không mặc định tạo ra lợi ích`
 
@@ -590,7 +572,7 @@ Dòng cuối cùng, cỡ nhỏ, màu xám: địa chỉ repo mã nguồn và d�
 
 ---
 
-## SLIDE DỰ PHÒNG (đặt sau slide 20, không trình bày trừ khi được hỏi)
+## SLIDE DỰ PHÒNG (đặt sau slide 19, không trình bày trừ khi được hỏi)
 
 - **D1 — Bảy phương pháp huấn luyện, bảng đầy đủ.** Cả bảy dòng với lối tắt tương ứng.
 - **D2 — Bảng giá trị Shapley đầy đủ**, cả hai task, kèm khoảng tin cậy, kèm ghi chú rõ giá trị
@@ -609,16 +591,15 @@ Dòng cuối cùng, cỡ nhỏ, màu xám: địa chỉ repo mã nguồn và d�
 | Mã | Slide | Loại | Ghi chú |
 |---|---|---|---|
 | A | 3 | Sơ đồ khối | Bốn vai nối tiếp, đơn sắc |
-| B | 7 | Dot plot | Năm điểm + đường ngưỡng nét đứt |
-| C | 10 | Cột ngang | Bốn vai, có cột âm, đường 0 rõ |
-| D | 13 | Hai đường | Hai mốc, cắt nhau, đánh dấu điểm giao |
-| E | 14 | Thanh chia đoạn | Ba đoạn 32/25/43 |
-| F | 18 | Ảnh chụp ví dụ | Dùng lại từ báo cáo |
-| G | 19 | Cây quyết định | Ba nút, hai kết cục |
+| B | 9 | Cột ngang | Bốn vai, có cột âm, đường 0 rõ |
+| C | 12 | Hai đường | Hai mốc, cắt nhau, đánh dấu điểm giao |
+| D | 13 | Thanh chia đoạn | Ba đoạn 32/25/43 |
+| E | 17 | Ảnh chụp ví dụ | Dùng lại từ báo cáo |
+| F | 18 | Cây quyết định | Ba nút, hai kết cục |
 
-Hình 1 của báo cáo (sơ đồ hai nhánh $I$/$E$) dùng lại cho slide 15.
+Hình 1 của báo cáo (sơ đồ hai nhánh $I$/$E$) dùng lại cho slide 14.
 
-Tất cả hình vẽ bằng vector trong chính slide, không nhúng ảnh bitmap trừ F và Hình 1.
+Tất cả hình vẽ bằng vector trong chính slide, không nhúng ảnh bitmap trừ E và Hình 1.
 
 ---
 
