@@ -707,7 +707,36 @@ Dòng cuối cùng, cỡ nhỏ, màu xám: địa chỉ repo mã nguồn và d�
 
 
 - **D3 — Quy đổi chi phí về FLOP.** Cho thấy con số "rẻ hơn 12%" biến mất khi quy đổi.
-- **D4 — Kiểm chuyển miền.** Ba cặp model, dự báo so với đo được, 2 trên 3 nằm trong khoảng.
+- **D4 — Kiểm chuyển miền.**
+
+  **Tiêu đề:** `Khớp quy luật trên MBPP rồi dự báo sang MATH: 2 trên 3 cặp nằm trong khoảng`
+
+  **Dòng chú:** $\dceil$ ở **thang 0–1**. Dự báo lấy từ đường hồi quy khớp trên MBPP, đem áp
+  sang miền toán mà không khớp lại.
+
+  **Giữ đúng thứ tự này** — ba cặp xếp theo chênh lệch năng lực tăng dần, và cặp lệch nằm ở
+  **giữa**, không phải cuối:
+
+  | Cặp model | Chênh | $\dceil$ đo được | KTC 95% | Dự báo từ MBPP | Kết luận |
+  |---|---|---|---|---|---|
+  | 7B $\to$ 14B | $0{,}044$ | $-0{,}0140$ | $[-0{,}046;\ +0{,}018]$ | $+0{,}0108$ | nằm trong khoảng |
+  | **1,5B $\to$ 7B** | $0{,}244$ | $\mathbf{-0{,}1660}$ | $[-0{,}208;\ -0{,}124]$ | $-0{,}0361$ | **ngoài khoảng** |
+  | 1,5B $\to$ 14B | $0{,}288$ | $-0{,}0680$ | $[-0{,}102;\ -0{,}034]$ | $-0{,}0471$ | nằm trong khoảng |
+
+  **Định dạng:** tô nền đỏ gạch rất nhạt cho hàng giữa. Ba hàng còn lại để trắng.
+
+  **Hai dòng dưới bảng — phải có cả hai, đừng bỏ dòng thứ hai:**
+
+  > Quy luật không bị bác bỏ, nhưng khoảng tin cậy rộng ($0{,}064$–$0{,}084$) nên phép kiểm có
+  > độ phân giải thấp.
+  >
+  > Thứ tự ba điểm **không đơn điệu**: chênh $0{,}244$ cho hiệu ứng âm sâu hơn chênh $0{,}288$.
+  > Vì vậy tính đơn điệu của quy luật chưa được xác nhận trên miền toán.
+
+  **Không đưa lên slide:** tỷ số giữa $L$ và $G$ của cặp 1,5B $\to$ 7B (báo cáo ghi khoảng 11
+  lần). Con số này đang được đối chiếu lại — xem Phần 6.
+
+
 - **D5 — Phân tầng năm lần sinh đầy đủ.** Sáu tầng từ 0/5 đến 5/5 với $n$ và $\Delta$ từng tầng.
 - **D6 — Bốn hạn chế của khảo sát.** Nêu thẳng: phạm vi model 0,5–32B nên chưa suy rộng được
   cho model rất lớn; một nhánh của $\Delta_{\text{real}}$ chưa chạy xong; giải mã tất định nên
