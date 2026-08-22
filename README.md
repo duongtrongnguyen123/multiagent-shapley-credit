@@ -7,7 +7,8 @@ Nhóm 13: Dương Trọng Nguyên, Trương Đình Đức, Trần Tùng Dương,
 |---|---|
 | **Báo cáo** | [`report/BAO_CAO_NHOM13.pdf`](report/BAO_CAO_NHOM13.pdf) — 22 trang |
 | **Slide** | [`report/SLIDE_BAO_CAO.pdf`](report/SLIDE_BAO_CAO.pdf) |
-| **Mã nguồn, kết quả, tài liệu thí nghiệm** | nhánh [`archive`](../../tree/archive) |
+| **Mã nguồn chính** | `analysis/`, `pipeline/`, `deploy/`, `tests/` — xem bảng dưới |
+| **Toàn bộ thực nghiệm** (151 kernel, 40 tài liệu, kết quả từng lần chạy) | nhánh [`archive`](../../tree/archive) |
 
 ---
 
@@ -45,6 +46,31 @@ Ba sai lệch không cùng chiều, nên phải áp đồng thời.
 
 Mỗi cấu hình được đo trên 500 bài chia năm fold; ngưỡng hiệu dụng khoảng 3,3 điểm.
 Benchmark: GSM8K, MATH, MBPP, HumanEval. Model từ 0,5B đến 32B tham số.
+
+## Mã nguồn
+
+Nhánh này giữ các file sinh ra số liệu được trích trong báo cáo.
+
+| File | Dùng cho |
+|---|---|
+| `analysis/shapley.py`, `shapley_role7b.py`, `signed_shapley.py`, `interaction.py` | Giá trị Shapley của bốn vai và chỉ số tương tác (§5.3) |
+| `analysis/role_specialization.py`, `trace_novelty.py` | Lưới hành vi vai trò đọc từ trace (§5.4) |
+| `analysis/difficulty_strata.py` | Phân tầng theo số lần đúng (§5.6) |
+| `analysis/merge_pairs.py` | Hồi quy theo chênh lệch năng lực (§5.7–§5.8) |
+| `analysis/router.py` + `tests/` | Định tuyến và phân tích Pareto (§5.10) |
+| `analysis/bootstrap.py`, `bootstrap_het.py`, `grade_math.py`, `master_table.py` | Thống kê, chấm điểm, bảng tổng hợp |
+| `pipeline/baseline_kernel.py`, `noisefloor_kernel.py`, `budget_kernel.py` | Mốc so sánh, mức dao động nền, kiểm soát ngân sách (§5.1–§5.2, §5.5) |
+| `pipeline/roleablate_kernel.py`, `promptswap_folds_kernel.py` | 16 tổ hợp bật/tắt vai, hoán vị prompt (§5.3–§5.4) |
+| `pipeline/exposure_math_kernel.py`, `exposure_dose_kernel.py`, `capacity_poison_kernel.py` | Thí nghiệm tác động artifact (§5.9) |
+| `pipeline/execverify_kernel.py`, `gate_kernel.py`, `injected_classifier_kernel.py` | Tín hiệu kiểm chứng và hai cổng oracle (§5.10) |
+| `pipeline/credit_rl_kernel.py`, `orpo_kernel.py`, `maporl_kernel.py` | Huấn luyện vai trò (§5.11) |
+| `pipeline/crossfamily_kernel.py` | Đối chứng khác họ model (§5.7) |
+| `pipeline/template.py`, `deploy/` | Khung kernel dùng chung, điều phối và thu kết quả |
+
+```bash
+pytest tests/ -q                    # test cho bộ định tuyến
+python analysis/shapley.py --help
+```
 
 ## Biên dịch lại báo cáo
 
