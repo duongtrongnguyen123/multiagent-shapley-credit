@@ -1259,13 +1259,13 @@ rc_m7 đã ở trạng thái RUNNING hơn 13 giờ — vượt trần 12h của 
 NGUYÊN NHÂN: tôi đặt 5 fold x 100 bài trên 7B 4-bit với 5 lượt sinh mỗi bài
   (~2500 lượt sinh 7B 4-bit) — QUÁ NẶNG cho một session.
 ĐÃ PHÓNG LẠI: rc_m7b = 3 fold x 60 bài (180 bài, nhẹ hơn ~2.8 lần) trên tuananhtran37.
-  (zhongzhing đã hết quota tuần 30h — tài khoản thứ ba chạm quota trong dự án.)
+  (<tài khoản RTX> đã hết quota tuần 30h — tài khoản thứ ba chạm quota trong dự án.)
 
 ### BÀI HỌC VỀ QUY MÔ THÍ NGHIỆM
 Các kernel 7B 4-bit tốn gấp nhiều lần dự tính. Quy tắc rút ra cho phần còn lại:
   - 1.5B fp16: 5 fold x 100 là AN TOÀN
   - 7B  4-bit: TỐI ĐA 3 fold x 60, và chỉ khi số nhánh <= 3
-Ba tài khoản đã cạn quota tuần (truongdinhduc06, tuetrandoanminh, zhongzhing) -> phải
+Ba tài khoản đã cạn quota tuần (truongdinhduc06, tuetrandoanminh, <tài khoản RTX>) -> phải
 tính ngân sách GPU như một ràng buộc thật, không phải tài nguyên vô hạn.
 
 ## [Loop] VÒNG #36 — H21a VÔ HIỆU VÌ LỖI CODE CỦA TÔI; H21b ĐO SAI THỨ CẦN ĐO
@@ -5016,7 +5016,7 @@ H39 (#78) — kết quả dương DUY NHẤT về định tuyến — chạy tr�
 cũng là cái làm cổng định tuyến luôn mở.
 
 ### Hạ tầng: pool RTX 6000 chỉ cho **MỘT** job mỗi tài khoản
-Hai job 32B song song trên `zhongzhing` ⇒ job thứ hai bị đuổi giữa lúc nạp.
+Hai job 32B song song trên `<tài khoản RTX>` ⇒ job thứ hai bị đuổi giữa lúc nạp.
 **Quy tắc mới: mỗi tài khoản CHỈ MỘT kernel RTX 6000 tại một thời điểm**, xếp hàng tuần tự.
 
 ---
@@ -5648,7 +5648,7 @@ Không stdout nào. Lỗi: `Cannot send a request, as the client has been closed
 **trong competition nên bị CẤM internet**.
 
 **Đây là ràng buộc tôi đã ghi sẵn trong luật vận hành** (*"RTX 6000 ... FORBIDS internet, benchmark
-phải stage thành Kaggle dataset; `mbpp-full-json` đã có sẵn dưới zhongzhing"*) — và tôi vẫn phóng
+phải stage thành Kaggle dataset; `mbpp-full-json` đã có sẵn dưới <tài khoản RTX>"*) — và tôi vẫn phóng
 mà không mount nó. `crossfamily_kernel.py` **đã có** đường nạp offline từ trước; tôi lấy
 `gated_repair` (kernel viết cho T4, nơi **có** internet) đem thẳng lên RTX.
 
@@ -5663,7 +5663,7 @@ mà không mount nó. `crossfamily_kernel.py` **đã có** đường nạp offli
    nhưng **không** có đường nạp từ `/kaggle/input` ⇒ **dừng ngay lúc phóng**.
    Trước đây launcher chỉ canh placeholder và cấu hình máy; giờ nó canh cả **giả định môi trường**.
 
-**H91b** đã phóng lại, mount `zhongzhing/mbpp-full-json`, xác minh trong bản ĐÃ ĐẨY.
+**H91b** đã phóng lại, mount `<tài khoản RTX>/mbpp-full-json`, xác minh trong bản ĐÃ ĐẨY.
 Giá phải trả: một khe RTX (~vài phút, chết sớm nên rẻ — hiếm khi được thế).
 
 ---
@@ -7719,7 +7719,7 @@ MBPP có **499** bài dùng được (toàn bộ MBPP là 974, lọc chuẩn cò
 
 ### Việc này đổi ưu tiên thế nào
 Muốn theo chiều khẳng định thì **phải đổi bộ bài**, không phải chạy thêm: cần benchmark code
-**vài nghìn bài** (BigCodeBench đã stage sẵn dưới `zhongzhing`, ~1.140 bài — vẫn thiếu).
+**vài nghìn bài** (BigCodeBench đã stage sẵn dưới `<tài khoản RTX>`, ~1.140 bài — vẫn thiếu).
 **Hoặc** chấp nhận rằng luật phủ định là thứ duy nhất dữ liệu này cho phép, và dồn GPU sang
 `Δ_honest` (H100c) — nơi hiệu ứng **cần phải lớn** mới đáng dùng, nên **dễ phát hiện hơn** nhiều.
 **Tôi nghiêng về hướng thứ hai**: một hiệu ứng cần 4.000 bài mới thấy được thì **không đáng triển khai**

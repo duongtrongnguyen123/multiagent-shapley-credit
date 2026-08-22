@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phong notebook len tai khoan zhongzhing, gan competition ARC-AGI-3, GPU = RTX 6000 Pro.
+"""Phong notebook len tai khoan tai khoan RTX, gan competition ARC-AGI-3, GPU = RTX 6000 Pro.
 
 BA TRUONG BAT BUOC (thieu 1 -> Kaggle IM LANG tut ve P100):
     "enable_gpu": true
@@ -12,7 +12,9 @@ Dung: python deploy/launch_arc.py <duong_dan_kernel.py> <ten-notebook> [ten_data
 import os, re, sys, json, subprocess
 from pathlib import Path
 
-ACCOUNT = "zhongzhing"
+RTX_ONLY = os.environ.get("KAGGLE_RTX_ACCOUNT", "")  # tai khoan RTX, dat qua bien moi truong
+
+ACCOUNT = RTX_ONLY
 COMP    = "arc-prize-2026-arc-agi-3"
 SHAPE   = "NvidiaRtxPro6000"
 ACCOUNTS_FILE = Path(os.environ.get("ACCOUNTS_FILE",

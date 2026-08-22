@@ -2,7 +2,7 @@
 """Deploy the full-pipeline rescue kernel (P->S->V->A, graded after every stage).
 
   TASK=gsm8k N=150 NF=5 ACCOUNT=TrgDinKai python deploy/orchestrate_rescue.py
-  TASK=math  N=150 NF=5 ACCOUNT=zhongzhing python deploy/orchestrate_rescue.py
+  TASK=math  N=150 NF=5 ACCOUNT=tai khoan RTX python deploy/orchestrate_rescue.py
 """
 import os, re, json, shutil, subprocess
 from pathlib import Path

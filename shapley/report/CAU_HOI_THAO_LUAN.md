@@ -457,7 +457,7 @@ Mọi cấu hình thực tế (fold âm thật sự, ba fold dương lệch nhau
 
 #### Few-shot +2,7 (4/5 fold): ĐÃ PHÁN — không đạt, dứt khoát
 
-Dữ liệu fold gốc **vẫn còn trên Kaggle** (`zhongzhing/fewshot-folds-math`, Đức chạy ngày 06-08) và
+Dữ liệu fold gốc **vẫn còn trên Kaggle** (`<tài khoản RTX>/fewshot-folds-math`, Đức chạy ngày 06-08) và
 đã được tải về `results_fsfold/math_folds/`, **không cần chạy lại**:
 
 ```
@@ -486,7 +486,7 @@ trọng): việc `swap` không khác `normal` có ý nghĩa lại càng **thuậ
 #### Bài học vận hành: KHÔNG cần chạy lại — output vẫn nằm trên Kaggle
 
 Cả hai ca "chưa phán được" đều được giải quyết bằng cách **tải output cũ về** (kernel của Đức trên
-tài khoản `zhongzhing`, kernel promptswap trên `tbmdemi`), không tốn giây GPU nào. Quy tắc rút ra:
+tài khoản `<tài khoản RTX>`, kernel promptswap trên `tbmdemi`), không tốn giây GPU nào. Quy tắc rút ra:
 **trước khi tính chuyện chạy lại, quét output còn trên Kaggle của mọi tài khoản fleet** — các
 kernel folds đều đã lưu `by_fold` trong `summary.json`, chỉ là chưa ai kéo về.
 

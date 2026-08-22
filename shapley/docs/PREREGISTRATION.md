@@ -2884,7 +2884,7 @@ Lần chạy đầu **HỎNG VÌ HẠ TẦNG, không phải vì khoa học**: ke
 -> `no kernel image available` (torch hỗ trợ sm_70+).
 
 **Nguyên nhân — KHÔNG phải metadata của tôi.** Kaggle ghi nhận đủ cả ba trường
-(`machine_shape` / `enable_gpu` / `competition_sources`), và `zhongzhing` **đã tham gia** competition.
+(`machine_shape` / `enable_gpu` / `competition_sources`), và `<tài khoản RTX>` **đã tham gia** competition.
 Nhưng **competition `nvidia-nemotron-model-reasoning-challenge` đã ĐÓNG hạn 2026-06-15**, tức
 **hai tháng trước**. Suất tính toán RTX 6000 Pro đi kèm competition đó **đã hết hiệu lực**:
 Kaggle vẫn nhận liên kết nhưng **âm thầm cấp P100**. Cổng ba trường trong `KAGGLE_RTX6000.md`
@@ -3525,7 +3525,7 @@ và **14B bị cắt nhiều hơn 7B** (43.0% vs 39.8%).
 > **Giả thuyết: chính cổng đó trượt VÌ confound.** Model lớn viết dài hơn ⇒ bị cắt nhiều hơn ⇒
 > **đo ra yếu hơn**. Với `MAXNEW`=1280, 14B có thể vượt 7B và quét năng lực trở nên đọc được.
 
-**Đây là lý do phải dùng zhongzhing/RTX 6000:** ba model **bf16** (3+15+29 = 47 GB) **cộng**
+**Đây là lý do phải dùng <tài khoản RTX>/RTX 6000:** ba model **bf16** (3+15+29 = 47 GB) **cộng**
 sinh 1280 token cho lô lớn — T4 không chứa nổi, và nf4 sẽ thêm một confound khác.
 
 ## Thiết kế

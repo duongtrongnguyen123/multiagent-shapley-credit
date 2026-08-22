@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Deploy the few-shot role-specialisation kernel.
 
-  TASK=math  N=30 ACCOUNT=zhongzhing python deploy/orchestrate_fewshot.py
-  TASK=gsm8k N=30 ACCOUNT=zhongzhing python deploy/orchestrate_fewshot.py
+  TASK=math  N=30 ACCOUNT=tai khoan RTX python deploy/orchestrate_fewshot.py
+  TASK=gsm8k N=30 ACCOUNT=tai khoan RTX python deploy/orchestrate_fewshot.py
   TASK=both  N=30 python deploy/orchestrate_fewshot.py
 
 ACCOUNT picks a line from accounts.txt by username; unset uses the first line,

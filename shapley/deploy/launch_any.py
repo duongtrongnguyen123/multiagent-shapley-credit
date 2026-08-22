@@ -4,13 +4,15 @@
   KERNEL=pipeline/x.py RUN=H66 KUSER=hduong DATASETS=a/b,c/d python deploy/launch_any.py
 
 Quy tac tai nguyen (Nguyen, 2026-08-13):
-  - `zhongzhing` CHI dung cho viec THAT SU can RTX 6000 Pro (>=40 GB).
+  - `tai khoan RTX` CHI dung cho viec THAT SU can RTX 6000 Pro (>=40 GB).
     Muon dung: MACHINE=NvidiaRtxPro6000 COMP=arc-prize-2026-arc-agi-3 (comp phai CON MO).
   - Moi viec khac -> tai khoan khac, T4.
 Token doc tu accounts.txt theo username, KHONG BAO GIO ghi vao file.
 """
 import os, sys, json, shutil, subprocess
 from pathlib import Path
+
+RTX_ONLY = os.environ.get("KAGGLE_RTX_ACCOUNT", "")  # tai khoan RTX, dat qua bien moi truong
 
 ROOT = Path(__file__).resolve().parents[1]
 ACC = Path(os.environ.get("ACCOUNTS", "/Users/hduong/dev/recurrent-research/accounts.txt"))
@@ -37,11 +39,11 @@ def main():
     INTERNET = os.environ.get("INTERNET", "1" if MACHINE == "NvidiaTeslaT4" else "0") == "1"
 
     if MACHINE == "NvidiaRtxPro6000":
-        if USER != "zhongzhing": sys.exit("RTX 6000 Pro chi cau hinh cho zhongzhing")
+        if USER != RTX_ONLY: sys.exit("RTX 6000 Pro chi cau hinh cho tai khoan RTX")
         if not COMP: sys.exit("RTX 6000 Pro CAN competition_sources con hieu luc")
         if INTERNET: sys.exit("competition cam internet -> push se tra HTTP 400")
-    elif USER == "zhongzhing":
-        sys.exit("zhongzhing DE DANH cho viec can RTX 6000 Pro — dung tai khoan khac cho T4")
+    elif USER == RTX_ONLY:
+        sys.exit("tai khoan RTX DE DANH cho viec can RTX 6000 Pro — dung tai khoan khac cho T4")
 
     raw = (ROOT / kernel).read_text()
     # #143: RTX 6000 chay trong competition -> KHONG internet. H91 goi load_dataset("mbpp") va

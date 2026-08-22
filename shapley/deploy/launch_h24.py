@@ -2,6 +2,8 @@
 """H24 (pre-reg #23): render resolve_kernel cho 4 o va day len 4 tai khoan roi."""
 import os, re, json, subprocess, sys
 from pathlib import Path
+
+RTX_ONLY = os.environ.get("KAGGLE_RTX_ACCOUNT", "")  # tai khoan RTX, dat qua bien moi truong
 ROOT = Path(__file__).resolve().parents[1]
 ACC  = Path(os.environ["ACCOUNTS_FILE"])
 TPL  = (ROOT/"pipeline"/"resolve_kernel.py").read_text()
@@ -21,7 +23,8 @@ def accounts():
         if m: out.append((p[0], m.group(0)))
     return out
 
-want = sys.argv[1:] or ["hduong","truongdinhduc06","zhongzhing","namphmbuwu"]
+want = sys.argv[1:] or [a for a in os.environ.get("KAGGLE_ACCOUNTS","").split(",") if a] \
+       or [u for u, _ in accounts()]   # mac dinh: moi tai khoan co trong accounts.txt
 avail = [a for a in accounts() if a[0] in want]
 assert len(avail) >= len(CELLS), f"chi co {len(avail)} tai khoan cho {len(CELLS)} o"
 for (tag,task,n,bs,quant,mds,tds),(user,tokn) in zip(CELLS, avail):

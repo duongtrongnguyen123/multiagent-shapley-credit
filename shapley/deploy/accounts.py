@@ -2,14 +2,14 @@
 """Nguon DUY NHAT de chon tai khoan Kaggle.
 
 LUAT (nguoi dung yeu cau, 2026-08-08):
-  `zhongzhing` CHI dung khi CAN RTX 6000 Pro (no la tai khoan da join ARC-AGI-3,
+  Tai khoan RTX (dat o KAGGLE_RTX_ACCOUNT) CHI dung khi CAN RTX 6000 Pro (no la tai khoan da join ARC-AGI-3,
   tuc la cong vao pool GPU lon). MOI viec chay T4 thong thuong PHAI tranh no.
 Dung `t4_pool()` cho moi kernel T4; dung `rtx_account()` chi khi that su can 102 GB.
 """
 import os, re
 from pathlib import Path
 
-RTX_ONLY = "zhongzhing"          # KHONG dung cho T4
+RTX_ONLY = os.environ.get("KAGGLE_RTX_ACCOUNT", "")  # dat qua bien moi truong
 ACCOUNTS_FILE = Path(os.environ.get("ACCOUNTS_FILE",
                      "/Users/hduong/dev/recurrent-research/accounts.txt"))
 

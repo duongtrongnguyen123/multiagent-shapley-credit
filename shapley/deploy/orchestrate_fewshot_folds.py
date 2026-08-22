@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deploy the few-shot x 5-fold kernel (error bars, H13/H14 style).
 
-  TASK=math  N=250 NF=5 ACCOUNT=zhongzhing python deploy/orchestrate_fewshot_folds.py
+  TASK=math  N=250 NF=5 ACCOUNT=tai khoan RTX python deploy/orchestrate_fewshot_folds.py
   TASK=gsm8k N=250 NF=5 ACCOUNT=TrgDinKai  python deploy/orchestrate_fewshot_folds.py
 
 ACCOUNTS_FILE defaults to shapley/accounts.txt; ~/.kaggle/accounts.txt also works.

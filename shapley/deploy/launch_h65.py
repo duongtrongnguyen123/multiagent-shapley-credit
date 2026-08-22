@@ -7,16 +7,18 @@ hieu luc; Kaggle van nhan competition_sources roi AM THAM cap P100 sm_60 (torch 
 Can internet CHI de cai bitsandbytes (nf4). Model va MATH-500 mount tu dataset.
 
 Token KHONG BAO GIO ghi vao file. Truyen qua bien moi truong:
-  KAGGLE_API_TOKEN=$(awk '/^zhongzhing /{print $2}' <duong-dan>/accounts.txt) python deploy/launch_h65.py
+  KAGGLE_API_TOKEN=$(awk '/^tai khoan RTX /{print $2}' <duong-dan>/accounts.txt) python deploy/launch_h65.py
 """
 import os, sys, json, shutil, subprocess
 from pathlib import Path
+
+RTX_ONLY = os.environ.get("KAGGLE_RTX_ACCOUNT", "")  # tai khoan RTX, dat qua bien moi truong
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN = os.environ.get("RUN", "H65")
 TEMPLATE = (ROOT / "pipeline" / "capacity_poison_kernel.py").read_text()
 KDIR = ROOT / f"kernels_{RUN.lower()}"
-USER = os.environ.get("KUSER", "zhongzhing")
+USER = os.environ.get("KUSER", RTX_ONLY)
 
 DATASETS = ["xatri007/qwen2-5-1-5b-instruct",
             "ragnar123/qwen2-5-7b-instruct",

@@ -50,3 +50,7 @@ monitor_remote.py
 *.db
 *.csvaa
 *.jsonl
+
+# traces: dump tho, tai sinh duoc — chi giu file tom tat
+**/traces.json
+**/traces_*.json
