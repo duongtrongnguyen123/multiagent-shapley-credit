@@ -395,26 +395,50 @@ gì, và bộ tổng hợp bằng model còn làm hỏng.`
 
 ## Slide 9 — Phân rã theo vai trò
 
-**Tiêu đề:** `Planner đóng góp âm ở model 1,5B, và dương khi nâng lên 7B`
+**Tiêu đề:** `Đóng góp của planner tăng $+0{,}078$ khi nâng lên 7B; ở 1,5B nó không khác 0`
 
-**Thông điệp:** Đóng góp của một vai là hàm của năng lực, không phải thuộc tính cố định.
+**Thông điệp:** Đóng góp của một vai là hàm của năng lực, không phải thuộc tính cố định của vai.
 
 **Bố cục:** L3.
 
-**Chip cấu hình:** `Cả bốn vai đều 1,5B · GSM8K (N=1319) + MATH-500`
+**Chip cấu hình:** `Cả bốn vai đều 1,5B · GSM8K (N=1319)`
 
-**Cảnh báo lẫn cấu hình:** Con số $\varphi_P$ ở 7B là **một phép đo riêng** (nâng riêng planner lên 7B), không phải cột thứ hai của cùng bảng — nói rõ trên slide.
+**Đơn vị — sửa lỗi thường gặp:** $\varphi$ ở **thang 0–1** (phần độ chính xác quy cho vai trò
+đó), **không phải "điểm"**. Ghi đúng ở nhãn trục.
 
-**Hình B — biểu đồ cột ngang.** Bốn vai trò, giá trị $\varphi$ trên GSM8K. Cột dương màu xanh,
-cột âm màu đỏ gạch, đường 0 rõ. Ghi giá trị lên đầu mỗi cột. Planner là cột âm duy nhất.
+**Hình B — biểu đồ cột ngang, ba vai có số đo thật.** Trục hoành $\varphi$ từ $-0{,}05$ đến
+$+0{,}30$, đường 0 là vạch đen rõ. Ba cột, kèm thanh khoảng tin cậy 95%:
 
-**Bên phải:** giải thích cách đo — chạy đủ $2^4 = 16$ tổ hợp bật/tắt bốn vai, $\varphi_i$ là
-mức thay đổi trung bình khi thêm vai $i$ vào mọi tổ hợp con. Ví dụ cụ thể: thêm planner vào tổ
-hợp $SA$ làm giảm 12 điểm (0,682 → 0,562). Khi nâng riêng planner lên 7B, $\varphi_P$ đảo dấu.
+| Vai trò | $\varphi$ | KTC 95% |
+|---|---|---|
+| Solver | $+0{,}252$ | $[+0{,}242;\ +0{,}263]$ |
+| Aggregator | $+0{,}190$ | $[+0{,}182;\ +0{,}199]$ |
+| Planner | $-0{,}014$ | $[-0{,}030;\ +0{,}002]$ |
 
-**Cảnh báo cho người dựng:** giá trị của Verifier trong báo cáo là giá trị **áp đặt bằng đối
-xứng**, không phải giá trị đo. Đừng đưa nó lên biểu đồ như một phép đo. Nếu cần, vẽ cột đó
-bằng nét đứt và ghi chú `suy ra bằng đối xứng`.
+Ghi giá trị lên đầu mỗi cột. Cột planner sẽ **rất ngắn** so với hai cột kia — giữ nguyên đúng tỷ
+lệ, đừng phóng to cho dễ nhìn. Chính độ ngắn đó là thông tin: đóng góp của planner gần bằng không.
+
+**Thanh KTC của planner cắt qua vạch 0 — phải vẽ rõ điều đó**, vì nó là lý do tiêu đề nói "không
+khác 0" chứ không nói "âm".
+
+**Verifier:** không vẽ cột. Đặt một dòng chú thích dưới biểu đồ: `Verifier không có trong biểu đồ
+— giá trị của nó được suy ra bằng đối xứng với solver, không phải số đo.`
+
+**Bên phải — ba ý:**
+
+1. Cách đo: chạy đủ $2^4 = 16$ tổ hợp bật/tắt bốn vai; $\varphi_i$ là mức thay đổi trung bình khi
+   thêm vai $i$ vào mọi tổ hợp con.
+2. Bằng chứng cụ thể hơn cho planner: thêm planner vào tổ hợp $SA$ làm giảm 12 điểm
+   ($0{,}682 \to 0{,}562$). Ghi rõ đây là **một cặp tổ hợp**, không phải trung bình.
+3. Khi nâng riêng planner lên 7B, đóng góp tăng $+0{,}078$ (KTC $[+0{,}049;\ +0{,}109]$ — không
+   cắt qua 0). Đây là kết quả chắc chắn của slide này.
+
+**Cảnh báo lẫn cấu hình:** con số 7B là **một phép đo riêng** (nâng riêng planner lên 7B), không
+phải cột thứ hai của cùng bảng — nói rõ trên slide.
+
+**Không đưa lên slide:** giá trị tuyệt đối của $\varphi_P$ ở 7B. Báo cáo hiện có hai mốc gốc
+khác nhau cho cùng đại lượng này ($-0{,}014$ ở bảng, $-0{,}023$ ở văn xuôi) và nhóm đang đối
+chiếu lại. Chỉ dùng **mức chênh $+0{,}078$**, con số này nhất quán.
 
 ---
 
@@ -688,7 +712,9 @@ Bốn con số dưới đây trong báo cáo đang được nhóm đối chiếu
 
 1. Tỷ số giữa thiệt hại $L$ và cơ hội $G$ (báo cáo ghi khoảng 11 lần).
 2. Tỷ lệ bài mà bỏ phiếu đa số sai và pool không chứa ứng viên đúng.
-3. Giá trị $\varphi$ của verifier — là giá trị suy ra bằng đối xứng, không phải đo.
+3. Giá trị $\varphi$ của **verifier** — và chỉ riêng verifier. Nó được suy ra bằng đối xứng
+   chứ không phải đo, nên không vẽ nó như một phép đo. **Ba vai còn lại (solver,
+   aggregator, planner) là số đo thật, phải điền đầy đủ** — đừng để trống.
 4. Khoảng cách trần trên miền code (báo cáo ghi +21,3 điểm) — chưa dẫn được từ bảng nào.
 
 Nếu một slide cần một trong bốn số này, hãy để trống chỗ đó và ghi chú lại để nhóm điền sau.
