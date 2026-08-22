@@ -63,13 +63,38 @@ do AI sinh. Tránh tuyệt đối:
 - **Cấm** ảnh stock, hình vẽ robot, hình bộ não, hình mạng nơ-ron trang trí.
 - Mỗi slide chỉ mang **một thông điệp**. Nếu slide có hai ý ngang hàng, tách thành hai slide.
 
-### 1.4. Về màu
+### 1.4. Về cấu hình model — lỗi dễ mắc nhất ở bộ slide này
+
+Khảo sát chạy trên **ba cấu hình khác nhau**, và các con số giữa ba cấu hình
+**không so sánh trực tiếp được với nhau**:
+
+| Cấu hình | Nghĩa là gì | Xuất hiện ở |
+|---|---|---|
+| **Đồng cỡ 1,5B** | Cả bốn vai đều là Qwen-1,5B | pipeline, ngân sách, Shapley, mẫu số |
+| **Bất đối xứng 1,5B → 7B** | Model yếu 1,5B, model mạnh 7B | verifier, tác động artifact, chuyển miền |
+| **Nền 7B / bão hoà** | Model nền đã mạnh, ít tiềm năng cải thiện | lưới hành vi cột 7B, định tuyến trên code |
+
+Nếu không ghi rõ, người xem sẽ tưởng $+11{,}2$ điểm của pipeline, $+14{,}0$ điểm của verifier
+và $+2{,}4$ điểm của định tuyến là ba con số của cùng một hệ thống, rồi cộng dồn chúng lại.
+Chúng là ba hệ khác nhau.
+
+**Quy tắc bắt buộc:**
+
+1. **Mọi slide có số liệu đều phải mang một chip cấu hình** (xem Phần 3.6). Không ngoại lệ.
+2. Slide nào đặt số của hai cỡ model cạnh nhau thì **cỡ model phải là nhãn cột hoặc nhãn hàng**
+   của bảng/biểu đồ, không được nhét vào chú thích.
+3. **Không bao giờ** để hai con số thuộc hai cấu hình khác nhau trong cùng một câu, trừ khi câu
+   đó nói rõ chúng khác cấu hình.
+4. Khi chuyển từ cấu hình này sang cấu hình khác giữa hai slide liên tiếp, slide sau phải có một
+   dòng dẫn ngắn nói rõ đang đổi cấu hình.
+
+### 1.5. Về màu
 
 - Bảng màu tối đa **ba màu** cộng đen/trắng/xám. Màu chỉ dùng để **mã hoá dữ liệu**
   (dương/âm/trung tính), không dùng để trang trí.
 - Không tô màu chữ tiêu đề. Không highlight nhiều hơn một cụm mỗi slide.
 
-### 1.5. Kiểm tra cuối
+### 1.6. Kiểm tra cuối
 
 Trước khi giao, tự soát: *nếu xoá hết tiêu đề slide và chỉ đọc phần thân, người xem có nắm
 được mạch không?* Nếu không thì tiêu đề đang làm việc thay cho nội dung — viết lại nội dung.
@@ -183,7 +208,19 @@ Chỉ hai slide trong cả bộ được dùng nền tối (slide 1 và slide 19
 - Đường tham chiếu (mốc 0, ngưỡng hiệu dụng 3,3 điểm) vẽ nét đứt màu xám, có nhãn.
 - Mỗi biểu đồ có **một câu chú thích** dưới đáy nói biểu đồ chứng minh điều gì.
 
-### 3.6. Chân slide
+### 3.6. Chip cấu hình (bắt buộc trên mọi slide có số liệu)
+
+Một dải chữ nhỏ đặt ở **góc trên bên phải**, ngang hàng với tiêu đề slide, cách lề phải 96 px.
+Cỡ 18 px, màu `#6B6B6B`, nền `#F2F2F2`, bo góc 4 px, đệm 6×12 px. Không viền, không màu nhấn.
+
+Nội dung theo mẫu: `<cấu hình model> · <benchmark> · <cỡ mẫu>`
+
+Ví dụ: `Qwen-1,5B, bốn vai · GSM8K + MATH` hoặc `W 1,5B → I/E 7B · MATH-500`.
+
+Chip này là thứ giữ cho người xem không lẫn ba cấu hình. Nó phải xuất hiện **trước** khi mắt
+người xem chạm vào con số đầu tiên, nên đặt trên cùng, không đặt dưới chân slide.
+
+### 3.7. Chân slide
 
 Góc dưới trái: `Nhóm 13 · INT3406`. Góc dưới phải: số slide. Cỡ 16 px, màu xám nhạt.
 Slide 1 và slide bản lề không có chân slide.
@@ -293,10 +330,21 @@ không cái nào thay được cái nào.`
 mã tất định (`sample = false`), nên chênh lệch giữa các fold hoàn toàn do khác bài chứ không do
 ngẫu nhiên lấy mẫu.
 
-**Cột phải — cách đọc số:** mỗi cấu hình được đo trên **500 bài, chia năm fold**, để tương
-xứng với mốc so sánh; con số báo cáo là trung bình năm fold. Ngưỡng hiệu dụng ≈ 3,3 điểm —
-hiệu ứng dưới ngưỡng được ghi rõ là dưới ngưỡng. Thiết kế và tiêu chí đánh giá được **chốt
-trước** khi chạy.
+**Cột phải — ba cấu hình sẽ gặp trong phần kết quả.** Đây là phần quan trọng nhất của slide
+này; vẽ thành ba dòng có nhãn rõ, mỗi dòng một biểu tượng đơn giản:
+
+| Nhãn | Cấu hình |
+|---|---|
+| **Đồng cỡ** | Cả bốn vai đều 1,5B |
+| **Bất đối xứng** | Model yếu 1,5B, model mạnh 7B |
+| **Bão hoà** | Model nền đã mạnh, còn ít tiềm năng cải thiện |
+
+Nói một câu: *"Các slide sau đều ghi rõ đang ở cấu hình nào, vì số của ba cấu hình này không so
+trực tiếp với nhau được."*
+
+**Dòng cuối — cách đọc số:** mỗi cấu hình đo trên **500 bài, chia năm fold**, để tương xứng với
+mốc so sánh; ngưỡng hiệu dụng ≈ 3,3 điểm. Thiết kế và tiêu chí đánh giá được **chốt trước** khi
+chạy.
 
 ---
 
@@ -307,6 +355,8 @@ trước** khi chạy.
 **Thông điệp:** Lợi ích không phổ quát, và chi phí thì luôn có.
 
 **Bố cục:** L4.
+
+**Chip cấu hình:** `Qwen-1,5B, cả bốn vai · GSM8K + MATH · đo một lần trên toàn tập`
 
 | Task | Một lần sinh | Pipeline bốn vai | Chênh lệch | Token sinh |
 |---|---|---|---|---|
@@ -329,6 +379,8 @@ gấp 3 đến 6 lần token.`
 
 **Bố cục:** L5.
 
+**Chip cấu hình:** `MATH · 1,5B và 7B · cùng ngân sách 8 lần sinh`
+
 **Cột trái — đối chứng:** cho model giải lại **có** đọc phê bình của verifier → 0,453. Cho giải
 lại **không** đọc gì → 0,453. Hai số bằng nhau.
 
@@ -348,6 +400,10 @@ gì, và bộ tổng hợp bằng model còn làm hỏng.`
 **Thông điệp:** Đóng góp của một vai là hàm của năng lực, không phải thuộc tính cố định.
 
 **Bố cục:** L3.
+
+**Chip cấu hình:** `Cả bốn vai đều 1,5B · GSM8K (N=1319) + MATH-500`
+
+**Cảnh báo lẫn cấu hình:** Con số $\varphi_P$ ở 7B là **một phép đo riêng** (nâng riêng planner lên 7B), không phải cột thứ hai của cùng bảng — nói rõ trên slide.
 
 **Hình B — biểu đồ cột ngang.** Bốn vai trò, giá trị $\varphi$ trên GSM8K. Cột dương màu xanh,
 cột âm màu đỏ gạch, đường 0 rõ. Ghi giá trị lên đầu mỗi cột. Planner là cột âm duy nhất.
@@ -369,6 +425,8 @@ bằng nét đứt và ghi chú `suy ra bằng đối xứng`.
 **Thông điệp:** Shapley gán công cho *nhãn* vai trò, còn *hành vi* thì đã lệch khỏi chức năng.
 
 **Bố cục:** L4.
+
+**Chip cấu hình:** `Lưới task × cỡ model · 1,5B và 7B · đọc từ trace`
 
 Bảng ba dòng, mỗi dòng một vai và một hành vi lệch đo được từ trace. **Mọi số ở cột phải đều
 là model 1,5B** — ghi rõ điều này ở chú thích dưới bảng.
@@ -396,6 +454,10 @@ cho mọi model, trong khi báo cáo chỉ kết luận cho model nhỏ.
 
 **Bố cục:** L5.
 
+**Chip cấu hình:** `Solver 1,5B cố định · verifier 1,5B so với 7B · MATH`
+
+**Cảnh báo lẫn cấu hình:** Đây là **cấu hình bất đối xứng**, khác cấu hình đồng cỡ ở các slide trước. Thêm một dòng dẫn: `Từ đây chuyển sang cấu hình model mạnh kiểm model yếu.`
+
 **Cột trái:** verifier 1,5B kiểm solver 1,5B — độ chính xác can thiệp 56–59%, tức gần mức đoán
 mò; mù hoàn toàn với lỗi chữ số được tiêm vào.
 
@@ -414,6 +476,8 @@ giá trị của bước kiểm đến từ việc dùng model mạnh hơn, khô
 **Thông điệp:** Đây là đóng góp phương pháp luận trung tâm của báo cáo.
 
 **Bố cục:** L3.
+
+**Chip cấu hình:** `Nhiều cặp model · trục hoành là chênh lệch năng lực`
 
 **Hình C — biểu đồ hai đường.** Trục hoành là khoảng cách năng lực giữa hai model (từ 0 tăng
 dần). Đường xanh: hiệu ứng đo **so với model yếu** — tăng dần theo khoảng cách. Đường đỏ gạch:
@@ -434,6 +498,8 @@ yếu sẽ kết luận "càng chênh càng tốt"; đo trên mốc mạnh thì 
 
 **Bố cục:** L3.
 
+**Chip cấu hình:** `Qwen-1,5B · MATH · n=150, 5 lần sinh mỗi bài`
+
 **Hình D — cột chồng ngang một dải.** Một thanh ngang chia ba đoạn theo tỷ lệ: `32% quá khó —
 mọi ứng viên đều sai` (xám), `25% quá dễ — mọi ứng viên đều đúng` (xám), `43% còn lại — vùng
 có thể tác động` (xanh). Ghi phần trăm trực tiếp trên từng đoạn.
@@ -451,6 +517,10 @@ luận nhầm là vô dụng.
 **Thông điệp:** Đây là thí nghiệm chính; thiết kế chặt và kết quả mạnh nhất báo cáo.
 
 **Bố cục:** L3, dùng lại **Hình 1 của báo cáo** (`figs/` — sơ đồ hai nhánh) nếu chất lượng đủ,
+
+**Chip cấu hình:** `W = 1,5B · I và E = 7B · MATH-500`
+
+**Cảnh báo lẫn cấu hình:** Vẫn là cấu hình bất đối xứng như slide 11, nhưng khác chỗ: ở đây model mạnh **giải lại cả bài**, không chỉ kiểm.
 hoặc vẽ lại theo đúng cấu trúc đó.
 
 **Cấu trúc hình:** một đề bài → hai nhánh. Nhánh $I$: model mạnh giải độc lập. Nhánh $E$: model
@@ -475,6 +545,8 @@ mạnh giải với artifact của model yếu trong ngữ cảnh. Cùng lệnh,
 
 **Bố cục:** L4, bảng $2\times2$.
 
+**Chip cấu hình:** `W = 1,5B · I và E = 7B · MATH, n=500`
+
 Phân tầng 500 bài MATH theo trạng thái của $W$ và $I$:
 
 | | $I$ đúng | $I$ sai |
@@ -496,6 +568,10 @@ của một cơ chế sửa lỗi.`
 
 **Bố cục:** L5.
 
+**Chip cấu hình:** `HumanEval (code) · và một ca bão hoà trên GSM8K 7B`
+
+**Cảnh báo lẫn cấu hình:** Slide này trộn hai thứ: `exec3`/`llm3` chạy trên **code**, còn ca bão hoà là **GSM8K 7B**. Phải tách thành hai khối có nhãn riêng, đừng để chung một mạch câu.
+
 **Cột trái — tín hiệu chắc chắn (chạy test trên code):** 0 bài bị phá trong 20/20 fold; lấy gần
 trọn trần lý thuyết `oracle@k − maj@k`.
 
@@ -514,6 +590,8 @@ pool: nếu không ứng viên nào đúng thì không bộ chọn nào cứu đ
 **Thông điệp:** Không thể huấn luyện để vá vấn đề, vì hàm mục tiêu luôn bị lách.
 
 **Bố cục:** L4.
+
+**Chip cấu hình:** `Chủ yếu 1,5B · riêng thí nghiệm bất đối xứng: solver 0,5B, verifier 1,5B`
 
 Bảng bốn dòng chọn lọc (không liệt kê cả bảy, sẽ quá dày — bảy cái đầy đủ để ở slide dự phòng):
 
@@ -630,5 +708,7 @@ Nếu một slide cần một trong bốn số này, hãy để trống chỗ đ
 - [ ] Chữ tiếng Việt hiển thị đủ dấu, kể cả `ượ ầ ế ộ ữ ỹ ằ`.
 - [ ] Cỡ chữ nhỏ nhất trong phần thân không dưới 24 px.
 - [ ] Không có slide "Cảm ơn" hoặc "Q&A".
+- [ ] Mọi slide có số liệu đều mang chip cấu hình ở góc trên phải.
+- [ ] Không có câu nào đặt số của hai cấu hình khác nhau cạnh nhau mà không nói rõ.
 - [ ] Không dùng bốn con số ở Phần 6.
 - [ ] Đọc lướt chỉ riêng phần thân các slide vẫn nắm được mạch lập luận.
