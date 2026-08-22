@@ -3,7 +3,11 @@
 Báo cáo bài tập lớn — Xử lý ngôn ngữ tự nhiên (INT3406), Trường Đại học Công nghệ, ĐHQGHN.
 Nhóm 13: Dương Trọng Nguyên, Trương Đình Đức, Trần Tùng Dương, Lê Hoàng Quân.
 
-**Báo cáo đầy đủ:** [`shapley/report/BAO_CAO_NHOM13.pdf`](shapley/report/BAO_CAO_NHOM13.pdf)
+| | |
+|---|---|
+| **Báo cáo** | [`report/BAO_CAO_NHOM13.pdf`](report/BAO_CAO_NHOM13.pdf) — 22 trang |
+| **Slide** | [`report/SLIDE_BAO_CAO.pdf`](report/SLIDE_BAO_CAO.pdf) |
+| **Mã nguồn, kết quả, tài liệu thí nghiệm** | nhánh [`archive`](../../tree/archive) |
 
 ---
 
@@ -39,41 +43,19 @@ Ba sai lệch không cùng chiều, nên phải áp đồng thời.
 - **Bảy phương pháp huấn luyện vai trò đều tìm ra lối tắt của hàm mục tiêu**, không cái nào cải
   thiện thật.
 
-Mọi hiệu ứng được đọc trên **mức dao động nền** đo được: chạy cùng một cấu hình trên 5 fold cho
-độ lệch chuẩn 2,65 điểm, suy ra ngưỡng hiệu dụng khoảng 3,3 điểm.
+Mỗi cấu hình được đo trên 500 bài chia năm fold; ngưỡng hiệu dụng khoảng 3,3 điểm.
+Benchmark: GSM8K, MATH, MBPP, HumanEval. Model từ 0,5B đến 32B tham số.
 
-## Cấu trúc thư mục
-
-```
-shapley/
-  report/     báo cáo LaTeX, slide, và các tài liệu hỗ trợ viết bài
-  docs/       tài liệu phân tích cho từng thí nghiệm (40 file)
-  pipeline/   kernel thí nghiệm, chạy trên Kaggle
-  deploy/     script điều phối, phóng job và thu kết quả
-  analysis/   Shapley, bootstrap, chấm điểm, phân tầng, định tuyến
-  tests/      test cho bộ định tuyến
-  res_*/      kết quả tóm tắt của từng lần chạy
-```
-
-## Chạy lại
-
-Cần một tài khoản Kaggle có bật GPU. Token đọc từ file ngoài repo:
+## Biên dịch lại báo cáo
 
 ```bash
-export ACCOUNTS_FILE=/duong/dan/toi/accounts.txt   # mỗi dòng: <username> <token>
-export KAGGLE_RTX_ACCOUNT=<username có quyền RTX>  # chỉ khi cần GPU lớn
-python shapley/deploy/launch_any.py <ten_kernel>
+cd report && tectonic -X compile BAO_CAO_NHOM13.tex --outdir .
 ```
 
-Repo **không chứa** token hay tên tài khoản. Các bản dump trace thô cũng không được commit vì
-tái sinh được từ `pipeline/`; chỉ file tóm tắt được giữ lại.
+## Nhánh `archive`
 
-## Ghi chú về dữ liệu
-
-Benchmark dùng trong khảo sát: GSM8K, MATH, MBPP, HumanEval. Model từ 0,5B đến 32B tham số.
-Giải mã tất định (`sample = false`), nên chênh lệch giữa các fold hoàn toàn do khác bài chứ
-không do ngẫu nhiên lấy mẫu.
-
-Nhật ký quá trình nghiên cứu, gồm các hướng đã thử và loại bỏ, nằm ở
-[`shapley/docs/NHAT_KY_DU_AN.md`](shapley/docs/NHAT_KY_DU_AN.md). Một số thuật ngữ trong nhật ký
-là bản cũ, đã được thống nhất lại trong báo cáo.
+Nhánh `archive` giữ nguyên trạng toàn bộ phần thực nghiệm: 151 kernel chạy trên Kaggle
+(`shapley/pipeline/`), 89 script điều phối (`shapley/deploy/`), 24 script phân tích
+(`shapley/analysis/`), 40 tài liệu kết quả (`shapley/docs/`) và các file kết quả tóm tắt
+(`shapley/res_*/`). Repo không chứa token hay tên tài khoản Kaggle; các bản dump trace thô
+cũng không được commit vì tái sinh được từ `pipeline/`.

@@ -1,1 +1,0 @@
-{"rounds": 2, "n": 100, "acc_by_round": [0.52, 0.54, 0.54], "fix_by_round": [0, 4, 1], "break_by_round": [0, 2, 1], "converged_by_round": [0, 68, 17], "acc": 0.54}
