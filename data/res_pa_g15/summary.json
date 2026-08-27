@@ -1,0 +1,161 @@
+{
+  "task": "gsm8k",
+  "folds": [
+    {
+      "fold": 0,
+      "n": 80,
+      "S": 0.6625,
+      "V_std": 0.75,
+      "V_patch": 0.6125,
+      "V_none": 0.6625,
+      "patch_minus_std": -0.1375,
+      "reuse_std": 0.167,
+      "reuse_patch": 0.167,
+      "plan_acc_hide": 0.3,
+      "plan_acc_free": 0.4875,
+      "plan_acc_ask": 0.425,
+      "solver_after_hide": 0.6625,
+      "solver_after_free": 0.7,
+      "len_patch": 494,
+      "len_std": 551
+    },
+    {
+      "fold": 1,
+      "n": 80,
+      "S": 0.7,
+      "V_std": 0.7,
+      "V_patch": 0.575,
+      "V_none": 0.7,
+      "patch_minus_std": -0.125,
+      "reuse_std": 0.167,
+      "reuse_patch": 0.167,
+      "plan_acc_hide": 0.3625,
+      "plan_acc_free": 0.475,
+      "plan_acc_ask": 0.4125,
+      "solver_after_hide": 0.7,
+      "solver_after_free": 0.6625,
+      "len_patch": 465,
+      "len_std": 561
+    },
+    {
+      "fold": 2,
+      "n": 80,
+      "S": 0.7,
+      "V_std": 0.7125,
+      "V_patch": 0.6125,
+      "V_none": 0.7,
+      "patch_minus_std": -0.1,
+      "reuse_std": 0.167,
+      "reuse_patch": 0.2,
+      "plan_acc_hide": 0.375,
+      "plan_acc_free": 0.4875,
+      "plan_acc_ask": 0.5125,
+      "solver_after_hide": 0.7,
+      "solver_after_free": 0.75,
+      "len_patch": 511,
+      "len_std": 559
+    },
+    {
+      "fold": 3,
+      "n": 80,
+      "S": 0.6125,
+      "V_std": 0.675,
+      "V_patch": 0.5625,
+      "V_none": 0.6125,
+      "patch_minus_std": -0.1125,
+      "reuse_std": 0.143,
+      "reuse_patch": 0.167,
+      "plan_acc_hide": 0.2625,
+      "plan_acc_free": 0.5375,
+      "plan_acc_ask": 0.45,
+      "solver_after_hide": 0.6125,
+      "solver_after_free": 0.7125,
+      "len_patch": 460,
+      "len_std": 581
+    },
+    {
+      "fold": 4,
+      "n": 80,
+      "S": 0.675,
+      "V_std": 0.6875,
+      "V_patch": 0.575,
+      "V_none": 0.675,
+      "patch_minus_std": -0.1125,
+      "reuse_std": 0.143,
+      "reuse_patch": 0.143,
+      "plan_acc_hide": 0.3625,
+      "plan_acc_free": 0.4375,
+      "plan_acc_ask": 0.5125,
+      "solver_after_hide": 0.675,
+      "solver_after_free": 0.6875,
+      "len_patch": 501,
+      "len_std": 551
+    }
+  ],
+  "S": {
+    "mean": 0.67,
+    "min": 0.6125,
+    "max": 0.7,
+    "range": 0.0875
+  },
+  "V_std": {
+    "mean": 0.705,
+    "min": 0.675,
+    "max": 0.75,
+    "range": 0.075
+  },
+  "V_patch": {
+    "mean": 0.5875,
+    "min": 0.5625,
+    "max": 0.6125,
+    "range": 0.05
+  },
+  "patch_minus_std": {
+    "mean": -0.1175,
+    "min": -0.1375,
+    "max": -0.1,
+    "range": 0.0375
+  },
+  "reuse_std": {
+    "mean": 0.1574,
+    "min": 0.143,
+    "max": 0.167,
+    "range": 0.024
+  },
+  "reuse_patch": {
+    "mean": 0.1688,
+    "min": 0.143,
+    "max": 0.2,
+    "range": 0.057
+  },
+  "plan_acc_hide": {
+    "mean": 0.3325,
+    "min": 0.2625,
+    "max": 0.375,
+    "range": 0.1125
+  },
+  "plan_acc_free": {
+    "mean": 0.485,
+    "min": 0.4375,
+    "max": 0.5375,
+    "range": 0.1
+  },
+  "plan_acc_ask": {
+    "mean": 0.4625,
+    "min": 0.4125,
+    "max": 0.5125,
+    "range": 0.1
+  },
+  "solver_after_hide": {
+    "mean": 0.67,
+    "min": 0.6125,
+    "max": 0.7,
+    "range": 0.0875
+  },
+  "solver_after_free": {
+    "mean": 0.7025,
+    "min": 0.6625,
+    "max": 0.75,
+    "range": 0.0875
+  }
+}

@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUND = os.environ.get("ROUND", "r1")
-RES = ROOT / (f"results_{ROUND}" if ROUND != "r1" else "results")
+RES = ROOT / "data" / (f"results_{ROUND}" if ROUND != "r1" else "results")
 ROLES = ["P", "S", "V", "A"]
 NAMES = {"P": "Planner", "S": "Solver", "V": "Verifier", "A": "Aggregator"}
 

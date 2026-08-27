@@ -1,0 +1,191 @@
+{
+  "task": "gsm8k",
+  "n": 250,
+  "quant": false,
+  "folds": [
+    {
+      "fold": 0,
+      "n": 50,
+      "greedy1": 0.54,
+      "maj3": 0.68,
+      "PSV": 0.68,
+      "maj4": 0.7,
+      "P3S": 0.72,
+      "PSVA": 0.68,
+      "P3S_minus_maj4": 0.02,
+      "PSVA_minus_PSV": 0.0,
+      "maj4_minus_maj3": 0.02,
+      "SVV": 0.64,
+      "SS_anc": 0.68,
+      "maj3_minus_PSV": 0.0,
+      "SVV_minus_maj3": -0.04,
+      "SSanc_minus_PSV": 0.0
+    },
+    {
+      "fold": 1,
+      "n": 50,
+      "greedy1": 0.6,
+      "maj3": 0.64,
+      "PSV": 0.8,
+      "maj4": 0.68,
+      "P3S": 0.66,
+      "PSVA": 0.8,
+      "P3S_minus_maj4": -0.02,
+      "PSVA_minus_PSV": 0.0,
+      "maj4_minus_maj3": 0.04,
+      "SVV": 0.68,
+      "SS_anc": 0.68,
+      "maj3_minus_PSV": -0.16,
+      "SVV_minus_maj3": 0.04,
+      "SSanc_minus_PSV": -0.12
+    },
+    {
+      "fold": 2,
+      "n": 50,
+      "greedy1": 0.64,
+      "maj3": 0.64,
+      "PSV": 0.7,
+      "maj4": 0.74,
+      "P3S": 0.74,
+      "PSVA": 0.72,
+      "P3S_minus_maj4": 0.0,
+      "PSVA_minus_PSV": 0.02,
+      "maj4_minus_maj3": 0.1,
+      "SVV": 0.7,
+      "SS_anc": 0.72,
+      "maj3_minus_PSV": -0.06,
+      "SVV_minus_maj3": 0.06,
+      "SSanc_minus_PSV": 0.02
+    },
+    {
+      "fold": 3,
+      "n": 50,
+      "greedy1": 0.66,
+      "maj3": 0.64,
+      "PSV": 0.66,
+      "maj4": 0.7,
+      "P3S": 0.7,
+      "PSVA": 0.7,
+      "P3S_minus_maj4": 0.0,
+      "PSVA_minus_PSV": 0.04,
+      "maj4_minus_maj3": 0.06,
+      "SVV": 0.66,
+      "SS_anc": 0.76,
+      "maj3_minus_PSV": -0.02,
+      "SVV_minus_maj3": 0.02,
+      "SSanc_minus_PSV": 0.1
+    },
+    {
+      "fold": 4,
+      "n": 50,
+      "greedy1": 0.72,
+      "maj3": 0.72,
+      "PSV": 0.8,
+      "maj4": 0.68,
+      "P3S": 0.74,
+      "PSVA": 0.82,
+      "P3S_minus_maj4": 0.06,
+      "PSVA_minus_PSV": 0.02,
+      "maj4_minus_maj3": -0.04,
+      "SVV": 0.78,
+      "SS_anc": 0.8,
+      "maj3_minus_PSV": -0.08,
+      "SVV_minus_maj3": 0.06,
+      "SSanc_minus_PSV": 0.0
+    }
+  ],
+  "tokens_per_arm": {
+    "greedy1": 50463,
+    "maj3": 150415,
+    "PSV": 115722,
+    "SVV": 122866,
+    "SS_anc": 169022,
+    "maj4": 49154,
+    "P3S": 81748,
+    "PSVA": 3184
+  },
+  "greedy1": {
+    "mean": 0.632,
+    "min": 0.54,
+    "max": 0.72,
+    "pos": 5
+  },
+  "maj3": {
+    "mean": 0.664,
+    "min": 0.64,
+    "max": 0.72,
+    "pos": 5
+  },
+  "PSV": {
+    "mean": 0.728,
+    "min": 0.66,
+    "max": 0.8,
+    "pos": 5
+  },
+  "SVV": {
+    "mean": 0.692,
+    "min": 0.64,
+    "max": 0.78,
+    "pos": 5
+  },
+  "SS_anc": {
+    "mean": 0.728,
+    "min": 0.68,
+    "max": 0.8,
+    "pos": 5
+  },
+  "maj4": {
+    "mean": 0.7,
+    "min": 0.68,
+    "max": 0.74,
+    "pos": 5
+  },
+  "P3S": {
+    "mean": 0.712,
+    "min": 0.66,
+    "max": 0.74,
+    "pos": 5
+  },
+  "PSVA": {
+    "mean": 0.744,
+    "min": 0.68,
+    "max": 0.82,
+    "pos": 5
+  },
+  "maj3_minus_PSV": {
+    "mean": -0.064,
+    "min": -0.16,
+    "max": 0.0,
+    "pos": 0
+  },
+  "SVV_minus_maj3": {
+    "mean": 0.028,
+    "min": -0.04,
+    "max": 0.06,
+    "pos": 4
+  },
+  "SSanc_minus_PSV": {
+    "mean": 0.0,
+    "min": -0.12,
+    "max": 0.1,
+    "pos": 2
+  },
+  "P3S_minus_maj4": {
+    "mean": 0.012,
+    "min": -0.02,
+    "max": 0.06,
+    "pos": 2
+  },
+  "PSVA_minus_PSV": {
+    "mean": 0.016,
+    "min": 0.0,
+    "max": 0.04,
+    "pos": 3
+  },
+  "maj4_minus_maj3": {
+    "mean": 0.036,
+    "min": -0.04,
+    "max": 0.1,
+    "pos": 4
+  }
+}

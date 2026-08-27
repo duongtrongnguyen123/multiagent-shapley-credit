@@ -1,0 +1,161 @@
+{
+  "task": "math",
+  "folds": [
+    {
+      "fold": 0,
+      "n": 80,
+      "S": 0.5,
+      "V_std": 0.5125,
+      "V_patch": 0.4,
+      "V_none": 0.5,
+      "patch_minus_std": -0.1125,
+      "reuse_std": 0.75,
+      "reuse_patch": 0.95,
+      "plan_acc_hide": 0.275,
+      "plan_acc_free": 0.3875,
+      "plan_acc_ask": 0.3625,
+      "solver_after_hide": 0.5,
+      "solver_after_free": 0.525,
+      "len_patch": 877,
+      "len_std": 1011
+    },
+    {
+      "fold": 1,
+      "n": 80,
+      "S": 0.3875,
+      "V_std": 0.4,
+      "V_patch": 0.35,
+      "V_none": 0.3875,
+      "patch_minus_std": -0.05,
+      "reuse_std": 0.826,
+      "reuse_patch": 0.75,
+      "plan_acc_hide": 0.175,
+      "plan_acc_free": 0.2125,
+      "plan_acc_ask": 0.1875,
+      "solver_after_hide": 0.3875,
+      "solver_after_free": 0.4,
+      "len_patch": 941,
+      "len_std": 1140
+    },
+    {
+      "fold": 2,
+      "n": 80,
+      "S": 0.3875,
+      "V_std": 0.4125,
+      "V_patch": 0.375,
+      "V_none": 0.3875,
+      "patch_minus_std": -0.0375,
+      "reuse_std": 0.866,
+      "reuse_patch": 0.875,
+      "plan_acc_hide": 0.2,
+      "plan_acc_free": 0.275,
+      "plan_acc_ask": 0.2375,
+      "solver_after_hide": 0.3875,
+      "solver_after_free": 0.4,
+      "len_patch": 887,
+      "len_std": 1127
+    },
+    {
+      "fold": 3,
+      "n": 80,
+      "S": 0.375,
+      "V_std": 0.375,
+      "V_patch": 0.2875,
+      "V_none": 0.375,
+      "patch_minus_std": -0.0875,
+      "reuse_std": 0.857,
+      "reuse_patch": 1.0,
+      "plan_acc_hide": 0.2,
+      "plan_acc_free": 0.2625,
+      "plan_acc_ask": 0.1875,
+      "solver_after_hide": 0.375,
+      "solver_after_free": 0.425,
+      "len_patch": 921,
+      "len_std": 1032
+    },
+    {
+      "fold": 4,
+      "n": 80,
+      "S": 0.3875,
+      "V_std": 0.4,
+      "V_patch": 0.3625,
+      "V_none": 0.3875,
+      "patch_minus_std": -0.0375,
+      "reuse_std": 0.8,
+      "reuse_patch": 0.778,
+      "plan_acc_hide": 0.2125,
+      "plan_acc_free": 0.25,
+      "plan_acc_ask": 0.275,
+      "solver_after_hide": 0.3875,
+      "solver_after_free": 0.475,
+      "len_patch": 781,
+      "len_std": 1097
+    }
+  ],
+  "S": {
+    "mean": 0.4075,
+    "min": 0.375,
+    "max": 0.5,
+    "range": 0.125
+  },
+  "V_std": {
+    "mean": 0.42,
+    "min": 0.375,
+    "max": 0.5125,
+    "range": 0.1375
+  },
+  "V_patch": {
+    "mean": 0.355,
+    "min": 0.2875,
+    "max": 0.4,
+    "range": 0.1125
+  },
+  "patch_minus_std": {
+    "mean": -0.065,
+    "min": -0.1125,
+    "max": -0.0375,
+    "range": 0.075
+  },
+  "reuse_std": {
+    "mean": 0.8198,
+    "min": 0.75,
+    "max": 0.866,
+    "range": 0.116
+  },
+  "reuse_patch": {
+    "mean": 0.8706,
+    "min": 0.75,
+    "max": 1.0,
+    "range": 0.25
+  },
+  "plan_acc_hide": {
+    "mean": 0.2125,
+    "min": 0.175,
+    "max": 0.275,
+    "range": 0.1
+  },
+  "plan_acc_free": {
+    "mean": 0.2775,
+    "min": 0.2125,
+    "max": 0.3875,
+    "range": 0.175
+  },
+  "plan_acc_ask": {
+    "mean": 0.25,
+    "min": 0.1875,
+    "max": 0.3625,
+    "range": 0.175
+  },
+  "solver_after_hide": {
+    "mean": 0.4075,
+    "min": 0.375,
+    "max": 0.5,
+    "range": 0.125
+  },
+  "solver_after_free": {
+    "mean": 0.445,
+    "min": 0.4,
+    "max": 0.525,
+    "range": 0.125
+  }
+}

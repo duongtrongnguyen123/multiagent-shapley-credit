@@ -54,3 +54,9 @@ monitor_remote.py
 # traces: dump tho, tai sinh duoc — chi giu file tom tat
 **/traces.json
 **/traces_*.json
+
+# === committed evidence: the result files the report's claims rest on ===
+# The broad res_*/ and results_*/ rules above exclude regenerable run output.
+# data/ is the curated exception and must stay tracked.
+!data/
+!data/**

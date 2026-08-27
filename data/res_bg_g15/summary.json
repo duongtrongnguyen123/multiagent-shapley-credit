@@ -1,0 +1,122 @@
+{
+  "task": "gsm8k",
+  "n": 250,
+  "quant": false,
+  "folds": [
+    {
+      "fold": 0,
+      "n": 50,
+      "greedy1": 0.54,
+      "maj3": 0.62,
+      "PSV": 0.68,
+      "SVV": 0.64,
+      "SS_anc": 0.68,
+      "maj3_minus_PSV": -0.06,
+      "SVV_minus_maj3": 0.02,
+      "SSanc_minus_PSV": 0.0
+    },
+    {
+      "fold": 1,
+      "n": 50,
+      "greedy1": 0.6,
+      "maj3": 0.62,
+      "PSV": 0.8,
+      "SVV": 0.68,
+      "SS_anc": 0.68,
+      "maj3_minus_PSV": -0.18,
+      "SVV_minus_maj3": 0.06,
+      "SSanc_minus_PSV": -0.12
+    },
+    {
+      "fold": 2,
+      "n": 50,
+      "greedy1": 0.64,
+      "maj3": 0.6,
+      "PSV": 0.7,
+      "SVV": 0.7,
+      "SS_anc": 0.72,
+      "maj3_minus_PSV": -0.1,
+      "SVV_minus_maj3": 0.1,
+      "SSanc_minus_PSV": 0.02
+    },
+    {
+      "fold": 3,
+      "n": 50,
+      "greedy1": 0.66,
+      "maj3": 0.66,
+      "PSV": 0.66,
+      "SVV": 0.66,
+      "SS_anc": 0.76,
+      "maj3_minus_PSV": 0.0,
+      "SVV_minus_maj3": 0.0,
+      "SSanc_minus_PSV": 0.1
+    },
+    {
+      "fold": 4,
+      "n": 50,
+      "greedy1": 0.72,
+      "maj3": 0.72,
+      "PSV": 0.8,
+      "SVV": 0.78,
+      "SS_anc": 0.8,
+      "maj3_minus_PSV": -0.08,
+      "SVV_minus_maj3": 0.06,
+      "SSanc_minus_PSV": 0.0
+    }
+  ],
+  "tokens_per_arm": {
+    "greedy1": 50463,
+    "maj3": 149384,
+    "PSV": 115722,
+    "SVV": 122866,
+    "SS_anc": 169022
+  },
+  "greedy1": {
+    "mean": 0.632,
+    "min": 0.54,
+    "max": 0.72,
+    "pos": 5
+  },
+  "maj3": {
+    "mean": 0.644,
+    "min": 0.6,
+    "max": 0.72,
+    "pos": 5
+  },
+  "PSV": {
+    "mean": 0.728,
+    "min": 0.66,
+    "max": 0.8,
+    "pos": 5
+  },
+  "SVV": {
+    "mean": 0.692,
+    "min": 0.64,
+    "max": 0.78,
+    "pos": 5
+  },
+  "SS_anc": {
+    "mean": 0.728,
+    "min": 0.68,
+    "max": 0.8,
+    "pos": 5
+  },
+  "maj3_minus_PSV": {
+    "mean": -0.084,
+    "min": -0.18,
+    "max": 0.0,
+    "pos": 0
+  },
+  "SVV_minus_maj3": {
+    "mean": 0.048,
+    "min": 0.0,
+    "max": 0.1,
+    "pos": 4
+  },
+  "SSanc_minus_PSV": {
+    "mean": 0.0,
+    "min": -0.12,
+    "max": 0.1,
+    "pos": 2
+  }
+}

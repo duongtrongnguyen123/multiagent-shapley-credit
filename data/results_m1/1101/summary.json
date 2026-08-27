@@ -1,0 +1,14 @@
+{
+  "config_id": "1101",
+  "mask": {
+    "P": 1,
+    "S": 1,
+    "V": 0,
+    "A": 1
+  },
+  "dataset": "MATH-500",
+  "n": 500,
+  "correct": 223,
+  "accuracy": 0.446,
+  "seconds": 5762.6
+}

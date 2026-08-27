@@ -27,8 +27,9 @@ export KAGGLE_RTX_ACCOUNT=<username>          # only for the runs needing a larg
 
 ```
 analysis/    Shapley values, bootstrap CIs, grading, strata, trace behaviour, routing
-pipeline/    experiment kernels — one file per experiment, each self-contained
-deploy/      job launch, result collection, account rotation
+pipeline/    experiment kernels — Kaggle-native, templated, launched through deploy/
+deploy/      job launch, placeholder substitution, result collection, account rotation
+data/        the result files the tables below are computed from
 tests/       test suite for the router
 report/      LaTeX source, compiled PDF, slides, figures
 ```
@@ -38,20 +39,32 @@ orchestration scripts, 40 analysis documents, and every per-run result file.
 
 ## Running experiments
 
-Each kernel is one experiment. Launch one, then collect its results:
+There are two levels, and they have very different requirements.
+
+**Recomputing the tables from stored results.** The result files behind the tables below are
+committed under `data/`, so the analysis scripts run with no GPU and no accounts:
 
 ```bash
-python deploy/launch_any.py <kernel_name>     # e.g. roleablate_kernel
-python deploy/collect.py <kernel_name>
-```
-
-Analysis scripts read the collected result files and print the tables used in the report:
-
-```bash
-python analysis/shapley.py
-python analysis/role_specialization.py
+ROUND=r2 python analysis/shapley.py        # GSM8K coalitions
+ROUND=m1 python analysis/shapley.py        # MATH-500 coalitions
 python analysis/difficulty_strata.py
+python analysis/trace_novelty.py
 ```
+
+**Re-running an experiment from scratch.** The kernels in `pipeline/` are not standalone
+scripts. They read from `/kaggle/input/` and write to `/kaggle/working/`, and most contain
+`__PLACEHOLDER__` tokens that `deploy/` substitutes at launch time. Running one therefore means
+going through `deploy/`, and needs a Kaggle account with GPU quota and the model datasets
+mounted:
+
+```bash
+python deploy/launch_any.py roleablate_kernel
+python deploy/collect.py roleablate_kernel
+```
+
+This coupling is deliberate — the whole study was run on Kaggle's free 2xT4 tier — but it does
+mean the launch commands are not reproducible by a reader without their own account. The
+analysis commands are.
 
 ## Results
 
@@ -73,7 +86,8 @@ Given a solver, the other three roles add 4.9 points on GSM8K and nothing distin
 zero on MATH-500.
 
 ```bash
-python deploy/launch_any.py roleablate_kernel && python analysis/shapley.py
+ROUND=r2 python analysis/shapley.py            # from data/
+python deploy/launch_any.py roleablate_kernel  # to regenerate
 ```
 
 ### The planner does not respect its instruction (§5.4)
